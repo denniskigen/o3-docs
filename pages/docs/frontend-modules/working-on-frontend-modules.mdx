@@ -1,0 +1,45 @@
+# Working on a frontend module
+
+After setting up your local environment, you'll want to do some work on a frontend module. Broadly speaking, the approach to follow to get a frontend module running locally involves the following steps:
+
+- `cd` into the root directory of your local copy of a frontend module. For example, if you’re working on the `patient-chart` repo, `cd` into the `openmrs-esm-patient-chart` repository.
+- Make sure dependencies are installed by running `yarn`.
+- Typically, you’ll want to run a specific package within a monorepo. For example, you might want to run only the `conditions` frontend module. To do that, run `yarn start --sources` and pass in the name of your package of interest as a string. The full command should read:
+
+  `yarn start --sources 'packages/esm-patient-conditions-app'`
+
+- Note that the argument following packages in the command has to be the frontend module’s full path name. It is also possible to pass multiple arguments to yarn start --sources. Doing so allows you to run multiple frontend modules simultaneously. Imagine a situation where you need to make a change to both the vitals and biometrics widgets in the patient chart. To get them to run simultaneously, you’d run:
+
+  `yarn start --sources 'packages/esm-patient-biometrics-app' 'packages/esm-patient-vitals-app'`
+
+- Running this command fires up a dev server in your default browser. By default, this server will run on port 8080. If you wish to run the server on a different you can specify that by passing a --port argument. For example, if you run the command above, you'd have biometrics and vitals getting served from http://localhost:8080/openmrs/spa. If you then want to run, say the patient search frontend module from the patient management monorepo, you could specify a different port number. You'd then run it like so:
+
+  `yarn start --sources 'packages/esm-patient-chart-app' --port=7000`
+
+  And that should fire up a local dev server at `http://localhost:7000/openmrs/spa`.
+
+  When you fire up a dev server in this way, several things happen under the hood. If you look at the manifest file (`package.json`) of a frontend module, you should see a start script with something like:
+
+  `“start”: "openmrs develop"`
+
+  What this means is that running `yarn start` invokes the `develop` command of the `openmrs` tooling. This command starts a new frontend development session using the OpenMRS app shell. The tooling sets up the import map, adds entries for core applications from the app shell and overrides the entries for the modules running locally. Ultimately, the corollary is that you can make changes to frontend modules in your local environment and have those changes propagate to the dev server in your browser. The tooling allows you to do various other cool things, such as:
+
+  - Specifying an alternative backend server (other than the community dev3 server) and proxying requests to it.
+  - Specifying an alternative target server path (defaults to `/openmrs/spa`).
+  - Specifying an alternative API URL (defaults to `openmrs`).
+  - Specifying a custom import map.
+
+Most of the time, this should be all a developer needs to do to get a local dev server running. One notable departure, however, is running the `app shell`. You’ll need to run the shell directly if you want to:
+
+- Make changes to the `styleguide` frontend module and test them out locally.
+- Test out changes to the following applications:
+
+  - `devtools` - used for setting up import map overrides.
+  - `implementer tools` - used for configuring extensions and UI components on the fly.
+  - `login` - the reference application login page.
+  - `offline tools` - the offline tools dashboard.
+  - `primary navigation` - the navigation menu.
+
+Because these applications reside in the `apps` directory of the `esm-core` monorepo, running them within the context of the app shell makes it a lot easier to test out changes. Something to note when using this approach, however, is that for your changes to propagate to your local server, you might need to rebuild your frontend module. To do this, run `yarn turbo run build`.
+
+TODO: Map out dev workflow

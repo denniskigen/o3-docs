@@ -1,0 +1,104 @@
+import Image from "next/image";
+
+# Introduction
+
+Frontend modules are the basic building blocks of O3. They get shipped in the ES module format, which explains the `esm-` prefix in the nomenclature. Frontend modules get organized into monorepos based on their specific domain. For example, frontend modules concerning patients exist in the patient management repository. These include:
+
+- Appointments
+- Patient search
+- Patient lists
+- Service queues
+
+Frontend modules are alternately referred to as `microfrontends` in O3. They get loaded into the application indirectly using a special JSON file called an import map.
+
+<br />
+<Image src="/o3-execution.png" alt="O3 architecture" width={500} height={500} />
+
+This diagram walks through what happens when the application gets executed. The app shell loads configuration files, the import map specifies where frontend modules get fetched from, and loads frontend modules.
+
+## Anatomy of a frontend module
+
+Frontend modules export a predefined set of functionality. Each frontend module has a root-level `package.json` file that defines its dependencies and metadata.
+
+<br />
+<Image
+  src="/anatomy.png"
+  alt="Anatomy of a frontend module"
+  width={500}
+  height={500}
+/>
+
+Key things to note from looking at this file include:
+
+- The `name` property which defines the name of the module. This property is used as the module’s unique identifier in the import map.
+- The `browser` property which is the entry point of the webpack bundle.
+- The `main` property which represents entry point of the frontend module’s source code.
+
+#### The application entry point (`index.ts`)
+
+Most, if not all, frontend modules will have their entry point defined in `src/index.ts`.
+
+<br />
+<Image
+  src="/entrypoint.png"
+  alt="Application entry point"
+  width={500}
+  height={500}
+/>
+
+The entry point communicates important information about the frontend module to app shell, including:
+
+- The versions of backend dependencies used in the frontend module
+- The module’s configuration schema
+- Which React components to load (as determined in the pages and extensions configurations)
+- The extensions that the module defines, in addition to the extension slots where they “plug into"
+- Internationalization setup
+- Breadcrumbs menu configuration
+
+Each frontend module defines a function named `setupOpenMRS`. This function performs any setup that should occur at the time the module gets loaded. It returns an object that communicates how the app shell should load the module. Looking at the entry point file above:
+
+    - `importTranslation` communicates how translations should get wired up for the frontend module. Specifically, it says that translation keys and strings should be lazily loaded from JSON files in the translations directory.
+
+      ```ts
+        const importTranslation = require.context(
+          "../translations",
+          false,
+          /.json$/,
+          "lazy"
+        );
+      ```
+
+    - `backendDependencies` defines the backend module versions that the frontend module depends on.
+
+    - `setupOpenMRS` does the following:
+      - Defines the module’s `name`.
+      - Sets up configuration by loading the configuration schema from a file named `config-schema`.
+      - `registerBreadcrumbs` sets up the breadcrumb navigation menu.
+      - Returns an object with `pages` and `extension` definitions.
+
+        ```ts
+          pages: [
+            {
+              load: getAsyncLifecycle(() => import("./root.component"), options),
+              route: "form-builder"
+            }
+          ]
+        ```
+
+        The pages definition above tells the app shell to render the component exported from root.component when the user navigates to a route matching /form-builder. The full route will usually be something like /openmrs/spa/form-builder.
+
+        ```ts
+          extensions: [
+            {
+              id: "form-builder-app-menu-link",
+              slot: "app-menu-slot",
+              load: getAsyncLifecycle(() => import("./form-builder-app-menu-link.component"), options),
+              online: true,
+              offline: true,
+            }
+          ]
+        ```
+
+        The `extensions` array is where a developer can set up their extension configuration in a frontend module. The example above sets up a link to the form builder app from the app menu in the navigation bar. More specifically, the id property is the unique identifier for the extension. The slot is the extension slot where this slot will ‘plug into’. The load function points to the React component that gets lazy loaded when the extension is rendered. The online and offline boolean properties determine whether the module ought to have offline capabilities.
+
+TODO: ADD HIGH LEVEL CONTEXT DIAGRAM SHOWING HOW THE FRONTEND COMMUNICATES WITH THE BACKEND

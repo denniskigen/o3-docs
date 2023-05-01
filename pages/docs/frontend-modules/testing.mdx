@@ -1,0 +1,248 @@
+# Testing frontend modules
+
+Broadly speaking, when it comes to testing components in O3, there are three categories of tests:
+
+1. **Unit tests** - verify that pieces individual, isolated pieces of functionality work together as expected.
+2. **Integration tests** - verify that several units work together in harmony.
+3. **End to End (e2e) tests** - a helper robot that behaves like a user to click around the app and verify that it functions correctly.
+
+When working with a frontend module, its accompanying unit (and, sometimes, integration) tests will typically be colocated in a file named **\*.test.tsx**. These tests typically follow the following pattern:
+
+- Integration tests typically render the full app while mocking out a few bits like network requests or database access.
+- Unit tests typically test pure functions and assert that they return a given output when given some input.
+- e2e tests typically run the entire application (both frontend and backend) and your test will interact with the app just like a typical user would.
+
+## Testing Philosophy
+
+The more your tests resemble the way your software is used, the more confidence they can give you.
+
+### Example
+
+We’re going to walk through an example test suite to understand the approach taken. In this case, we’ll use the [module-management](https://github.com/openmrs/openmrs-esm-module-management-app) frontend module. This application takes the `Manage Module` page from the OpenMRS 2.x reference application and redesigns it to work within O3. It provides an interface for users to manage backend modules. It lists all the installed modules and allows admins to control the execution of modules via the exposed `Start`, `Stop` and `Unload` actions. Users can also view detailed information about the listed modules.
+
+Let’s look at how we could test the `ModuleManagement` component. Looking at its code, we can see that it does several things:
+
+- It fetches module data from the backend using a custom SWR hook.
+- When data is loading, a loading state gets displayed.
+- When data is loaded but empty, an empty state is displayed.
+- When a problem occurs while fetching data, an error state is displayed.
+- When data gets fetched, a Carbon datatable containing information about existing modules is rendered.
+- If the user viewing the module list has sufficient privileges, action buttons get shown on the page.
+
+We could write a test suite that tests each of these pathways.
+
+### Write the test
+
+Create a new file next to `module-management.component.tsx` named `module-management.test.tsx`.
+
+Setup a function that renders the component:
+
+```tsx
+function renderModuleManagement() {
+  renderWithSwr(<ModuleManagement />);
+}
+```
+
+Note: This `renderWithSwr` helper function wraps a component in an SWR context which provides a global configuration for all SWR hooks.
+
+#### Test that a loading state gets rendered
+
+We don’t want to directly hit the database with our test and to avoid that, we could mock the data fetching logic as follows:
+
+```tsx
+mockedOpenmrsFetch.mockReturnValueOnce({ data: { results: [] } });
+```
+
+This code mocks out the `openmrsFetch` function, stubbing out its implementation and replacing it with a mock that returns an object with a `results` property that's an empty array.
+
+Next, we want to render the component:
+
+```tsx
+await waitForElementToBeRemoved(
+  () => [...screen.queryAllByRole(/progressbar/i)],
+  {
+    timeout: 4000,
+  }
+);
+```
+
+This code asks Jest to wait until the loader gets removed from the UI. This mimics waiting for a backend request to resolve. Next, we want to start writing our assertions:
+
+```tsx
+expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+expect(screen.queryByRole("table")).not.toBeInTheDocument();
+expect(
+  screen.getByText(/there are no modules to display/i)
+).toBeInTheDocument();
+```
+
+These assertions:
+
+1. Assert that a DOM element with the role `progressbar` should not be in the document.
+2. Assert that the DOM doesn’t contain an element of the role `table` .
+3. Assert that the text `There are no modules to display` gets rendered in the document.
+
+At any point, you can run tests by calling `yarn test` or `yarn turbo test` (if `turbo` is configured).
+
+To evaluate the error state, you could write:
+
+```tsx
+it("renders an error state view if there was a problem fetching module data", async () => {
+  const error = {
+    message: "Internal Server Error",
+    response: {
+      status: 500,
+      statusText: "Internal Server Error",
+    },
+  };
+
+  // Syntactic sugar for `mockedOpenmrsFetch.mockReturnValue(Promise.resolve(error))`
+  mockedOpenmrsFetch.mockRejectedValueOnce(error);
+
+  renderModuleManagement();
+
+  // Wait for the loading state to disappear from the screen
+  await waitForLoadingToFinish();
+
+  expect(
+    screen.getByText(/sorry, there was a problem fetching modules/i)
+  ).toBeInTheDocument();
+});
+```
+
+To test the happy path, we could write the following test:
+
+```tsx
+it("renders detailed information about the module", async () => {
+  const user = userEvent.setup();
+
+  const testModules = [
+    {
+      uuid: "initializer",
+      display: "Initializer",
+      name: "Initializer",
+      description:
+        "The OpenMRS Initializer module is an API-only module that processes the content of the configuration folder when it is found inside OpenMRS' application data directory.",
+      packageName: "org.openmrs.module.initializer",
+      author: "Mekom Solutions",
+      version: "2.3.0",
+      started: true,
+      startupErrorMessage: null,
+      requireOpenmrsVersion: "2.1.1",
+      awareOfModules: [
+        "org.openmrs.module.metadatamapping",
+        "org.bahmni.module.bahmni.ie.apps",
+        "org.openmrs.module.datafilter",
+        "org.openmrs.module.htmlformentry",
+        "org.bahmni.module.appointments",
+        "org.openmrs.module.metadatasharing",
+        "org.openmrs.module.openconceptlab",
+        "org.bahmni.module.bahmnicore",
+        "org.openmrs.module.idgen",
+        "org.openmrs.module.legacyui",
+      ],
+      requiredModules: [],
+      resourceVersion: "1.8",
+    },
+    {
+      uuid: "serialization.xstream",
+      display: "Serialization Xstream",
+      name: "Serialization Xstream",
+      description:
+        "Core (de)serialize API and services supported by xstream library",
+      packageName: "org.openmrs.module.serialization.xstream",
+      author: "luzhuangwei",
+      version: "0.2.15",
+      started: true,
+      startupErrorMessage: null,
+      requireOpenmrsVersion: "1.9.9",
+      awareOfModules: [],
+      requiredModules: [],
+      resourceVersion: "1.8",
+    },
+  ];
+
+  // Return the `testModules` object defined above in the API response. The nested `data` property below corresponds to the the `data` property returned from calling the `useSWR` hook
+  mockedOpenmrsFetch.mockReturnValueOnce({
+    data: { results: testModules },
+  });
+
+  renderModuleManagement();
+
+  // Wait for the loading state to disappear from the screen
+  await waitForLoadingToFinish();
+
+  expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: /add \/ upgrade modules/i })
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: /search from addons/i })
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: /check for updates/i })
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: /start all/i })
+  ).toBeInTheDocument();
+  expect(screen.getByRole("table")).toBeInTheDocument();
+  expect(
+    screen.getByRole("heading", { name: /manage modules/i })
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("searchbox", { name: /filter table/i })
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: /clear search input/i })
+  ).toBeInTheDocument();
+
+  const modules = testModules.map((module) => module);
+
+  modules.forEach((module) => {
+    expect(screen.getByText(module.name)).toBeInTheDocument();
+    expect(screen.getByText(module.description)).toBeInTheDocument();
+  });
+
+  const expectedColumnHeaders = [
+    /status/,
+    /name/,
+    /author/,
+    /version/,
+    /Description/,
+  ];
+
+  expectedColumnHeaders.forEach((row) => {
+    expect(
+      screen.getByRole("columnheader", { name: new RegExp(row, "i") })
+    ).toBeInTheDocument();
+  });
+
+  const searchbox = screen.getByRole("searchbox", { name: /filter table/i });
+
+  // search for the Serializer module
+  await user.type(searchbox, "Seri");
+
+  expect(screen.getByText(/Serialization Xstream/i)).toBeInTheDocument();
+  expect(screen.queryByText(/Initializer/i)).not.toBeInTheDocument();
+
+  await user.clear(searchbox);
+
+  // search for something that doesn't exist in the module list
+  await user.type(searchbox, "super-duper-unreleased-module");
+
+  expect(screen.queryByText(/Serialization Xstream/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Initializer/i)).not.toBeInTheDocument();
+  expect(screen.getByText(/no matching modules found/i)).toBeInTheDocument();
+});
+```
+
+There’s a lot going on here, so let’s attempt to break it down. To start off, we’re invoking the `userEvent` setup before the component gets rendered. Next, we’re setting up an object called `testModules` which mimics the data we’d typically expect to get back from the backend. We’re then setting up the `mockedOpenmrsFetch` function to return the mock data. After that, we can now finally render the component. Because we’re simulating a delay, we’ll wait for the loading state to complete before running our assertions. Once that’s done, we’ll run assertions against the module management datatable, comparing table headers and row data against our expected data. We’ll then simulate searching through the list, exploring both the happy path and the empty state.
+
+Whereas this test passes and can give us some amount of confidence that this component is working as expected, there are still a few weaknesses with this approach. For example:
+
+- Because we’re not looking at the API endpoint and the request parameters, we can’t tell if the user is making the correct request.
+- Because we’re mocking the backend, we can’t confidently predict what will happen if the real server is down, or if it returns an unexpected result.
+
+Ultimately, to get the right testing strategy, you’ll likely require a mix of unit, integration, and e2e tests. You’ll also need to figure out the right level of mocking to apply. Mock too little, and you’re likely testing too many implementation details. Mock too much, and you’re likely sacrificing a lot of confidence.
+
+Recently, the OpenMRS QA squad have worked on building up a testing strategy for the O3 frontend. Part of this work involves the introduction of e2e tests written in Playwright in the patient management monorepo. They’ve gone as far as setting the repo up to run e2e tests both on commit and on merge. Developers are encouraged to keep the tests passing, and wherever possible, consider extending them to fit any new use cases. Ideally, each pull request ought to be accompanied by the tests that assert that the logic presented works as expected.

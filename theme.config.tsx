@@ -3,6 +3,11 @@ import { DocsThemeConfig } from "nextra-theme-docs";
 
 const config: DocsThemeConfig = {
   logo: <span>O3 Frontend Docs</span>,
+  useNextSeoProps() {
+    return {
+      titleTemplate: "%s – O3 Docs",
+    };
+  },
   project: {
     link: "https://github.com/denniskigen/o3-docs",
   },
@@ -12,6 +17,9 @@ const config: DocsThemeConfig = {
   docsRepositoryBase: "https://github.com/denniskigen/o3-docs",
   footer: {
     text: "MIT 2023 © OpenMRS",
+  },
+  nextThemes: {
+    defaultTheme: "light",
   },
 };
 

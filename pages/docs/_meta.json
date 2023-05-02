@@ -2,8 +2,7 @@
   "introduction": "Introduction",
   "prerequisite-knowledge": "Prerequisite knowledge",
   "core-concepts": "Core concepts",
-  "app-shell": "App shell",
-  "core-framework": "Core framework",
-  "import-map": "Import map",
-  "frontend-modules": "Frontend modules"
+  "frontend-modules": "Frontend modules",
+  "roadmap": "Roadmap",
+  "key-repositories": "Key repositories"
 }

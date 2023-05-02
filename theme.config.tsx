@@ -14,7 +14,7 @@ const config: DocsThemeConfig = {
   chat: {
     link: "https://discord.com",
   },
-  docsRepositoryBase: "https://github.com/denniskigen/o3-docs",
+  docsRepositoryBase: "https://github.com/denniskigen/o3-docs/blob/main",
   footer: {
     text: "MIT 2023 © OpenMRS",
   },

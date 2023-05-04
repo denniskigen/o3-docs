@@ -1,7 +1,40 @@
-## OpenMRS 3.0 Frontend developer documentation
+import Image from "next/image";
+import AdaptiveLogo from "../components/adaptive-logo.jsx";
 
-This documentation is intended to enable developers to develop and deploy custom UI features for OpenMRS.
+<div className="pt-20 py-10 m-auto flex-row justify-center text-center max-w-lg md:max-w-xl lg:max-w-4xl">
+  <AdaptiveLogo />
+  <h1 className="py-10 font-bold tracking-[-0.04em] leading-none text-[40px] md:text-5xl lg:text-[64px]">
+    <span className="leading-none">The frontend framework for OpenMRS</span>
+  </h1>
+  <span className="text-xl">
+    O3 leverages modern frontend technologies and a modular architecture to
+    enable our users build faster, together.
+  </span>
+</div>
 
-Visit the [Wiki page](https://wiki.openmrs.org/display/projects/OpenMRS+3.0%3A+A+Frontend+Framework+that+enables+collaboration+and+better+User+Experience) if you haven’t already. It provides a high-level introduction to the project and all of the relevant links.
-
-You should first read the [Implementer Documentation](https://wiki.openmrs.org/pages/viewpage.action?pageId=224527013), which provides some conceptual orientation as well as instructions for deployment and configuring.
+<div className="mx-auto z-50 flex flex-col items-center w-full max-w-md gap-5 px-6">
+  <div className="flex flex-col w-full gap-3 md:!flex-row">
+    <div className="relative w-full group">
+      <button className="w-full min-w-[120px] text-base font-medium no-underline dark:text-black text-white border-transparent bg-black dark:bg-white rounded md:leading-6 transition-all duration-300">
+        <a
+          href="/docs/introduction"
+          className="text-primary-600 no-underline decoration-from-font text-underline-position:from-font block py-3"
+        >
+          Start Learning
+        </a>
+      </button>
+    </div>
+    <div className="relative w-full group">
+      <button className="w-full min-w-[120px] text-base font-medium no-underline border dark:border-neutral-400  dark:text-neutral-200 dark:hover:border-white dark:hover:text-white border-[#EAEAEA] text-neutral-800 hover:border-black hover:text-black rounded md:leading-6 transition-all duration-300">
+        <a
+          target="_blank"
+          rel="noreferrer noopener"
+          href="https://github.com/denniskigen/o3-docs"
+          className="text-primary-600 no-underline decoration-from-font text-underline-position:from-font block py-3"
+        >
+          GitHub
+        </a>
+      </button>
+    </div>
+  </div>
+</div>

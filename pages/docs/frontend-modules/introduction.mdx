@@ -59,7 +59,7 @@ Each frontend module defines a function named `setupOpenMRS`. This function perf
 
     - `importTranslation` communicates how translations should get wired up for the frontend module. Specifically, it says that translation keys and strings should be lazily loaded from JSON files in the translations directory.
 
-      ```ts
+      ```ts copy
         const importTranslation = require.context(
           "../translations",
           false,
@@ -76,7 +76,7 @@ Each frontend module defines a function named `setupOpenMRS`. This function perf
       - `registerBreadcrumbs` sets up the breadcrumb navigation menu.
       - Returns an object with `pages` and `extension` definitions.
 
-        ```ts
+        ```ts copy
           pages: [
             {
               load: getAsyncLifecycle(() => import("./root.component"), options),
@@ -87,7 +87,7 @@ Each frontend module defines a function named `setupOpenMRS`. This function perf
 
         The pages definition above tells the app shell to render the component exported from root.component when the user navigates to a route matching /form-builder. The full route will usually be something like /openmrs/spa/form-builder.
 
-        ```ts
+        ```ts copy
           extensions: [
             {
               id: "form-builder-app-menu-link",

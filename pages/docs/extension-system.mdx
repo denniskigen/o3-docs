@@ -96,7 +96,7 @@ Slots should be responsible for as much styling as generically applies to all of
 
 A slot can apply styles to an extension with the following CSS selector:
 
-```css
+```css copy
 .slot > * > * {
   ...;
 }
@@ -176,7 +176,7 @@ For (2) you can use the registerExtensionSlot function together with renderExten
 
 For (3) you can define an extension in the return value from the setupOpenMRS function. An example for this:
 
-```ts
+```ts copy
 function setupOpenMRS() {
   return {
     extensions: [
@@ -191,7 +191,7 @@ function setupOpenMRS() {
 
 As a shorthand for (4) you could already specify a target slot via the `slot` property in the previous code snippet. Without that convenience way you’d still be able to register it programmatically using `attach`:
 
-```ts
+```ts copy
 // attaches an extension "foo" to a slot "foo-slot"
 attach("foo-slot", "foo");
 ```

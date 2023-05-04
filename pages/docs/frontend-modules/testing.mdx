@@ -37,7 +37,7 @@ Create a new file next to `module-management.component.tsx` named `module-manage
 
 Setup a function that renders the component:
 
-```tsx
+```ts copy
 function renderModuleManagement() {
   renderWithSwr(<ModuleManagement />);
 }
@@ -49,7 +49,7 @@ Note: This `renderWithSwr` helper function wraps a component in an SWR context w
 
 We don’t want to directly hit the database with our test and to avoid that, we could mock the data fetching logic as follows:
 
-```tsx
+```ts copy
 mockedOpenmrsFetch.mockReturnValueOnce({ data: { results: [] } });
 ```
 
@@ -57,7 +57,7 @@ This code mocks out the `openmrsFetch` function, stubbing out its implementation
 
 Next, we want to render the component:
 
-```tsx
+```ts copy
 await waitForElementToBeRemoved(
   () => [...screen.queryAllByRole(/progressbar/i)],
   {
@@ -68,7 +68,7 @@ await waitForElementToBeRemoved(
 
 This code asks Jest to wait until the loader gets removed from the UI. This mimics waiting for a backend request to resolve. Next, we want to start writing our assertions:
 
-```tsx
+```ts copy
 expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
 expect(screen.queryByRole("table")).not.toBeInTheDocument();
 expect(
@@ -86,7 +86,7 @@ At any point, you can run tests by calling `yarn test` or `yarn turbo test` (if 
 
 To evaluate the error state, you could write:
 
-```tsx
+```ts copy
 it("renders an error state view if there was a problem fetching module data", async () => {
   const error = {
     message: "Internal Server Error",
@@ -112,7 +112,7 @@ it("renders an error state view if there was a problem fetching module data", as
 
 To test the happy path, we could write the following test:
 
-```tsx
+```ts copy
 it("renders detailed information about the module", async () => {
   const user = userEvent.setup();
 

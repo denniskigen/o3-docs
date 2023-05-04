@@ -1,8 +1,9 @@
 import React from "react";
 import { DocsThemeConfig } from "nextra-theme-docs";
+import NavLogo from "./components/nav-logo";
 
 const config: DocsThemeConfig = {
-  logo: <span>O3 Frontend Docs</span>,
+  logo: <NavLogo />,
   useNextSeoProps() {
     return {
       titleTemplate: "%s – O3 Docs",
@@ -19,7 +20,7 @@ const config: DocsThemeConfig = {
     text: "MIT 2023 © OpenMRS",
   },
   nextThemes: {
-    defaultTheme: "light",
+    defaultTheme: "system",
   },
 };
 

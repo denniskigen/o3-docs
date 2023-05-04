@@ -25,6 +25,7 @@ function AdaptiveLogo({ height = 200, width = 350 }) {
       className="mx-auto"
       src={svgPath}
       alt="OpenMRS logo"
+      loading="eager"
       height={height}
       width={width}
     />

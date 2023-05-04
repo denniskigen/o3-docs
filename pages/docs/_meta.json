@@ -4,6 +4,8 @@
   "core-concepts": "Core concepts",
   "frontend-modules": "Frontend modules",
   "key-repositories": "Key repositories",
+  "coding-conventions": "Coding conventions",
+  "recipes": "Recipes",
   "extension-system": "Extension system",
   "configuration-system": "Configuration system",
   "internationalization": "i18n",

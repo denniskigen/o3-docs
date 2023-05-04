@@ -4,9 +4,9 @@
 
 To work on the O3 frontend, you will need to have the following tools and technologies set up:
 
-- `git` - we use git for version control.
-- `node` - we use Node for compiling and bundling frontend code. We don’t use Node for running the backend or server. We recommend using the active LTS version and using nvm to manage multiple versions of Node.
-- `yarn` - the package manager we use. We primarily use Yarn v3.
+- **Git** - We use git for version control.
+- **Node.js** - We use Node for compiling and bundling frontend code. We don’t use Node for running the backend or server. We recommend using the active `LTS` version and using [nvm](https://github.com/nvm-sh/nvm) to manage multiple versions of Node.
+- **Yarn** - We primarily use Yarn `v3` as our package manager.
 
 ## Code organization
 
@@ -17,10 +17,12 @@ Code in O3 is organized into several domain-specific monorepos:
 - [openmrs-esm-patient-management](https://github.com/openmrs/openmrs-esm-patient-management) - handles concerns related to managing patients. Includes frontend modules that handle searching for a patient, patient registration, managing patient lists, appointment scheduling and service queues.
 - [openmrs-esm-home](https://github.com/openmrs/openmrs-esm-home) - contains the home page, which sets up the home navigation that contains links to dashboards with the appointments, patient lists, and service queues frontend modules.
 
+## Installation
+
 Most times, you'll be working within one monorepo. Generally speaking, to set up one of these monorepos locally, you'd need to:
 
 - Clone the repo of interest.
-- `cd` into the root directory of the repo on your machine and run `yarn` to install dependencies.
+- `cd` into the root directory of the repo on your local copy and run `yarn` to install dependencies.
 
 ## Editor setup
 
@@ -28,3 +30,9 @@ We typically use Visual Studio code when developing on O3. We recommend setting 
 
 - [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) - automatic code formatting. All our monorepos contain a Prettier configuration. Setting up this extension enables Prettier to automatically format your code each time you make a commit.
 - [ESLint](https://www.notion.so/Steve-s-items-bought-from-the-US-99d52797d00a4968a3be2079769e1a93) - static code analysis tool. ESLint finds and fixes problems in your code and will help flag lint issues as you write your code.
+
+## Next steps
+
+Success! You are now ready to start building with O3! 🥳
+
+Before you get started, though, make sure to read our [contributing guide](/docs/frontend-modules/contributing) to get a sense of the guidelines we follow when working on O3.

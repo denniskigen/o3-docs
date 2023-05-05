@@ -17,7 +17,7 @@ const config: DocsThemeConfig = {
   },
   docsRepositoryBase: "https://github.com/denniskigen/o3-docs/blob/main",
   footer: {
-    text: "MIT 2023 © OpenMRS",
+    text: "© 2023 OpenMRS",
   },
   nextThemes: {
     defaultTheme: "system",

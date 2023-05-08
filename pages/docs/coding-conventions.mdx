@@ -11,8 +11,9 @@ In general, in memory storage refers to anything stored in Javascript that is no
 |Type|Duration|
 |----|--------|
 |Variable|Variable scope|
-|React State|Component's life cycle|
-|React Memo|Component's life cycle|
+|React State|Component's lifecycle|
+|React Memo|Component's lifecycle|
+|React Context|React subtree lifecycle|
 |Global Store|Until page reload|
 |----|--------|
 
@@ -51,6 +52,27 @@ const value = useMemo(() => /* some computation */, [dependencies]);
 ```
 
 Not exactly "storage", but like `useState()` provides a consistent value until a condition holds (a value in the dependency array changes). Useful for infrequently computed or expensive to compute state.
+
+#### React Context
+
+React's Context mechanism can be useful for storing data that needs to be shared solely by components in the same React tree; for example, values that are shared by multiple components in the same microfrontend might benefit from using React's context. React Context provides values with a scope beyond just the lifecycle of a single component, but which are not maintained in the absence of the React tree. For example, a form might use React Context to store all the "current" values of all the input components on the form.
+
+```ts
+// in a parent module
+const MyContext = createContext(/* some value */);
+
+// inside a parent component
+return (
+  <MyContext.Provider value={/* some value */}>
+    {children}
+  </MyContext.Provider>
+)
+
+// inside a child component
+const myValue = useContext(MyContext);
+```
+
+This is useful for ensuring that an entire React tree has a consistent version of state.
 
 #### Global Store
 

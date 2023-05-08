@@ -8,7 +8,7 @@
   "recipes": "Recipes",
   "extension-system": "Extension system",
   "configuration-system": "Configuration system",
-  "internationalization": "i18n",
+  "internationalization": "i18n Translations",
   "roadmap": "Roadmap",
   "changelog": "Changelog"
 }

@@ -46,7 +46,7 @@ By default, you'll see an active visits widget and a widget for the appoinments 
 
 ### Template
 
-Contains the seed starter app. The template app will be most developer's first foray into O3. Most components in the template app are annotated with useful comments that serve as a guide for developers working on the application. In the past, it's also served as a seed app from which developers can spawn new frontend modules.
+Contains the seed starter app. The [template app](https://github.com/openmrs/openmrs-esm-template-app) will be most developer's first foray into O3. Most components in the template app are annotated with useful comments that serve as a guide for developers working on the application. In the past, it's also served as a seed app from which developers can spawn new frontend modules.
 
 ### Patient chart
 
@@ -82,34 +82,34 @@ The patient chart also includes packages that provide wrappers for both the Angu
 
 ### Patient management
 
-This monorepo contains frontend modules related to registering and editing patients, searching for existing patients, creating and managing patient lists, managing patient queues in an outpatient setting and creating, editing and managing patient appointments. The modules within this repository include:
+This monorepo includes the following frontend modules:
 
-- [Active visits](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-active-visits-app)
-- [Appointments](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-appointments-app)
-- [Service queues](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-outpatient-app)
-- [Patient search](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-search-app)
-- [Patient registration](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-registration-app)
-- [Patient list](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-list-app)
+- [Active visits](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-active-visits-app) - provides a tabular overview of checked in patients for the current day.
+- [Appointments](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-appointments-app) - provides capabilities to create, edit and manage patient appointments.
+- [Service queues](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-outpatient-app) - provides capabilities to create, manage and view queues in a location.
+- [Patient search](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-search-app) - provides the ability to search for exisiting patients using simple and advanced search.
+- [Patient registration](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-registration-app) - provides ability to register new patients and verify them through configurable external patient registries.
+- [Patient list](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-list-app) - provides a UI to create and manage patient lists.
 
 ### Angular form engine
 
-The Angular form engine, alternately referred to as the AMPATH form engine, is a form engine solution originally built by AMPATH. It leverages Angular's forms capabilities to build a fully-fledged form engine with capabilities such as field validation, injection of custom data sources, conditional rendering, historical expressions, and more. Clinical forms built using the form engine get rendered in the workspace in the patient chart. The patient chart provides an [Angular application](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-entry-app) that consumes the form engine library and expose its functionality to the workspace via a Single SPA parcel.
+The [Angular form engine](https://github.com/openmrs/openmrs-ngx-formentry), alternately referred to as the AMPATH form engine, is a form engine solution originally built by AMPATH. It leverages Angular's forms capabilities to build a fully-fledged form engine with capabilities such as field validation, injection of custom data sources, conditional rendering, historical expressions, and more. Clinical forms built using the form engine get rendered in the workspace in the patient chart. The patient chart provides an [Angular application](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-entry-app) that consumes the form engine library and expose its functionality to the workspace via a Single SPA parcel.
 
 ### React form engine
 
-Originally built by the UCSF-IGHS team, this new form engine is built in React and leverages the powerful formik library to provide a robust solution. JSON schemas built using this engine conform to the OpenMRS 3.0 form schema [specification](https://gist.github.com/denniskigen/80e4cd0765cbeda0efba79c6e6675e49). Work is ongoing to get this engine to a stable version that has feature parity with the Angular form engine
+Originally built by the UCSF-IGHS team, the [OHRI form engine](https://github.com/openmrs/openmrs-form-engine-lib) is built in React and leverages the powerful formik library to provide a robust solution. JSON schemas built using this engine conform to the OpenMRS 3.0 form schema [specification](https://gist.github.com/denniskigen/80e4cd0765cbeda0efba79c6e6675e49). Work is ongoing to get this engine to a stable version that has feature parity with the Angular form engine
 
 ### Form builder
 
-The Form Builder is a frontend module used to create OpenMRS form schemas. It enables users to both create new schemas and edit existing ones. It provides an embedded code editor that accepts JSON code, and an interactive editor where users can construct a schema interactively without writing code. Schemas built using the form builder can be persisted to the server, and optionally published, which makes them available to the frontend via the forms widget. Schemas built in the form builder get rendered via the React form engine, which allows users to validate and test their forms straight from the form builder UI.
+The [Form Builder](https://github.com/openmrs/openmrs-esm-form-builder) is a frontend module used to create OpenMRS form schemas. It enables users to both create new schemas and edit existing ones. It provides an embedded code editor that accepts JSON code, and an interactive editor where users can construct a schema interactively without writing code. Schemas built using the form builder can be persisted to the server, and optionally published, which makes them available to the frontend via the forms widget. Schemas built in the form builder get rendered via the React form engine, which allows users to validate and test their forms straight from the form builder UI.
 
 ### Fast data entry
 
-The Fast Data Entry App is a frontend module which allows for a natural workflow when entering many pre-recorded forms at a time. It is not meant for point-of-care workflows, but rather as a way to do retrospective data entry.
+The [Fast Data Entry App](https://github.com/openmrs/openmrs-esm-fast-data-entry-app) is a frontend module which allows for a natural workflow when entering many pre-recorded forms at a time. It is not meant for point-of-care workflows, but rather as a way to do retrospective data entry. It allows the rapid input of forms for group sessions enabling recording information about a group session or for session participants.
 
 ### Medication dispensing
 
-The medication dispensing app is a simple tool that enables tracking dispensed medications. It's designed to serve small sites that don't want to deal with implementing a whole other external supply chain/ERP systems. These sites typically only care about tracking what needs to be dispensed vs what has already been dispensed. The primary target users for this functionality are implementations and facilities that have an on-site pharmacy and which don't charge the patient/customer for the services, who want to dispense medications based on orders within the same OpenMRS instance. Billing and inventory are out of scope.
+The [medication dispensing app](https://github.com/openmrs/openmrs-esm-dispensing-app) is a simple tool that enables tracking dispensed medications. It's designed to serve small sites that don't want to deal with implementing a whole other external supply chain/ERP systems. These sites typically only care about tracking what needs to be dispensed vs what has already been dispensed. The primary target users for this functionality are implementations and facilities that have an on-site pharmacy and which don't charge the patient/customer for the services, who want to dispense medications based on orders within the same OpenMRS instance. Billing and inventory are out of scope.
 
 ### Distro refapp config
 
@@ -122,7 +122,7 @@ This project holds the build configuration for the OpenMRS 3.0 reference applica
 
 ### Cohort builder
 
-Leverages the Reporting Compatibility module to enable users to perform ad-hoc queries for patients with defined characteristics, and combine multiple queries into more complex ones.
+The [cohort builder](https://github.com/openmrs/openmrs-esm-cohortbuilder) leverages the Reporting Compatibility module to enable users to perform ad-hoc queries for patients with defined characteristics, and combine multiple queries into more complex ones.
 
 ### Module management
 
@@ -132,7 +132,7 @@ This apps is based on the System Administration Manage Module management page fr
 
 ### Frontend RFC
 
-A repo where the technologies and processes that apply to all new OpenMRS distributions are explained. The purpose of this repo is to:
+A [repo](https://github.com/openmrs/openmrs-rfc-frontend) where the technologies and processes that apply to all new OpenMRS distributions are explained. The purpose of this repo is to:
 
 1. Provide a way to enact change in the OpenMRS frontend.
 2. Clarify what things we are aligned on across all of OpenMRS, so that everything else can be decided by the individual modules and distributions.

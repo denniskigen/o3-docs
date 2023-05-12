@@ -9,6 +9,7 @@
   "extension-system": "Extension system",
   "configuration-system": "Configuration system",
   "internationalization": "i18n Translations",
+  "breadcrumbs": "Breadcrumbs",
   "roadmap": "Roadmap",
   "changelog": "Changelog"
 }

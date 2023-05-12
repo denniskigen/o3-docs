@@ -1,20 +1,26 @@
 # O3 Docs
 
-This documentation is intended to enable developers to develop and deploy custom UI features for OpenMRS.
+Documentation site for O3, the frontend framework for OpenMRS. This documentation is intended to enable developers to develop and deploy custom UI features for OpenMRS.
 
-Local Development
+## Development
 
-To install the dependancies run:
-```bash
-yarn
-```
+- Install dependencies using:
 
-To build the project run:
-```bash
-yarn build
-```
+  ```bash
+  pnpm install
+  ```
 
-To start the dev server run:
-```bash
-yarn dev
-```
+- Start a dev server on port 3000 using:
+
+  ```bash
+  pnpm run dev
+  ```
+
+## Deployment
+
+Each merged commit gets automatically deployed on https://o3-docs.vercel.app.
+
+## Stack
+
+- [Nextra](https://nextra.site/)
+- [Vercel](https://vercel.com)

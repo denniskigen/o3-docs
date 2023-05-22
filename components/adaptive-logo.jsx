@@ -21,14 +21,16 @@ function AdaptiveLogo({ height = 200, width = 350 }) {
   const svgPath = colorScheme === "dark" ? "/logo-dark.svg" : "/logo-light.svg";
 
   return (
-    <Image
-      className="mx-auto"
-      src={svgPath}
-      alt="OpenMRS logo"
-      loading="eager"
-      height={height}
-      width={width}
-    />
+    <div className="h-[200px]">
+      <Image
+        className="mx-auto"
+        src={svgPath}
+        alt="OpenMRS logo"
+        loading="eager"
+        height={height}
+        width={width}
+      />
+    </div>
   );
 }
 

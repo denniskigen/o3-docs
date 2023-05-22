@@ -1,0 +1,13 @@
+Our module loading system is based on Webpack Module Federation.
+We have a "dynamic remote containers" system. The "entry point" of
+the application is `@openmrs-esm-app-shell`. The list of remotes
+to be loaded is supplied in import maps. Our import maps are not
+processed by the browser or SystemJS, but are used internally to
+resolve module names to URLs.
+ 
+Each module ("remote") is provided as a name and URL. For each URL,
+a `<script>` element is appended to the DOM. Because those scripts have webpack
+library type == 'var', when they are loaded, they create a new
+global variable which has the Webpack Container Interface for that
+module: the `init` and `get` methods. We use those to obtain the
+ctual module exports.

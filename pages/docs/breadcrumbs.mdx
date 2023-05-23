@@ -1,0 +1,65 @@
+# Breadcrumbs
+
+Breadcrumbs are a user interface design pattern that helps users understand their current location within a website or application. They are a navigational aid that displays a hierarchical trail of links from the homepage to the current page. Breadcrumbs are commonly displayed horizontally near the top of the page and use the greater than symbol `/` to indicate hierarchy.
+
+In OpenMRS breadcrumbs are implemented in the `index.ts` file using the `registerBreadCrumbs` function exported by `@openmrs/esm-framework` package.
+The registerBreadcrumb function takes an object with two properties: `path` and `title`. The `path` property is the URL path of the page, and the `title` property is the text that will be displayed in the breadcrumb. When a user navigates to the registered page, the breadcrumb will be displayed with the specified title.
+
+Here is an example of a simple breadcrumb for a page:
+
+```ts copy
+import { registerBreadcrumb } from "@openmrs/esm-framework";
+
+function setupOpenmrs() {
+  registerBreadcrumb({
+    path: `${window.spaBase}/myPage`,
+    title: "My First Page",
+  });
+
+  return {
+    // specify your pages or extensions
+  };
+}
+```
+
+The breadcrumb will be displayed to the user as `My First Page`
+
+Breadcrumbs can also represent a trail of hieracical links from the site homepage to sub pages. To implement this, use the `parent` property to indicate what should
+be the parent breadcrumb.
+
+Here is an example of a breadcrumb with ancestors/sub pages :
+
+```ts copy
+import { registerBreadcrumbs } from "@openmrs/esm-framework";
+
+function setupOpenmrs() {
+  registerBreadcrumbs([
+    {
+      path: `${window.spaBase}/myPage`,
+      title: "My First Page",
+    },
+    {
+      path: `${window.spaBase}/myPage/subpage1`,
+      title: "Subpage 1",
+      parent: `${window.spaBase}/myPage`,
+    },
+    {
+      path: `${window.spaBase}/myPage/subpage2`,
+      title: "Subpage 2",
+      parent: `${window.spaBase}/myPage`,
+    },
+  ]);
+
+  return {
+    // specify your pages or extensions
+  };
+}
+```
+
+The breadcrumb will be displayed to the user as `My First Page` `My First Page / Subpage 1` `My First Page / Subpage 2 `
+
+Here is an example of how to use breadcrumbs in your component :
+```ts copy
+<ExtensionSlot extensionSlotName={slotName} />
+```
+Breadcrumbs are implemented as an extension provided by the app-shell. 

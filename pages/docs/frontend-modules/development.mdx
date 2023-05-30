@@ -1,33 +1,52 @@
 # Developing frontend modules
 
-After setting up your local environment, you'll want to do some work on a frontend module. Broadly speaking, the approach to follow to get a frontend module running locally involves the following steps:
+After setting up your local environment, you'll typically want to work on a frontend module. Broadly speaking, the approach to follow to get a frontend module running locally involves the following steps:
 
-- `cd` into the root directory of your local copy of a frontend module. For example, if you’re working on the `patient-chart` repo, `cd` into the `openmrs-esm-patient-chart` repository.
-- Make sure dependencies are installed by running `yarn`.
-- Typically, you’ll want to run a specific package within a monorepo. For example, you might want to run only the `conditions` frontend module. To do that, run `yarn start --sources` and pass in the name of your package of interest as a string. The full command should read:
+## Installing dependencies
 
-  `yarn start --sources 'packages/esm-patient-conditions-app'`
+We use `yarn` as our package manager. To install dependencies, you'll typically `cd` into the repo of the frontend module you want to work on and run `yarn`. For example, if you want to work on the `patient-chart` frontend module, you'd run:
 
-- Note that the argument following packages in the command has to be the frontend module’s full path name. It is also possible to pass multiple arguments to yarn start --sources. Doing so allows you to run multiple frontend modules simultaneously. Imagine a situation where you need to make a change to both the vitals and biometrics widgets in the patient chart. To get them to run simultaneously, you’d run:
+```sh copy
+cd openmrs-esm-patient-chart
+yarn
+```
 
-  `yarn start --sources 'packages/esm-patient-biometrics-app' 'packages/esm-patient-vitals-app'`
+## Running frontend modules locally
 
-- Running this command fires up a dev server in your default browser. By default, this server will run on port 8080. If you wish to run the server on a different you can specify that by passing a --port argument. For example, if you run the command above, you'd have biometrics and vitals getting served from http://localhost:8080/openmrs/spa. If you then want to run, say the patient search frontend module from the patient management monorepo, you could specify a different port number. You'd then run it like so:
+Typically, you’ll want to run a specific frontend module within a monorepo. For example, you might want to run only the `conditions` frontend module. To do that, run `yarn start --sources` and pass in the name of your package of interest as a string:
 
-  `yarn start --sources 'packages/esm-patient-chart-app' --port=7000`
+```sh copy
+yarn start --sources 'packages/esm-patient-conditions-app'
+```
 
-  And that should fire up a local dev server at `http://localhost:7000/openmrs/spa`.
+Note that the argument following packages in the command has to be the frontend module’s full path. It is also possible to pass multiple arguments to `yarn start --sources`. Doing so allows you to run multiple frontend modules simultaneously. Imagine a situation where you need to make a change to both the vitals and biometrics widgets in the patient chart. To get them to run simultaneously, you’d run:
 
-  When you fire up a dev server in this way, several things happen under the hood. If you look at the manifest file (`package.json`) of a frontend module, you should see a start script with something like:
+```sh copy
+yarn start --sources 'packages/esm-patient-biometrics-app' 'packages/esm-patient-vitals-app'
+```
 
-  `“start”: "openmrs develop"`
+Running this command fires up a dev server in your default browser. By default, this server will run on port 8080. If you wish to run the server on a different you can specify that by passing a `--port` argument. For example, if you run the command above, you'd have biometrics and vitals getting served from http://localhost:8080/openmrs/spa. If you then want to run, say the patient search frontend module from the patient management monorepo, you could specify a different port number. You'd then run it like so:
 
-  What this means is that running `yarn start` invokes the `develop` command of the `openmrs` tooling. This command starts a new frontend development session using the OpenMRS app shell. The tooling sets up the import map, adds entries for core applications from the app shell and overrides the entries for the modules running locally. Ultimately, the corollary is that you can make changes to frontend modules in your local environment and have those changes propagate to the dev server in your browser. The tooling allows you to do various other cool things, such as:
+```sh copy
+yarn start --sources 'packages/esm-patient-chart-app' --port=7000
+```
 
-  - Specifying an alternative backend server (other than the community dev3 server) and proxying requests to it.
-  - Specifying an alternative target server path (defaults to `/openmrs/spa`).
-  - Specifying an alternative API URL (defaults to `openmrs`).
-  - Specifying a custom import map.
+And that should fire up a local dev server at `http://localhost:7000/openmrs/spa`.
+
+When you fire up a dev server in this way, several things happen under the hood. If you look at the `scripts` section of a manifest file (`package.json`) in a frontend module, you should see a `start` script that looks something like:
+
+```json
+“start”: "openmrs develop"
+```
+
+What this means is that running `yarn start` invokes the `develop` command of the `openmrs` tooling. This command starts a new frontend development session using the OpenMRS app shell. The tooling sets up the import map, adds entries for core applications from the app shell and overrides the entries for the modules running locally. Ultimately, the corollary is that you can make changes to frontend modules in your local environment and have those changes propagate to the dev server in your browser. The tooling allows you to do various other cool things, such as:
+
+- Specifying an alternative backend server (other than the community dev3 server) and proxying requests to it.
+- Specifying an alternative target server path (defaults to `/openmrs/spa`).
+- Specifying an alternative API URL (defaults to `openmrs`).
+- Specifying a custom import map.
+
+## Running the app shell locally
 
 Most of the time, this should be all a developer needs to do to get a local dev server running. One notable departure, however, is running the `app shell`. You’ll need to run the shell directly if you want to:
 
@@ -40,9 +59,37 @@ Most of the time, this should be all a developer needs to do to get a local dev 
   - `offline tools` - the offline tools dashboard.
   - `primary navigation` - the navigation menu.
 
-Because these applications reside in the `apps` directory of the `esm-core` monorepo, running them within the context of the app shell makes it a lot easier to test out changes. Something to note when using this approach, however, is that for your changes to propagate to your local server, you might need to rebuild your frontend module. To do this, run `yarn turbo run build`.
+To run the app shell, you’ll need to `cd` into the `esm-core` monorepo and run:
 
-## Pushing to GitHub
+```sh copy
+yarn run:shell
+```
+
+This command will fire up a dev server at `http://localhost:8080/openmrs/spa`. You can then navigate to the app shell at `http://localhost:8080/openmrs/spa/shell`. From there, you can navigate to the applications you want to test out.
+
+Because these applications reside in the `apps` directory of the `esm-core` monorepo, running them within the context of the app shell makes it a lot easier to test out changes. Something to note when using this approach, however, is that for your changes to propagate to your local server, you might need to rebuild your frontend module. To do this, run:
+
+```sh copy
+yarn turbo build
+```
+
+This command should run the `build` script in all of the constituent frontend modules whose code you’ve changed. Once the build is complete, you should see your changes reflected in the dev server in your browser.
+
+## How do I know where to make changes?
+
+The first step to figuring out where to make changes is to identify the frontend module you want to work on. For example, if you want to make changes to the patient chart, you’d work on the `patient-chart` frontend module. If you want to make changes to the patient search, you’d work on the `patient-search` frontend module. If you want to make changes to the login page, you’d work on the `login` frontend module. And so on and so forth. There are a few ways to figure out which frontend module you need to work on:
+
+- You can inspect an element in the browser and look at it's class name. You can then search through your IDE for that class name. This should point you to the specific bit of code in the frontend module you need to work on.
+- You could search for specific strings in the codebase. For example, if you see the string `Vitals history` in the UI, you could search for that string in your IDE. This should point you to the frontend module that renders that string (the vitals frontend module, in this case).
+- You could also use the UI editor in the implementer tools to see which extensions and extension slots get rendered in the UI. You can then search for those extensions and extension slots in your IDE and make changes to them. This is a bit more involved, but it’s a good way to get a sense of the structure of the UI and frontend modules it contains.
+
+There are no hard and fast rules for figuring out where to make changes. The best approach is to try out different things and see what works for you. The more you work on the codebase, the more familiar you’ll become with it and the easier it’ll be to figure out where to make changes.
+
+## Should I write tests?
+
+Yes, absolutely! We have a test suite for the frontend modules in the monorepo. We use [Jest](https://jestjs.io/) for testing. We also use [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) for testing React components. We have a [testing guide](/docs/frontend-modules/testing) that you can refer to for more information on how to write tests. We're adding support for [Playwright e2e tests](https://playwright.dev/) as well across our repositories. Consider adding e2e tests for your changes as well. Going through the testing guide as well as the tests in the codebase should give you a good sense of how to write tests.
+
+## Pushing your changes to GitHub
 
 Once you’re done working on a feature or fix, you’ll want to push your changes to GitHub and file a PR. To do this, package your changes in a commit. We have guidelines for writing commit messages in our [contributing guide](https://o3-dev.docs.openmrs.org/#/getting_started/contributing).
 
@@ -52,8 +99,8 @@ Creating a commit should trigger some pre-commit hooks. Typically, part of the w
 - `lint` - runs a lint check using Prettier.
 - `test` - runs tests using Jest and React Testing Library.
 
-If any of these tasks fail, the push should fail. Once the push succeeds, you can go to the GitHub repo related to your package and file a pull request.
+If any of these tasks fail, the push should fail. The terminal should display the error message(s) that caused the push to fail. You’ll need to fix the error(s) and push again. Once the push succeeds, you can go to the GitHub repo related to your package and file a pull request.
 
 ### Troubleshooting
 
-If you’re running Linux, you may see the following error the first time you run a a dev server: `Error: ENOSPC: System limit for number of file watchers reached`. If that happens, you need to increase the system limit for the number of file watchers. See this StackOverflow answer.
+If you’re running Linux, you may see the following error the first time you run a a dev server: `Error: ENOSPC: System limit for number of file watchers reached`. If that happens, you need to increase the system limit for the number of file watchers. See this [StackOverflow answer](https://stackoverflow.com/a/55763478/1464495).

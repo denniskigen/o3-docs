@@ -77,13 +77,26 @@ This command should run the `build` script in all of the constituent frontend mo
 
 ## How do I know where to make changes?
 
-The first step to figuring out where to make changes is to identify the frontend module you want to work on. For example, if you want to make changes to the patient chart, you’d work on the `patient-chart` frontend module. If you want to make changes to the patient search, you’d work on the `patient-search` frontend module. If you want to make changes to the login page, you’d work on the `login` frontend module. And so on and so forth. There are a few ways to figure out which frontend module you need to work on:
+If you have done both of the above things and still haven’t found the code you’re looking for, feel free to ask in the #openmrs-helpme channel on Slack.
+
+There is no simple correlation between frontend modules and pages and content. The first step to figuring out where to make changes is to identify the frontend module you want to work on. For example, if you want to make changes to the patient chart, you’d work on the `patient-chart` frontend module. If you want to make changes to the patient search, you’d work on the `patient-search` frontend module. If you want to make changes to the login page, you’d work on the `login` frontend module. And so on and so forth. There are a few ways to figure out which frontend module you need to work on:
 
 - You can inspect an element in the browser and look at it's class name. You can then search through your IDE for that class name. This should point you to the specific bit of code in the frontend module you need to work on.
 - You could search for specific strings in the codebase. For example, if you see the string `Vitals history` in the UI, you could search for that string in your IDE. This should point you to the frontend module that renders that string (the vitals frontend module, in this case).
 - You could also use the UI editor in the implementer tools to see which extensions and extension slots get rendered in the UI. You can then search for those extensions and extension slots in your IDE and make changes to them. This is a bit more involved, but it’s a good way to get a sense of the structure of the UI and frontend modules it contains.
+- Go through the list of [key repositories](/docs/key-repositories) and their descriptions. There aren’t very many and they're typically domain-specific, so it’s likely you can narrow down what you’re trying to work on just by looking at the list.
 
 There are no hard and fast rules for figuring out where to make changes. The best approach is to try out different things and see what works for you. The more you work on the codebase, the more familiar you’ll become with it and the easier it’ll be to figure out where to make changes.
+
+## How can I develop against a restricted environment?
+
+In general you can develop against another environment using the `--backend` flag. If the other environment is guarded, e.g., by an IP or network restriction then this is something you need to take care of on your local machine. In case the guarded environment is restricted via some SSO mechanism using a cookie you could use the `--add-cookie` flag to achieve this. As an example, look at the access for a development server from the ICRC:
+
+```sh copy
+npx openmrs start --backend "https://emr-v2.test.icrc.org/" --add-cookie "MRHSession=1234..."
+```
+
+The cookie must be obtained by you and strongly depends on the backend used.
 
 ## Should I write tests?
 
@@ -101,6 +114,52 @@ Creating a commit should trigger some pre-commit hooks. Typically, part of the w
 
 If any of these tasks fail, the push should fail. The terminal should display the error message(s) that caused the push to fail. You’ll need to fix the error(s) and push again. Once the push succeeds, you can go to the GitHub repo related to your package and file a pull request.
 
-### Troubleshooting
+## Troubleshooting
+
+### I'm getting a `Error: ENOSPC: System limit for number of file watchers reached` error
 
 If you’re running Linux, you may see the following error the first time you run a a dev server: `Error: ENOSPC: System limit for number of file watchers reached`. If that happens, you need to increase the system limit for the number of file watchers. See this [StackOverflow answer](https://stackoverflow.com/a/55763478/1464495).
+
+### I’m not seeing the latest @openmrs/esm-framework. How do I update the dependency?
+
+If you notice your app suddenly stop working, it might be because a core library has changed in the app shell on the server you are developing against. The main dependencies shared by all OpenMRS frontend modules are `openmrs` and `@openmrs/esm-framework`. They can be updated like this:
+
+```sh copy
+# Upgrade core libraries
+yarn up openmrs @openmrs/esm-framework
+
+# Reset version specifiers to `next`. Don't commit actual version numbers.
+git checkout package.json
+
+# Run `yarn` to recreate the lockfile
+yarn
+```
+
+### I'm getting a `ERR_OSSL_EVP_UNSUPPORTED` error when running `yarn run build`
+
+If you're running or building the `form-entry` package (an Angular wrapper around the AMPATH Form Engine) using Node v18, you may see the following error:
+
+```sh copy
+Error: error:0308010C:digital envelope routines::unsupported
+    at new Hash (node:internal/crypto/hash:71:19)
+    at Object.createHash (node:crypto:133:10)
+    at BulkUpdateDecorator.hashFactory (/Users/denniskigen/code/openmrs/openmrs-esm-patient-chart/node_modules/@angular-devkit/build-angular/node_modules/webpack/lib/util/createHash.js:145:18)
+    at BulkUpdateDecorator.update (/Users/denniskigen/code/openmrs/openmrs-esm-patient-chart/node_modules/@angular-devkit/build-angular/node_modules/webpack/lib/util/createHash.js:46:50)
+    at RawSource.updateHash (/Users/denniskigen/code/openmrs/openmrs-esm-patient-chart/node_modules/webpack-sources/lib/RawSource.js:77:8)
+    at NormalModule._initBuildHash (/Users/denniskigen/code/openmrs/openmrs-esm-patient-chart/node_modules/@angular-devkit/build-angular/node_modules/webpack/lib/NormalModule.js:880:17)
+    at handleParseResult (/Users/denniskigen/code/openmrs/openmrs-esm-patient-chart/node_modules/@angular-devkit/build-angular/node_modules/webpack/lib/NormalModule.js:946:10)
+    at /Users/denniskigen/code/openmrs/openmrs-esm-patient-chart/node_modules/@angular-devkit/build-angular/node_modules/webpack/lib/NormalModule.js:1040:4
+    at processResult (/Users/denniskigen/code/openmrs/openmrs-esm-patient-chart/node_modules/@angular-devkit/build-angular/node_modules/webpack/lib/NormalModule.js:755:11)
+    at /Users/denniskigen/code/openmrs/openmrs-esm-patient-chart/node_modules/@angular-devkit/build-angular/node_modules/webpack/lib/NormalModule.js:819:5 {
+  opensslErrorStack: [ 'error:03000086:digital envelope routines::initialization error' ],
+  library: 'digital envelope routines',
+  reason: 'unsupported',
+  code: 'ERR_OSSL_EVP_UNSUPPORTED'
+}
+```
+
+To get around this, run:
+
+```sh copy
+export NODE_OPTIONS=--openssl-legacy-provider
+```

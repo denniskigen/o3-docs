@@ -14,7 +14,7 @@ If you’re interested in contributing to O3, you’ll need to take the followin
 - **Work incrementally** - Smaller PRs are easier to read and validate. Opening multiple PRs for the same ticket is excellent if those PRs represent different pieces or stages of work relating to that ticket.
 - **Do not increase the scope of a PR after it has been reviewed** - If your code has been reviewed, don’t push a bunch more code that isn’t related to the review. Fixups are fine, but new features should have their own PRs. Remember—small PRs are easier to review anyway!
 - **Your first PR to a codebase should be small** - Get a feel for what the reviewer expects before submitting a PR with a large amount of code in it.
-- **Your PR title should indicate the type of change it is** - We use PR titles to determine version bumps when [releasing](/docs/frontend-modules/releasing) frontend modules. PR titles should start with something in parentheses, or the word BREAKING. Examples of good PR titles:
+- **Your PR title should indicate the type of change it is** - We use PR titles to determine version bumps when [releasing](/docs/frontend-modules/releasing) frontend modules. PR titles should begin with the [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/) type that relates to your PR. Examples of good PR titles:
 
   - “(docs) Add to contributing docs”
   - “(fix) Console error when visiting allergies page”
@@ -22,9 +22,9 @@ If you’re interested in contributing to O3, you’ll need to take the followin
   - “(refactor) Tidy the dashboard implementation”
   - “BREAKING: New left nav system”
 
-  Common prefixes include the above, and `chore`, `style`, `perf`, and `test`.
+  Common prefixes include the above, and `chore`, `style`, `perf`, and `test`. Read more about conventional commit types [here](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13#types).
 
-  The versioning bump to indicate is based on the OpenMRS Frontend 3.0 versioning conventions. _Don’t worry if you aren’t sure which one you should use!_ Your reviewer should make sure your PR has an appropriate one.
+  The changelogs we put out alongside each release are generated from the PR titles, so it’s important to follow this convention. _Don’t worry if you aren’t sure which one you should use!_ Your reviewer should make sure your PR has an appropriate one.
 
 ### Guidelines for reviewing code
 

@@ -4,5 +4,7 @@
   "contributing": "Contributing",
   "development": "Development",
   "testing": "Testing",
-  "releasing": "Releasing"
+  "releasing": "Releasing",
+  "loading-modules": "Loading modules",
+  "using-webpack": "Using Webpack"
 }

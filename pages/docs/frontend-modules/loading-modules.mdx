@@ -1,0 +1,11 @@
+# Loading frontend modules into the app shell
+
+Frontend modules in O3 are loaded dynamically into the app shell using [Webpack Module Federation (MF)](https://webpack.js.org/concepts/module-federation/). Module Federation is a JavaScript architecture that allows you to share code between separately deployed JavaScript applications. This can be used to create microfrontends, which are smaller, independent applications that can be combined to create a larger application.
+
+Until recently, our module loading system was based on [SystemJS](https://github.com/systemjs/systemjs). The migration to [v4.0](https://github.com/openmrs/openmrs-esm-core/commit/8f1b7f54330e70f5b420fc2f6685b4e334bcfbb2) of the core framework ushered in a hybrid module loading system that used both SystemJS and Module Federation. SystemJS was used to load the `esm-form-entry app` (a wrapper frontend module around the [Angular form engine](/docs/key-repositories#angular-form-engine)), while Module Federation was used to load everything else. Recently, we've [migrated](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1168) `esm-form-entry` to Module Federation, so we now have a fully Module Federation-based module loading system.
+
+## Module federation
+
+As mentioned before, our module loading system is based on Module Federation. We have a `dynamic remote containers` system. The `entry point` of the application is `@openmrs-esm-app-shell`. The list of remotes to be loaded is supplied via import maps. Our import maps are not processed by the browser or SystemJS, but are used internally to resolve module names to URLs.
+
+Each module ("remote") is provided as a name and URL. For each URL, a `<script>` element is appended to the DOM. Because those scripts have a `webpack library type` of `var`, when they are loaded, they create a new global variable which has the Webpack Container Interface for that module: the `init` and `get` methods. We use those to obtain the actual module exports.

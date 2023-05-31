@@ -35,7 +35,11 @@ The central piece of O3's architecture is the app shell. The app shell forms the
 
 ## Frontend modules
 
-Frontend modules are the basic building blocks of O3. They are alternately known as `microfrontends` within the O3 architecture. Frontend modules get organized into domain-specific monorepos. They get loaded into the application via the import map and export their own default activator and lifecycle functions. These exports conform to a specific microfrontend interface that was introduced in [RFC-26](https://github.com/openmrs/openmrs-rfc-frontend/blob/e745ee9c37b2ca0ae6f4fc93259724e61bfac82e/text/0026-activation-distribution.md). Learn more about microfrontends from the [frontend modules](/docs/frontend-modules/introduction) guide.
+[Frontend modules](/docs/frontend-modules/introduction) are the basic building blocks of O3. They are also referred to as `microfrontends` in the O3 architecture. Frontend modules get organized into domain-specific monorepos. They get loaded into the application via the import map and export their own default activator and lifecycle functions. These exports conform to a specific microfrontend interface that was introduced in [RFC-26](https://github.com/openmrs/openmrs-rfc-frontend/blob/e745ee9c37b2ca0ae6f4fc93259724e61bfac82e/text/0026-activation-distribution.md).
+
+Presently, frontend modules are loaded synchronously, which means that the application will not render until all frontend modules have been loaded. This is a known performance bottleneck.
+
+Significant work is ongoing that will allow frontend modules to be loaded on-demand, which will significantly improve the performance of the application. You can follow the progress [here](https://github.com/openmrs/openmrs-esm-core/pull/671).
 
 ## Import map
 

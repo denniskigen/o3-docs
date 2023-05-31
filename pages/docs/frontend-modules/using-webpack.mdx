@@ -1,11 +1,11 @@
-# Notes on Webpack
+# Using Webpack
 
-OpenMRS frontend apps use a standard webpack configuration [defined in esm-core](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/tooling/webpack-config).
+OpenMRS frontend apps use a standard [webpack](https://webpack.js.org) configuration [defined in esm-core](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/tooling/webpack-config).
 The general purpose of this webpack configuration is to standardise how projects are built and to allow us to ensure that all applications follow standard
 patterns. While it is not required that you use this default webpack configuration, it is highly recommended that you do so. This page documents some notes
 on how this webpack configuration bundles modules that are important considerations if you want to create a custom webpack configuration.
 
-The O3 frontend uses a packaging pattern called "module federation", which is a pattern that allows runtime code sharing between different webpack applications.
+The O3 frontend uses a packaging pattern called [module federation](/docs/frontend-modules/module-loading), which is a pattern that allows runtime code sharing between different webpack applications.
 This differs from webpack's usual use because external dependencies can be resolved at runtime instead of during the build step. In essence, this allows us to
 use share code between different apps without needing to rebuild all the full application. You can read more about module federation in the
 [corresponding GitHub org](https://github.com/module-federation) or [the Webpack documentation](https://webpack.js.org/concepts/module-federation/). Module
@@ -34,10 +34,10 @@ exposed module. However, extensions and pages exposed via other modules will nee
 One of the advantages of the module federation technique is that it allows us to provide shared dependencies that are only loaded once in the entire application.
 In OpenMRS's Webpack configuration, each of the declarations in `peerDependencies` in the `package.json` for an app is treated as a shared federated library.
 To simplify things, all shared dependencies are treated as `singletons`, which means that we are intentionally opting out of supporting multiple versions of shared
-libraries. We do this for two reasons: first, core dependencies of most frontend modules like React, React DOM, and React Router must be loaded as singletons,
-because they use unversioned global state to provide their functionality (e.g., React's `__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED`); second, this
-allows us to ensure that we are using the same versions of, e.g., Carbon in all components. This does have the less desireable effect that upgrading core
-dependencies has to be done all at once and we may re-evaluate this decision at a latter point.
+libraries. We do this for two reasons:
+
+1. Core dependencies of most frontend modules like React, React DOM, and React Router must be loaded as singletons, because they use unversioned global state to provide their functionality (e.g., React's `__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED`)
+2. This allows us to ensure that we are using the same versions of, e.g., Carbon in all components. This does have the less desireable effect that upgrading core dependencies has to be done all at once and we may re-evaluate this decision at a latter point.
 
 All shared dependencies are loaded into the `default` scope and their share name and exposed import is the same as the dependency, i.e., React is shared as
 `react` and imported as `react` in our code. This basically ensures that things work as we expect them to.
@@ -66,7 +66,7 @@ properly.
 If your module needs to load `esm-patient-common-lib` from `node_modules` at build time, we recommend that your module's `webpack.config.js` looks like this:
 
 ```js
-const config = require('openmrs/default-webpack-config');
+const config = require("openmrs/default-webpack-config");
 config.scriptRuleConfig.exclude = /node_modules(?![\/\\]@openmrs)/;
 // this is a CommonJS module
 module.export = config;
@@ -74,3 +74,7 @@ module.export = config;
 
 That changes the `scriptRule` in the default Webpack configuration, telling it to processing anything in the `node_modules` folder that is from a package from
 the `openmrs` NPM organisation.
+
+#### esm-form-entry-app
+
+The `esm-form-entry-app` is a special case because it is an Angular application.

@@ -245,4 +245,20 @@ Whereas this test passes and can give us some amount of confidence that this com
 
 Ultimately, to get the right testing strategy, you’ll likely require a mix of unit, integration, and e2e tests. You’ll also need to figure out the right level of mocking to apply. Mock too little, and you’re likely testing too many implementation details. Mock too much, and you’re likely sacrificing a lot of confidence.
 
-Recently, the OpenMRS QA squad have worked on building up a testing strategy for the O3 frontend. Part of this work involves the introduction of e2e tests written in Playwright in the patient management monorepo. They’ve gone as far as setting the repo up to run e2e tests both on commit and on merge. Developers are encouraged to keep the tests passing, and wherever possible, consider extending them to fit any new use cases. Ideally, each pull request ought to be accompanied by the tests that assert that the logic presented works as expected.
+## End-to-end testing with Playwright
+
+[Playwright](https://playwright.dev) is a testing framework that allows you to write reliable end-to-end tests in JavaScript. Great work by the OpenMRS QA team means that we now have Playwright set up across the following repositories:
+
+- [Form builder](https://github.com/openmrs/openmrs-esm-form-builder/tree/main/e2e)
+- [Patient management](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/e2e)
+- [Patient chart (WIP)](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1164)
+
+This means that we can now write e2e tests for key user journeys in the OpenMRS frontend. These tests are setup to run both on commit and merge. Developers are encouraged to keep the tests passing, and wherever possible, consider extending them to fit any new use cases. Ideally, each pull request ought to be accompanied by the tests that assert that the logic presented works as expected.
+
+To get started, you’ll typically need to install playwright:
+
+```bash copy
+npx playwright install
+```
+
+We recommend installing the official Playwright [VS Code plugin](https://playwright.dev/docs/getting-started-vscode). This will give you access to the Playwright test runner, which you can use to run your tests. You can also use the `npx playwright test` command to run your tests. We also recommend following the [best practices](https://playwright.dev/docs/best-practices) outlined in the Playwright documentation. This will help you write tests that are reliable and easy to maintain.

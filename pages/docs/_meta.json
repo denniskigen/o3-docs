@@ -1,9 +1,9 @@
 {
   "introduction": "Introduction",
   "prerequisite-knowledge": "Prerequisite knowledge",
+  "key-repositories": "Key repositories",
   "core-concepts": "Core concepts",
   "frontend-modules": "Frontend modules",
-  "key-repositories": "Key repositories",
   "coding-conventions": "Coding conventions",
   "recipes": "Recipes",
   "extension-system": "Extension system",

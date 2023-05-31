@@ -77,4 +77,8 @@ the `openmrs` NPM organisation.
 
 #### esm-form-entry-app
 
-The `esm-form-entry-app` is a special case because it is an Angular application.
+The form entry frontend module is an Angular application that encapsulates the capabilities of the [Angular form engine](/docs/key-repositories#angular-form-engine)). It leverages a custom webpack configuration that supports [module federation](http://localhost:3000/docs/frontend-modules/loading-modules#module-federation) using dynamic remote containers. These capabilities are enabled by the [@angular-architects/module-federation](https://github.com/angular-architects/module-federation-plugin) library. This library modifies the Angular [workspace configuration](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-entry-app/angular.json), adding a an `extraWebpackConfig` property to the `build` and `serve` builder targets. This property points to a [custom webpack configuration](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-entry-app/webpack.config.js) that among other things:
+
+- Sets up the `ModuleFederationPlugin` to expose the form entry app as a remote module that can be loaded dynamically by the app shell.
+- Specifies shared dependencies based on the `peerDependencies` of the form entry app.
+- Exposes `src/index.ts` as the entry point for the remote module.

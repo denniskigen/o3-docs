@@ -6,25 +6,48 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 
 ### Naming conventions
 
+- Follow the guidelines in this [naming cheatsheet](https://github.com/kettanaito/naming-cheatsheet).
 - Use `camelCase` for variables, functions, and methods.
 - Use `kebab-case` for file names and folder names.
-- Components should contain the `.component` suffix in their name (e.g. `user.component.tsx`). This nomenclature is used to distinguish components from other files such as resources, stylesheets, and tests, and determines where translation keys and strings should be extracted from.
+- Components should contain the `.component` suffix in their name (e.g. `user.component.tsx`). This nomenclature is used to distinguish components from other files such as resources, stylesheets, and tests, and determines where translation keys and strings should be extracted from. Translation keys and strings will not be extracted from files that do not match this convention.
 - Unit and integration test files should contain the `.test` suffix in their name (e.g. `user.test.tsx`). Do not include the word `component` in the test file name.
 - Stylesheets should not contain `.component` suffix in their name (e.g. `user.component.scss`). This is because stylesheets are not components, and are not translated. Instead, stylesheets should be named after the component they are styling (e.g. `user.scss`).
 - Resource files that encapsulate data fetching logic should contain the `.resource` suffix in their name (e.g. `user.resource.ts`). This is to distinguish them from other files such as components, stylesheets, and tests.
-- Follow the guidelines in this [naming cheatsheet](https://github.com/kettanaito/naming-cheatsheet).
+- Name TypeScript files that contain JSX with the `.tsx` extension (e.g. `user.component.tsx`). Name TypeScript files that do not contain JSX with the `.ts` extension (e.g. `user.resource.ts`). In most cases, you shouldn't need to use the `.tsx` extension for files outside the `src` directory.
+- Follow the extension system [nomenclature guide](/docs/extension-system#nomenclature) when naming your extensions and extension slots.
+- Use the file name as the component name. For example, `user.component.tsx` should contain a component named `UserComponent`. This makes it easier to find the component in the codebase.
+- Avoid using DOM component prop names for different purposes. For example, avoid using the `className` prop to pass a CSS class name to a component. Instead, use a prop name that is specific to the component, such as `cssClass`.
+- Use `camelCase` for prop names. This is consistent with the naming convention for variables, functions, and methods.
+- Translation keys should be in `camelCase` whereas translation strings should be in `sentence case`. For example, `firstName` is a translation key whereas `First name` is it's corresponding translation string.
+- Frontend modules in monorepos should have names that start with the `esm-` prefix. The name of the module should describe what the module does. For example, `esm-user-management` is a good name for a frontend module handling user management concerns.
+
+### Project structure
+
+- Monorepos should contain domain-specific packages that are related to each other. For example, patient management concerns such as registration and search live in the `openmrs-esm-patient-management` monorepo.
+- Configuration files should generally exist at the top level of the monorepo directory. Notable exceptions to this rule include the a file containing helpers for tests, the `i18next-parser` configuration, and `setupTests.ts`, which should all exist in the `tools` directory.
+- Colocate files that are related to each other. For example, a component and its corresponding test and stylesheet should live in the same directory. This way, when you make a change to a component, it's easy to extend that change to the test and stylesheet.
 
 ### Data fetching
 
-- Data fetching logic should be colocated in a file with the `.resource` suffix. For example, `user.resource.ts` contains the data fetching logic for the user resource.
+- Colocate your data fetching logic in a file suffixed with `.resource`. For example, `user.resource.ts` contains the data fetching logic for the user resource.
 - Wherever possible, prefer abstracting your data fetching into a custom hook rather than [fetching with effects](https://react.dev/reference/react/useEffect#fetching-data-with-effects). Fetching data with effects has many [downsides](https://react.dev/reference/react/useEffect#fetching-data-with-effects) and should be avoided. Instead, prefer using [SWR](https://swr.vercel.app/) hooks.
 - Use [SWR](https://swr.vercel.app/) hooks to fetch data from the backend. Use SWRImmutable for resources that are not expected to change often, such as backend configurations.
 - Put the SWR hook in a separate file, and export it as a function. This allows us to reuse the same hook in multiple components.
 - Memoize the return value of your SWR hook using `useMemo` to prevent unnecessary rerenders. This is especially important if the hook is used in a component that is rendered many times, such as a table row.
 - Data fetching hooks should follow the naming convention `use<resource>`. For example, `useUser` is the hook for fetching user data.
 - Use `openmrsFetch` to fetch data from the backend. openmrsFetch is a wrapper around the `fetch` API that adds authentication and authorization headers and handles errors. Pass it to as the `fetcher` argument of your SWR hooks.
-- Use `openmrsObservableFetch` if you need to fetch data from the backend using an observable. This is useful for streaming data from the backend. Ensure you understand the difference between observables and promises before reaching for this function.
+- Use `openmrsObservableFetch` only if you need to fetch data from the backend using an observable. This is useful for streaming data from the backend. Ensure you understand the difference between observables and promises before reaching for this function.
 
 ### State management
 
 - Follow the guidelines outlined [here](https://kentcdodds.com/blog/application-state-management-with-react).
+
+### Mutations and side effects
+
+- Use SWR's global and bound [mutate](https://swr.vercel.app/docs/mutation#mutate) APIs to mutate data in the cache. This ensures that the cache is updated consistently across the application and omits the need to reload the page to see the changes.
+- Show a toast notification when a mutation succeeds. When a mutation fails, show a inline notification with an error message that communicates the reason for the failure.
+
+### Type annotations
+
+- Annotate your functions and methods with types. This makes it easier to understand what the function does, and what it expects as arguments.
+- Follow the guidelines outlined in [React TypeScript Cheatsheets](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/).

@@ -41,6 +41,8 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 ### State management
 
 - Follow the guidelines outlined [here](https://kentcdodds.com/blog/application-state-management-with-react).
+- To share state between components, [lift the state up to the nearest common ancestor](https://react.dev/learn/sharing-state-between-components#) of the components that need to share the state and pass the state down to the components as props. This is the simplest way to share state between components.
+- Avoid creating state variables for things that can be [computed from existing state variables](https://react.dev/learn/you-might-not-need-an-effect#updating-state-based-on-props-or-state). For example, if you have a state variable called `firstName` and another called `lastName`, don't create a third state variable called `fullName`. Instead, derive the `fullName` from the `firstName` and `lastName` state variables.
 
 ### Mutations and side effects
 
@@ -49,5 +51,19 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 
 ### Type annotations
 
-- Annotate your functions and methods with types. This makes it easier to understand what the function does, and what it expects as arguments.
 - Follow the guidelines outlined in [React TypeScript Cheatsheets](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/).
+- Always annotate your function parameters with types. This makes it easier to understand what the function does, and explicitly expresses the function's contracts.
+- Rely on TypeScript's type inference for things like variable and array initialization, and in some cases, function return types. The goal of the type system is not to annotate every single variable with a type, but rather to make sure that the important parts of your code are type-safe. Read more about type inference [here](https://www.typescriptlang.org/docs/handbook/type-inference.html).
+- TypeScript `interfaces` enable declaration merging and can be extended by other interfaces. This makes them more flexible than `type` aliases, which cannot be extended. If you don't need these features, prefer using `type` aliases instead.
+- Don't use `any` unless you absolutely have to. Instead, use `unknown` or `never` to express the fact that you don't know the type of a variable or that a function never returns.
+- Wherever possible, use the `import type` syntax when importing types. This prevents the type from being imported at runtime, which reduces the bundle size. For example:
+
+  ```ts
+  // Prefer
+  import type { User } from "@openmrs/esm-user-management";
+
+  // Instead of
+  import { User } from "@openmrs/esm-user-management";
+  ```
+
+- [Prefer union types over status enums](https://fettblog.eu/tidy-typescript-avoid-enums/). For example, prefer `type Status = "loading" | "error" | "success"` over `enum Status { Loading, Error, Success }`. This is because enums are not type safe, and can be assigned any value. For example, `Status.Loading = "error"` is a valid statement, but `Status = "error"` is not.

@@ -8,7 +8,8 @@
   "recipes": "Recipes",
   "extension-system": "Extension system",
   "configuration-system": "Configuration system",
-  "internationalization": "i18n Translations",
+  "internationalization": "i18n translations",
+  "storing-values": "Storing values",
   "breadcrumbs": "Breadcrumbs",
   "roadmap": "Roadmap",
   "changelog": "Changelog"

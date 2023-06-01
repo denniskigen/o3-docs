@@ -1,0 +1,133 @@
+# Dates
+OpenMRS provides several utilities to work with dates. These utilities have been designed with locale sensitivity in mind. Acceptable date formats vary by language and region, and the functions are intended to accommodate that variation.
+
+## Utilities for formatting dates for display
+
+### formatDate
+This utility accepts a date input and returns a string. It formats the input date according to the current locale and the given parameters:
+```typescript
+formatDate(date: Date, options: {
+  mode: "standard" | "wide",
+  time?: boolean,
+  day?: boolean,
+  year?: boolean
+}): string
+
+```
+
+The mode parameter can be set to `standard` or `wide`.
+When set to `standard`, the date is displayed in the format `16-May-2023`, and when set to `wide`, the date is displayed as `16 — May — 2023`.
+
+If the date is today, then `Today` is produced instead of the actual day (in the locale language).
+
+When the time option is set to true, the time is appended with a comma and a space, e.g. `16-May-2023, 08:21`. This format agrees with the output of Date.prototype.toLocaleString for most locales. 
+
+Here's an example of how to use `formaDate` given a sample date in the omrs format `1684387260000`
+
+```typescript
+import { formatDate } from '@openmrs/esm-framework';
+
+const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) => {
+  return (
+    <span>{formatDate(appointment.patient?.birthDate, { mode: 'standard' })}</span>
+  )
+}
+```
+
+The returned value will be a string in this format `18-May-2023`
+
+### formatDatetime
+This utility function accepts a `date` input and returns a `string`.
+ It formats the input date to display both the date and time, separated by a comma, according to the current locale and the given options.
+
+```typescript
+  formatDatetime(date: Date, options?: { mode?: "standard" | "wide" }): string
+```
+
+Here's an example of how to use `formaDatetime` given a sample date in the omrs format `1684387260000`
+
+```typescript
+import { formatDatetime } from '@openmrs/esm-framework';
+
+const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) => {
+  return (
+    <span>{formatDatetime(appointment.patient?.birthDate)}</span>
+  )
+}
+```
+
+The returned value will be `18-May-2023, 08:21`
+
+### formatTime
+This utility function accepts a date input and returns a string. It formats the time according to the current locale using the 12- or 24-hour format.
+
+```typescript
+  formatTime(date: Date): string
+```
+
+Here's an example of how to use `formatTime` given a sample date in the omrs format `1684387260000`
+
+```typescript
+import { formatTime } from '@openmrs/esm-framework';
+
+const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) => {
+  return (
+    <span>{formatTime(encounter.encounterDateTime)}</span>
+  )
+}
+```
+
+The returned value will be `08:21`
+
+### isOmrsDateStrict
+This utility is STRICT on checking whether a date string is the openmrs format. The format should be `YYYY-MM-DDTHH:mm:ss.SSSZZ`.
+It accepts an `omrsPayloadString` and returns a `boolean`.
+```typescript
+  isOmrsDateStrict(omrsPayloadString: string): boolean
+```
+
+### isOmrsDateToday
+This utility checksif the provided date is today. Accepts a `date` input and returns a `boolean`.
+```typescript
+  isOmrsDateToday(date: Date): boolean
+```
+
+### parseDate
+This utility function parses an arbitrary `dateString` into a `date`. It uses dayjs(dateString).
+
+Here's an example of how to use `parseDate` given a sample dateString `1684387260000`
+
+```typescript
+import { formatDate, parseDate } from '@openmrs/esm-framework';
+
+const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) => {
+  return (
+    <span>{formatDate(parseDate(encounter.encounterDateTime))}</span>
+  )
+}
+```
+The returned value will be a string in this format `18-May-2023`
+
+
+### toDateObjectStrict
+This utility function converts an object to a date object if it is a valid ISO date time string. It accepts `omrsDateString` and returns a `date` or `null`.
+```typescript
+  toDateObjectStrict(omrsDateString: string): Date | null
+```
+
+### toOmrsIsoString
+This utility function formats the input `date` time to a `string` using the format `YYYY-MM-DDTHH:mm:ss.SSSZZ`. It is mostly used to format dates before submiting data in payloads.
+```typescript
+  toOmrsIsoString(omrsDateString, Date): string
+```
+
+Here's an example of how to use `toOmrsIsoString` in a payload:
+
+```typescript
+body: {
+  visit: visitUuid,
+  patientUuid: patientUuid,
+  startedAt: toDateObjectStrict(toOmrsIsoString(new Date())),
+}
+```
+

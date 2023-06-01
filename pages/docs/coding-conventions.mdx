@@ -4,10 +4,10 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 
 ## General
 
-### Naming conventions
+### Naming
 
 - Follow the guidelines in this [naming cheatsheet](https://github.com/kettanaito/naming-cheatsheet).
-- Use `camelCase` for variables, functions, and methods.
+- Use `camelCase` for variables, functions, methods, and class names.
 - Use `kebab-case` for file names and folder names.
 - Components should contain the `.component` suffix in their name (e.g. `user.component.tsx`). This nomenclature is used to distinguish components from other files such as resources, stylesheets, and tests, and determines where translation keys and strings should be extracted from. Translation keys and strings will not be extracted from files that do not match this convention.
 - Unit and integration test files should contain the `.test` suffix in their name (e.g. `user.test.tsx`). Do not include the word `component` in the test file name.
@@ -26,6 +26,15 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - Monorepos should contain domain-specific packages that are related to each other. For example, patient management concerns such as registration and search live in the `openmrs-esm-patient-management` monorepo.
 - Configuration files should generally exist at the top level of the monorepo directory. Notable exceptions to this rule include the a file containing helpers for tests, the `i18next-parser` configuration, and `setupTests.ts`, which should all exist in the `tools` directory.
 - Colocate files that are related to each other. For example, a component and its corresponding test and stylesheet should live in the same directory. This way, when you make a change to a component, it's easy to extend that change to the test and stylesheet.
+
+### Components
+
+- Validate the props passed to your component using type aliases or interfaces. This helps to catch bugs early and makes it easier to understand how the component is used.
+- [Use keys in lists](https://react.dev/learn/rendering-lists). This helps React to identify which items have changed, been added, or been removed. This is especially important if you are rendering a list of components that contain state.
+- [Generate keys from the data itself](https://react.dev/learn/rendering-lists#where-to-get-your-key) if possible. For example, if you are rendering a list of patients from the database, use the patient's ID as the key. This ensures that the key is unique and stable across renders.
+- [Avoid using effects](https://react.dev/learn/you-might-not-need-an-effect) for things that don't involve synchronizing with external systems. The distinction is nuanced and can be difficult to understand. Please read and internalize the linked article before reaching for effects.
+- Don't reach for performance optimizations like memo, useMemo and useCallback before you need them. These optimizations come at a cost, and can make your code harder to understand. Read [this article](https://kentcdodds.com/blog/usememo-and-usecallback) and [this article](https://overreacted.io/before-you-memo/#solution-2-lift-content-up) to understand when to use these hooks.
+- Follow consisent code formatting, naming conventions and folder structure. This makes the codebase more readable and easier to maintain.
 
 ### Data fetching
 
@@ -67,3 +76,40 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
   ```
 
 - [Prefer union types over status enums](https://fettblog.eu/tidy-typescript-avoid-enums/). For example, prefer `type Status = "loading" | "error" | "success"` over `enum Status { Loading, Error, Success }`. This is because enums are not type safe, and can be assigned any value. For example, `Status.Loading = "error"` is a valid statement, but `Status = "error"` is not.
+
+### Styling
+
+- Be wary of using global styles. They can easily lead to unintended side effects and make it difficult to reason about the codebase. Nest global styles under a class name to prevent them from affecting other components.
+
+  ```scss
+  // Avoid applying styles globally
+  :global(.cds--text-input) {
+    height: 3rem;
+    @extend .label01;
+  }
+
+  // Prefer scoping style overrides under a class name
+  .input-group {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+
+    :global(.cds--text-input) {
+      height: 3rem;
+      @extend .label01;
+    }
+  }
+  ```
+
+- Put Carbon style overrides in [overrides.scss](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-styleguide/src/_overrides.scss). This ensures that the overrides are applied consistently across the application.
+- Prefer using Carbon [color](https://carbondesignsystem.com/guidelines/color/overview/), [spacing](https://carbondesignsystem.com/guidelines/spacing/overview/) and [type](https://carbondesignsystem.com/guidelines/typography/overview/) tokens over hard-coded values.
+- Use SASS [features](https://sass-lang.com/documentation) like interpolation, at-rules, mixins, and functions to make your styles more reusable and maintainable.
+
+### Testing
+
+- [Avoid the test user](https://kentcdodds.com/blog/avoid-the-test-user).
+- Avoid testing implementation details. Instead, test the component's public API. This makes it easier to refactor the component without having to rewrite the tests.
+- Follow the guidelines outlined [here](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library).
+- [Write fewer, longer tests](https://kentcdodds.com/blog/write-fewer-longer-tests).
+- Structure large test suites using [object page models](https://playwright.dev/docs/pom) when writing e2e tests using Playwright.
+- Follow the e2e testing [best practices](https://playwright.dev/docs/test-best-practices) outlined in the Playwright docs.

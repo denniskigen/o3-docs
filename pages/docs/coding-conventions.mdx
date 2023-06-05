@@ -29,11 +29,14 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 
 ### Components
 
+- Don't keep unused code in your components. Keeping dead code around can cause confusion and makes it harder to maintain the codebase.
 - Validate the props passed to your component using type aliases or interfaces. This helps to catch bugs early and makes it easier to understand how the component is used.
+- Make sure you read through the Component API for a particular Carbon component before using it. This helps you to understand the component's props and how to use them. It also helps you to understand the component's behavior and can obviate the need for writing custom code. For example, here's the [Component API for the Button component](https://react.carbondesignsystem.com/?path=/docs/components-button--default).
 - [Use keys in lists](https://react.dev/learn/rendering-lists). This helps React to identify which items have changed, been added, or been removed. This is especially important if you are rendering a list of components that contain state.
 - [Generate keys from the data itself](https://react.dev/learn/rendering-lists#where-to-get-your-key) if possible. For example, if you are rendering a list of patients from the database, use the patient's ID as the key. This ensures that the key is unique and stable across renders.
 - [Avoid using effects](https://react.dev/learn/you-might-not-need-an-effect) for things that don't involve synchronizing with external systems. The distinction is nuanced and can be difficult to understand. Please read and internalize the linked article before reaching for effects.
 - Don't reach for performance optimizations like memo, useMemo and useCallback before you need them. These optimizations come at a cost, and can make your code harder to understand. Read [this article](https://kentcdodds.com/blog/usememo-and-usecallback) and [this article](https://overreacted.io/before-you-memo/#solution-2-lift-content-up) to understand when to use these hooks.
+- Omit the value of a prop when it is explicitly `true`. For example, `<UserComponent isAdmin />` is preferred over `<UserComponent isAdmin={true} />`.
 - Follow consisent code formatting, naming conventions and folder structure. This makes the codebase more readable and easier to maintain.
 
 ### Data fetching
@@ -52,6 +55,7 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - Follow the guidelines outlined [here](https://kentcdodds.com/blog/application-state-management-with-react).
 - To share state between components, [lift the state up to the nearest common ancestor](https://react.dev/learn/sharing-state-between-components#) of the components that need to share the state and pass the state down to the components as props. This is the simplest way to share state between components.
 - Avoid creating state variables for things that can be [computed from existing state variables](https://react.dev/learn/you-might-not-need-an-effect#updating-state-based-on-props-or-state). For example, if you have a state variable called `firstName` and another called `lastName`, don't create a third state variable called `fullName`. Instead, derive the `fullName` from the `firstName` and `lastName` state variables.
+-
 
 ### Mutations and side effects
 
@@ -110,6 +114,18 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - [Avoid the test user](https://kentcdodds.com/blog/avoid-the-test-user).
 - Avoid testing implementation details. Instead, test the component's public API. This makes it easier to refactor the component without having to rewrite the tests.
 - Follow the guidelines outlined [here](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library).
+- Don't make these common testing [mistakes](https://kentcdodds.com/blog/common-testing-mistakes).
 - [Write fewer, longer tests](https://kentcdodds.com/blog/write-fewer-longer-tests).
 - Structure large test suites using [object page models](https://playwright.dev/docs/pom) when writing e2e tests using Playwright.
 - Follow the e2e testing [best practices](https://playwright.dev/docs/test-best-practices) outlined in the Playwright docs.
+- Functions from `@openmrs/esm-framework` get [mocked](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/mock.tsx) automatically when running tests. To override the default mock, use the `jest.mock` API. For example:
+
+  ```ts
+  // Override the default mock for usePatient
+  jest.mock("@openmrs/esm-framework", () => ({
+    ...jest.requireActual("@openmrs/esm-framework"),
+    usePatient: jest.fn(() => ({ uuid: "some-uuid" })),
+  }));
+  ```
+
+  Remember to update the mock when you modify or add a new function to `@openmrs/esm-framework`.

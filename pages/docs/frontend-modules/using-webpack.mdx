@@ -69,7 +69,7 @@ If your module needs to load `esm-patient-common-lib` from `node_modules` at bui
 const config = require("openmrs/default-webpack-config");
 config.scriptRuleConfig.exclude = /node_modules(?![\/\\]@openmrs)/;
 // this is a CommonJS module
-module.export = config;
+module.exports = config;
 ```
 
 That changes the `scriptRule` in the default Webpack configuration, telling it to processing anything in the `node_modules` folder that is from a package from

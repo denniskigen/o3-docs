@@ -37,6 +37,7 @@ body {
 .markdown h2 {
   font-weight: 600;
   font-size: 1.25rem;
+  text-decoration: underline;
   margin: 0.5rem 0;
 }
 

@@ -15,8 +15,8 @@ export default function LatestRelease({ repo }) {
   const latestRelease = data && data[0];
 
   return (
-    <div className="py-4 space-y-4">
-      <h1 className="font-semibold text-xl">{latestRelease?.name}</h1>
+    <div className="py-4 space-y-2">
+      <h1 className="font-bold text-lg">{latestRelease?.name}</h1>
       <ReactMarkdown className="markdown">{latestRelease?.body}</ReactMarkdown>
 
       {data?.length > 1 ? (

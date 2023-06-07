@@ -47,6 +47,10 @@ body {
   margin: 0.5rem 0;
 }
 
+.markdown p {
+  margin: 0.5rem 0;
+}
+
 .markdown p:last-of-type {
   margin: 0.5rem 0;
 }

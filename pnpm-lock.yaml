@@ -11,6 +11,7 @@ specifiers:
   react-dom: ^18.2.0
   react-markdown: ^8.0.7
   remark-gfm: ^3.0.1
+  remark-github: ^11.2.4
   swr: ^2.1.5
   tailwindcss: ^3.3.2
   typescript: ^5.1.3
@@ -23,6 +24,7 @@ dependencies:
   react-dom: 18.2.0_react@18.2.0
   react-markdown: 8.0.7_xomkljxbsahfbuzbqqeyw47ndm
   remark-gfm: 3.0.1
+  remark-github: 11.2.4
   swr: 2.1.5_react@18.2.0
 
 devDependencies:
@@ -2714,6 +2716,16 @@ packages:
       unified: 10.1.2
     transitivePeerDependencies:
       - supports-color
+    dev: false
+
+  /remark-github/11.2.4:
+    resolution: {integrity: sha512-GJjWFpwqdrHHhPWqMbb8+lqFLiHQ9pCzUmXmRrhMFXGpYov5n2ljsZzuWgXlfzArfQYkiKIZczA2I8IHYMHqCA==}
+    dependencies:
+      '@types/mdast': 3.0.11
+      mdast-util-find-and-replace: 2.2.2
+      mdast-util-to-string: 3.2.0
+      unified: 10.1.2
+      unist-util-visit: 4.1.2
     dev: false
 
   /remark-math/5.1.1:

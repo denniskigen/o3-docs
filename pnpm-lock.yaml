@@ -4,8 +4,8 @@ specifiers:
   '@types/node': 20.2.5
   autoprefixer: ^10.4.14
   next: ^13.4.4
-  nextra: ^2.7.0
-  nextra-theme-docs: ^2.7.0
+  nextra: ^2.7.1
+  nextra-theme-docs: ^2.7.1
   postcss: ^8.4.24
   react: ^18.2.0
   react-dom: ^18.2.0
@@ -17,11 +17,11 @@ specifiers:
 
 dependencies:
   next: 13.4.4_biqbaboplfbrettd7655fr4n2y
-  nextra: 2.7.0_z4pol2qj2yv3um3jqqobs4b3eu
-  nextra-theme-docs: 2.7.0_uk6bubsyk2ybjrku6hbdyj6eui
+  nextra: 2.7.1_z4pol2qj2yv3um3jqqobs4b3eu
+  nextra-theme-docs: 2.7.1_asxgcqy62vrzwkdyq5e3vgrwty
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
-  react-markdown: 8.0.7_i2bxsyfskhzbpjanbovidbfj7u
+  react-markdown: 8.0.7_xomkljxbsahfbuzbqqeyw47ndm
   remark-gfm: 3.0.1
   swr: 2.1.5_react@18.2.0
 
@@ -438,6 +438,14 @@ packages:
 
   /@types/react/18.2.8:
     resolution: {integrity: sha512-lTyWUNrd8ntVkqycEEplasWy2OxNlShj3zqS0LuB1ENUGis5HodmhM7DtCoUGbxj3VW/WsGA0DUhpG6XrM7gPA==}
+    dependencies:
+      '@types/prop-types': 15.7.5
+      '@types/scheduler': 0.16.3
+      csstype: 3.1.2
+    dev: false
+
+  /@types/react/18.2.9:
+    resolution: {integrity: sha512-pL3JAesUkF7PEQGxh5XOwdXGV907te6m1/Qe1ERJLgomojS6Ne790QiA7GUl434JEkFA2aAaB6qJ5z4e1zJn/w==}
     dependencies:
       '@types/prop-types': 15.7.5
       '@types/scheduler': 0.16.3
@@ -2308,11 +2316,11 @@ packages:
       - babel-plugin-macros
     dev: false
 
-  /nextra-theme-docs/2.7.0_uk6bubsyk2ybjrku6hbdyj6eui:
-    resolution: {integrity: sha512-984jZR13QO/YTIsLEYpFK2Pf4hQjD2Z2fHrBYJl/ZZQjylwxnnGcx1QAciy65mnPWr7/Kv9/dAKpjm9tYtyLrw==}
+  /nextra-theme-docs/2.7.1_asxgcqy62vrzwkdyq5e3vgrwty:
+    resolution: {integrity: sha512-C2DtoGH15q22t4r2JC89lvvajmnyiqsv3PaqHJpoHRlF2eR5giuLhZC5Oahb9AENRDcnUIUvqVi/8NlfiIM0yQ==}
     peerDependencies:
       next: '>=9.5.3'
-      nextra: 2.7.0
+      nextra: 2.7.1
       react: '>=16.13.1'
       react-dom: '>=16.13.1'
     dependencies:
@@ -2327,15 +2335,15 @@ packages:
       next: 13.4.4_biqbaboplfbrettd7655fr4n2y
       next-seo: 6.0.0_z4pol2qj2yv3um3jqqobs4b3eu
       next-themes: 0.2.1_z4pol2qj2yv3um3jqqobs4b3eu
-      nextra: 2.7.0_z4pol2qj2yv3um3jqqobs4b3eu
+      nextra: 2.7.1_z4pol2qj2yv3um3jqqobs4b3eu
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       scroll-into-view-if-needed: 3.0.10
       zod: 3.21.4
     dev: false
 
-  /nextra/2.7.0_z4pol2qj2yv3um3jqqobs4b3eu:
-    resolution: {integrity: sha512-SXUsczIzb6+apg3ipRQQllBJk6W2FJfUrmJrQySu9DJpUfS36ylQYLX5ofkCI+Sq3ZHfefZbnut49KGozt/rGQ==}
+  /nextra/2.7.1_z4pol2qj2yv3um3jqqobs4b3eu:
+    resolution: {integrity: sha512-qchTb7XSm357XAHf9MV9UlUSGolPEPE8iFnC/9KMwvhIoE4seyPYWMrnH84XraZCcGERvy9TrkFD30VE7Qv1MA==}
     engines: {node: '>=16'}
     peerDependencies:
       next: '>=9.5.3'
@@ -2620,7 +2628,7 @@ packages:
     resolution: {integrity: sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==}
     dev: false
 
-  /react-markdown/8.0.7_i2bxsyfskhzbpjanbovidbfj7u:
+  /react-markdown/8.0.7_xomkljxbsahfbuzbqqeyw47ndm:
     resolution: {integrity: sha512-bvWbzG4MtOU62XqBx3Xx+zB2raaFFsq4mYiAzfjXJMEz2sixgeAfraA3tvzULF02ZdOMUOKTBFFaZJDDrq+BJQ==}
     peerDependencies:
       '@types/react': '>=16'
@@ -2628,7 +2636,7 @@ packages:
     dependencies:
       '@types/hast': 2.3.4
       '@types/prop-types': 15.7.5
-      '@types/react': 18.2.8
+      '@types/react': 18.2.9
       '@types/unist': 2.0.6
       comma-separated-tokens: 2.0.3
       hast-util-whitespace: 2.0.1

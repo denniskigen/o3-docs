@@ -57,5 +57,10 @@ body {
 
 .markdown li {
   list-style-type: disc;
+  margin: 0.25rem 0;
   margin-left: 2rem;
+}
+
+.markdown a {
+  color: #006be6;
 }

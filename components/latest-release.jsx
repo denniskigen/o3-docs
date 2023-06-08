@@ -17,9 +17,12 @@ export default function LatestRelease({ repo }) {
   return (
     <div className="py-4 space-y-2">
       <h1 className="font-bold text-lg">{latestRelease?.name}</h1>
-      <ReactMarkdown className="markdown" remarkPlugins={[remarkGfm]}>
-        {latestRelease?.body}
-      </ReactMarkdown>
+
+      <ReactMarkdown
+        children={latestRelease?.body}
+        className="markdown"
+        remarkPlugins={[remarkGfm]}
+      />
 
       {data?.length > 1 ? (
         <h1 className="py-2">

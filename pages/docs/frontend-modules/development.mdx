@@ -114,6 +114,14 @@ If any of these tasks fail, the push should fail. The terminal should display th
 
 ## Troubleshooting
 
+### I'm getting a bunch of errors related to missing dependencies
+
+If you're working off of a fork, it's possible that your fork might miss the latest changes from `main`. To fix this, you can run the following command to update your fork:
+
+```sh copy
+git pull upstream main --rebase
+```
+
 ### I'm getting a `Error: ENOSPC: System limit for number of file watchers reached` error
 
 If you’re running Linux, you may see the following error the first time you run a a dev server: `Error: ENOSPC: System limit for number of file watchers reached`. If that happens, you need to increase the system limit for the number of file watchers. See this [StackOverflow answer](https://stackoverflow.com/a/55763478/1464495).

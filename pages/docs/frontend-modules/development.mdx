@@ -112,6 +112,16 @@ Creating a commit should trigger some pre-commit hooks. Typically, part of the w
 
 If any of these tasks fail, the push should fail. The terminal should display the error message(s) that caused the push to fail. You’ll need to fix the error(s) and push again. Once the push succeeds, you can go to the GitHub repo related to your package and file a pull request.
 
+## Maintaining dependencies
+
+Maintaining up to date dependencies is important to leverage the latest features, performance improvements and security patches. Yarn 3 provides a handy interactive tool to help you keep your dependencies up to date. To use it, run the following command:
+
+```sh copy
+yarn upgrade-interactive
+```
+
+This command lists your projects dependencies that are eligible for updates. You can navigate the list using your keyboard's arrow keys. In general, you want to avoid making major version updates because they can introduce breaking changes. You also want to keep OpenMRS-related dependencies (such as `openmrs` and `@openmrs/esm-framework`) pinned to `next`. Everything else should generally be OK to update to the latest version. Once you've selected the dependencies you want to update, you can press `Enter` to update them. Make sure to test your changes to ensure that nothing has broken. Ensure the app runs OK, tests pass and the app can get built correctly. If everything looks good, you can commit your changes and push them to GitHub.
+
 ## Troubleshooting
 
 ### I'm getting a bunch of errors related to missing dependencies

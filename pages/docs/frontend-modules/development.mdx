@@ -179,3 +179,22 @@ To get around this, run:
 ```sh copy
 export NODE_OPTIONS=--openssl-legacy-provider
 ```
+
+### I'm getting errors after upgrading `@carbon/react`
+
+You might see the following errors in your terminal when running a local dev server after upgrading `@carbon/react`:
+
+```sh
+ERROR in src/components/search-history/search-history.component.tsx:8:3
+TS2305: Module '"@carbon/react"' has no exported member 'ModalHeader'.
+
+ERROR in src/components/search-history/search-history.component.tsx:9:3
+TS2305: Module '"@carbon/react"' has no exported member 'Pagination'.
+```
+
+To fix these, you need to update Carbon's ambient type declarations. To do so, add the following entries to your `declarations.d.ts` file:
+
+```ts
+declare module "@carbon/react";
+declare type SideNavProps = {};
+```

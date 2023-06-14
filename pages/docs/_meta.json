@@ -11,6 +11,7 @@
   "internationalization": "i18n translations",
   "storing-values": "Storing values",
   "breadcrumbs": "Breadcrumbs",
+  "migration-guide": "Migrating to Core v5",
   "roadmap": "Roadmap",
   "changelog": "Changelog"
 }

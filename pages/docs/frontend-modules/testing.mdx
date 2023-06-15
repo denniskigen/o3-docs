@@ -262,3 +262,64 @@ npx playwright install
 ```
 
 We recommend installing the official Playwright [VS Code plugin](https://playwright.dev/docs/getting-started-vscode). This will give you access to the Playwright test runner, which you can use to run your tests. You can also use the `npx playwright test` command to run your tests. We also recommend following the [best practices](https://playwright.dev/docs/best-practices) outlined in the Playwright documentation. This will help you write tests that are reliable and easy to maintain.
+
+### Writing New Tests
+
+In general, it is recommended to read through the official [Playwright docs](https://playwright.dev/docs/intro)
+before writing new test cases. The project uses the official Playwright test runner and,
+generally, follows a very simple project structure:
+
+```
+e2e
+|__ commands
+|   ^ Contains "commands" (simple reusable functions) that can be used in test cases/specs,
+|     e.g. generate a random patient.
+|__ core
+|   ^ Contains code related to the test runner itself, e.g. setting up the custom fixtures.
+|     You probably need to touch this infrequently.
+|__ fixtures
+|   ^ Contains fixtures (https://playwright.dev/docs/test-fixtures) which are used
+|     to run reusable setup/teardown tasks
+|__ pages
+|   ^ Contains page object model classes for interacting with the frontend.
+|     See https://playwright.dev/docs/test-pom for details.
+|__ specs
+|   ^ Contains the actual test cases/specs. New tests should be placed in this folder.
+|__ support
+    ^ Contains support files that requires to run e2e tests, e.g. docker compose files.
+```
+
+When you want to write a new test case, start by creating a new spec in `./specs`.
+Depending on what you want to achieve, you might want to create new fixtures and/or
+page object models. To see examples, have a look at the existing code to see how these
+different concepts play together.
+
+### Demo data usage
+
+To ensure that the test contains the necessary metadata, you may follow the procedures outlined below:
+
+1. Utilize the user interface - Suppose the test scenario involves editing patient information. In this case, you can use the UI to create a new patient record for testing purposes.
+2. Leverage demo data - If the test case only requires data viewing, the demo data available in the RefApp can suffice. Check the demo data module to know more.
+3. Generate the required data - In case the above solutions are inadequate, you can use the API to create the necessary data ahead of the test.
+
+### Debugging Tests
+
+Refer to [this documentation](https://playwright.dev/docs/debug) on how to debug a test.
+
+### Do's and Don'ts
+
+- Do ensure that all test cases are written clearly and concisely, with step-by-step instructions that can be easily understood.
+- Do use a variety of test cases to cover all possible scenarios, including best-case scenarios, worst-case scenarios, and edge cases.
+- Do ensure that all tests are executed in a timely and efficient manner to save time and resources.
+- Don't assume that a feature is working just because it seems to be functioning correctly. Test it thoroughly to ensure that all its features and functionalities are working as expected.
+- Don't ignore any errors or issues that arise during testing, even if they seem minor. Report them to the development team so that they can be addressed promptly.
+- Don't skip any critical paths or scenarios. Ensure that all scenarios are tested thoroughly to identify any potential issues or defects.
+
+### Best Practices
+
+- Start testing early in the development process to identify and address issues before they become more challenging and expensive to fix.
+- Utilize automated testing whenever possible to save time and increase efficiency.
+- Use real-world data and scenarios to create accurate and relevant test cases.
+- Ensure that all test cases are repeatable and easily reproducible to ensure that results can be verified and tested again if necessary.
+- Continuously review and update the testing plan to ensure that it covers all relevant features and scenarios.
+- Work collaboratively with the O3 team to ensure that any issues or defects are identified and resolved quickly.

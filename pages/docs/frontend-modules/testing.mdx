@@ -253,7 +253,9 @@ Ultimately, to get the right testing strategy, you’ll likely require a mix of 
 - [Patient management](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/e2e)
 - [Patient chart (WIP)](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1164)
 
-This means that we can now write e2e tests for key user journeys in the OpenMRS frontend. These tests are setup to run both on commit and merge. Developers are encouraged to keep the tests passing, and wherever possible, consider extending them to fit any new use cases. Ideally, each pull request ought to be accompanied by the tests that assert that the logic presented works as expected.
+This means that we can now write e2e tests for key user journeys in the OpenMRS frontend. These tests are setup to run both on commit and merge.
+Developers are encouraged to keep the tests passing, and wherever possible, consider extending them to fit any new use cases.
+Ideally, each pull request ought to be accompanied by the tests that assert that the logic presented works as expected.
 
 To get started, you’ll typically need to install playwright:
 
@@ -261,7 +263,9 @@ To get started, you’ll typically need to install playwright:
 npx playwright install
 ```
 
-We recommend installing the official Playwright [VS Code plugin](https://playwright.dev/docs/getting-started-vscode). This will give you access to the Playwright test runner, which you can use to run your tests. You can also use the `npx playwright test` command to run your tests. We also recommend following the [best practices](https://playwright.dev/docs/best-practices) outlined in the Playwright documentation. This will help you write tests that are reliable and easy to maintain.
+We recommend installing the official Playwright [VS Code plugin](https://playwright.dev/docs/getting-started-vscode). This will give you access to the Playwright test runner, which you can use to run your tests.
+You can also use the `npx playwright test` command to run your tests. We also recommend following the [best practices](https://playwright.dev/docs/best-practices) outlined in the Playwright documentation.
+This will help you write tests that are reliable and easy to maintain.
 
 ### Writing New Tests
 
@@ -293,6 +297,52 @@ When you want to write a new test case, start by creating a new spec in `./specs
 Depending on what you want to achieve, you might want to create new fixtures and/or
 page object models. To see examples, have a look at the existing code to see how these
 different concepts play together.
+
+The spec files contain scenarios written in a BDD-like syntax. In this syntax, we utilize Playwright's `test.step` calls and emphasize a user-centric focus by using the "I" keyword.
+The code snippet below demonstrates how this BDD-like syntax is employed to write a test case:
+
+```ts copy
+test("Search patient by patient identifier", async ({ page, api }) => {
+  // extract details from the created patient
+  const openmrsIdentifier = patient.identifiers[0].display.split("=")[1].trim();
+  const firstName = patient.person.display.split(" ")[0];
+  const lastName = patient.person.display.split(" ")[1];
+  const homePage = new HomePage(page);
+
+  await test.step("When I visit the home page", async () => {
+    await homePage.goto();
+  });
+
+  await test.step("And I enter a valid patient identifier into the search field", async () => {
+    await homePage.searchPatient(openmrsIdentifier);
+  });
+
+  await test.step("Then I should see only the patient with the entered identifier", async () => {
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(
+      /1 search result/
+    );
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(
+      new RegExp(firstName)
+    );
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(
+      new RegExp(lastName)
+    );
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(
+      new RegExp(openmrsIdentifier)
+    );
+  });
+
+  await test.step("When I click on the patient", async () => {
+    await homePage.clickOnPatientResult(firstName);
+  });
+
+  await test.step("Then I should be in the patient's chart page", async () => {
+    await expect(homePage.page).toHaveURL(
+      `${process.env.E2E_BASE_URL}/spa/patient/${patient.uuid}/chart/Patient Summary`
+    );
+  });
+});
+```
 
 ### Demo data usage
 

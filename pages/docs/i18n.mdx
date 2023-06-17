@@ -4,23 +4,27 @@ Internationalization is the process of designing software applications to be ada
 We use [react-i18next](https://react.i18next.com/) to internationalize frontend module content.
 
 In order to internationalize your frontend module, add this line in the index.ts file to tell the app shell where to find the translation files.
+
 ```ts copy
-const importTranslation = require.context("../translations", false, /.json$/, "lazy");
+const importTranslation = require.context(
+  "../translations",
+  false,
+  /.json$/,
+  "lazy"
+);
 ```
 
 All translations are added in the `translations` directory which is at the top level of the package. The source file for translations is the `en.json` which contains english translations of all hardcoded text.
 To add translations of another language eg. Spanish, create a new `es.json` file in the `translations` directory. When the user changes their preferred language, the application loads the appropriate resource file and displays the text in the user's preferred language.
 
 Here is an example of using react-i18next localization in your react components.
+
 ```ts copy
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 
 const ActiveVisitsTable = () => {
   const { t } = useTranslation();
 
-  return(Here is an example of using 
-    <h4>{t('activeVisits', 'Active Visits')}</h4>
-  )
-}
+  return <h4>{t("activeVisits", "Active Visits")}</h4>;
+};
 ```
-

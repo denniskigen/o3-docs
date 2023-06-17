@@ -8,7 +8,7 @@
   "recipes": "Recipes",
   "extension-system": "Extension system",
   "configuration-system": "Configuration system",
-  "internationalization": "i18n translations",
+  "i18n": "i18n",
   "storing-values": "Storing values",
   "breadcrumbs": "Breadcrumbs",
   "migration-guide": "Migrating to Core v5",

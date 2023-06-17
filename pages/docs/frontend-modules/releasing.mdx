@@ -1,13 +1,15 @@
 # Releasing frontend modules
 
-After you’ve met a reasonable threshold of commits, or after a set period of time, you’ll likely want to publish your software to the NPM registry so that consumers can get your latest stable versions.
+After you’ve met a reasonable threshold of commits, or after a set period of time, you’ll likely want to publish your software to the NPM registry so that consumers can get your latest stable versions. O3 frontend modules get released every two weeks.
 
-To do this, you’ll want to leverage our release pipeline. Broadly speaking, when a PR gets merged, a `pre-release` job in our primary GitHub actions CI workflow gets triggered. This job publishes a version of the frontend module to its corresponding npm registry with the `latest` tag. To see what version the `latest` tag corresponds to for a frontend module, go to its NPM registry page and click on the `version` tag. Look out for the most recent version tagged `latest`.
+Broadly speaking, when a PR gets merged, a `pre-release` job in our primary GitHub actions CI workflow gets triggered. This job publishes a version of the frontend module to its corresponding npm registry that is tagged `latest`. This is the version that consumers will get when they install your frontend module.
+
+To see what version the `latest` tag corresponds to for a frontend module, go to its NPM registry page and click on the `version` tag. Look out for the most recent version tagged `latest`.
 
 The process of publishing a release in O3 has two parts:
 
-1. Bumping your package versions locally and pushing those changes to GitHub. This step will trigger the `pre-release` job.
-2.
+1. Bumping your package versions locally and pushing those changes to GitHub. This step will trigger the `pre-release` CI job.
+2. Cutting a release using the Github releases UI. This step will trigger the `release` CI job.
 
 If you want to publish an actual release version of your module, you need to think about a few things first, including:
 

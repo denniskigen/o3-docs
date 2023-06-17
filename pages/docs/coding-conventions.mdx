@@ -11,6 +11,7 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - Use `kebab-case` for file names and folder names.
 - Components should contain the `.component` suffix in their name (e.g. `user.component.tsx`). This nomenclature is used to distinguish components from other files such as resources, stylesheets, and tests, and determines where translation keys and strings should be extracted from. Translation keys and strings will not be extracted from files that do not match this convention.
 - Unit and integration test files should contain the `.test` suffix in their name (e.g. `user.test.tsx`). Do not include the word `component` in the test file name.
+- Playwright e2e tests should contain the '.spec' suffix in their name (e.g. `user.spec.ts`).
 - Stylesheets should not contain `.component` suffix in their name (e.g. `user.component.scss`). This is because stylesheets are not components, and are not translated. Instead, stylesheets should be named after the component they are styling (e.g. `user.scss`).
 - Resource files that encapsulate data fetching logic should contain the `.resource` suffix in their name (e.g. `user.resource.ts`). This is to distinguish them from other files such as components, stylesheets, and tests.
 - Name TypeScript files that contain JSX with the `.tsx` extension (e.g. `user.component.tsx`). Name TypeScript files that do not contain JSX with the `.ts` extension (e.g. `user.resource.ts`). In most cases, you shouldn't need to use the `.tsx` extension for files outside the `src` directory.

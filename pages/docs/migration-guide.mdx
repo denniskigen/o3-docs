@@ -1,3 +1,5 @@
+import { Callout } from "nextra-theme-docs";
+
 # Migrating to Core v5
 
 ## Introduction
@@ -13,78 +15,21 @@ To leverage these improvements, you'll need to migrate your existing frontend mo
 
 In general, you need to do the following:
 
-1. [Factor out static metadata into a `routes.json` file](/docs/migration-guide#factor-out-static-metadata)
-2. [Factor out dynamic metadata into a `startupApp` activator function](/docs/migration-guide#factor-out-dynamic-metadata)
+1. [Factor out static metadata into a `routes.json` file](/docs/migration-guide#1-factor-out-static-metadata)
+2. [Factor out dynamic metadata into a `startupApp` activator function](/docs/migration-guide#2-factor-out-dynamic-metadata)
 
-## Factor out static metadata
+## Case Study: Login frontend module
 
-Each frontend module defines a metadata that are either static or dynamic in nature. Static metadata include:
-
-- `backendDependencies` - the exact versions of backend dependencies that the module depends on.
-- `pages` - the pages that the module provides.
-- `extensions` - the extensions that the module provides.
-
-These metadata are static in the sense that they do not change at runtime. They are also the metadata that are used by the app shell to load the module. As such, they are the metadata that we need to factor out into a static `routes.json` file. A typical `routes.json` file looks like this:
-
-```json
-{
-  "$schema": "https://json.openmrs.org/routes.schema.json",
-  "backendDependencies": {
-    "webservices.rest": ">=2.24.0"
-  },
-  "pages": [
-    {
-      // This named export is defined in the module's `index.ts` file. It is the unique identifier of the page.
-      "component": "root",
-      "route": "login",
-      "online": true,
-      "offline": true
-    },
-    {
-      "component": "root",
-      "route": "logout",
-      "online": true,
-      "offline": true
-    }
-  ],
-  "extensions": [
-    {
-      "name": "location-picker",
-      "slot": "location-picker",
-      "component": "locationPicker",
-      "online": true,
-      "offline": true
-    },
-    {
-      "name": "logout-button",
-      "slot": "user-panel-actions-slot",
-      "component": "logoutButton",
-      "online": true,
-      "offline": true
-    },
-    {
-      "name": "location-changer",
-      "slot": "user-panel-slot",
-      "component": "changeLocationLink",
-      "online": true,
-      "offline": true
-    }
-  ]
-}
-```
-
-The original `index.ts` file for the module looks like this:
+Let's take a look at the [Login](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-login-app) frontend module as an example. The original `index.ts` file for the module looks like this:
 
 ```ts
 import { getAsyncLifecycle, defineConfigSchema } from "@openmrs/esm-framework";
 import { configSchema } from "./config-schema";
 
-// The next two lines are no longer needed
 declare var __VERSION__: string;
 // __VERSION__ is replaced by Webpack with the version from package.json
 const version = __VERSION__;
 
-// This variable gets prefixed with `export `
 const importTranslation = require.context(
   "../translations",
   false,
@@ -105,27 +50,15 @@ const sharedOnlineOfflineProps = {
   },
 };
 
-// This function is renamed to `startupApp` and gets prefixed with `export `
 function setupOpenMRS() {
   const moduleName = "@openmrs/esm-login-app";
 
-  // This `options` variable and `moduleName` above it move outside the function body
   const options = {
     featureName: "login",
     moduleName,
   };
 
-  // This function invocation moves outside the function body
   defineConfigSchema(moduleName, configSchema);
-
-  // All of the following bits move out of this file and into a new file called `routes.json` (as shown above)
-
-  // Each `page` and `extension` gets factored out into a named export that looks like this:
-  /*   export const [namedExport] = getAsyncLifecycle(
-    () => import(`path-to-component`),
-    options
-  ); */
-  // These named exports move up to the top level of this file
 
   return {
     pages: [
@@ -174,11 +107,354 @@ function setupOpenMRS() {
   };
 }
 
-// This export is no longer needed
 export { setupOpenMRS, importTranslation, backendDependencies, version };
 ```
 
-## Factor out dynamic metadata
+## 1. Factor out static metadata
+
+Each frontend module defines a metadata that are either static or dynamic in nature. Static metadata include:
+
+- `backendDependencies` - the versions of backend dependencies that the module depends on.
+- `pages` - the pages that the module provides.
+- `extensions` - the extensions that the module provides.
+
+These metadata are static in the sense that they do not change at runtime. They are also the metadata that are used by the app shell to load the module.
+
+Looking at the entrypoint for the `Login` example from above, the static metadata we need to factor out are highlighted below:
+
+```ts {15-17,40-49,52-80}
+import { getAsyncLifecycle, defineConfigSchema } from "@openmrs/esm-framework";
+import { configSchema } from "./config-schema";
+
+declare var __VERSION__: string;
+// __VERSION__ is replaced by Webpack with the version from package.json
+const version = __VERSION__;
+
+const importTranslation = require.context(
+  "../translations",
+  false,
+  /.json$/,
+  "lazy"
+);
+
+const backendDependencies = {
+  "webservices.rest": "^2.24.0",
+};
+
+const sharedOnlineOfflineProps = {
+  online: {
+    isLoginEnabled: true,
+  },
+  offline: {
+    isLoginEnabled: false,
+  },
+};
+
+function setupOpenMRS() {
+  const moduleName = "@openmrs/esm-login-app";
+
+  const options = {
+    featureName: "login",
+    moduleName,
+  };
+
+  defineConfigSchema(moduleName, configSchema);
+
+  return {
+    pages: [
+      {
+        load: getAsyncLifecycle(() => import("./root.component"), options),
+        route: "login",
+        ...sharedOnlineOfflineProps,
+      },
+      {
+        load: getAsyncLifecycle(() => import("./root.component"), options),
+        route: "logout",
+        ...sharedOnlineOfflineProps,
+      },
+    ],
+    extensions: [
+      {
+        name: "location-picker",
+        slot: "location-picker",
+        load: getAsyncLifecycle(
+          () => import("./location-picker/location-picker.component"),
+          options
+        ),
+        ...sharedOnlineOfflineProps,
+      },
+      {
+        name: "logout-button",
+        slot: "user-panel-actions-slot",
+        load: getAsyncLifecycle(
+          () => import("./logout/logout.component"),
+          options
+        ),
+        online: true,
+        offline: false,
+      },
+      {
+        name: "location-changer",
+        slot: "user-panel-slot",
+        order: 1,
+        load: getAsyncLifecycle(
+          () => import("./change-location-link/change-location-link.component"),
+          options
+        ),
+        ...sharedOnlineOfflineProps,
+      },
+    ],
+  };
+}
+
+export { setupOpenMRS, importTranslation, backendDependencies, version };
+```
+
+Let's walk through the changes that we need to make to this file to build out the `routes.json` file step by step.
+
+### 1. Create a `routes.json` file
+
+Create a `routes.json` file in the module's root directory:
+
+```json copy
+{
+  "$schema": "https://json.openmrs.org/routes.schema.json"
+}
+```
+
+The `$schema` property points to the [routes schema](https://json.openmrs.org/routes.schema.json) file which is a standard JSON schema that enables your IDE to provide autocompletion and validation for the `routes.json` file.
+
+### 2: Move `backendDependencies`
+
+`backendDependencies` represents a list of backend modules necessary for this frontend module to work and the corresponding required versions. Move `backendDependencies` from `index.ts` to `routes.json` as follows:
+
+```json copy
+{
+  "$schema": "https://json.openmrs.org/routes.schema.json",
+  "backendDependencies": {
+    "webservices.rest": "^2.24.0"
+  }
+}
+```
+
+### 3. Move `pages`
+
+`pages` are automatically mounted based on a route.
+
+Each page in the `pages` array is represented by a JSON object with the following properties:
+
+- `component` - a string property that represents the name of the component exported by this frontend module.
+- `route` - string or boolean property that represents the route that the page is accessible at. This is the same as the `route` property in the original `pages` array. If set to a string property, this is used to indicate that this page is accessible at the specified route. For example, `name` will match when the current page is `${window.spaBase/name}`. If a boolean, this indicates the component should always be rendered or should never be rendered.
+- `routeRegex` - A regular expression that is used to match the current route to determine if this page should be rendered. Note that `${window.spaBase}` gets removed before attempting to match the route, so setting this to `^name.+` will any route that starts with `${window.spaBase}/name`. You can only specify one of `route` or `routeRegex`.
+- `privilege` - array or string property that represents one or more privileges that a user must have in order for this page to be rendered. If the user does not have the specified privileges, the page will not be rendered.
+- `online` - optional boolean property. Defaults to `true`. Determines whether the component renders while the browser is connected to the internet. If false, the page will not be rendered while online.
+- `offline` - optional boolean property. Defaults to `true`. Determines whether the component renders while the browser is not connected to the internet. If false, the page will not be rendered while offline.
+- `order` - integer property. Determines the order in which the DOM element that renders this page is rendered. Should be used sparingly, but is sometimes necessary to ensure the resulting markup is correct. Minimum value is 0.
+
+  <Callout emoji="ℹ️" type="info">
+    `component` is the only required property. All other properties are
+    optional.
+  </Callout>
+
+To move `pages` from `index.ts` to `routes.json`, we need to extract the following properties from each page definition in the `pages` array:
+
+- `component` - the named export of the component. This gets obtained from the `load` property of the page definition. Looking at the login example:
+
+  ```ts {2,13}
+    {
+      load: getAsyncLifecycle(() => import("./root.component"), options),
+      route: "login",
+      // Properties of the `sharedOnlineOfflineProps` object get spread here for brevity
+      online: {
+        isLoginEnabled: true,
+      },
+      offline: {
+        isLoginEnabled: false,
+      }
+    },
+    {
+      load: getAsyncLifecycle(() => import("./root.component"), options),
+      route: "logout",
+      // Properties of the `sharedOnlineOfflineProps` object get spread here for brevity
+      online: {
+        isLoginEnabled: true,
+      },
+      offline: {
+        isLoginEnabled: false,
+      }
+    }
+  ```
+
+  We could extract the following component:
+
+  ```ts
+  export const root = getAsyncLifecycle(
+    () => import("./root.component"),
+    options
+  );
+  ```
+
+- `route` - we can extract this directly from the `route` property of the page definition. In the login example, this would be `"login"` and `"logout"` respectively. These routes both use the same component, so we can use the same `component` property for both of them.
+
+- `online` - we'll use the default value `true`.
+- `offline` - we'll use the default value `true`.
+
+Putting this together gives us the following `pages` definition:
+
+```json {6-19} copy
+{
+  "$schema": "https://json.openmrs.org/routes.schema.json",
+  "backendDependencies": {
+    "webservices.rest": "^2.24.0"
+  },
+  "pages": [
+    {
+      "component": "root",
+      "route": "login",
+      "online": true,
+      "offline": true
+    },
+    {
+      "component": "root",
+      "route": "logout",
+      "online": true,
+      "offline": true
+    }
+  ]
+}
+```
+
+### 4. Move `extensions`
+
+`extensions` is an array of all the extensions supported by a frontend module. Extensions can be mounted in extensions slots via declarations in the `routes.json` file or dynamically via configuration.
+
+Each extension in the `extensions` array is represented by a JSON object with the following properties:
+
+- `name` - `string` property that refers to the name of the extension. This is the same as the `name` property in the original `extensions` array.
+- `component` - `string` property that refers to the name of the component exported by this frontend module. This is the same as the `component` property of the `pages` array from the previous step.
+- `slot` - `string` property that refers to the name of the slot that this extension should be mounted in. This is the same as the `slot` property in the original `extensions` array.
+- `privilege` - `string` or `array` property that refers to the privilege(s) that a user must have in order for this extension to be rendered.
+- `online` - optional boolean property. Defaults to `true`. Determines whether the component renders while the browser is connected to the internet. If false, the page will not be rendered while online.
+- `offline` - optional boolean property. Defaults to `true`. Determines whether the component renders while the browser is not connected to the internet. If false, the page will not be rendered while offline.
+- `order` - `integer` property. Determines the order in which this component renders in its default extension slot. Note that this can be overridden by configuration. Minimum value is 0.
+- `meta` - `object` property that describes any properties that get passed down to the extension when it gets loaded.
+
+  <Callout emoji="ℹ️" type="info">
+    `name` and `component` are required properties. All other properties are
+    optional.
+  </Callout>
+
+To move `extensions` from `index.ts` to `routes.json`, we need to extract the following properties from each extension definition in the `extensions` array:
+
+- `name` - we can extract this directly from the `name` property of the extension definition. In the Login example, this would be `location-picker`, `logout-button`, and `location-changer` respectively.
+- `slot` - we can extract this directly from the `slot` property of the extension definition. In the Login example, this would be `location-picker`, `user-panel-actions-slot`, and `user-panel-slot` respectively.
+- `online` - we'll use the default value `true`.
+- `offline` - we'll use the default value `true`.
+- `order` - we'll grab the `order` property from the `location-changer` extension definition, which is 1.
+
+Putting this all together gives us the following `extensions` definition:
+
+```json {21-41} copy
+{
+  "$schema": "https://json.openmrs.org/routes.schema.json",
+  "backendDependencies": {
+    "webservices.rest": "^2.24.0"
+  },
+  "pages": [
+    {
+      "component": "root",
+      "route": "login",
+      "online": true,
+      "offline": true
+    },
+    {
+      "component": "root",
+      "route": "logout",
+      "online": true,
+      "offline": true
+    }
+  ],
+  "extensions": [
+    {
+      "name": "location-picker",
+      "slot": "location-picker",
+      "component": "locationPicker",
+      "online": true,
+      "offline": true
+    },
+    {
+      "name": "logout-button",
+      "slot": "user-panel-actions-slot",
+      "component": "logoutButton",
+      "online": true,
+      "offline": true
+    },
+    {
+      "name": "location-changer",
+      "slot": "user-panel-slot",
+      "component": "changeLocationLink",
+      "online": true,
+      "offline": true,
+      // TODO: Clarify whether this order property should remain
+      "order": 1
+    }
+  ]
+}
+```
+
+### Final `routes.json` file
+
+The final `routes.json` file looks like this:
+
+```json {21-42} copy
+{
+  "$schema": "https://json.openmrs.org/routes.schema.json",
+  "backendDependencies": {
+    "webservices.rest": "^2.24.0"
+  },
+  "pages": [
+    {
+      "component": "root",
+      "route": "login",
+      "online": true,
+      "offline": true
+    },
+    {
+      "component": "root",
+      "route": "logout",
+      "online": true,
+      "offline": true
+    }
+  ],
+  "extensions": [
+    {
+      "name": "location-picker",
+      "slot": "location-picker",
+      "component": "locationPicker",
+      "online": true,
+      "offline": true
+    },
+    {
+      "name": "logout-button",
+      "slot": "user-panel-actions-slot",
+      "component": "logoutButton",
+      "online": true,
+      "offline": true
+    },
+    {
+      "name": "location-changer",
+      "slot": "user-panel-slot",
+      "component": "changeLocationLink",
+      "online": true,
+      "offline": true,
+      // TODO: Clarify whether this order property should remain
+      "order": 1
+    }
+  ]
+}
+```
+
+## 2. Factor out dynamic metadata
 
 Dynamic metadata include:
 
@@ -188,3 +464,217 @@ Dynamic metadata include:
 - The frontend module's `options` object.
 
 The app shell does not need to know about these metadata at initial module load time. As such, frontend modules can retain these metadata in their `index.ts` files. However, they need to be moved outside of the `setupOpenMRS` function and prefixed with `export` so that they can be imported by the app shell at runtime.
+
+Going back to the Login app example from above, the dynamic metadata we need to factor out are highlighted below:
+
+```ts {8-13, 29, 31-34, 36, 41, 46, 55-58, 65-68, 75-78}
+import { getAsyncLifecycle, defineConfigSchema } from "@openmrs/esm-framework";
+import { configSchema } from "./config-schema";
+
+declare var __VERSION__: string;
+// __VERSION__ is replaced by Webpack with the version from package.json
+const version = __VERSION__;
+
+const importTranslation = require.context(
+  "../translations",
+  false,
+  /.json$/,
+  "lazy"
+);
+
+const backendDependencies = {
+  "webservices.rest": "^2.24.0",
+};
+
+const sharedOnlineOfflineProps = {
+  online: {
+    isLoginEnabled: true,
+  },
+  offline: {
+    isLoginEnabled: false,
+  },
+};
+
+function setupOpenMRS() {
+  const moduleName = "@openmrs/esm-login-app";
+
+  const options = {
+    featureName: "login",
+    moduleName,
+  };
+
+  defineConfigSchema(moduleName, configSchema);
+
+  return {
+    pages: [
+      {
+        load: getAsyncLifecycle(() => import("./root.component"), options),
+        route: "login",
+        ...sharedOnlineOfflineProps,
+      },
+      {
+        load: getAsyncLifecycle(() => import("./root.component"), options),
+        route: "logout",
+        ...sharedOnlineOfflineProps,
+      },
+    ],
+    extensions: [
+      {
+        name: "location-picker",
+        slot: "location-picker",
+        load: getAsyncLifecycle(
+          () => import("./location-picker/location-picker.component"),
+          options
+        ),
+        ...sharedOnlineOfflineProps,
+      },
+      {
+        name: "logout-button",
+        slot: "user-panel-actions-slot",
+        load: getAsyncLifecycle(
+          () => import("./logout/logout.component"),
+          options
+        ),
+        online: true,
+        offline: false,
+      },
+      {
+        name: "location-changer",
+        slot: "user-panel-slot",
+        order: 1,
+        load: getAsyncLifecycle(
+          () => import("./change-location-link/change-location-link.component"),
+          options
+        ),
+        ...sharedOnlineOfflineProps,
+      },
+    ],
+  };
+}
+
+export { setupOpenMRS, importTranslation, backendDependencies, version };
+```
+
+Let's walk through the changes that we need to make to this file to factor out the dynamic metadata step by step.
+
+### 1. Move the `moduleName` and `options` variables to the top level
+
+Because we're going to get rid of the `setupOpenMRS` function, we need to move the `moduleName` and `options` variable and the `defineConfigSchema` function outside of `setupOpenMRS` to the top level.
+
+```ts copy
+import { getAsyncLifecycle, defineConfigSchema } from "@openmrs/esm-framework";
+import { configSchema } from "./config-schema";
+
+const moduleName = "@openmrs/esm-login-app";
+
+const options = {
+  featureName: "login",
+  moduleName,
+};
+```
+
+### 2. Make the `importTranslation` function a named export
+
+```ts copy
+export const importTranslation = require.context(
+  "../translations",
+  false,
+  /.json$/,
+  "lazy"
+);
+```
+
+### 3. Make the `pages` and `extensions` arrays named exports
+
+Each page and extension in the `pages` and `extensions` arrays needs to be a named export at the top-level.
+
+```ts copy
+export const root = getAsyncLifecycle(
+  () => import("./root.component"),
+  options
+);
+
+export const locationPicker = getAsyncLifecycle(
+  () => import("./location-picker/location-picker.component"),
+  options
+);
+
+export const logoutButton = getAsyncLifecycle(
+  () => import("./logout/logout.component"),
+  options
+);
+
+export const changeLocationLink = getAsyncLifecycle(
+  () => import("./change-location-link/change-location-link.component"),
+  options
+);
+```
+
+These correspond to the `component` property of each page and extension in the `pages` and `extensions` arrays in the `routes.json` file.
+
+### 4. Create a `startupApp` function and move the `defineConfigSchema` call into it
+
+This `startupApp` function will contain all the functions that should be executed by the app shell at runtime, including the `defineConfigSchema` function which sets up configuration for the frontend module.
+
+```ts copy
+export function startupApp() {
+  defineConfigSchema(moduleName, configSchema);
+}
+```
+
+### Remove extraneous metadata
+
+Remove the following metadata:
+
+- `backendDependencies`
+- The `__VERSION__` type declaration and `version` variable
+- The `setupOpenMRS` function
+- The `sharedOnlineOfflineProps` object
+- The `export` statement at the bottom of the file
+
+### Final `index.ts` file
+
+Bringing all these changes together, we get the following `index.ts` file:
+
+```ts copy
+import { getAsyncLifecycle, defineConfigSchema } from "@openmrs/esm-framework";
+import { configSchema } from "./config-schema";
+
+const moduleName = "@openmrs/esm-login-app";
+
+const options = {
+  featureName: "login",
+  moduleName,
+};
+
+export const importTranslation = require.context(
+  "../translations",
+  false,
+  /.json$/,
+  "lazy"
+);
+
+export function startupApp() {
+  defineConfigSchema(moduleName, configSchema);
+}
+
+export const root = getAsyncLifecycle(
+  () => import("./root.component"),
+  options
+);
+
+export const locationPicker = getAsyncLifecycle(
+  () => import("./location-picker/location-picker.component"),
+  options
+);
+
+export const logoutButton = getAsyncLifecycle(
+  () => import("./logout/logout.component"),
+  options
+);
+
+export const changeLocationLink = getAsyncLifecycle(
+  () => import("./change-location-link/change-location-link.component"),
+  options
+);
+```

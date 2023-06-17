@@ -14,12 +14,9 @@ const config: DocsThemeConfig = {
   project: {
     link: "https://github.com/denniskigen/o3-docs",
   },
-  chat: {
-    link: "https://discord.com",
-  },
   docsRepositoryBase: "https://github.com/denniskigen/o3-docs/blob/main",
   footer: {
-    text: "© 2023 OpenMRS",
+    text: `© ${new Date().getFullYear()} OpenMRS`,
   },
   nextThemes: {
     defaultTheme: "system",

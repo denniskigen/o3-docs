@@ -198,3 +198,15 @@ To fix these, you need to update Carbon's ambient type declarations. To do so, a
 declare module "@carbon/react";
 declare type SideNavProps = {};
 ```
+
+### I'm getting merge conflicts in my `yarn.lock` file
+
+To resolve merge conflicts in your `yarn.lock` file, run the following command:
+
+```sh copy
+git checkout HEAD yarn.lock && yarn
+```
+
+### The `verify` job is failing on GitHub Actions for my PR
+
+You likely have a lint or typescript error in your code. Run `yarn turbo lint` or `yarn turbo typescript` to get a more specific error log.

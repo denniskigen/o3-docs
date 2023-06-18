@@ -15,8 +15,8 @@ To leverage these improvements, you'll need to migrate your existing frontend mo
 
 In general, you need to do the following:
 
-1. [Factor out static metadata into a `routes.json` file](/docs/migration-guide#1-factor-out-static-metadata)
-2. [Factor out dynamic metadata into a `startupApp` activator function](/docs/migration-guide#2-factor-out-dynamic-metadata)
+1. [Factor out static metadata into a `routes.json` file](/docs/migration-guide#factor-out-static-metadata)
+2. [Factor out dynamic metadata into a `startupApp` activator function](/docs/migration-guide#factor-out-dynamic-metadata)
 
 ## Case Study: Login frontend module
 
@@ -110,7 +110,7 @@ function setupOpenMRS() {
 export { setupOpenMRS, importTranslation, backendDependencies, version };
 ```
 
-## 1. Factor out static metadata
+## Factor out static metadata
 
 Each frontend module defines metadata that are either static or dynamic in nature. Static metadata include:
 
@@ -402,7 +402,7 @@ Putting this all together gives us the following `extensions` definition:
 }
 ```
 
-## Final `routes.json` file
+### Final `routes.json` file
 
 The final `routes.json` file looks like this:
 
@@ -454,7 +454,7 @@ The final `routes.json` file looks like this:
 }
 ```
 
-## 2. Factor out dynamic metadata
+## Factor out dynamic metadata
 
 Dynamic metadata include:
 
@@ -584,7 +584,7 @@ export const importTranslation = require.context(
 );
 ```
 
-### 3. Make the `pages` and `extensions` arrays named exports
+### 3. Make pages and extensions named exports
 
 Each page and extension in the `pages` and `extensions` arrays needs to be a named export at the top-level.
 
@@ -632,7 +632,7 @@ Remove the following metadata:
 - The `sharedOnlineOfflineProps` object
 - The `export` statement at the bottom of the file
 
-## Final `index.ts` file
+### Final `index.ts` file
 
 Bringing all these changes together, we get the following `index.ts` file:
 
@@ -681,7 +681,11 @@ export const changeLocationLink = getAsyncLifecycle(
 
 ## More examples
 
+Find tracking branches containing the necessary changes in the following repositories:
+
 - [Cohort builder](https://github.com/openmrs/openmrs-esm-cohortbuilder/compare/main...breaking/use-json-routes)
 - [Form builder](https://github.com/openmrs/openmrs-esm-form-builder/compare/main...breaking/use-json-routes)
 - [Home](https://github.com/openmrs/openmrs-esm-home/compare/main...breaking/use-json-routes)
 - [Medication dispensing](https://github.com/openmrs/openmrs-esm-dispensing-app/compare/main...breaking/use-json-routes)
+- [Patient chart](https://github.com/openmrs/openmrs-esm-patient-chart/compare/main...breaking/use-json-routes)
+- [Patient management](https://github.com/openmrs/openmrs-esm-patient-management/compare/main...breaking/use-json-routes)

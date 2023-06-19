@@ -194,7 +194,7 @@ TS2305: Module '"@carbon/react"' has no exported member 'Pagination'.
 
 To fix these, you need to update Carbon's ambient type declarations. To do so, add the following entries to your `declarations.d.ts` file:
 
-```ts
+```ts copy
 declare module "@carbon/react";
 declare type SideNavProps = {};
 ```
@@ -209,4 +209,4 @@ git checkout HEAD yarn.lock && yarn
 
 ### The `verify` job is failing on GitHub Actions for my PR
 
-You likely have a lint or typescript error in your code. Run `yarn turbo lint` or `yarn turbo typescript` to get a more specific error log.
+You likely have a lint or typescript error in your code. ESLint is setup to fail when it flags warnings. Run `yarn turbo lint` locally to the specific lint error in your IDE. For TypeScript errors, you should see the error in the CI log. If not, run `yarn turbo typescript` locally.

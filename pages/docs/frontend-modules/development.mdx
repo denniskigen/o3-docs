@@ -210,3 +210,8 @@ git checkout HEAD yarn.lock && yarn
 ### The `verify` job is failing on GitHub Actions for my PR
 
 You likely have a lint or typescript error in your code. ESLint is setup to fail when it flags warnings. Run `yarn turbo lint` locally to the specific lint error in your IDE. For TypeScript errors, you should see the error in the CI log. If not, run `yarn turbo typescript` locally.
+
+### I'm getting `502` errors from attempting to fetch the session when running a local dev server
+
+If you're running a local dev server and you're getting `502` errors from attempting to fetch the session, that's likely because the dev3 server (which your local dev server proxies to) is down. Check that you can log in to [dev3](https://dev3.openmrs.org/openmrs/spa) first.
+If you cannot log in, then you'll need to wait for the server to come back up.

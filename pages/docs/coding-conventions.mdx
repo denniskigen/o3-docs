@@ -56,7 +56,6 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - Follow the guidelines outlined [here](https://kentcdodds.com/blog/application-state-management-with-react).
 - To share state between components, [lift the state up to the nearest common ancestor](https://react.dev/learn/sharing-state-between-components#) of the components that need to share the state and pass the state down to the components as props. This is the simplest way to share state between components.
 - Avoid creating state variables for things that can be [computed from existing state variables](https://react.dev/learn/you-might-not-need-an-effect#updating-state-based-on-props-or-state). For example, if you have a state variable called `firstName` and another called `lastName`, don't create a third state variable called `fullName`. Instead, derive the `fullName` from the `firstName` and `lastName` state variables.
--
 
 ### Mutations and side effects
 

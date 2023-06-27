@@ -1,4 +1,5 @@
 import { Callout } from "nextra-theme-docs";
+import Image from "next/image";
 
 # Migrating to Core v5
 
@@ -707,19 +708,47 @@ export { Dexie$1 as Dexie, RangeSet, Dexie$1 as default, liveQuery, mergeRanges,
     SyntaxError: Unexpected token ‘export’
 ```
 
-This means you have a problem with the `dexie` entry in your Jest configuration's `moduleNameMapper` entry. To fix that, ensure your Jest config has a `moduleNameMapper` entry for `dexie` that looks like this:
+This means that there's a problem with the module import mapping for the `dexie` package in your Jest configuration. To fix this, amend the `moduleNameMapper` config option for `dexie` in your `jest.config.js` to the following:
 
 ```js copy
 '^dexie$': require.resolve('dexie')
 ```
 
-### I'm getting a `Module not found: Error: Can’t resolve ‘@swc-node/loader’` error
+If your Jest config is in a JSON file, you might want to move that over to a JavaScript file instead. See this [commit's diff](https://github.com/openmrs/openmrs-esm-patient-management/pull/733/commits/7f224281cdc8f9ac85c5f4e99cd25e5d51a0836a) for guidance on what to change.
 
-To fix this, make sure you install `swc-node/loader` as a devDependency in your frontend module:
+### I'm getting a `Module not found: Error: Can’t resolve ‘css-loader’` error
+
+This error means that you're missing [css-loader](https://www.npmjs.com/package/css-loader) dependency, which the framework uses . To fix this, make sure you install `swc-node/loader` as a devDependency in your frontend module:
 
 ```sh copy
-yarn add -D @swc-node/loader@^1.3.5
+yarn add -D css-loader
 ```
+
+### I'm getting a minified single-spa error `#10: Invalid mount lifecycle on parcel` when I run my frontend module
+
+<br />
+<Image
+  src="/named-export-error.png"
+  alt="Screenshot of the error message"
+  width={500}
+  height={500}
+/>
+
+This error means that your frontend module has an invalid mount lifecycle function. The usual culprit is a misconfigured named export in your app's `index.ts` file. Make sure that your named exports directly reference exports from invoking `getAsyncLifecycle` and `getSyncLifecycle`:
+
+```ts
+// This is incorrect. `root`. Remove the function call
+export const root = () =>
+  getAsyncLifecycle(() => import("./root.component"), options);
+
+// This is correct way to import the component
+export const root = getAsyncLifecycle(
+  () => import("./root.component"),
+  options
+);
+```
+
+This is a [common mistake](https://github.com/search?q=org%3Aopenmrs+exports+should+reference+the+result+of+getSync&type=pullrequests) when upgrading from the old frontend module structure to the new one. Don't get caught out.
 
 ## More examples
 

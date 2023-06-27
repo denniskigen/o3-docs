@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
-function AdaptiveLogo({ height = 200, width = 350 }) {
+function AdaptiveLogo({ height = 180, width = 350 }) {
   const [colorScheme, setColorScheme] = useState("light");
 
   useEffect(() => {

@@ -22,16 +22,17 @@ The major pieces in the O3 frontend architecture are:
 
 ## App shell
 
-The central piece of O3's architecture is the app shell. The app shell forms the base of the application, and is tasked with doing a whole host of things, from registering frontend modules in the import map to starting the application. Introduced in [RFC-26](https://github.com/openmrs/openmrs-rfc-frontend/blob/e745ee9c37b2ca0ae6f4fc93259724e61bfac82e/text/0026-activation-distribution.md), the app shell sets up the initial script and the `index.html` file that gets loaded on startup. The app shell runs a script on startup that:
+In O3, the app shell is the base of the application. It is responsible for doing a whole host of things that are critical to the application's functioning. Introduced in [RFC-26](https://github.com/openmrs/openmrs-rfc-frontend/blob/e745ee9c37b2ca0ae6f4fc93259724e61bfac82e/text/0026-activation-distribution.md), the app shell is responsible for:
 
-- Sets up CSS breakpoints in the application.
-- Sets up containers in the UI for modals, toasts and inline notifications.
-- Initializes the application's global state store.
-- Sets up the service worker which provides caching capabilities that form the basis for our rudimentary offline mode.
+- Setting up the index.html file that gets loaded on startup.
+- Setting up CSS breakpoints in the UI as well as subscriptions for modals, toasts and inline notifications.
+- Loading the import map and appending script tags for each frontend module to the index.html file .
+- Loading each frontend module's routes and activator function.
+- Initializing the application's global state store.
+- Setting up the service worker which provides caching capabilities that enables our rudimentary offline mode.
 - Sets up the `esm-api` library which exports API objects that get reused by multiple frontend modules.
-- Sets up the breadcrumbs navigation menu extension.
-- Loads and validates the provided configurations.
-- Renders the UI.
+- Sets up the configuration system which provides various levels of configurability to the application.
+- Sets up the extension system.
 
 ## Frontend modules
 

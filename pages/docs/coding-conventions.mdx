@@ -1,3 +1,5 @@
+import { Callout } from "nextra-theme-docs";
+
 # Coding conventions
 
 This is a compendium of the coding conventions we use in O3. The purpose of this document is to help us write code that is consistent and easy to maintain.
@@ -26,7 +28,8 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 
 - Monorepos should contain domain-specific packages that are related to each other. For example, patient management concerns such as registration and search live in the `openmrs-esm-patient-management` monorepo.
 - Configuration files should generally exist at the top level of the monorepo directory. Notable exceptions to this rule include the a file containing helpers for tests, the `i18next-parser` configuration, and `setupTests.ts`, which should all exist in the `tools` directory.
-- Colocate files that are related to each other. For example, a component and its corresponding test and stylesheet should live in the same directory. This way, when you make a change to a component, it's easy to extend that change to the test and stylesheet.
+- Colocate files that are related to each other. For example, a component and its corresponding test and stylesheet should live in the same directory. This way, when you make a change to a component, it's easy to extend that change to the test and stylesheet if necessary.
+- Avoid placing styles for multiple components in the same stylesheet. Instead, create a separate stylesheet for each component. This makes it easier to find the styles for a particular component.
 
 ### Components
 
@@ -108,6 +111,28 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - Put Carbon style overrides in [overrides.scss](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-styleguide/src/_overrides.scss). This ensures that the overrides are applied consistently across the application.
 - Prefer using Carbon [color](https://carbondesignsystem.com/guidelines/color/overview/), [spacing](https://carbondesignsystem.com/guidelines/spacing/overview/) and [type](https://carbondesignsystem.com/guidelines/typography/overview/) tokens over hard-coded values.
 - Use SASS [features](https://sass-lang.com/documentation) like interpolation, at-rules, mixins, and functions to make your styles more reusable and maintainable.
+- If you want to apply styles based on the user's viewport size, use our predefined [breakpoints](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-styleguide/src/breakpoints/index.ts). For example, to apply different styles for tablet and desktop viewports, do this:
+
+  ```scss
+  // Tablet viewports
+  :global(.omrs-breakpoint-lt-desktop) {
+    .form {
+      height: calc(100vh - 9rem);
+    }
+  }
+
+  // Desktop viewports
+  :global(.omrs-breakpoint-gt-tablet) {
+    .form {
+      height: calc(100vh - 6rem);
+    }
+  }
+  ```
+
+  <Callout emoji="ℹ️" type="info">
+    Make sure to scope your styles under a class name (such as `.form` in the
+    example above) to avoid them affecting other components.
+  </Callout>
 
 ### Testing
 

@@ -23,6 +23,8 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - Use `camelCase` for prop names. This is consistent with the naming convention for variables, functions, and methods.
 - Translation keys should be in `camelCase` whereas translation strings should be in `sentence case`. For example, `firstName` is a translation key whereas `First name` is it's corresponding translation string.
 - Frontend modules in monorepos should have names that start with the `esm-` prefix. The name of the module should describe what the module does. For example, `esm-user-management` is a good name for a frontend module handling user management concerns.
+- Event handler props should be named after they event they handle `e.g. onClick` for a click handler. By convention, event handler props should start with the `on` prefix, followed by a capital letter.
+- State updater functions should be named after the state they update. For example, `setFirstName` is a good name for a state updater function that updates the `firstName` state.
 
 ### Project structure
 

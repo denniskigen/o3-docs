@@ -26,13 +26,15 @@ This diagram walks through what happens when the application gets executed. The 
 
 ## Anatomy of a frontend module
 
-Frontend modules export a predefined set of functionality. Each frontend module has a root-level `package.json` file that defines its dependencies and metadata.
+### Manifest file (package.json)
+
+Each frontend module has a root-level `package.json` file that defines its dependencies and metadata.
 
 <br />
 <Image
-  src="/anatomy.png"
-  alt="Anatomy of a frontend module"
-  width={500}
+  src="/manifest-file.svg"
+  alt="Manifest file from a frontend module"
+  width={750}
   height={500}
 />
 
@@ -48,118 +50,64 @@ Frontend modules have their [entry point](https://webpack.js.org/concepts/entry-
 
 <br />
 <Image
-  src="/entrypoint.png"
+  src="/entrypoint.svg"
   alt="Application entry point"
-  width={500}
+  width={750}
   height={500}
 />
 
-This file is loaded by the app shell and must have a specific structure. It must have three exports: `setupOpenMRS`, `backendDependencies`, and `importTranslation`. The entry point communicates important information about the frontend module to app shell, including:
+This file is the entry point of the frontend module. It is the first file that gets executed when the frontend module gets loaded. It is responsible for setting up the frontend module and exporting the module’s configuration. Specifically, in this example:
 
-- The versions of backend dependencies used in the frontend module
-- The module’s configuration schema
-- Which React components to load (as determined in the pages and extensions configurations)
-- The extensions that the module defines, in addition to the extension slots where they “plug into"
-- Internationalization setup
-- Breadcrumbs menu configuration
+- It exports an `importTranslation` function which is used to load the module’s translations.
+- It also exports two named exports, `root` and `systemAdministrationFormBuilderCardLink`. These are named exports for a page and an extension, respectively. They are used to tell the app shell how to load the frontend module’s content.
+- It also exports a `startupApp` function which is used to set up the frontend module. In this case, the frontend module's configuration schema gets defined here, as well as the breadcrumbs for the module.
 
-#### The `setupOpenMRS` function
+#### The `startupApp` function
 
-Each frontend module defines a function named `setupOpenMRS`. This function performs any setup that should occur at the time the module gets loaded. It returns an object that communicates how the app shell should load the module. The setupOpenMRS function should only do the following four things:
+Each frontend module defines a function named `startupApp`. This function performs any setup that should occur at the time the module gets loaded. It returns an object that communicates how the app shell should load the module. The startupApp function should only do the following things:
 
-- define the module's [configuration schema](config.md)
-- register [breadcrumbs](breadcrumbs.md)
-- set up [offline support](../offline/offline.md)
-- return an object specifying the frontend module's pages and extensions
-
-`setupOpenMRS` returns an object with two top-level keys, both optional: pages and extensions. Here is an example which uses all of the possible keys:
-
-```ts copy
- const options =
-    featureName: 'Hello World',
-    moduleName: '@openmrs/esm-hello-world',
-  };
-
-  return {
-    pages: [
-      {
-        // load (required): tells the app shell how to load the page content
-        load: getAsyncLifecycle(() => import('./hello'), options),
-        // route (required): a string, RegEx, function, or array of any of the
-        //   above, which will be used to determine when to load the
-        //   frontend module content. It will be matched against the URL path.
-        route: 'hello',
-        // order (optional): a number which specifies the order in which the
-        // page should be loaded in the application. The default is 1. This
-        // is generally only needed if you need to specify the DOM position
-        // of your page; for example, if it is a navbar and needs to be at the
-        // top, you might use order 0.
-        order: 2,
-        // `online`, `offline`, and `resources` are described in the offline
-        //   support documentation. All are optional.
-        online: { allowSayingHelloBack: true },
-        offline: { allowSayingHelloBack: false },
-        resources: { greeting: fetchGreetingOffline }
-      },
-    ],
-    // To understand the `extensions` section, please read the "Extension System"
-    // page of the documentation.
-    extensions: [
-      {
-        // name (required): The name of the extension. Must be unique across
-        // all modules in the application.
-        name: 'greeting-bot',
-        // load (required): tells the app shell how to load the extension content
-        load: getAsyncLifecycle(() => import('./greeting-bot'), options),
-        // slot (optional): Specifies a slot for the extension to be attached to.
-        slot: 'bot-slot',
-        // slots (optional): Alternative to `slot` which allows attaching to
-        // multiple slots. For example:
-        // slots: ['bot-slot', 'greeters-slot']
-
-        // `online`, `offline`, and `resources` are described in the offline
-        //   support documentation. All are optional.
-        online: true,
-        offline: true,
-        resources: { greeting: fetchGreetingOffline }
-      },
-    ]
-  };
-```
-
-##### Creating a page
-
-Creating a page is a simple matter of creating the page as an application
-in your framework of choice and then adding a loader to the `pages` array.
-For example, you can create a React application as the default export
-of a file `goodbye.tsx`. See
-[`hello.tsx`](https://github.com/openmrs/openmrs-esm-template-app/blob/master/src/hello.tsx)
-for reference. You could then add this as a page to the application:
-
-```typescript
-    pages: [
-      {
-        load: getAsyncLifecycle(() => import('./hello'), options),
-        route: 'hello',
-      },
-      {
-        load: getAsyncLifecycle(() => import('./goodbye'), options),
-        route: 'goodbye'
-      }
-    ],
-```
-
-#### The `backendDependencies` object
-
-This is an object that tells the frontend application what OpenMRS server modules
-the frontend module depends on, and what versions. If these dependencies are not
-met, administrators will be alerted.
+- define the module's [configuration schema](config.md).
+- register [breadcrumbs](breadcrumbs.md).
 
 #### The `importTranslation` function
 
 This is required for translations to work. It tells the frontend application
-how to load translation strings. The boilerplate which you will find in
-[openmrs-esm-template-app](https://github.com/openmrs/openmrs-esm-template-app/blob/master/src/index.ts)
-is almost certainly what you want. Note that the first argument to
+how to load translation strings. Note that the first argument to
 `require.context` is a directory, `../translations`.
 That directory must exist at that location relative to the `index.ts` file.
+
+### Static metadata in `routes.json`
+
+The `routes.json` file is used to set up the frontend module's static metadata. These include:
+
+- The `extensions` that frontend module provides.
+- The `pages` that frontend module provides.
+- The `backend` dependencies that frontend module requires. This is an object that tells the frontend application what OpenMRS server modules the frontend module depends on, and what versions. If these dependencies are not met, administrators will be alerted.
+
+The structure of this static file is dictated by the OpenMRS Routes standard [JSON schema](https://json.openmrs.org/routes.schema.json).
+
+### Creating a page
+
+To create a new page, you'll typically need to follow these steps:
+
+- Create a new React component that will be the page's entry point.
+- Add a named export for the page in the `index.ts` file. For example, here's how a page named `root` is exported from the `index.ts` file:
+
+  ```typescript
+  export const root = getAsyncLifecycle(() => import("./root"), options);
+  ```
+
+- Add a page definition for the new page to the `routes.json` file's `pages` array:
+
+  ```json
+  {
+    "pages": [
+      {
+        "component": "root", // maps to the named export in `index.ts`
+        "route": "form-builder",
+        "online": true,
+        "offline": true
+      }
+    ]
+  }
+  ```

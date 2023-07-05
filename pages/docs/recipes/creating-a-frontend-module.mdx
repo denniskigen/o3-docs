@@ -1,153 +1,101 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
 # Creating a frontend module
 
-**New frontend modules can be created from the
-[openmrs-esm-template-app](https://github.com/openmrs/openmrs-esm-template-app)**.
+The [Template](https://github.com/openmrs/openmrs-esm-template-app) frontend module can be used as a starting point for creating a new frontend module. To create a new frontend module, you can either fork the Template repository or clone and copy it over to the new repository.
 
-You can fork that repository, or clone-and-copy it.
-Follow the instructions in the README to turn it into your own frontend module.
+## Example: Creating a new frontend module
 
-## Creating a new frontend module in a Lerna monorepo
+<Callout emoji="ℹ️" type="info">
+  Note that we're setting this repo up as a
+  [polyrepo](https://monorepo.tools/#what-is-a-monorepo). If you want to create
+  a new frontend module in a monorepo, see the note about monorepos below.
+</Callout>
 
-The process for creating a new frontend module in a monorepo
-is nearly identical to the one for creating one in an independent
-repo.
+Suppose you want to create a frontend module that provides a UI for managing referrals.
+The process for doing that would be as follows:
 
-1. Put the contents into a new directory under `packages/`
-2. Remove configuration files that are already present at the
-   workspace level—things like `.github` and `.eslintrc`.
+<Steps>
+
+### Step 1
+
+Go to the Github repository for the [Template](https://github.com/openmrs/openmrs-esm-template-app) seed app and click the `Use this template` button. Click `Create a new repository` and follow the instructions to create a new repository. Clone the new repository to your local machine. In this case, we'll name the new repository `openmrs-esm-referrals-queue`. Click the `Create repository from template` button and then clone the new repository to your local machine.
+
+### Step 2
+
+Next, we'll follow the steps in the README to adapt the code to our needs. That'll include the following steps:
+
+- Replace all instances of `template` with `referrals-queue`.
+- Rename the files with `hello` in their name to `root`. For example, `src/hello/hello.component.tsx` should be renamed to `src/root/root.component.tsx`.
+- Update the app entry point at `src/index.ts` as appropriate, including the following:
+
+  - Change the `moduleName` to `@openmrs/esm-referrals-queue`.
+  - Change the featureName from `hello-world` to a blank string. You'll change this to a more useful value later on.
+  - Rename the `hello` export to `root`.
+  - Remove the `redBox`, `blueBox` and `brandBox` named exports.
+
+- Next, in the `routes.json` file, replace the value of the `extensions` with an empty array and then replace the contents of the `pages` array with the following:
+
+  ```json
+  {
+    // ...
+    "extensions": [],
+    "pages": [
+      {
+        "component": "root",
+        "route": "root"
+      }
+    ]
+  }
+  ```
+
+  This configuration makes it so that navigating to the `root` route loads the component exported by the `root` named export.
+
+- Next, delete the `boxes`, `greeter` and `patient-greeter` directories.
+- Next, replace the contents of your app's configuration schema (in `config-schema.ts`) with the following:
+
+  ```ts
+  import { Type, validator } from "@openmrs/esm-framework";
+
+  export const configSchema = {};
+
+  export type Config = {};
+  ```
+
+  You can tweak this file later on to add your own configuration options.
+
+- Delete the translation keys and strings in `translations/en.json`.
+- Replace all instances of `hello` with `root`, and `Hello` with `Root`.
+- Amend the contents of the test file at `root.test.tsx` to use an empty configuration schema.
+- Amend `root.component.tsx` as follows:
+  - Rename the default exports from `Hello` to `Root`.
+  - Remove the `Boxes`, `Greeter`, and `PatientGetter` imports.
+  - Replace the contents of the `<div>` with `<p>Referrals Queue goes here</p>`.
+
+### Step 3
+
+Profit! You should now have a custom frontend module that you can use in your OpenMRS application.
+
+</Steps>
+
+The process for creating a new frontend module in a monorepo is nearly identical to the one for creating one in a polyrepo with a few tweaks:
+
+1. Put the contents of the Template into a new directory under `packages/`. For our example above, we'd create a new directory called `packages/esm-referrals-queue` and move the contents of Template into it.
+2. Remove configuration files that are already present at the workspace level. These include files and folders such as `.github` and `.eslintrc`.
 3. Remove `devDependencies` from the new frontend module's `package.json`
    which are already in the `devDependencies` of the `package.json` at
    the workspace level.
 
-That's it! Use the `@openrms/esm-template-app` above along with this guide
-to get your frontend module started.
+That's it!
 
-## The `index.ts` file
+To learn more about what's possible with frontend modules, read the [Overview](/docs/frontend-modules/overview) guide.
 
-All frontend modules have an `index.ts` as an
-[entry point](https://webpack.js.org/concepts/entry-points/).
-See the [example](https://github.com/openmrs/openmrs-esm-template-app/blob/master/src/index.ts)
-in openmrs-esm-template-app.
+## Integrating your frontend module into your application
 
-This file is loaded by the app shell and must have a specific structure.
-It must have three exports:
-`setupOpenMRS`, `backendDependencies`, and `importTranslation`.
-
-### The `setupOpenMRS` function
-
-This function is called when the application is first starting up. The
-app shell loads the `index.ts` files for all the ESMs and then executes
-the `setupOpenMRS` function for each of them. The `setupOpenMRS` function
-should only do the following four things:
-
-- define the [configuration schema](config.md)
-- register [breadcrumbs](breadcrumbs.md)
-- set up [offline support](../offline/offline.md)
-- return an object specifying the frontend module's pages and extensions
-
-#### The `setupOpenMRS` return object
-
-This is an object with two top-level keys, both optional: `pages` and `extensions`.
-Here is an example which uses all of the possible keys.
-
-```typescript
-  const options =
-    featureName: 'Hello World',
-    moduleName: '@openmrs/esm-hello-world',
-  };
-
-  return {
-    pages: [
-      {
-        // load (required): tells the app shell how to load the page content
-        load: getAsyncLifecycle(() => import('./hello'), options),
-        // route (required): a string, RegEx, function, or array of any of the
-        //   above, which will be used to determine when to load the
-        //   frontend module content. It will be matched against the URL path.
-        route: 'hello',
-        // order (optional): a number which specifies the order in which the
-        // page should be loaded in the application. The default is 1. This
-        // is generally only needed if you need to specify the DOM position
-        // of your page; for example, if it is a navbar and needs to be at the
-        // top, you might use order 0.
-        order: 2,
-        // `online`, `offline`, and `resources` are described in the offline
-        //   support documentation. All are optional.
-        online: { allowSayingHelloBack: true },
-        offline: { allowSayingHelloBack: false },
-        resources: { greeting: fetchGreetingOffline }
-      },
-    ],
-    // To understand the `extensions` section, please read the "Extension System"
-    // page of the documentation.
-    extensions: [
-      {
-        // name (required): The name of the extension. Must be unique across
-        // all modules in the application.
-        name: 'greeting-bot',
-        // load (required): tells the app shell how to load the extension content
-        load: getAsyncLifecycle(() => import('./greeting-bot'), options),
-        // slot (optional): Specifies a slot for the extension to be attached to.
-        slot: 'bot-slot',
-        // slots (optional): Alternative to `slot` which allows attaching to
-        // multiple slots. For example:
-        // slots: ['bot-slot', 'greeters-slot']
-
-        // `online`, `offline`, and `resources` are described in the offline
-        //   support documentation. All are optional.
-        online: true,
-        offline: true,
-        resources: { greeting: fetchGreetingOffline }
-      },
-    ]
-  };
-```
-
-#### Creating a page
-
-Creating a page is a simple matter of creating the page as an application
-in your framework of choice and then adding a loader to the `pages` array.
-For example, you can create a React application as the default export
-of a file `goodbye.tsx`. See
-[`hello.tsx`](https://github.com/openmrs/openmrs-esm-template-app/blob/master/src/hello.tsx)
-for reference. You could then add this as a page to the application:
-
-```typescript
-    pages: [
-      {
-        load: getAsyncLifecycle(() => import('./hello'), options),
-        route: 'hello',
-      },
-      {
-        load: getAsyncLifecycle(() => import('./goodbye'), options),
-        route: 'goodbye'
-      }
-    ],
-```
-
-### The `backendDependencies` object
-
-This is an object that tells the frontend application what OpenMRS server modules
-the frontend module depends on, and what versions. If these dependencies are not
-met, administrators will be alerted.
-
-### The `importTranslation` function
-
-This is required for translations to work. It tells the frontend application
-how to load translation strings. The boilerplate which you will find in
-[openmrs-esm-template-app](https://github.com/openmrs/openmrs-esm-template-app/blob/master/src/index.ts)
-is almost certainly what you want. Note that the first argument to
-`require.context` is a directory, `../translations`.
-That directory must exist at that location relative to the `index.ts` file.
-
-## Integrating into your application
-
-Once you've created a frontend module, you'll want to integrate it into your
-application. There are two steps for doing so.
+Once you've created a frontend module, you'll want to integrate it into your application. There are two steps for doing so.
 
 First, publish your frontend module package to NPM. At the end, your package should be visible on npm.js,
-like [`@openmrs/esm-login-app`](https://www.npmjs.com/package/@openmrs/esm-login-app).
+such as [`@openmrs/esm-login-app`](https://www.npmjs.com/package/@openmrs/esm-login-app).
 
-Then, you'll need to integrate this package into your application.
-Information about that can be found in the Implementer Documentation on
+Then, you'll need to integrate this package into your distribution. Information about that can be found in the Implementer Documentation on
 [Deployment](https://wiki.openmrs.org/pages/viewpage.action?pageId=224527013).

@@ -64,3 +64,7 @@ body {
 .markdown a {
   color: #006be6;
 }
+
+.text-balance {
+  text-wrap: balance;
+}

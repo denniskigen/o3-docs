@@ -25,6 +25,7 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - Frontend modules in monorepos should have names that start with the `esm-` prefix. The name of the module should describe what the module does. For example, `esm-user-management` is a good name for a frontend module handling user management concerns.
 - Event handler props should be named after they event they handle `e.g. onClick` for a click handler. By convention, event handler props should start with the `on` prefix, followed by a capital letter.
 - State updater functions should be named after the state they update. For example, `setFirstName` is a good name for a state updater function that updates the `firstName` state.
+- What to name your branches is typically down to personal preference. However, when in doubt, name your branches using the [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/) type that your work conforms to, followed by a slash and a short dash-separated description of the work. Good examples include: `feat/debounced-order-basket-search`, `fix/missing-translation`, `chore/bump-dependencies` and `refactor/remove-unused-code`.
 
 ### Project structure
 

@@ -57,6 +57,24 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - Use `openmrsFetch` to fetch data from the backend. openmrsFetch is a wrapper around the `fetch` API that adds authentication and authorization headers and handles errors. Pass it to as the `fetcher` argument of your SWR hooks.
 - Use `openmrsObservableFetch` only if you need to fetch data from the backend using an observable. This is useful for streaming data from the backend. Ensure you understand the difference between observables and promises before reaching for this function.
 
+### Internationalization
+
+- Use the [useTranslation](https://react.i18next.com/latest/usetranslation-hook) hook to translate strings in your components.
+- Use the [Trans](https://react.i18next.com/latest/trans-component) component to translate strings that contain HTML tags.
+- To handle pluralization, use the following pattern:
+
+  ```tsx
+  // If there's only one risk flag, the string "1 risk flag" is displayed.
+  // If there are multiple risk flags, the string "{count} risk flags" is displayed
+  // e.g. "3 risk flags".
+  <span className={styles.flagText}>
+    {t("flagCount", "{count} risk flag{plural}", {
+      count: riskFlags.length,
+      plural: riskFlags.length > 1 ? "s" : "",
+    })}
+  </span>
+  ```
+
 ### State management
 
 - Follow the guidelines outlined [here](https://kentcdodds.com/blog/application-state-management-with-react).
@@ -112,7 +130,29 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
   ```
 
 - Put Carbon style overrides in [overrides.scss](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-styleguide/src/_overrides.scss). This ensures that the overrides are applied consistently across the application.
-- Prefer using Carbon [color](https://carbondesignsystem.com/guidelines/color/overview/), [spacing](https://carbondesignsystem.com/guidelines/spacing/overview/) and [type](https://carbondesignsystem.com/guidelines/typography/overview/) tokens over hard-coded values.
+- Prefer using Carbon [color](https://carbondesignsystem.com/guidelines/color/overview/), [spacing](https://carbondesignsystem.com/guidelines/spacing/overview/) and [type](https://carbondesignsystem.com/guidelines/typography/overview/) tokens over hard-coded values. Below are some examples of using tokens in code:
+
+  ```scss
+  @use "@carbon/styles/scss/colors";
+  @use "@carbon/styles/scss/spacing";
+  @use "@carbon/styles/scss/type";
+
+  .listWrapper {
+    margin: spacing.$spacing-05;
+  }
+
+  .resultsCount {
+    @include type.type-style("label-01");
+  }
+
+  .sortDropdown {
+    color: colors.$gray-100;
+    gap: 0;
+  }
+  ```
+
+  Find a useful reference for color token mappings [here](https://carbon-elements.netlify.app/colors/examples/preview/).
+
 - Use SASS [features](https://sass-lang.com/documentation) like interpolation, at-rules, mixins, and functions to make your styles more reusable and maintainable.
 - If you want to apply styles based on the user's viewport size, use our predefined [breakpoints](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-styleguide/src/breakpoints/index.ts). For example, to apply different styles for tablet and desktop viewports, do this:
 

@@ -31,7 +31,7 @@ export default function LatestRelease({ repo }) {
       {data?.length > 1 ? (
         <h1 className="py-2">
           <a
-            className="text-blue-600 underline"
+            className="nx-text-primary-600 underline"
             href={repoUrl}
             rel="noopener noreferrer"
             target="_blank"

@@ -1,55 +1,78 @@
 # Releasing frontend modules
 
-After you’ve met a reasonable threshold of commits, or after a set period of time, you’ll likely want to publish your software to the NPM registry so that consumers can get your latest stable versions. O3 frontend modules get released every two weeks.
+After meeting a reasonable threshold of commits, or after a set period of time, you will likely want to publish your software to the NPM registry so that consumers can get your latest stable versions.
 
-Broadly speaking, when a PR gets merged, a `pre-release` job in our primary GitHub actions CI workflow gets triggered. This job publishes a version of the frontend module to its corresponding npm registry that is tagged `latest`. This is the version that consumers will get when they install your frontend module.
+We are working with a bi-weekly release cadence of O3, meaning we publish new versions of our frontend modules every two weeks. This cadence is subject to change as we get more experience with the process.
 
-To see what version the `latest` tag corresponds to for a frontend module, go to its NPM registry page and click on the `version` tag. Look out for the most recent version tagged `latest`.
+Publishing an O3 release involves two steps:
 
-The process of publishing a release in O3 has two parts:
+1. Bumping your local package versions and pushing those changes to GitHub. This step will trigger the CI's `pre-release` job.
+2. Cutting a release using the Github releases UI. This step triggers the `release` CI job.
 
-1. Bumping your package versions locally and pushing those changes to GitHub. This step will trigger the `pre-release` CI job.
-2. Cutting a release using the Github releases UI. This step will trigger the `release` CI job.
+If you want to publish a release version of your module, you need to think about a few things first, including:
 
-If you want to publish an actual release version of your module, you need to think about a few things first, including:
+- The release `type` - the [semantic versioning release type](https://docs.npmjs.com/about-semantic-versioning) your changes conform to. Our release versions use the semver spec, meaning we have three release types:
 
-- The release `type` - this is the semantic release type as determined by your changelog. Our release versions conform to the semver spec, meaning we can have three main release types:
-  - `Patch` - when you make backwards-compatible bug fixes.
-  - `Minor` - when you add functionality in a backwards-compatible manner.
-  - `Major` - when you make incompatible API changes.
-    For example, if the most recently released version number for a frontend module is v1.0.0:
+  - `patch` - when you make backwards-compatible bug fixes.
+  - `minor` - when you add functionality in a backwards-compatible manner.
+  - `major` - when you make incompatible API changes.
+
+  For example, if the most recently released version number for a frontend module is `v1.0.0`:
+
   - A `patch` version would increment the version number to `1.0.1`.
   - A `minor` version would increment the version number to `1.1.0`.
   - A `major` version would increment the version number to `2.0.0`.
 
-Armed with that knowledge, you can proceed to draft a changelog. To do so:
+With that knowledge, you can proceed to draft a changelog. To do so:
 
-- Go to the `releases` page of your frontend module’s monorepo, and click `Draft a new release`.
-- Click the `Choose a tag` button in the releases page UI. Choose any tag, say `v1.0.1` if the most recent version is `v1.0.0`. We’ll likely change this shortly after reviewing the changelog. Set that value as the release title as well. Next, click the `Generate release notes` button. We’ve established a convention within O3 where PR titles contain a conventional commit `type` value that describes the kind of change the PR makes. These include:
-  - `(feat)` for new features
-  - `(fix)` for bug fixes
-  - `(refactor)` for refactors
-  - `(test)` for tests
-  - `(docs)` for documentation
-  - `(chore)` for housekeeping tasks, like managing dependencies, configuring things or updating CI workflows
-  - `(BREAKING)`for backwards-incompatible API changes.
+- Go to the `releases` page of your monorepo, and click `Draft a new release`.
+- Click the `Choose a tag` button in the releases page UI. Choose any tag, say `v1.0.1` for a `patch` release if the most recent version is `v1.0.0`. We will likely change this shortly after reviewing the changelog. Set that value as the release title as well. Next, click the `Generate release notes` button.
 
-Reviewing the generated changelog with these commit types in mind should give you a good idea of the kind of semantic version bump your release ought to create. At this point, you can switch to your IDE to initiate the release process. Typically, we use lerna to version frontend modules. Run the following command to trigger a version change:
+We have established a convention within O3 where PR titles contain a conventional commit `type` value that describes the kind of change the PR makes. These include:
 
-```jsx copy
-npx lerna version
+- `(feat)` for new features
+- `(fix)` for bug fixes
+- `(refactor)` for refactors
+- `(test)` for tests
+- `(docs)` for documentation
+- `(chore)` for housekeeping tasks, like managing dependencies, configuring things or updating CI workflows
+- `(BREAKING)` for backwards-incompatible API changes.
+
+Reviewing the generated changelog with these commit types in mind should give you a good idea of the kind of semantic version bump your release should create. At this point, you can switch to your IDE to initiate the release process. Typically, we use lerna to version frontend modules. Run the following command at the root of your monorepo to trigger a version bump:
+
+```sh copy
+yarn lerna version [release type] --no-git-tag-version --no-push --yes --sort
 ```
 
-It should fire a prompt asking you to choose the type of version you want to release. You can determine this based on the changelog you drafted earlier. If your changelog mostly contains bug fixes that are backwards compatible, you likely want to do a patch release. If your changelog contains features and bug fixes that are backwards compatible, you likely want to do a minor release. Otherwise, if your changelog contains a breaking, backwards-incompatible change, you should do a major release.
+For example, if you want to do a `major` release, you would run:
 
-Selecting a version type should effect a version bump and also update your `package.json` and `yarn.lock`. Once satisfied, commit these changes with the title `(chore) Release vx.x.x` where x.x.x is a placeholder for the version number. Once this commit gets merged on GitHub, the CI workflow's `pre-release` job gets triggered and initiates a version bump for the corresponding version tagged `latest` on NPM.
+```sh copy
+yarn lerna version major --no-git-tag-version --no-push --yes --sort
+```
 
-At this point, you can switch to your browser and head back to the releases page of the repo you’re working with. Review the release notes generated by GitHub, and then update the version number and tags appropriately. Once you’re satisfied that everything looks ok, click the `Publish release` button. This should trigger the CI workflow, and notably, the `release` job. Under the hood, that job runs the following script:
+This command:
+
+- Bumps the `major` version number for all the packages in your monorepo. For example, if the current version is `1.0.0`, it would get bumped to `2.0.0`.first-letter.
+- Tells lerna not to create a git tag for the release.
+- Tells lerna not to push the release to GitHub.
+- Tells lerna to skip any confirmation prompts by passing the `--yes` flag. We want to automate the release process as much as possible
+- Tells lerna to force a version bump for all packages in your monorepo, even if they have not changed since the last release.
+- Tells lerna This sorts the packages before running the commands so that they run on the packages in topological order (i.e., packages that depend on other packages get run later).
+
+Once this process completes, you should see a diff in your editor that includes a version bump for all the packages in your monorepo and a change to your `lerna.json` file. Run `yarn` or `yarn install` to update your `yarn.lock` file. Commit these changes with the title `(chore) Release vx.x.x` where x.x.x is a placeholder for the version number. See an example of [this commit](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1279) that bumps `Patient Chart` to `v5.0.0`.
+
+Once your release commit is merged, the CI workflow's `pre-release` job gets triggered and initiates a version bump for the corresponding version tagged `latest` on NPM. This version is what consumers get when they install your frontend module.
+
+You can then switch to your browser and head back to the releases page of the repo you are working with. Review the release notes generated by GitHub and then update the version number and tags appropriately. Once you are satisfied that everything looks ok, click the `Publish release` button. This step should trigger the CI workflow and, notably, the `release` job.
+
+Under the hood, that job runs the following script:
 
 ```jsx copy
 "ci:publish-next": "lerna publish from-package --no-git-reset --dist-tag next --yes",
 ```
 
-This command publishes a new package tagged `next`.
+This command publishes a new package tagged `next`. This is the version that consumers will get when they install your frontend module with the `next` tag. This is useful for testing new features before they get released to the `latest` tag.
 
-Once you’ve amended the release versions and the tag name appropriately, you can switch over to your code editor to bump versions of your frontend modules.
+Broadly speaking, when a PR gets merged, a `pre-release` job in our primary GitHub actions CI workflow gets triggered. This job publishes a version of the frontend module to its corresponding npm registry tagged `latest`. This is the version that consumers will get when they install your frontend module.
+
+To see what version the `latest` tag corresponds to for a frontend module, go to its NPM registry page and click on the `version` tag. Look out for the most recent version tagged `latest`.

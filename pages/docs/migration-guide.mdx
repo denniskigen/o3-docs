@@ -5,12 +5,12 @@ import Image from "next/image";
 
 ## Introduction
 
-O3 provides a powerful [module loading](/docs/frontend-modules/loading-modules) system that handles loading of frontend modules in the app shell. This system is leverages [Webpack module federation](/docs/frontend-modules/using-webpack) and forms the basis of our microfrontends architecture. However, it does suffer from a few historical drawbacks:
+O3 provides a powerful [module loading](/docs/frontend-modules/loading-modules) system that handles loading of frontend modules in the app shell. This system leverages [Webpack module federation](/docs/frontend-modules/using-webpack) and forms the basis of our microfrontends architecture. However, it does suffer from a few historical drawbacks:
 
 - All frontend modules get sequentially loaded at app startup time, which has a big performance impact.
 - Because we're loading all modules at startup, we're also incurring the cost of executing all the dynamic import code for each module, even if the module is not used in the current page.
 
-To address these issues, we've introduced a [new version](https://github.com/openmrs/openmrs-esm-core/pull/671) of the module loading system that's slated for release in Core v5. This new system essentially swaps out the app shell's implementation that loads all the frontend modules from the import map for an implementation that loads modules on demand. This means that modules are only loaded when they are needed, and only the code that is needed is executed. This yields a significant performance improvement (_we've seen an approximately 3x reduction in network requests needed to load the login page from local testing_).
+To address these issues, we've introduced a [new module loading mechanism](https://github.com/openmrs/openmrs-esm-core/pull/671) in [Core v5](https://github.com/openmrs/openmrs-esm-core/releases/tag/v5.0.0). This new system essentially swaps out the app shell's implementation that loads all the frontend modules from the import map for an implementation that loads modules on demand. This means that modules are only loaded when they are needed, and only the code that is needed is executed. This yields a significant performance improvement compared to the old system. For example, in local testing, we've seen an approximately 3x reduction in the number of network requests needed to load the login page. Additionally, we've seen improvements to core web vitals metrics such as First Contentful Paint (FCP), Largest Contentful Paint (LCP), and Speed Index (as tested using Lighthouse on Google Chrome).
 
 To leverage these improvements, you'll need to migrate your existing frontend modules to Core v5. This guide will walk you through the process of doing so.
 
@@ -687,7 +687,7 @@ export const changeLocationLink = getAsyncLifecycle(
 Next, you'll need to upgrade to the latest versions of `@openmrs/esm-framework` and `openmrs`. To do so, run:
 
 ```sh copy
-yarn up openmrs@5 @openmrs/esm-framework@5 && yarn up openmrs@next @openmrs/esm-framework@next
+yarn up openmrs@next @openmrs/esm-framework@next
 ```
 
 Check that you have the latest version of the framework by running:
@@ -695,6 +695,15 @@ Check that you have the latest version of the framework by running:
 ```sh copy
 yarn why openmrs
 ```
+
+You should see something like this:
+
+```sh
+└─ @openmrs/esm-form-builder-app@workspace:.
+   └─ openmrs@npm:5.0.3-pre.846 (via npm:next)
+```
+
+This step is important because the latest versions of the framework include [critical bug fixes and improvements](https://github.com/openmrs/openmrs-esm-core/releases) to the app shell and the core framework.
 
 ## Troubleshooting
 
@@ -756,14 +765,7 @@ This is a [common mistake](https://github.com/search?q=org%3Aopenmrs+exports+sho
 
 ## More examples
 
-Find tracking branches containing the necessary changes in the following repositories:
+To see more examples of how to upgrade a frontend module to the new structure, check out `index.ts` and `routes.json` files in any of our [key repositories](/docs/key-repositories). For example, below are links to the `index.ts` and `routes.json` files for the `@openmrs/esm-patient-chart-app` frontend module in the Patient Chart repo:
 
-- [Admin tools](https://github.com/openmrs/openmrs-esm-admin-tools/tree/breaking/use-json-routes)
-- [Cohort builder](https://github.com/openmrs/openmrs-esm-cohortbuilder/compare/main...breaking/use-json-routes)
-- [Fast data entry](https://github.com/openmrs/openmrs-esm-fast-data-entry-app/tree/breaking/use-json-routes)
-- [Form builder](https://github.com/openmrs/openmrs-esm-form-builder/compare/main...breaking/use-json-routes)
-- [Home](https://github.com/openmrs/openmrs-esm-home/compare/main...breaking/use-json-routes)
-- [Medication dispensing](https://github.com/openmrs/openmrs-esm-dispensing-app/compare/main...breaking/use-json-routes)
-- [Patient chart](https://github.com/openmrs/openmrs-esm-patient-chart/compare/main...breaking/use-json-routes)
-- [Patient management](https://github.com/openmrs/openmrs-esm-patient-management/compare/main...breaking/use-json-routes)
-- [Template](https://github.com/openmrs/openmrs-esm-template-app/compare/main...breaking/use-json-routes)
+- [index.ts](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-chart-app/src/index.ts)
+- [routes.json](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-chart-app/src/routes.json)

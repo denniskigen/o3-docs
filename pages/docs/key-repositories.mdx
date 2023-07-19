@@ -16,7 +16,8 @@ Repositories you should know in O3 include:
 - [Admin tools](#admin-tools) - provides an interstitial page that links users to various frontend modules that aren't part of the core EMR such as the form builder, the cohort builder, and the legacy admin page.
 - [Cohort builder](#cohort-builder) - enables the user to perform ad-hoc queries for patients with defined characterists, and combines multiple queries into more complex ones.
 - [Module management](#module-management) - a learning application based off of the legacy module management interfaces. Code in this repo is annotated with comments and can serve as a good starting point for new developers.
-- [Frontend RFC](frontend-rfc) - where architectural decisions affecting technologies and processes that apply to all new O3 distributions are first presented, argued, and finally agreed upon via consensus.
+- [Frontend RFC](#frontend-rfc) - where architectural decisions affecting technologies and processes that apply to all new O3 distributions are first presented, argued, and finally agreed upon via consensus.
+- [JSON schemas](#json-schemas) - where standard JSON schemas used in OpenMRS are hosted.
 
 ## Overview
 
@@ -143,3 +144,7 @@ A [repo](https://github.com/openmrs/openmrs-rfc-frontend) where the technologies
 2. Clarify what things we are aligned on across all of OpenMRS, so that everything else can be decided by the individual modules and distributions.
 
 The RFC process was successful in setting up the frontend architecture, and the merged pull requests form a great resource for anyone wishing to understand how we got to where we are today.
+
+### JSON schemas
+
+A [repo](https://github.com/openmrs/openmrs-contrib-json-schemas) that hosts standard JSON schemas used in OpenMRS. These schemas then get published via a web-accessible URL. For example, the standard [routes schema](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/routes.schema.json) is used to provide auto-completion and validation capabilities when editing a `routes.json` file in Visual Studio Code.

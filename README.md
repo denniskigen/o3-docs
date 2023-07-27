@@ -18,7 +18,7 @@ Documentation site for O3, the frontend framework for OpenMRS. This documentatio
 
 ## Deployment
 
-Each merged commit gets automatically deployed on https://o3-docs.vercel.app.
+Each merged commit gets automatically deployed on https://o3-docs.openmrs.app.
 
 ## Stack
 

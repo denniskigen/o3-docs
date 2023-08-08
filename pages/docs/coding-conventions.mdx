@@ -68,11 +68,17 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
   // If there are multiple risk flags, the string "{count} risk flags" is displayed
   // e.g. "3 risk flags".
   <span className={styles.flagText}>
-    {t("flagCount", "{count} risk flag{plural}", {
+    {t("flagCount", {
       count: riskFlags.length,
-      plural: riskFlags.length > 1 ? "s" : "",
     })}
   </span>
+  ```
+
+  The corresponding keys and strings for the code above should look like this:
+
+  ```json
+  "flagCount_one": "{{ count }} risk flag",
+  "flagCount_other": "{{ count }} risk flags"
   ```
 
 ### State management

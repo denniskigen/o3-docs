@@ -36,7 +36,7 @@ In O3, the app shell is the base of the application. It is responsible for doing
 
 ## Frontend modules
 
-[Frontend modules](/docs/frontend-modules/introduction) are the basic building blocks of O3. They are also referred to as `microfrontends` in the O3 architecture. Frontend modules get organized into domain-specific monorepos. They get loaded into the application via the import map and export their own default activator and lifecycle functions. These exports conform to a specific microfrontend interface that was introduced in [RFC-26](https://github.com/openmrs/openmrs-rfc-frontend/blob/e745ee9c37b2ca0ae6f4fc93259724e61bfac82e/text/0026-activation-distribution.md).
+[Frontend modules](/docs/frontend-modules/introduction) are the basic building blocks of O3. They are also referred to as `microfrontends` in the O3 architecture (the origins being the similarly named concept in [single-spa](https://single-spa.js.org)). Frontend modules get organized into domain-specific monorepos. They get loaded into the application via the import map and export their own default activator and lifecycle functions. These exports conform to a specific microfrontend interface that was introduced in [RFC-26](https://github.com/openmrs/openmrs-rfc-frontend/blob/e745ee9c37b2ca0ae6f4fc93259724e61bfac82e/text/0026-activation-distribution.md).
 
 Presently, frontend modules are loaded synchronously, which means that the application will not render until all frontend modules have been loaded. This is a known performance bottleneck.
 

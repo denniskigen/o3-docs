@@ -36,12 +36,14 @@ These prerequisites are explained in detail in the [SDK wiki](https://wiki.openm
 
 - Ensure you have MySQL v5.6 and above installed and set up correctly.
 - Ensure you have Java 8 installed with JDK 1.8 and JRE 1.8.
-- Ensure that your JAVA_HOME environment variable is set and that it 
-points to v1.8 of Java. If you have the correct version of Java installed 
-but JAVA_HOME doesn't point to it, you could try adding the following 
-alias to your .zshrc file to get maven to pick the correct version:
+- Ensure that your `$JAVA_HOME` environment variable is set and that it
+  points to `v1.8` of Java. If you have the correct version of Java installed
+  but `$JAVA_HOME` doesn't point to it, you could try adding the following
+  alias to your `.zshrc` file (or `.bashrc` file if you're using Bash):
 
-	 alias mvn='JAVA_HOME="$(/usr/libexec/java_home -v 1.8)" mvn'
+  ```sh copy
+    alias mvn='JAVA_HOME="$(/usr/libexec/java_home -v 1.8)" mvn'
+  ```
 
 <Steps>
 
@@ -94,35 +96,35 @@ You might want to use Docker if:
 - You want to set up a fresh instance of O3 (i.e. an instance with a brand new database and not one set up on top of your existing database).
 - You don't want to go through the hassle of setting up a Java environment and managing multiple dependencies.
 
+### Prerequisites
+
+- Ensure you have [Docker Desktop](https://docs.docker.com/desktop/) installed on your machine.
+
 Use the following steps to set up a fresh instance of O3 on your machine using Docker:
 
 <Steps>
 
 ### Step 1
 
-Download and install [Docker Desktop](https://docs.docker.com/desktop/) on your machine (ignore this step if you already have Docker set up).
+Clone the [distro-config](https://github.com/openmrs/openmrs-distro-referenceapplication) repository.
 
 ### Step 2
 
-Clone the [distro-config](https://github.com/openmrs/openmrs-distro-referenceapplication) repository.
+Launch [Docker Desktop](https://docs.docker.com/desktop/) or the Docker daemon.
 
 ### Step 3
 
-Launch [Docker Desktop](https://docs.docker.com/desktop/) or the Docker daemon.
+Run `docker compose build` from the root of the repository (You might need to run `docker-compose build` instead if you're using `docker-compose`).
 
 ### Step 4
 
-Run `docker compose build` from the root of the repository (You might need to run `docker-compose build` instead if you're using `docker-compose`).
+Once the build completes, run `docker compose up` (or `docker-compose up` if you're using `docker-compose`).
 
 ### Step 5
 
-Once the build completes, run `docker compose up` (or `docker-compose up` if you're using `docker-compose`).
-
-### Step 6
-
 If you want to run the dockerized build on top of an existing O2 database, you'll need to use Docker volumes.
 
-### Step 7
+### Step 6
 
 You should be able to launch O3 by visiting `http://localhost/openmrs/spa` in your browser.
 

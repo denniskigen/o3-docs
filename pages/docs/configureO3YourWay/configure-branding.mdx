@@ -1,11 +1,15 @@
+import Image from "next/image";
+
 # Configure Your Branding
 
 ## Adding Your Logo
+
 For the Login Screen: in the openmrs/esm-login-app (sample config below)
 For the Banner: in the openmrs/esm-primary-navigation-app (sample config below)
 
 ## Changing the Colors
-This can be configured  via the openmrs/esm-styleguide module with these configuration elements. Sample config:
+
+This can be configured via the openmrs/esm-styleguide module with these configuration elements. Sample config:
 
 ```
 {
@@ -19,67 +23,74 @@ This can be configured  via the openmrs/esm-styleguide module with these configu
 
 ### Legend for impact of Primary, Secondary, and Tertiary colors:
 
-* *Brand color #1:* (Primary Color) Impacts the following:
-  * Global Navigation Bar color <Image
-  src="/global-nav-bar-color.png"
-  alt="Global Nav Bar Color"
-/>
-  * Hover color <Image
-  src="/hover-color.png"
-  alt="Hover Color"
-/>
-  * Siderail Highlight Circle color <Image
-  src="/highlight-siderail-circle-color.png"
-  alt="Highlight Siderail Circle Color"
-/>
-* *Brand color #2:* (Secondary Color) Impacts the following:
-  * Unselected App Nav color <Image
-  src="/unselected-app-nav-color.png"
-  alt="Unselected App Nav Color"
-/>
+- _Brand color #1:_ (Primary Color) Impacts the following:
 
-* *Brand color #3:* (Tertiary Color) Impacts the following:
-  * Widget Title Underline color <Image
-  src="/widget-title-underline-color.png"
-  alt="Widget Title Underline Color"
-/>
-  * Button color (unselected) <Image
-  src="/button-color-unselected.png"
-  alt="Button Color unselected"
-/>
+  - Global Navigation Bar color
+
+  <Image src="/global-nav-bar-color.png" alt="Global Nav Bar Color" /> - Hover color{" "}
+
+  <Image src="/hover-color.png" alt="Hover Color" />- Siderail Highlight Circle color{" "}
+
+  <Image
+    src="/highlight-siderail-circle-color.png"
+    alt="Highlight Siderail Circle Color"
+  />
+
+- _Brand color #2:_ (Secondary Color) Impacts the following:
+
+  - Unselected App Nav color
+    <Image src="/unselected-app-nav-color.png" alt="Unselected App Nav Color" />
+
+- _Brand color #3:_ (Tertiary Color) Impacts the following:
+  - Widget Title Underline color
+    <Image
+      src="/widget-title-underline-color.png"
+      alt="Widget Title Underline Color"
+    />
+  - Button color (unselected)
+    <Image src="/button-color-unselected.png" alt="Button Color unselected" />
 
 ## Video: O3 Branding Tutorial
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/u5TmUFBrm_s" title="Theming and White Labelling with OpenMRS 3" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/u5TmUFBrm_s"
+  title="Theming and White Labelling with OpenMRS 3"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowfullscreen
+></iframe>
 
 ## Example config.json file
 
 You can configure your branding in a few ways. Ultimately this will live in your config.json file - see [this example one here](https://github.com/UCSF-IGHS/openmrs-esm-ohri/blob/master/packages/esm-ohri-core-app/src/ohri-patient-dashboards-config.json) in GitHub or see example below:
 
-```json
+```json copy
 {
   "@openmrs/esm-patient-chart-app": {
     "extensionSlots": {
       "patient-chart-dashboard-slot": {
         "remove": [
-           "test-results-summary-dashboard",
-           "conditions-summary-dashboard",
-           "results-summary-dashboard",
-           "programs-summary-dashboard",
-           "allergies-summary-dashboard",
-           "attachments-results-summary-dashboard",
-           "drug-orders-summary-dashboard"
+          "test-results-summary-dashboard",
+          "conditions-summary-dashboard",
+          "results-summary-dashboard",
+          "programs-summary-dashboard",
+          "allergies-summary-dashboard",
+          "attachments-results-summary-dashboard",
+          "drug-orders-summary-dashboard"
         ]
       }
     },
-    "notesConceptUuids": ["161011AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "437d1e25-e7ab-481c-aabc-01f21c6cdef1"]
+    "notesConceptUuids": [
+      "161011AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "437d1e25-e7ab-481c-aabc-01f21c6cdef1"
+    ]
   },
   "@openmrs/esm-patient-banner-app": {
     "extensionSlots": {
       "patient-actions-slot": {
-        "remove": [
-          "add-patient-to-patient-list-button"
-        ]
+        "remove": ["add-patient-to-patient-list-button"]
       }
     }
   },

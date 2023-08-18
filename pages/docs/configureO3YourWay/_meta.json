@@ -1,10 +1,10 @@
 {
-  "configureBranding": "Configure Your Branding",
-  "chooseO3Apps": "Choose O3 Apps: Configure the O3 apps you want",
-  "configurePatientChartNavigation": "Configure the Patient Chart Navigation",
-  "configureChartPageLayout": "Configure the Layout within a Chart Page",
-  "configureRegistrationPage": "Configure the Registration page",
-  "configureVitalSignsForm": "Configure the Vital Signs form",
-  "configureMetadata": "Configure Metadata",
-  "translationInO3": "Configure Translations in O3"
+  "configure-branding": "Configure Your Branding",
+  "choose-o3-apps": "Choose O3 Apps: Configure the O3 apps you want",
+  "configure-patient-chart-navigation": "Configure the Patient Chart Navigation",
+  "configure-chart-page-layout": "Configure the Layout within a Chart Page",
+  "configure-registration-page": "Configure the Registration page",
+  "configure-vital-signs-form": "Configure the Vital Signs form",
+  "configure-metadata": "Configure Metadata",
+  "translation-in-o3": "Configure Translations in O3"
 }

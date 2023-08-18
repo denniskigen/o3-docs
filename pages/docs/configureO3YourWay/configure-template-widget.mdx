@@ -1,0 +1,48 @@
+# Configure your First Widget with an easy Template
+
+This can be achieved by adding an extension to the patient-chart-allergies-dashboard-slot of the esm-patient-chart-app. 
+
+Note: The "color" comes in for the chart visual. The color code you choose dictates the color of the data line in the chart.
+
+### Sample Config
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "extensionSlots": {
+      "patient-chart-allergies-dashboard-slot": {
+        "add": [
+          "obs-by-encounter-widget#hiv",
+          "obs-by-encounter-widget#diabetes"
+        ],
+        "configure": {
+          "obs-by-encounter-widget#hiv": {
+            "title": "HIV Widget",
+            "resultName": "HIV",
+            "data": [
+              {
+                "concept": "1132AAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "label": "sodium",
+                "color": "green"
+              },
+              {
+                "concept": "856AAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "label": "Viral load",
+                "color": "red"
+              }
+            ],
+            "table": {
+              "pageSize": 5
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Video Tutorial: Add the Template "obs-by-encounter" Widget 
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Nv-9hrRC758" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+_Note: Have you developed a configurable extension? Please consider making a similar video to showcase how to do the configuration, and share your video on our [Talk Forum](https://talk.openmrs.org/)! This will create a library of widgets for us to showcase._

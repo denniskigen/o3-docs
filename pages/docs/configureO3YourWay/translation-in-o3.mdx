@@ -15,23 +15,23 @@ Guidance on using Transifex for older OpenMRS Modules (OMODs) can be found [here
 ### How to Injest App String Content from Transifex into the O3 RefApp
 Summary: *The translation files will have to be pulled from Transifex and committed into the code directly, for each repo.*
 
-*Step 1: Transifex Setup:* Ensure the O3 repos you need are included in the OpenMRS Org Transifex project 4 (e.g. you can see esm-patient-management is here 1, esm-patient-chart is here 1, etc)
+* *Step 1: Transifex Setup:* Ensure the O3 repos you need are included in the OpenMRS Org Transifex project 4 (e.g. you can see esm-patient-management is here 1, esm-patient-chart is here 1, etc)
 
-*Step 2: Complete Translation in Transifex UI:* Ensure your translation team goes through the UI to translate each repo’s strings (see the UI guide above). 
+* *Step 2: Complete Translation in Transifex UI:* Ensure your translation team goes through the UI to translate each repo’s strings (see the UI guide above). 
 
-*Step 3: Manual, Simple Workflow to Export JSON from Transifex and Upload to O3:* 
-* *Export JSON from Transifex:* In the left navigation, click Resources for the Repo, then click the language you want, and click “Download for use” from the Resources modal that popped up. This downloads a JSON file for you.
+* *Step 3: Manual, Simple Workflow to Export JSON from Transifex and Upload to O3:* 
+  * *Export JSON from Transifex:* In the left navigation, click Resources for the Repo, then click the language you want, and click “Download for use” from the Resources modal that popped up. This downloads a JSON file for you.
 <Image
   src="/transifex-download-json-export.png"
   alt="Transifex Modal to Download a JSON Export"
 />
-* *Upload JSON into the repo’s esm-NAME-app/translations/ directory:* E.g. [this example](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-active-visits-app/translations) of JSON string translations uploaded for the active visits app.
+  * *Upload JSON into the repo’s esm-NAME-app/translations/ directory:* E.g. [this example](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-active-visits-app/translations) of JSON string translations uploaded for the active visits app.
   * *Then:* The strings should be translated in the UI when the user switches their locale. <Image
   src="/translation-locale-switcher.png"
   alt="Locale Switcher UI"
 />
 
-*Alternative to Step 3: Automated Workflow:* This can also be done by using the [CLI Transifex client](https://developers.transifex.com/docs/cli) and running tx pull -l fr (to get the fr locale for instance) and commit the changes.
+* *Alternative to Step 3: Automated Workflow:* This can also be done by using the [CLI Transifex client](https://developers.transifex.com/docs/cli) and running tx pull -l fr (to get the fr locale for instance) and commit the changes.
 
 ## Translation Overrides Specific to an Individual O3 Module
 

@@ -1,1 +1,34 @@
-x
+# Configure the Patient Chart Navigation: Pages & Dashboards
+
+You can configure the patient chart navigation by adding an extension  to the patient-chart-dashboard-slot of the  esm-patient-chart-app. 
+
+### Sample Config: 
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "extensionSlots": {
+      "patient-chart-dashboard-slot": {
+        "add": [
+          "nav-group#HIVAdultReturn",
+          "nav-group#NCDOutpatient"
+        ],
+        "configure": {
+          "nav-group#HIVAdultReturn": {
+            "title": "HIV Adult Return",
+            "slotName": "hiv-nav-group-slot"
+          },
+          "nav-group#NCDOutpatient": {
+            "title": "NCD Outpatient",
+            "slotName": "heart-nav-group-slot"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Tutorial Video for O3 Patient Chart Configuration:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/57nRWhJdf1E" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>

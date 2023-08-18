@@ -1,0 +1,50 @@
+# Forms in O3
+
+## Some Background Knowledge
+
+## How to Build Forms with the O3 Form Builder GUI
+Form Builder User Guide
+See the thorough User Guide for the Form Builder here: https://ampath-forms.vercel.app/docs/quickstart
+Prerequisites & dependencies are covered here: https://ampath-forms.vercel.app/docs/developer-guide/run-form-engine-in-openmrs3#prerequisites
+
+### Video Tutorial: Form Builder Demo (Old Version)
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PS15rtHut9A" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+_Note: For the ID, please use a Unique ID (eg generate one [here](https://www.uuidgenerator.net/)) rather than re-using the Concept ID as is shown in the video._
+
+More information and code-running instructions directly in the README of the [ESM Form Builder app repo here](https://github.com/openmrs/openmrs-esm-form-builder#openmrs-esm-form-builder-app)
+
+Configuring O3 Forms
+Part 1: Decide if you want to use the Demo Form Builder, or set up your own in your distribution. 
+
+To use the Demo:
+
+Visit the O3 form builder website.
+
+OpenMRS Server URL: https://dev3.openmrs.org/openmrs
+u: admin
+p: Admin123
+To set up the Form Builder on your own distribution: 
+
+The Form Builder (originally built at Ampath) is a GUI tool that helps users create O3 Forms. 
+
+ Set Up on a Windows Server
+
+
+
+
+Part 2: Build your forms! 
+
+Your BAs or Devs can use the Form Builder UI (shown in the video tutorial on the right) to set up most of the forms. 
+
+Complete documentation on Ampath Forms (which will soon be named O3 Forms) is available here: ampath-forms.vercel.app
+
+For example, here is a complete list of common field types used in forms, with examples. The JSON from these examples can even be copy-pasted into the JSON editing field: ampath-forms.vercel.app/field-types-reference 
+
+Part 3: Dev adjustments for complex behaviours
+
+There are some logic pieces that get trickier, such as validation logic. This is where your team may want devs to step in to write the JSON rules required. Documentation on how to handle trickier use cases is covered here, e.g. Validating Fields: ampath-forms.vercel.app/validating-fields
+
+
+
+
+

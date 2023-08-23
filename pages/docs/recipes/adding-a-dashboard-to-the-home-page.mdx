@@ -1,0 +1,190 @@
+import { Steps } from "nextra-theme-docs";
+
+# Adding a dashboard to the home page
+
+The O3 home page is defines various slots that can be filled in with dashboards. Additionally, these dashboards can also define links that will be displayed in the left navigation bar. Clicking on these links will open the associated dashboard in the main content area. This is a pattern that is used throughout O3.
+
+To take advantage of this, you need to define a dashboard and register it with the home page. The following example walks you through how the process.
+
+## Example: Adding a Report Builder dashboard
+
+In the following example, we will add a custom dashboard to the home page. This dashboard will be a Report Builder dashboard from a fictional frontend module called `esm-ugandaemr-report-builder` that's maintained by the UgandaEMR team. This frontend module provides the user with the ability to build, test and persist various kinds of ad hoc reports. The goal is to add a link to this dashboard in the left navigation bar and also add the dashboard to the home page.
+
+The dashboard link should be called `Report builder` and clicking on it should navigate the user to `/home/report-builder` and display the dashboard in the main content area.
+
+## Overview
+
+Delving into `esm-ugandaemr-report-builder`, we see that it has the typical structure of an OpenMRS frontend module. We're going to focus on a few key files and folders highlighted below.
+
+```md
+├── src
+│ ├── report-builder.component.tsx
+├── root.component.text
+└── index.ts
+└── routes.json
+```
+
+<Steps>
+### Step 1: Add a dashboard link
+
+We'll begin by looking at the `index.ts` file. Let's add a named export for the dashboard link (called `reportBuilderDashboardLink`):
+
+```ts copy {22-29}
+import { getAsyncLifecycle, defineConfigSchema } from "@openmrs/esm-framework";
+import { configSchema } from "./config-schema";
+
+const moduleName = "@ugandaemr/esm-report-builder-app";
+const options = {
+  featureName: "ugandaemr-report-builder",
+  moduleName,
+};
+
+export const importTranslation = require.context(
+  "../translations",
+  false,
+  /.json$/,
+  "lazy"
+);
+
+export const reportBuilder = getAsyncLifecycle(
+  () => import("./report-builder.component"),
+  options
+);
+
+export const reportBuilderDashboardLink = getSyncLifecycle(
+  createDashboardLink({
+    name: "report-builder",
+    slot: "report-builder-dashboard-slot",
+    title: "Report builder",
+  }),
+  options
+);
+
+export function startupApp() {
+  defineConfigSchema(moduleName, configSchema);
+}
+```
+
+Let's begin by looking at the `reportBuilderDashboardLink` export. This is a named export that returns a dashboard link. The `createDashboardLink` function takes an object with the following properties:
+
+- `name`: The name of the dashboard link. This is used to identify the dashboard link and should be unique.
+- `slot`: The name of the slot in the home page where the dashboard link should be displayed.
+- `title`: The title of the dashboard link. This is what will be displayed in the left navigation bar.
+
+To connect this dashboard link to the dashboard itself and the extension system, we need to add the following extension definition to `routes.json`:
+
+```json copy {8-17}
+{
+  "$schema": "https://json.openmrs.org/routes.schema.json",
+  "backendDependencies": {
+    "fhir2": "^1.2.0",
+    "webservices.rest": "^2.2.0"
+  },
+  "extensions": [
+    {
+      "name": "report-builder-dashboard-link",
+      "component": "reportBuilderDashboardLink",
+      "slot": "homepage-dashboard-slot",
+      "meta": {
+        "name": "report-builder",
+        "slot": "report-builder-dashboard-slot",
+        "title": "Report-builder"
+      }
+    }
+  ]
+}
+```
+
+Looking at this extension definition, there are a few important things to note:
+
+- The `slot` property which points to the extension slot that this extension hooks into is `homepage-dashboard-slot`. `homepage-dashboard-slot` is an extension slot on the home page where dashboards slot can be added. This slot is defined in the [Home](https://github.com/openmrs/openmrs-esm-home/blob/50c5fb9d6aabf21296de986239c34f557709250d/packages/esm-home-app/src/routes.json#L24) frontend module.
+
+- The `name` property which is the name of the extension. This is used to identify the extension and should be unique.
+
+- The `meta` property which defines some metadata about the extension. In this case, It defines the `title` of the extension as `Report builder`.
+
+- The `component` property which points to the `reportBuilderDashboardLink` export from `index.ts`. This is the component that will be rendered when the extension is loaded.
+
+### Step 2: Add the dashboard
+
+Now that we have the dashboard link in place, we can move on to adding the dashboard itself.
+
+Start by adding the following export to `index.ts`:
+
+```ts copy
+export const root = getAsyncLifecycle(
+  () => import("./root.component"),
+  options
+);
+```
+
+And then add following page definition to `routes.json`:
+
+```json {7-12, 14-18}
+{
+  "$schema": "https://json.openmrs.org/routes.schema.json",
+  "backendDependencies": {
+    "fhir2": "^1.2.0",
+    "webservices.rest": "^2.2.0"
+  },
+  "pages": [
+    {
+      "component": "root",
+      "route": "report-builder"
+    }
+  ],
+  "extensions": [
+    {
+      "component": "root",
+      "name": "report-builder-dashboard",
+      "slot": "report-builder-dashboard-slot"
+    },
+    {
+      "name": "report-builder-dashboard-link",
+      "component": "reportBuilderDashboardLink",
+      "slot": "homepage-dashboard-slot",
+      "meta": {
+        "name": "report-builder",
+        "slot": "report-builder-dashboard-slot",
+        "title": "Report-builder"
+      }
+    }
+  ]
+}
+```
+
+The following snippet shows the `root.component.tsx` file. The important bits to note are highlighted below:
+
+```tsx {7-11}
+import React from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import ReportBuilder from "./components/report-builder.component";
+
+const Root: React.FC = () => {
+  return (
+    <BrowserRouter basename={`${window.spaBase}/home/report-builder`}>
+      <Routes>
+        <Route path="/" element={<ReportBuilder />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default Root;
+```
+
+We have a `BrowserRouter` that sets the base path for the dashboard to `/home/report-builder`. This is important because the home page is mounted at `/home` and we want to make sure that the dashboard is mounted at `/home/report-builder`. Next, we have a `Routes` component that defines the routes for the dashboard. In this case, we only have one route that renders the `ReportBuilder` component when the user navigates to `/home/report-builder`. It's entirely possible to have multiple routes in this `Routes` component.
+
+Now we have the basic building blocks in place for our dashboard to render. To test things out, navigate to the frontend module's root directory and run:
+
+```sh
+yarn start
+```
+
+Once the dev server fires up, login and navigate to the home page. You should see the `Report builder` link in the left navigation bar. Clicking on it should render the `ReportBuilder` component in the main content area.
+
+### Step 3
+
+Profit! You should now have a working dashboard that's hooked into the home page.
+
+</Steps>

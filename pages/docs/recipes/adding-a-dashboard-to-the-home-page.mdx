@@ -39,7 +39,7 @@ import { configSchema } from "./config-schema";
 
 const moduleName = "@ugandaemr/esm-report-builder-app";
 const options = {
-  featureName: "ugandaemr-report-builder",
+  featureName: "report-builder",
   moduleName,
 };
 
@@ -122,21 +122,15 @@ export const root = getAsyncLifecycle(
 );
 ```
 
-And then add following page definition to `routes.json`:
+And then add following extension definition to `routes.json`:
 
-```json {7-12, 14-18}
+```json {7-12, 23-27}
 {
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {
     "fhir2": "^1.2.0",
     "webservices.rest": "^2.2.0"
   },
-  "pages": [
-    {
-      "component": "root",
-      "route": "report-builder"
-    }
-  ],
   "extensions": [
     {
       "component": "root",
@@ -152,6 +146,11 @@ And then add following page definition to `routes.json`:
         "slot": "report-builder-dashboard-slot",
         "title": "Report-builder"
       }
+    },
+    {
+      "component": "root",
+      "name": "report-builder-dashboard",
+      "slot": "report-builder-dashboard-slot"
     }
   ]
 }
@@ -166,9 +165,9 @@ import ReportBuilder from "./components/report-builder.component";
 
 const Root: React.FC = () => {
   return (
-    <BrowserRouter basename={`${window.spaBase}/home/report-builder`}>
+    <BrowserRouter basename={window.getOpenmrsSpaBase()}>
       <Routes>
-        <Route path="/" element={<ReportBuilder />} />
+        <Route path="home/report-builder" element={<ReportBuilder />} />
       </Routes>
     </BrowserRouter>
   );

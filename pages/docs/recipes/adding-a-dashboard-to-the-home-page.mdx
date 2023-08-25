@@ -122,9 +122,9 @@ export const root = getAsyncLifecycle(
 );
 ```
 
-And then add following extension definition to `routes.json`:
+And then add the highlighted extension definition below to `routes.json`:
 
-```json {8-12, 23-27}
+```json {8-12}
 {
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {
@@ -146,11 +146,6 @@ And then add following extension definition to `routes.json`:
         "slot": "report-builder-dashboard-slot",
         "title": "Report-builder"
       }
-    },
-    {
-      "component": "root",
-      "name": "report-builder-dashboard",
-      "slot": "report-builder-dashboard-slot"
     }
   ]
 }

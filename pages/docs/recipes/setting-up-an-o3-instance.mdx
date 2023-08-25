@@ -19,21 +19,6 @@ You might want to use the SDK if:
 These prerequisites are explained in detail in the [SDK wiki](https://wiki.openmrs.org/display/docs/OpenMRS+SDK).
 
 - Ensure you have [Apache Maven](https://maven.apache.org/install.html) installed.
-- Ensure you have the following repository configuration in your Maven configuration's `settings.xml` file:
-
-```xml copy
-  <repository>
-    <id>mks-nexus-public</id>
-    <name>Mekom Repository</name>
-    <url>https://nexus.mekomsolutions.net/repository/maven-public</url>
-  </repository>
-```
-
-<Callout emoji="ℹ️" type="info">
-  You'll typically find your `settings.xml` file at `~/.m2/settings.xml` on Unix
-  and at `C:\Users\YourUsername\.m2\settings.xml` on Windows.
-</Callout>
-
 - Ensure you have MySQL v5.6 and above installed and set up correctly.
 - Ensure you have Java 8 installed with JDK 1.8 and JRE 1.8.
 - Ensure that your `$JAVA_HOME` environment variable is set and that it
@@ -58,7 +43,7 @@ mvn openmrs-sdk:setup
 This command will run a prompt that walks you through choosing:
 
 - A server ID e.g. `o3-distro`.
-- The type of server to set up - choose `O3 Disitribution`.
+- The type of server to set up - choose `O3 Distribution`.
 - What version of O3 to deploy - choose `Reference Application 3.0.0-SNAPSHOT`.
 - Which port to run the server on (defaults to `8080`).
 - Whether or not to enable remote debugging (defaults to `no debugging`)

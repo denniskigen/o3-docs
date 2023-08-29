@@ -375,3 +375,44 @@ Refer to [this documentation](https://playwright.dev/docs/debug) on how to debug
 - Ensure that all test cases are repeatable and easily reproducible to ensure that results can be verified and tested again if necessary.
 - Continuously review and update the testing plan to ensure that it covers all relevant features and scenarios.
 - Work collaboratively with the O3 team to ensure that any issues or defects are identified and resolved quickly.
+
+### Automating the E2E tests with GitHub Actions
+
+Automating end-to-end (E2E) tests through GitHub Actions provides an efficient way to ensure the reliability of software changes.
+
+#### Dockerized test environment
+
+Our E2E tests are executed in a dockerized environment for each pull request and commit to the O3 repositories.
+This approach offers several advantages over traditional methods:
+
+- **Reduced Dependency on Dev3 Server:** By utilizing a dockerized environment, the E2E tests are not reliant on the status or availability of the dev3 server.
+  This independence ensures that testing can proceed even if the dev3 server is experiencing issues.
+
+- **Isolated Test Runs:** Running tests on PRs and commits within isolated docker containers eliminates conflicts between data.
+  This isolation prevents scenarios where testing data conflicts with other ongoing tests or development activities.
+
+- **Minimized Impact of Failures:** Failures within the E2E tests do not impact the status or stability of the dev3 server.
+  This separation ensures that the main development environment remains unaffected by testing failures.
+
+#### Optimization of Testing Process
+
+To enhance the efficiency of the E2E testing process, we have implemented several optimization methods:
+
+1. **Pre-filled Docker Images:** The backend and database docker images used for automated e2e testing are pre-filled with necessary data and configurations.
+   This eliminates the need to generate data during the initial setup of the testing environment.
+   Consequently, the setup time is significantly reduced, enabling quick creation of the test instance.
+
+2. **Dynamic Lightweight Frontend:** To execute automated tests, a dynamic lightweight version of the frontend is used.
+   This version exclusively includes apps and changes present in the current repository, along with essential esm-apps like the primary navigation app.
+   This frontend image is built during the E2E tests' GitHub Actions workflow.
+
+The pre-filled backend and database docker images, along with the dynamically built lightweight frontend image,
+are combined within the same docker-compose stack and used for setting up the e2e test environment.
+
+##### Additional Implementation Details
+
+**Docker Image Generation:** The pre-filled docker images are created and pushed to the Docker Hub
+through a dedicated bamboo stage within the [REFAPP-D3X](https://ci.openmrs.org/browse/REFAPP-D3X) bamboo job.
+This stage involves a script that retrieves the latest versions of both the frontend and backend.
+It then runs and waits for data generation before building the `:nightly-with-data` docker images of the backend and database.
+These images are subsequently pushed to the Docker Hub. More details on this can be found [here](https://talk.openmrs.org/t/using-pre-filled-docker-images-for-running-e2e-tests/40003).

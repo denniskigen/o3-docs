@@ -179,9 +179,9 @@ Next, we'll want to add two links to the left panel:
 - A `Summary` link for the landing page.
 - An `Administration` link for the bed management administration page.
 
-To do so, we want to ensure that we have a component that we can use to create links for the left panel:
+To do so, we want to ensure that we have a higher-order function that we can use to create links and add them to the left panel. Key bits are highlighted below:
 
-```tsx
+```tsx copy {8-9, 13-19}
 // src/left-panel-link.component.tsx
 import React, { useMemo } from "react";
 import last from "lodash-es/last";
@@ -212,24 +212,17 @@ function LinkExtension({ config }: { config: LinkConfig }) {
     urlSegment = "summary";
   }
 
-  const activeClassName =
-    name === urlSegment || (isUUID(urlSegment) && name === "summary")
-      ? "active-left-nav-link"
-      : "";
-
   return (
-    <div className={activeClassName}>
-      <ConfigurableLink
-        to={`${window.getOpenmrsSpaBase()}bed-management${
-          name ? `/${name}` : ""
-        }`}
-        className={`cds--side-nav__link ${
-          name === urlSegment && "active-left-nav-link"
-        }`}
-      >
-        {title}
-      </ConfigurableLink>
-    </div>
+    <ConfigurableLink
+      to={`${window.getOpenmrsSpaBase()}bed-management${
+        name ? `/${name}` : ""
+      }`}
+      className={`cds--side-nav__link ${
+        name === urlSegment && "active-left-nav-link"
+      }`}
+    >
+      {title}
+    </ConfigurableLink>
   );
 }
 
@@ -241,7 +234,15 @@ export const createLeftPanelLink = (config: LinkConfig) => () =>
   );
 ```
 
-Next, we'll modify our `index.ts` file to add named exports for extensions in the left panel using the `createLeftPanelLink` component from above:
+Key things to note here are:
+
+- `createLeftPanelLink` is a higher-order function that expects a `name` property and a `title` property. The title gets rendered as the link text whereas the name is just the unique path that the URL segment gets matched against. If the name matches the last portion of the URL, then the matching link gets some special styling to indicate that it is the active link.
+- We're using the `useLocation` hook to determine the current location. We then extract the last segment of the current pathname and decode it. This segment is stored in the `urlSegment` variable.
+- We're rendering a `ConfigurableLink` component, passing it the route and appending the `name` as the last portion of the URL segment if it is provided. We're also asserting if the current URL matches the provided link config. If so, we're setting the `active-left-nav-link` class on the `ConfigurableLink`. This class applies some styling to the left panel link, marking out as the active link.
+- We're making a small tweak to ensure that both the Summary page and the Ward detail page use the same left panel link. When the last segment of the URL is a UUID (which is the case when you click on a ward card on the landing page), we're setting the URL segment to `summary`. This ensures that both the landing and detail pages use the same link. Your mileage will likely vary when it comes to setting up your navigation links, and this is just one approach for solving that problem.
+- Finally, we're wrapping the `LinkExtension` component in a `BrowserRouter` component which provides routing functionality.
+
+Next, we'll modify our `index.ts` file to add named exports for extensions in the left panel using the `createLeftPanelLink` higher-order function from above:
 
 ```ts
 // src/index.ts

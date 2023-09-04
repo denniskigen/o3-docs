@@ -267,6 +267,71 @@ We recommend installing the official Playwright [VS Code plugin](https://playwri
 You can also use the `npx playwright test` command to run your tests. We also recommend following the [best practices](https://playwright.dev/docs/best-practices) outlined in the Playwright documentation.
 This will help you write tests that are reliable and easy to maintain.
 
+### Enabling Traces in E2E Tests
+
+This guide explains how to enable traces in O3's end-to-end (E2E) tests using Playwright. Traces are a valuable tool for debugging and analyzing test executions as they provide access to console logs and network calls during test runs. Enabling traces can be particularly helpful when diagnosing test failures.
+
+#### Configuration
+
+To enable traces in E2E tests, we use the `trace` option provided by Playwright. This option allows us to specify when traces should be generated and retained. In O3, we configure traces to be retained on test failure, making it easier to troubleshoot issues.
+
+##### Trace Configuration
+
+To enable traces with the 'retain-on-failure' setting, follow these steps:
+
+1. Open your E2E test configuration file, typically named `playwright.config.ts`.
+
+2. Locate the `projects` section in the configuration file, which defines your test projects.
+
+3. For each test project where you want to enable traces, add the following code block to the project's configuration:
+
+```typescript
+{
+  // ...
+  use: {
+    // ...
+    trace: 'retain-on-failure', // Enable traces and retain them on test failure
+  },
+}
+```
+
+Here's an example of how a project configuration might look with traces enabled:
+
+```typescript
+module.exports = {
+  projects: [
+    {
+      name: 'chrome',
+      use: {
+        // ...
+        trace: 'retain-on-failure', // Enable traces and retain them on test failure
+      },
+    },
+    // Other project configurations...
+  ],
+};
+```
+
+4. Save the changes to your `playwright.config.ts` file.
+
+#### Accessing Traces
+
+After configuring traces in your E2E tests, Playwright will generate traces when tests fail. You can access these traces to inspect console logs and network activity during the test execution.
+
+To access traces:
+
+1. Run your E2E tests as usual using the Playwright test runner.
+
+2. When a test fails, Playwright will generate a trace file in the project's output directory. By default, these trace files are stored in the `trace` folder within the project directory.
+
+3. Locate the trace file associated with the failed test. The file's name typically includes a timestamp and test-specific information.
+
+4. Open the trace file in your preferred text editor or viewer to inspect the captured data, including console logs and network calls.
+
+Enabling traces in E2E tests using Playwright's `trace` option with the 'retain-on-failure' setting can be a valuable debugging tool. It provides insight into test failures by capturing console logs and network activity during test execution.
+
+By following the configuration steps outlined in this guide, you can make use of traces to streamline the debugging process when working on O3's E2E tests.
+
 ### Writing New Tests
 
 In general, it is recommended to read through the official [Playwright docs](https://playwright.dev/docs/intro)

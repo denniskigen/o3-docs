@@ -3,7 +3,7 @@ import { Steps } from "nextra-theme-docs";
 
 # Adding a left panel
 
-The [left panel](https://zeroheight.com/23a080e38/p/796c6a-left-panel) provides navigation within an App in O3. It is closely based on Carbon's [UI shell left panel](https://carbondesignsystem.com/components/UI-shell-left-panel/usage/), and is positioned below the header, fixed to the left edge of the page. It is possible to add a left panel to any app in O3 if you need to leverage its navigation capabilities.
+The [left panel](https://zeroheight.com/23a080e38/p/796c6a-left-panel) provides navigation within an App in O3. It is based on Carbon's [UI shell left panel](https://carbondesignsystem.com/components/UI-shell-left-panel/usage/), and is positioned below the header, fixed to the left edge of the page. It is possible to add a left panel to any page in O3 if you need to leverage its navigation capabilities.
 
 This guide will walk you through the process of building a left panel for an example frontend module that handles the management of beds in wards at a medical facility.
 
@@ -79,7 +79,7 @@ The key things to note here are:
 
 To do so, you'll want to add your `LeftPanel` component to your `BrowserRoutes` definition to ensure it gets rendered on all the routes you've configured in your app. Here's the example `Root` component after adding the `LeftPanel`:
 
-```tsx copy {14-20, 24}
+```tsx {14-20, 24} copy
 // src/root.component.tsx
 import React, { useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -107,7 +107,7 @@ const Root: React.FC = () => {
       <main className={styles.container}>
         <Routes>
           <Route path="/summary" element={<Home />} />
-          <Route path="/location/:location" element={<WardWithBeds />} />
+          <Route path="/ward/:ward" element={<WardWithBeds />} />
           <Route path="/administration" element={<BedAdministrationTable />} />
         </Routes>
       </main>
@@ -121,7 +121,7 @@ export default Root;
 Key things to note here are:
 
 - We're registering our slot with the `LeftNav` store when the component mounts, setting the provided spaBasePath (`/openmrs/spa`) as the basePath. We're also unregistering the slot from the LeftNav store when the component unmounts. The [LeftNav store](https://github.com/openmrs/openmrs-esm-core/blob/da401641b4b1895e593e9bcea73af8f8dbd505e5/packages/framework/esm-styleguide/src/left-nav/index.tsx#L18) is essentially a Zustand store that tracks slot names and their associated `basePath`s.
-- We're adding the `LeftPanel` component at the top of the `<BrowserRouter>` tree, just outside the routes declarations. This means that the `LeftPanel` gets rendered in all the pages defined in this app.
+- We're adding the `LeftPanel` component at the top of the `<BrowserRouter>` tree, just outside the routes declarations. This means that the `LeftPanel` gets rendered in all the screens that use this page.
 
 To ensure that things render correctly, you might want to add the following styles to your `Root` component:
 
@@ -175,8 +175,8 @@ Next, ensure that this component gets wired up as a page in your `routes.json` f
 
 Next, we'll want to add two links to the left panel:
 
-- A `Summary` link for the landing page.
-- An `Administration` link for the bed management administration page.
+- A `Summary` link for the landing screen.
+- An `Administration` link for the bed management administration screen.
 
 To do so, we want to ensure that we have a higher-order function that we can use to create links and add them to the left panel. Key bits are highlighted below:
 
@@ -243,12 +243,12 @@ Key things to note here are:
 
 Next, we'll modify our `index.ts` file to add named exports for extensions in the left panel using the `createLeftPanelLink` higher-order function from above:
 
-```ts
+```ts copy
 // src/index.ts
 export const summaryLeftPanelLink = getSyncLifecycle(
   createLeftPanelLink({
     name: "summary",
-    title: "Summary",
+    title: t("summary", "Summary"),
   }),
   options
 );
@@ -256,7 +256,7 @@ export const summaryLeftPanelLink = getSyncLifecycle(
 export const adminLeftPanelLink = getSyncLifecycle(
   createLeftPanelLink({
     name: "administration",
-    title: "Ward Allocation",
+    title: t("wardAllocation", "Ward Allocation"),
   }),
   options
 );
@@ -264,7 +264,7 @@ export const adminLeftPanelLink = getSyncLifecycle(
 
 We'll then add those named exports to the `extensions` array of our `routes.json` file as follows:
 
-```json copy {7-17}
+```json {7-17} copy
 "extensions": [
   {
     "component": "adminCardLink",

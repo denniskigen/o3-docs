@@ -43,7 +43,7 @@ Frontend modules are also referred to as `microfrontends` in O3. They get shippe
 Frontend modules get loaded into the application based on a special JSON file called an [import map](http://localhost:3001/docs/core-concepts#import-map). More details about how frontend modules get loaded are discussed in the [App shell](/docs/app-shell) and [Module loading](/docs/frontend-modules/loading-modules) guide.
 
 <br />
-<Image src="/o3-execution.png" alt="O3 architecture" width={500} height={500} />
+<Image src="/o3-execution.png" alt="O3 architecture" width={600} height={600} />
 
 This diagram walks through what happens when the application gets executed. The app shell loads configuration files, the import map specifies where frontend modules get fetched from, and [loads frontend modules](/docs/frontend-modules/module-loading).
 
@@ -53,13 +53,33 @@ This diagram walks through what happens when the application gets executed. The 
 
 Each frontend module has a root-level `package.json` file that defines its dependencies and metadata. Below is a snippet of the `package.json` file from the form builder frontend module:
 
-<br />
-<Image
-  src="/manifest-file.svg"
-  alt="Manifest file from a frontend module"
-  width={750}
-  height={500}
-/>
+```json
+{
+  "name": "@openmrs/esm-form-builder-app",
+  "version": "2.0.1",
+  "license": "MPL-2.0",
+  "description": "OpenMRS ESM Form Builder App",
+  "browser": "dist/openmrs-esm-form-builder-app.js",
+  "main": "src/index.ts",
+  "source": true,
+  "scripts": {
+    "start": "openmrs develop",
+    "serve": "webpack serve --mode=development",
+    "build": "webpack --mode production",
+    "analyze": "webpack --mode=production --env.analyze=true",
+    "lint": "TIMING=1 eslint src --ext js,jsx,ts,tsx",
+    "prettier": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "typescript": "tsc",
+    "test": "jest --config jest.config.js",
+    "test-e2e": "playwright test",
+    "verify": "turbo lint typescript coverage",
+    "coverage": "yarn test --coverage --passWithNoTests",
+    "postinstall": "husky install",
+    "extract-translations": "i18next 'src/**/*.component.tsx' --config ./i18next-parser.config.js",
+    "ci:bump-form-engine-lib": "yarn up @openmrs/openmrs-form-engine-lib@next"
+  }
+}
+```
 
 Some key things to note from looking at this file include:
 
@@ -71,13 +91,60 @@ Some key things to note from looking at this file include:
 
 Frontend modules have their [entry point](https://webpack.js.org/concepts/entry-points/) defined in `src/index.ts`.
 
-<br />
-<Image
-  src="/entrypoint.svg"
-  alt="Application entry point"
-  width={750}
-  height={500}
-/>
+```ts
+import {
+  defineConfigSchema,
+  getAsyncLifecycle,
+  registerBreadcrumbs,
+} from "@openmrs/esm-framework";
+import { configSchema } from "./config-schema";
+
+const moduleName = "@openmrs/esm-form-builder-app";
+
+const options = {
+  featureName: "form-builder",
+  moduleName,
+};
+
+export const importTranslation = require.context(
+  "../translations",
+  true,
+  /.json$/,
+  "lazy"
+);
+
+export const root = getAsyncLifecycle(
+  () => import("./root.component"),
+  options
+);
+
+export const systemAdministrationFormBuilderCardLink = getAsyncLifecycle(
+  () => import("./form-builder-admin-card-link.component"),
+  options
+);
+
+export function startupApp() {
+  defineConfigSchema(moduleName, configSchema);
+
+  registerBreadcrumbs([
+    {
+      path: `${window.spaBase}/form-builder`,
+      title: "Form Builder",
+      parent: `${window.spaBase}/home`,
+    },
+    {
+      path: `${window.spaBase}/form-builder/new`,
+      title: "Form Editor",
+      parent: `${window.spaBase}/form-builder`,
+    },
+    {
+      path: `${window.spaBase}/form-builder/edit/:uuid`,
+      title: "Form Editor",
+      parent: `${window.spaBase}/form-builder`,
+    },
+  ]);
+}
+```
 
 This file is the entry point of the frontend module. It is the first file that gets executed when the frontend module gets loaded. It is responsible for setting up the frontend module and exporting the module’s configuration. Specifically, in this example:
 

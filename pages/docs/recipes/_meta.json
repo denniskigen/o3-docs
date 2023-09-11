@@ -2,7 +2,7 @@
   "setting-up-an-o3-instance": "Setting up an instance of O3",
   "creating-a-frontend-module": "Creating a frontend module",
   "creating-a-distribution": "Creating a distribution",
-  "adding-a-dashboard-to-the-home-page": "Adding a dashboard to the home page",
+  "adding-links-to-the-home-page-left-panel": "Adding links to the home page left panel",
   "retrieving-and-posting-data": "Retrieving and posting data",
   "sharing-state-between-frontend-modules": "Sharing state between frontend modules",
   "formatting-dates": "Formatting dates"

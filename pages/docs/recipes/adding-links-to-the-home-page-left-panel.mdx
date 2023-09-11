@@ -1,0 +1,161 @@
+import Image from "next/image";
+import { FileTree } from "nextra/components";
+import { Steps } from "nextra-theme-docs";
+
+# Adding links to the home page left panel
+
+This guide will walk you through adding link to the [left panel](https://zeroheight.com/23a080e38/p/796c6a-left-panel) on the O3 home page. The O3 home page left panel contains links to various apps. Clicking on a link will typically navigate you to the landing screen of the app.
+
+## Example: Adding a link for the Patient Lists app
+
+This guide will walk you through adding a link to the [Patient Lists](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-list-app) app, which is a frontend module that's part of the O3 Patient Management monorepo. The Patient Lists app handles the creation and management of patient lists. This app has a landing screen that displays a tab view of all the lists that have been created. The landing screen also contains a button that allows you to create a new list. Clicking on a list will navigate you to the list details screen.
+
+Below is a screenshot of the Patient Lists app landing screen:
+
+<br />
+<Image
+  src="/patient-lists-app.png"
+  alt="Screenshot of the Patient Lists app landing screen"
+  width={1000}
+  height={1000}
+/>
+<br />
+
+To achieve this, we'll need to follow these steps:
+
+<Steps>
+
+### Step 1: Set up routing for the Patient Lists app
+
+We'll begin by making sure that the Patient Lists app is properly set up to handle routing. Its `Root` component should look like this:
+
+```tsx copy
+import React from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import PatientListList from "./patient-list-list/patient-list-list.component";
+import PatientListDetailComponent from "./patient-list-detail/patient-list-detail.component";
+
+const RootComponent: React.FC = () => {
+  const basename = window.getOpenmrsSpaBase() + "home/patient-lists";
+
+  return (
+    <BrowserRouter basename={basename}>
+      <Routes>
+        <Route path="/" element={<PatientListList />} />
+        <Route
+          path="/:patientListUuid"
+          element={<PatientListDetailComponent />}
+        />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default RootComponent;
+```
+
+This `BrowserRouter` configuration will allow us to navigate to the Patient Lists app landing screen at `home/patient-lists`. It will also allow us to navigate to the list details screen at `home/patient-lists/:patientListUuid`.
+
+### Step 2: Add a `Patient lists` link to the left panel
+
+We'll begin by adding a named export to the Patient Lists app `index.ts` file that resembles the following:
+
+```ts copy {4-7}
+// index.ts
+import { createLeftPanelLink } from "./left-panel.component";
+
+export const patientListLeftPanelLink = getSyncLifecycle(
+  createLeftPanelLink({
+    name: "patient-lists",
+    title: "Patient lists",
+    slot: "patient-lists-dashboard-slot",
+  }),
+  options
+);
+```
+
+Whereas `left-panel-link.component` looks like this:
+
+```ts copy
+// left-panel-link.component.tsx
+import React, { useMemo } from "react";
+import last from "lodash-es/last";
+import { BrowserRouter, useLocation } from "react-router-dom";
+import { ConfigurableLink } from "@openmrs/esm-framework";
+
+export interface LinkConfig {
+  name: string;
+  title: string;
+}
+
+function LinkExtension({ config }: { config: LinkConfig }) {
+  const { name, title } = config;
+  const location = useLocation();
+  const spaBasePath = window.getOpenmrsSpaBase() + "home";
+
+  const urlSegment = useMemo(
+    () => decodeURIComponent(last(location.pathname.split("/"))),
+    [location.pathname]
+  );
+
+  return (
+    <ConfigurableLink
+      to={spaBasePath + "/" + name}
+      className={`cds--side-nav__link ${
+        name === urlSegment && "active-left-nav-link"
+      }`}
+    >
+      {title}
+    </ConfigurableLink>
+  );
+}
+
+export const createLeftPanelLink = (config: LinkConfig) => () =>
+  (
+    <BrowserRouter>
+      <LinkExtension config={config} />
+    </BrowserRouter>
+  );
+```
+
+### Step 3: Wire up the `Patient lists` link extension to the home page left panel
+
+Next, we'll need to wire up the `Patient lists` link extension to the left panel. To do this, we'll need to add the following extension definition to the Patient Lists app `routes.json` file:
+
+```json copy
+{
+  "$schema": "https://json.openmrs.org/routes.schema.json",
+  "backendDependencies": {
+    "webservices.rest": "^2.2.0"
+  },
+  "extensions": [
+    {
+      "component": "patientListLeftPanelLink",
+      "name": "patient-lists-home-left-panel-link",
+      "slot": "homepage-dashboard-slot",
+      "meta": {
+        "name": "patient-lists",
+        "title": "Patient lists",
+        "slot": "patient-lists-app-slot"
+      }
+    }
+    // ...
+  ]
+}
+```
+
+Some things to note:
+
+- The `component` property is set to `patientListLeftPanelLink`, which is the named export that we defined in the previous step.
+- The `name` property is set to `patient-lists-left-panel-link`, which is the name of the extension.
+- The `slot` property is set to `homepage-dashboard-slot`, which is the name of the slot that we want to add the extension to. This slot is where the links that are displayed on the left panel of the O3 home page are rendered.
+- The `meta` property is set to the object that we passed to `createLeftPanelLink` the previous step. This object contains the `name`, `slot`, and `title` properties that are required by the `patientListLeftPanelLink` component.
+
+  - The `name` property is set to `patient-lists`, which is the name of the app.
+  - The `slot` property is set to `patient-lists-dashboard-slot`, which is the name of the slot that we want to add the extension to. This slot is where the links that are displayed on the left panel of the Patient Lists app landing screen are rendered.
+
+### Step 4: Profit!
+
+That's it! You should now see a `Patient lists` link on the left panel of the O3 home page. Clicking on this link should navigate you to the Patient Lists app landing screen.
+
+</Steps>

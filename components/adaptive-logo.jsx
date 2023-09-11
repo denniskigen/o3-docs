@@ -1,29 +1,43 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useTheme } from "nextra-theme-docs";
 import Image from "next/image";
 
 function AdaptiveLogo({ height = 180, width = 350 }) {
-  const [colorScheme, setColorScheme] = useState("light");
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const darkLogo = "/logo-dark.svg";
+  const lightLogo = "/logo-light.svg";
 
   useEffect(() => {
-    const setPreferredColorScheme = (scheme) => {
-      setColorScheme(scheme.matches ? "dark" : "light");
-    };
-
-    const darkScheme = window.matchMedia("(prefers-color-scheme: dark)");
-    setPreferredColorScheme(darkScheme);
-    darkScheme.addEventListener("change", setPreferredColorScheme);
-
-    return () => {
-      darkScheme.removeEventListener("change", setPreferredColorScheme);
-    };
+    setMounted(true);
   }, []);
 
-  const svgPath = colorScheme === "dark" ? "/logo-dark.svg" : "/logo-light.svg";
+  let logoSrc = "";
+
+  switch (theme) {
+    case "light":
+      logoSrc = lightLogo;
+      break;
+    case "dark":
+      logoSrc = darkLogo;
+      break;
+    case "system":
+      logoSrc = resolvedTheme === "dark" ? darkLogo : lightLogo;
+      break;
+    default:
+      logoSrc =
+        "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+      break;
+  }
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <Image
       className="mx-auto w-[350px] h-[180px]"
-      src={svgPath}
+      src={logoSrc}
       alt="OpenMRS logo"
       loading="eager"
       height={height}

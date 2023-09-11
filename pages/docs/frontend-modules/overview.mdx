@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Callout } from "nextra-theme-docs";
+import { FileTree } from "nextra/components";
 
 # Overview
 
@@ -15,24 +16,25 @@ Frontend modules are the basic building blocks of O3. In O3, frontend modules ar
 
 In this structure, you'll typically have a `packages` directory at the root of your monorepo. This packages directory will contain all of your frontend modules. For example, the patient management monorepo has the following structure:
 
-```markdown
-.
-├── packages
-│ ├── esm-active-visits-app
-│ ├── esm-appointments-app
-│ ├── esm-outpatient-app
-│ ├── esm-patient-list-app
-│ ├── esm-patient-registration-app
-│ ├── esm-patient-search-app
-│ │ ├── src
-│ │ │ ├── config-schema.ts
-│ │ │ ├── declarations.d.ts
-│ │ │ ├── index.ts
-│ │ │ ├── routes.json
-│ │ ├── package.json
-└── package.json
-└── yarn.lock
-```
+<FileTree>
+  <FileTree.Folder name="packages" defaultOpen>
+    <FileTree.Folder name="esm-active-visits-app" />
+    <FileTree.Folder name="esm-appointments-app" />
+    <FileTree.Folder name="esm-outpatient-app" />
+    <FileTree.Folder name="esm-patient-list-app" />
+    <FileTree.Folder name="esm-patient-registration-app" />
+    <FileTree.Folder name="esm-patient-search-app" defaultOpen>
+      <FileTree.Folder name="src" defaultOpen>
+        <FileTree.File name="config-schema.ts" />
+        <FileTree.File name="declarations.d.ts" />
+        <FileTree.File name="index.ts" />
+        <FileTree.File name="routes.json" />
+      </FileTree.Folder>
+    </FileTree.Folder>
+  </FileTree.Folder>
+  <FileTree.File name="package.json" />
+  <FileTree.File name="yarn.lock" />
+</FileTree>
 
 Each frontend module has its own `package.json` file separate from the root-level `package.json` file. This is because each frontend module is a separate NPM package. This means that each frontend module can have its own scripts and dependencies. Additionally, each frontend module has a `src` directory that contains the source code for the frontend module. The `src` directory also contains two important files from the perspective of the app shell - `index.ts` and `routes.json`. These two files define the dynamic and static metadata of the frontend module, respectively. They are discussed in more detail below.
 

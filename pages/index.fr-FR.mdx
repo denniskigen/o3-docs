@@ -1,0 +1,28 @@
+import Image from "next/image";
+import AdaptiveLogo from "../components/adaptive-logo.jsx";
+
+<div className="pt-20 py-10 m-auto flex-row justify-center text-center max-w-lg md:max-w-xl lg:max-w-4xl text-balance">
+  <AdaptiveLogo />
+  <h1 className="py-10 font-bold tracking-[-0.04em] leading-none text-[40px] md:text-5xl lg:text-[64px]">
+    <span className="leading-none">Le framework frontend pour OpenMRS</span>
+  </h1>
+  <span className="text-xl">
+    Découvrez comment O3 exploite les technologies frontend modernes et une architecture modulaire pour permettre à nos
+    utilisateurs de développer plus rapidement, ensemble.
+  </span>
+</div>
+
+<div className="mx-auto z-50 flex flex-col items-center w-72 max-w-md gap-5 px-6">
+  <div className="flex flex-col w-full gap-3 md:!flex-row">
+    <div className="relative w-full group">
+      <button className="w-full min-w-[120px] text-base font-medium no-underline dark:text-black text-white border-transparent bg-black dark:bg-white rounded md:leading-6 transition-all duration-300">
+        <a
+          href="/docs/introduction"
+          className="text-primary-600 no-underline decoration-from-font text-underline-position:from-font block py-3"
+        >
+          Commencez à apprendre
+        </a>
+      </button>
+    </div>
+  </div>
+</div>

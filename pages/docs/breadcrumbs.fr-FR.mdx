@@ -1,0 +1,66 @@
+# Les fils d'Ariane
+
+Les miettes de pain sont un modèle de conception d'interface utilisateur qui aide les utilisateurs à comprendre où ils se trouvent dans un site web ou une application. Il s'agit d'une aide à la navigation qui affiche une piste hiérarchique de liens depuis la page d'accueil jusqu'à la page actuelle. Les fils d'Ariane sont généralement affichés horizontalement près du haut de la page et utilisent le symbole plus grand que `/` pour indiquer la hiérarchie.
+
+Dans OpenMRS, les miettes de pain sont implémentées dans le fichier `index.ts` en utilisant la fonction `registerBreadCrumbs` exportée par le paquetage `@openmrs/esm-framework`.
+La fonction registerBreadcrumb prend un objet avec deux propriétés: `path` et `title`. La propriété `path` est le chemin URL de la page, et la propriété `title` est le texte qui sera affiché dans le fil d'Ariane. Lorsqu'un utilisateur navigue vers la page enregistrée, le fil d'Ariane s'affiche avec le titre spécifié.
+
+Voici un exemple de fil d'Ariane simple pour une page:
+
+```ts copy
+import { registerBreadcrumb } from "@openmrs/esm-framework";
+
+function setupOpenmrs() {
+  registerBreadcrumb({
+    path: `${window.spaBase}/myPage`,
+    title: "Ma première page",
+  });
+
+  return {
+    // spécifiez vos pages ou extensions
+  };
+}
+```
+
+Le fil d'Ariane sera affiché à l'utilisateur sous la forme `Ma première page`.
+
+Les fils d'Ariane peuvent également représenter une piste de liens hiérarchiques depuis la page d'accueil du site jusqu'aux sous-pages. Pour cela, utilisez la propriété `parent` pour indiquer ce qui doit être le fil d'Ariane parent.
+
+Voici un exemple de fil d'Ariane avec des ancêtres/sous-pages:
+
+```ts copy
+import { registerBreadcrumbs } from "@openmrs/esm-framework";
+
+function setupOpenmrs() {
+  registerBreadcrumbs([
+    {
+      path: `${window.spaBase}/myPage`,
+      title: "Ma première page",
+    },
+    {
+      path: `${window.spaBase}/myPage/subpage1`,
+      title: "Subpage 1",
+      parent: `${window.spaBase}/myPage`,
+    },
+    {
+      path: `${window.spaBase}/myPage/subpage2`,
+      title: "Subpage 2",
+      parent: `${window.spaBase}/myPage`,
+    },
+  ]);
+
+  return {
+    // spécifiez vos pages ou extensions
+  };
+}
+```
+
+Le fil d'Ariane sera affiché à l'utilisateur sous la forme `Ma première page` `Ma première page / Sous-page 1` `Ma première page / Sous-page 2 `
+
+Voici un exemple d'utilisation des fils d'Ariane dans votre composant:
+
+```ts copier
+<ExtensionSlot name={slotName} />
+```
+
+Les miettes de pain sont implémentées comme une extension fournie par l'app-shell.

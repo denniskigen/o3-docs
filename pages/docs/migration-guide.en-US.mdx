@@ -3,6 +3,12 @@ import Image from "next/image";
 
 # Migrating to Core v5
 
+<Callout emoji="ℹ️" type="info">
+  This guide is for migrating frontend modules to Core v5. Please check your frontend module's `package.json` entries
+  for `@openmrs/esm-framework` and `openmrs` to see if you need to migrate. If you're running anything higher than
+  `@openmrs/esm-framework@5.0.0` and `openmrs@5.0.0`, you're already on Core v5. If not, then you need to migrate.
+</Callout>
+
 ## Introduction
 
 O3 provides a powerful [module loading](/docs/frontend-modules/loading-modules) system that handles loading of frontend modules in the app shell. This system leverages [Webpack module federation](/docs/frontend-modules/using-webpack) and forms the basis of our microfrontends architecture. However, it does suffer from a few historical drawbacks:
@@ -33,12 +39,7 @@ declare var __VERSION__: string;
 // __VERSION__ is replaced by Webpack with the version from package.json
 const version = __VERSION__;
 
-const importTranslation = require.context(
-  "../translations",
-  false,
-  /.json$/,
-  "lazy"
-);
+const importTranslation = require.context("../translations", false, /.json$/, "lazy");
 
 const backendDependencies = {
   "webservices.rest": "^2.24.0",
@@ -80,19 +81,13 @@ function setupOpenMRS() {
       {
         name: "location-picker",
         slot: "location-picker",
-        load: getAsyncLifecycle(
-          () => import("./location-picker/location-picker.component"),
-          options
-        ),
+        load: getAsyncLifecycle(() => import("./location-picker/location-picker.component"), options),
         ...sharedOnlineOfflineProps,
       },
       {
         name: "logout-button",
         slot: "user-panel-actions-slot",
-        load: getAsyncLifecycle(
-          () => import("./logout/logout.component"),
-          options
-        ),
+        load: getAsyncLifecycle(() => import("./logout/logout.component"), options),
         online: true,
         offline: false,
       },
@@ -100,10 +95,7 @@ function setupOpenMRS() {
         name: "location-changer",
         slot: "user-panel-slot",
         order: 1,
-        load: getAsyncLifecycle(
-          () => import("./change-location-link/change-location-link.component"),
-          options
-        ),
+        load: getAsyncLifecycle(() => import("./change-location-link/change-location-link.component"), options),
         ...sharedOnlineOfflineProps,
       },
     ],
@@ -133,12 +125,7 @@ declare var __VERSION__: string;
 // __VERSION__ is replaced by Webpack with the version from package.json
 const version = __VERSION__;
 
-const importTranslation = require.context(
-  "../translations",
-  false,
-  /.json$/,
-  "lazy"
-);
+const importTranslation = require.context("../translations", false, /.json$/, "lazy");
 
 const backendDependencies = {
   "webservices.rest": "^2.24.0",
@@ -180,19 +167,13 @@ function setupOpenMRS() {
       {
         name: "location-picker",
         slot: "location-picker",
-        load: getAsyncLifecycle(
-          () => import("./location-picker/location-picker.component"),
-          options
-        ),
+        load: getAsyncLifecycle(() => import("./location-picker/location-picker.component"), options),
         ...sharedOnlineOfflineProps,
       },
       {
         name: "logout-button",
         slot: "user-panel-actions-slot",
-        load: getAsyncLifecycle(
-          () => import("./logout/logout.component"),
-          options
-        ),
+        load: getAsyncLifecycle(() => import("./logout/logout.component"), options),
         online: true,
         offline: false,
       },
@@ -200,10 +181,7 @@ function setupOpenMRS() {
         name: "location-changer",
         slot: "user-panel-slot",
         order: 1,
-        load: getAsyncLifecycle(
-          () => import("./change-location-link/change-location-link.component"),
-          options
-        ),
+        load: getAsyncLifecycle(() => import("./change-location-link/change-location-link.component"), options),
         ...sharedOnlineOfflineProps,
       },
     ],
@@ -255,8 +233,7 @@ Each page in the `pages` array is represented by a JSON object with the followin
 - `order` - integer property. Determines the order in which the DOM element that renders this page is rendered. Should be used sparingly, but is sometimes necessary to ensure the resulting markup is correct. Minimum value is 0.
 
   <Callout emoji="ℹ️" type="info">
-    `component` is the only required property. All other properties are
-    optional.
+    `component` is the only required property. All other properties are optional.
   </Callout>
 
 To move `pages` from `index.ts` to `routes.json`, we need to extract the following properties from each page definition in the `pages` array:
@@ -291,10 +268,7 @@ To move `pages` from `index.ts` to `routes.json`, we need to extract the followi
   We could extract the following component:
 
   ```ts
-  export const root = getAsyncLifecycle(
-    () => import("./root.component"),
-    options
-  );
+  export const root = getAsyncLifecycle(() => import("./root.component"), options);
   ```
 
 - `route` - we can extract this directly from the `route` property of the page definition. In the login example, this would be `"login"` and `"logout"` respectively. These routes both use the same component, so we can use the same `component` property for both of them.
@@ -343,8 +317,7 @@ Each extension in the `extensions` array is represented by a JSON object with th
 - `meta` - `object` property that describes any properties that get passed down to the extension when it gets loaded.
 
   <Callout emoji="ℹ️" type="info">
-    `name` and `component` are required properties. All other properties are
-    optional.
+    `name` and `component` are required properties. All other properties are optional.
   </Callout>
 
 To move `extensions` from `index.ts` to `routes.json`, we need to extract the following properties from each extension definition in the `extensions` array:
@@ -476,12 +449,7 @@ declare var __VERSION__: string;
 // __VERSION__ is replaced by Webpack with the version from package.json
 const version = __VERSION__;
 
-const importTranslation = require.context(
-  "../translations",
-  false,
-  /.json$/,
-  "lazy"
-);
+const importTranslation = require.context("../translations", false, /.json$/, "lazy");
 
 const backendDependencies = {
   "webservices.rest": "^2.24.0",
@@ -523,19 +491,13 @@ function setupOpenMRS() {
       {
         name: "location-picker",
         slot: "location-picker",
-        load: getAsyncLifecycle(
-          () => import("./location-picker/location-picker.component"),
-          options
-        ),
+        load: getAsyncLifecycle(() => import("./location-picker/location-picker.component"), options),
         ...sharedOnlineOfflineProps,
       },
       {
         name: "logout-button",
         slot: "user-panel-actions-slot",
-        load: getAsyncLifecycle(
-          () => import("./logout/logout.component"),
-          options
-        ),
+        load: getAsyncLifecycle(() => import("./logout/logout.component"), options),
         online: true,
         offline: false,
       },
@@ -543,10 +505,7 @@ function setupOpenMRS() {
         name: "location-changer",
         slot: "user-panel-slot",
         order: 1,
-        load: getAsyncLifecycle(
-          () => import("./change-location-link/change-location-link.component"),
-          options
-        ),
+        load: getAsyncLifecycle(() => import("./change-location-link/change-location-link.component"), options),
         ...sharedOnlineOfflineProps,
       },
     ],
@@ -577,12 +536,7 @@ const options = {
 ### 2. Make the `importTranslation` function a named export
 
 ```ts copy
-export const importTranslation = require.context(
-  "../translations",
-  false,
-  /.json$/,
-  "lazy"
-);
+export const importTranslation = require.context("../translations", false, /.json$/, "lazy");
 ```
 
 ### 3. Make pages and extensions named exports
@@ -590,20 +544,11 @@ export const importTranslation = require.context(
 Each page and extension in the `pages` and `extensions` arrays needs to be a named export at the top-level.
 
 ```ts copy
-export const root = getAsyncLifecycle(
-  () => import("./root.component"),
-  options
-);
+export const root = getAsyncLifecycle(() => import("./root.component"), options);
 
-export const locationPicker = getAsyncLifecycle(
-  () => import("./location-picker/location-picker.component"),
-  options
-);
+export const locationPicker = getAsyncLifecycle(() => import("./location-picker/location-picker.component"), options);
 
-export const logoutButton = getAsyncLifecycle(
-  () => import("./logout/logout.component"),
-  options
-);
+export const logoutButton = getAsyncLifecycle(() => import("./logout/logout.component"), options);
 
 export const changeLocationLink = getAsyncLifecycle(
   () => import("./change-location-link/change-location-link.component"),
@@ -648,31 +593,17 @@ const options = {
   moduleName,
 };
 
-export const importTranslation = require.context(
-  "../translations",
-  false,
-  /.json$/,
-  "lazy"
-);
+export const importTranslation = require.context("../translations", false, /.json$/, "lazy");
 
 export function startupApp() {
   defineConfigSchema(moduleName, configSchema);
 }
 
-export const root = getAsyncLifecycle(
-  () => import("./root.component"),
-  options
-);
+export const root = getAsyncLifecycle(() => import("./root.component"), options);
 
-export const locationPicker = getAsyncLifecycle(
-  () => import("./location-picker/location-picker.component"),
-  options
-);
+export const locationPicker = getAsyncLifecycle(() => import("./location-picker/location-picker.component"), options);
 
-export const logoutButton = getAsyncLifecycle(
-  () => import("./logout/logout.component"),
-  options
-);
+export const logoutButton = getAsyncLifecycle(() => import("./logout/logout.component"), options);
 
 export const changeLocationLink = getAsyncLifecycle(
   () => import("./change-location-link/change-location-link.component"),
@@ -738,25 +669,16 @@ yarn add -D css-loader
 ### I'm getting a minified single-spa error `#10: Invalid mount lifecycle on parcel` when I run my frontend module
 
 <br />
-<Image
-  src="/named-export-error.png"
-  alt="Screenshot of the error message"
-  width={500}
-  height={500}
-/>
+<Image src="/named-export-error.png" alt="Screenshot of the error message" width={500} height={500} />
 
 This error means that your frontend module has an invalid mount lifecycle function. The usual culprit is a misconfigured named export in your app's `index.ts` file. Make sure that your named exports directly reference exports from invoking `getAsyncLifecycle` and `getSyncLifecycle`:
 
 ```ts
 // This is incorrect. `root`. Remove the function call
-export const root = () =>
-  getAsyncLifecycle(() => import("./root.component"), options);
+export const root = () => getAsyncLifecycle(() => import("./root.component"), options);
 
 // This is correct way to import the component
-export const root = getAsyncLifecycle(
-  () => import("./root.component"),
-  options
-);
+export const root = getAsyncLifecycle(() => import("./root.component"), options);
 ```
 
 This is a [common mistake](https://github.com/search?q=org%3Aopenmrs+exports+should+reference+the+result+of+getSync&type=pullrequests) when upgrading from the old frontend module structure to the new one. Don't get caught out.

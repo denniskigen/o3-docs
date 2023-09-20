@@ -23,6 +23,24 @@ const MyComponent() {
 }
 ```
 
+To launch a patient workspace, requiring a visit, you can utilize the `useLaunchWorkspaceRequiringVisit`.
+
+If the visit is enabled on the system and the patient doesn't have an active visit, the user will be prompted to start a new visit before launching a workspace.
+
+```ts copy
+import React from "react";
+import { useLaunchWorkspaceRequiringVisit } from "@openmrs/esm-patient-common-lib";
+
+const OrderBasketActionButton: React.FC = () => {
+  const { t } = useTranslation();
+  const launchOrderBasket = useLaunchWorkspaceRequiringVisit("order-basket");
+
+  return <Button onClick={launchOrderBasket}>Launch order basket</Button>;
+};
+
+export default OrderBasketActionButton;
+```
+
 ## Implementation
 
 `launchPatientWorkspace` handles the following scenarios before opening a workspace:

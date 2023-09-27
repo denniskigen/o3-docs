@@ -28,16 +28,13 @@ Summary: _The translation files will have to be pulled from Transifex and commit
 
   - _Export JSON from Transifex:_ In the left navigation, click Resources for the Repo, then click the language you want, and click “Download for use” from the Resources modal that popped up. This downloads a JSON file for you.
 
-    <Image
-      src="/transifex-download-json-export.png"
-      alt="Transifex Modal to Download a JSON Export"
-    />
+    ![Transifex Modal to Download a JSON Export](/transifex-download-json-export.png)
 
   - _Upload JSON into the repo’s esm-NAME-app/translations/ directory:_ E.g. [this example](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-active-visits-app/translations) of JSON string translations uploaded for the active visits app.
 
   - _Then:_ The strings should be translated in the UI when the user switches their locale.
 
-    <Image src="/translation-locale-switcher.png" alt="Locale Switcher UI" />
+    ![Locale Switcher UI](/translation-locale-switcher.png)
 
 - _Alternative to Step 3: Automated Workflow:_ This can also be done by using the [CLI Transifex client](https://developers.transifex.com/docs/cli) and running `tx pull -l fr` (to get the fr locale for instance) and commit the changes.
 

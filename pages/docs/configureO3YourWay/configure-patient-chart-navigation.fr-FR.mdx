@@ -1,0 +1,34 @@
+# Configurer la navigation dans le dossier du patient : Pages et tableaux de bord
+
+Vous pouvez configurer la navigation dans le dossier du patient en ajoutant une extension à l'emplacement du tableau de bord du dossier du patient de l'application esm-patient-chart-app. 
+
+### Exemple de configuration: 
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "extensionSlots": {
+      "patient-chart-dashboard-slot": {
+        "add": [
+          "nav-group#HIVAdultReturn",
+          "nav-group#NCDOutpatient"
+        ],
+        "configure": {
+          "nav-group#HIVAdultReturn": {
+            "title": "HIV Adult Return",
+            "slotName": "hiv-nav-group-slot"
+          },
+          "nav-group#NCDOutpatient": {
+            "title": "NCD Outpatient",
+            "slotName": "heart-nav-group-slot"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Tutoriel vidéo pour la configuration de la carte du patient O3 :
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/57nRWhJdf1E" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>

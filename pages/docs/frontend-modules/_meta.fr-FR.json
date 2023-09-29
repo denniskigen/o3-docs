@@ -1,0 +1,10 @@
+{
+  "overview": "Vue d'ensemble",
+  "setup": "Mise en place",
+  "contributing": "Contribuer",
+  "development": "Développement",
+  "testing": "Essais",
+  "releasing": "Libération",
+  "loading-modules": "Chargement des modules",
+  "using-webpack": "Utilisation de Webpack"
+}

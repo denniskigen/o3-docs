@@ -1,0 +1,42 @@
+# Contribuer
+
+Si vous souhaitez contribuer à O3, vous devez suivre les étapes suivantes.
+
+- Accédez à [OpenMRS Jira](https://issues.openmrs.org/). Si vous n'y avez pas accès, faites une demande auprès du [Help Desk](https://wiki.openmrs.org/display/~helpdesk). Attendez au moins 24 heures pour que la demande soit approuvée ; vous recevrez un courriel à cet effet. Une fois la demande approuvée, jetez un coup d'œil à tous les [problèmes liés au module frontend](https://issues.openmrs.org/projects/MF/issues). Les bons premiers problèmes sont classés sous l'étiquette [intro](https://issues.openmrs.org/browse/MF-508?jql=project%20%3D%20MF%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%22intro%22%20ORDER%20BY%20priority%20DESC%2C%20updated%20DESC).
+- Rejoignez notre [Canal Slack](https://openmrs.slack.com/archives/CHP5QAE5R) et présentez-vous. Vous devrez d'abord créer un [compte Slack OpenMRS](https://slack.openmrs.org/) si vous n'en avez pas.
+
+### Lignes directrices pour les contributions
+
+- **Les demandes de retrait (PR) ne doivent pas obligatoirement correspondre à un ticket** - S'il existe un ticket pour le PR, il doit être clairement nommé et lié au PR.
+- **Les demandes de Pull sont autorisées (et encouragées) à contenir plus d'un commit. Ces commits sont écrasés lorsque votre PR est fusionnée dans `main`.
+- **Ne pas fermer un PR et en recréer un nouveau avec le même code** - Si vous avez ouvert un PR pour un travail et qu'un évaluateur a demandé des changements, n'ouvrez pas un nouveau PR avec les mises à jour et ne fermez pas l'ancien. Cela rend les choses très difficiles pour les évaluateurs.
+- **Lisez et remplissez le modèle de rapport lors du dépôt d'un rapport** - Le modèle de rapport existe pour vous aider à nous fournir toutes les informations dont nous avons besoin dans un format que nous pouvons rapidement examiner. En le remplissant correctement, vous faciliterez et accélérerez le travail de tout le monde.
+- **Travaillez de manière progressive** - Les PR de petite taille sont plus faciles à lire et à valider. L'ouverture de plusieurs PR pour le même ticket est excellente si ces PR représentent différents éléments ou étapes du travail relatif à ce ticket.
+- **N'augmentez pas la portée d'un PR après qu'il ait été révisé** - Si votre code a été révisé, n'ajoutez pas un tas de code supplémentaire qui n'est pas lié à la révision. Les corrections sont acceptables, mais les nouvelles fonctionnalités doivent faire l'objet de leur propre PR. N'oubliez pas que les petits PRs sont plus faciles à réviser de toute façon!
+- **Le titre de votre PR doit indiquer le type de changement dont il s'agit** - Nous utilisons les titres des PR pour déterminer les changements de version lors de la [/docs/frontend-modules/releasing](/docs/frontend-modules/releasing) des modules frontaux.
+- **Le titre de votre PR doit indiquer le type de changement dont il s'agit** - Nous utilisons les titres des PR pour déterminer les changements de version lors de la [publication](/docs/frontend-modules/releasing) des modules frontaux. Les titres des PR doivent commencer par le type de [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/) correspondant à votre PR. Exemples de bons titres de PR:
+
+  - "(docs) Ajouter aux docs de contribution"
+  - "(fix) Erreur de console lors de la visite de la page des allergies"
+  - (feat) Ajout d'une barre de recherche au widget des médicaments"
+  - "(refactor) Mise en ordre de l'implémentation du tableau de bord"
+  - "BREAKING : Nouveau système de navigation à gauche"
+
+  Les préfixes courants incluent les préfixes ci-dessus, ainsi que `chore`, `style`, `perf`, et `test`. Pour en savoir plus sur les types de livraisons conventionnelles [ici](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13#types).
+
+  Les changelogs que nous publions avec chaque version sont générés à partir des titres des PR, il est donc important de suivre cette convention. _Ne vous inquiétez pas si vous n'êtes pas sûr du titre à utiliser _Votre réviseur doit s'assurer que votre PR a un titre approprié.
+
+### Lignes directrices pour l'examen du code
+
+- Encourager le retour d'information en tant qu'auteur et évaluateur.
+- Encourager le plus grand nombre possible de contributeurs à s'engager dans une contribution profonde et significative.
+- Tenir compte des différents niveaux d'expérience des contributeurs d'OpenMRS.
+- Éviter le "gatekeeping", qui consiste à trop insister auprès des contributeurs sur le fait qu'ils ne suivent pas le bon processus.
+- Encourager l'appropriation du code, notamment en examinant les modifications apportées au code et aux projets auxquels vous avez contribué.
+- Fournir un retour d'information détaillé et utile aux contributeurs, y compris en utilisant la [fonction de suggestion] de GitHub (https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/incorporating-feedback-in-your-pull-request) pour aider le contributeur à savoir comment apporter les modifications nécessaires.
+
+_Les lignes directrices ci-dessus ont été établies dans [RFC-20](https://github.com/openmrs/openmrs-rfc-frontend/blob/master/text/0020-contributing-guidelines.md)_.
+
+### Conventions de codage
+
+Lisez notre guide [coding conventions](/docs/coding-conventions) pour en savoir plus sur les conventions que nous encourageons dans O3.

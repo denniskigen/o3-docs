@@ -1,0 +1,78 @@
+# Publication de modules frontaux
+
+Après avoir atteint un seuil raisonnable de commits, ou après une période de temps déterminée, vous voudrez probablement publier votre logiciel dans le registre NPM afin que les consommateurs puissent obtenir vos dernières versions stables.
+
+Nous travaillons avec une cadence de publication bihebdomadaire pour O3, ce qui signifie que nous publions de nouvelles versions de nos modules frontaux toutes les deux semaines. Cette cadence est susceptible d'être modifiée au fur et à mesure que nous acquérons de l'expérience avec le processus.
+
+La publication d'une version d'O3 se fait en deux étapes:
+
+1. La mise à jour des versions locales des paquets et l'envoi de ces changements sur GitHub. Cette étape déclenchera la tâche `pre-release` de l'IC.
+2. Couper une version en utilisant l'interface utilisateur des versions de Github. Cette étape déclenche la tâche `release` de l'IC.
+
+Si vous voulez publier une version release de votre module, vous devez d'abord réfléchir à quelques points, notamment :
+
+- Le `type' de version - le [type de version sémantique](https://docs.npmjs.com/about-semantic-versioning) auquel vos changements se conforment. Nos versions utilisent la spécification semver, ce qui signifie que nous avons trois types de versions :
+
+  - `patch` - lorsque vous apportez des corrections de bogues rétrocompatibles.
+  - `minor` - lorsque vous ajoutez des fonctionnalités d'une manière compatible avec le passé.
+  - `major` - quand vous faites des changements d'API incompatibles.
+
+Par exemple, si le dernier numéro de version d'un module frontal est `v1.0.0` :
+
+  - Une version `patch` incrémenterait le numéro de version à `1.0.1`.
+  - Une version `minor` incrémenterait le numéro de version à `1.1.0`.
+  - Une version `major` incrémenterait le numéro de version à `2.0.0`.
+
+Avec cette connaissance, vous pouvez commencer à rédiger un changelog. Pour ce faire:
+
+- Allez sur la page `releases` de votre monorepo, et cliquez sur `Draft a new release`.
+- Cliquez sur le bouton `Choose a tag` dans l'interface utilisateur de la page releases. Choisissez n'importe quel tag, par exemple `v1.0.1` pour une version `patch` si la version la plus récente est `v1.0.0`. Nous allons probablement changer cela peu après avoir revu le changelog. Définissez également cette valeur comme titre de la version. Ensuite, cliquez sur le bouton `Générer les notes de publication`.
+
+Nous avons établi une convention au sein d'O3 où les titres des PR contiennent une valeur conventionnelle de type de livraison qui décrit le type de changement que la PR apporte. Cela inclut:
+
+- `(feat)` pour les nouvelles fonctionnalités
+- `(fix)` pour les corrections de bogues
+- `(refactor)` pour les refactors
+- `(test)` pour les tests
+- `(docs)` pour la documentation
+- `(chore)` pour les tâches ménagères, comme la gestion des dépendances, la configuration ou la mise à jour des flux de CI
+- `(BREAKING)` pour les changements d'API rétro-compatibles.
+
+L'examen du journal des modifications généré avec ces types de livraisons à l'esprit devrait vous donner une bonne idée du type de saut de version sémantique que votre version devrait créer. A ce stade, vous pouvez basculer vers votre IDE pour initier le processus de publication. Typiquement, nous utilisons lerna pour versionner les modules frontaux. Lancez la commande suivante à la racine de votre monorepo pour déclencher un saut de version:
+
+```sh copy
+yarn lerna version [release type] --no-git-tag-version --no-push --yes --sort
+```
+
+Par exemple, si vous voulez faire une version `major`, vous devez exécuter:
+
+```sh copy
+yarn lerna version major --no-git-tag-version --no-push --yes --sort
+```
+
+Cette commande :
+
+- Augmente le numéro de version `major` pour tous les paquets de votre monorepo. Par exemple, si la version actuelle est `1.0.0`, elle passera à `2.0.0`.first-letter.
+- Indique à lerna de ne pas créer de tag git pour la version.
+- Indique à lerna de ne pas pousser la version sur GitHub.
+- Indique à lerna d'ignorer toute demande de confirmation en passant le drapeau `--yes`. Nous voulons automatiser le processus de publication autant que possible
+- Indique à lerna de forcer un changement de version pour tous les paquets de votre monorepo, même s'ils n'ont pas changé depuis la dernière version.
+- Indique à lerna This de trier les paquets avant d'exécuter les commandes afin qu'elles s'exécutent sur les paquets dans l'ordre topologique (c'est-à-dire que les paquets qui dépendent d'autres paquets sont exécutés plus tard).
+
+Une fois ce processus terminé, vous devriez voir un diff dans votre éditeur qui inclut un saut de version pour tous les paquets de votre monorepo et un changement dans votre fichier `lerna.json`. Lancez `yarn` ou `yarn install` pour mettre à jour votre fichier `yarn.lock`. Committez ces changements avec le titre `(chore) Release vx.x.x` où x.x.x est un espace réservé pour le numéro de version. Voir un exemple de [ce commit](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1279) qui fait passer `Patient Chart` à `v5.0.0`.
+
+Une fois que le commit de votre version est fusionné, le job `pre-release` du workflow CI est déclenché et initie un saut de version pour la version correspondante étiquetée `latest` sur NPM. Cette version est celle que les utilisateurs obtiennent lorsqu'ils installent votre module frontal.
+
+Vous pouvez alors basculer vers votre navigateur et retourner sur la page des versions du repo avec lequel vous travaillez. Lisez les notes de version générées par GitHub et mettez à jour le numéro de version et les balises de manière appropriée. Une fois que vous êtes satisfait que tout semble correct, cliquez sur le bouton "Publier la version". Cette étape devrait déclencher le flux de travail CI et, notamment, la tâche `release`.
+
+Sous le capot, ce job exécute le script suivant:
+
+```jsx copy
+"ci:publish-next" : "lerna publish from-package --no-git-reset --dist-tag next --yes",
+```
+
+Cette commande publie un nouveau paquet étiqueté `next`. C'est la version que les utilisateurs obtiendront lorsqu'ils installeront votre module frontal avec le tag `next`. C'est utile pour tester de nouvelles fonctionnalités avant qu'elles ne soient publiées avec la balise `latest`.
+
+De manière générale, lorsqu'un PR est fusionné, un job `pre-release` est déclenché dans notre flux de travail principal GitHub actions CI. Ce job publie une version du module frontend dans son registre npm correspondant, étiqueté `latest`. C'est la version que les utilisateurs obtiendront lorsqu'ils installeront votre module frontal.
+
+Pour voir à quelle version correspond le tag `latest` pour un module frontal, allez sur sa page de registre NPM et cliquez sur le tag `version`. Recherchez la version la plus récente étiquetée `latest`.

@@ -1,0 +1,84 @@
+# Partage de l'état entre les modules frontaux
+
+En général, l'état dans les applications React devrait être
+[géré à l'aide de React](https://kentcdodds.com/blog/application-state-management-with-react).
+Utilisez le [State Hook](https://reactjs.org/docs/hooks-state.html) (ou
+[Reducer Hook](https://reactjs.org/docs/hooks-reference.html#usereducer))
+et [Context](https://reactjs.org/docs/context.html) pour faire circuler l'état au sein de votre
+module frontal.
+
+Dans certains cas, vous pouvez avoir besoin de gérer l'état en dehors de React.
+lorsque vous avez des applications React séparées qui ont besoin de partager l'état.
+Cela peut se produire, par exemple, si votre module frontal a plusieurs extensions
+qui ont besoin de partager un état entre elles.
+
+Dans ce cas, vous pouvez utiliser l'option
+[`@openmrs/esm-state`](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/framework/esm-state)
+de `@openmrs/esm-framework`. Le cadre fournit des fonctions pour
+gérer l'état en utilisant [Zustand](https://docs.pmnd.rs/zustand/getting-started/introduction).
+
+## Utilisation
+
+Un magasin Zustand peut être créé en utilisant
+[`createGlobalStore`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#createglobalstore):
+
+```typescript
+import { createGlobalStore } de "@openmrs/esm-framework";
+
+export interface BooksStore {
+  books : Array<string> ;
+}
+
+createGlobalStore("books", {
+  livres : [],
+}) ;
+```
+
+Le magasin est alors accessible en utilisant
+[`getGlobalStore`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#getglobalstore)
+
+```TypeScript
+import { getGlobalStore } de "@openmrs/esm-framework";
+
+const bookStore = getGlobalStore("books");
+console.log(bookStore.getState());
+bookStore.subscribe((books) => console.log(books));
+bookStore.setState({ books : ["Pathologies du pouvoir"] });
+```
+
+### Dans React:
+
+```typescript
+import React, { useEffect } from "react";
+import { getGlobalStore, useStore } from "@openmrs/esm-framework";
+
+const bookStore = getGlobalStore("books");
+
+function BookShelf() {
+  const { books } = useStore(bookStore);
+  return <>{books.join(",")}</>;
+}
+```
+
+Il y a quelques autres façons d'utiliser les magasins dans React, par exemple en créant un abonnement dans un bloc `useEffect`, ou en utilisant `Provider` et `connect`.
+un abonnement dans un bloc `useEffect`, ou en utilisant `Provider` et `connect`, mais cette méthode est de loin la plus simple.
+mais cette méthode est de loin la plus simple.
+
+### Autres notes
+
+Si votre structure de répertoire le permet, vous pouvez aussi passer des magasins explicitement:
+
+```typescript
+// bookStore.ts
+export bookStore = createGlobalStore("books", {
+  livres : [],
+});
+```
+
+```typescript
+import { bookStore } de "./bookStore";
+bookStore.setState({ books : ["A History of Global Health"] });
+```
+
+Voir [Zustand docs](https://docs.pmnd.rs/zustand/getting-started/introduction) pour plus d'informations sur les magasins.
+informations sur les magasins.

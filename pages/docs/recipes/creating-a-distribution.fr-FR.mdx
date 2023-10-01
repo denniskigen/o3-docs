@@ -1,0 +1,87 @@
+# Créer une distribution
+
+L'une des raisons pour lesquelles nous avons choisi ce type de modularisation dans l'espace frontal est de permettre une flexibilité maximale pour créer votre propre distribution. De cette façon, vous pouvez utiliser ce que vous trouvez utile et laisser tomber ce que vous n'aimez pas voir dans votre distribution.
+
+Ce concept s'applique à presque tous les domaines, y compris, mais sans s'y limiter, les modules frontaux disponibles, l'enveloppe de l'application livrée et la méthode de distribution de l'application.
+
+Dans cette section, nous examinons certains aspects à prendre en compte lors de la création d'une distribution. Plus précisément, nous examinons les options que nous proposons et la manière dont vous pouvez les exploiter dans votre cas d'utilisation.
+
+## Construction locale vs configuration CI
+
+Vous pourriez être tenté de cloner le dépôt `openmrs-esm-core` pour construire votre distribution. **Ne faites pas** cela à moins que vous ne sachiez exactement _pourquoi_ vous voulez travailler avec le dépôt. Le dépôt n'est là que pour le _développement_ du Frontend OpenMRS. Il n'est **pas** là pour construire des distributions.
+
+Pour construire votre propre distribution, un simple outil Node.js appelé `openmrs` a été créé. Il permet de
+
+- créer une carte d'importation avec toutes les ressources pour les modules frontaux contenus (`openmrs assemble`)
+- construire un nouveau shell pour héberger les modules frontaux (`openmrs build`)
+- démarrer une session de débogage du shell et d'un module frontal (`openmrs debug`)
+- démarre une session de débogage d'un module frontal dans le shell (`openmrs develop`)
+- démarre localement le shell de l'application par défaut (`openmrs start`)
+
+Pour créer une distribution, nous recommandons de faire deux choses:
+
+1. Construire l'app shell (`openmrs build`) avec la configuration que vous voulez voir.
+2. Utiliser `openmrs assemble` pour obtenir une configuration personnalisée pour votre import map.
+
+La carte d'importation est utilisée pour définir quels modules frontaux sont inclus et où ces modules frontaux sont situés.
+
+## Personnaliser la carte d'importation
+
+En construisant le shell de l'application, vous obtiendrez déjà une version rudimentaire d'une carte d'importation, qui peut être utilisée à des fins de développement. En général, cependant, vous devriez fournir votre propre carte d'importation.
+
+Une carte d'importation peut également être spécifiée sous la forme d'une URL. Par exemple, pour l'instance de développement à `dev3.openmrs.org` nous avons [https://dev3.openmrs.org/openmrs/spa/import-map.json](https://dev3.openmrs.org/openmrs/spa/import-map.json). Le contenu de cette carte d'importation est mis à jour dès qu'une mise à jour de n'importe quel module (officiel) du frontend a été poussée. Ainsi, bien que cette carte d'importation puisse être intéressante pour le développement, elle doit être considérée comme instable. Évitez-la pour votre distribution ou pour toute application qui ne doit pas tomber en panne de manière inattendue.
+
+Une carte d'importation personnalisée peut être créée à l'aide de la commande `openmrs assemble`. Si elle est lancée directement, la commande ouvrira une enquête en ligne de commande, vous guidant à travers les différentes options. Elle listera tous les modules frontaux d'OpenMRS qui peuvent être trouvés dans le registre NPM.
+
+Pour des raisons de CI/CD, nous vous encourageons à utiliser un fichier de configuration `spa-build-config.json` à la place. Ce fichier définit alors les modules frontaux souhaités et configure l'ensemble du processus.
+
+Le fichier peut ressembler à ce qui suit:
+
+```json
+{
+  "publicUrl": ".",
+  "frontendModules": {
+    "@openmrs/esm-patient-chart-app": "latest",
+    "@openmrs/esm-patient-registration-app": "3.0.0"
+  }
+}
+```
+
+Le `publicUrl` peut être important pour plus tard. Si les ressources rassemblées sont placées (et servies) dans le même dossier que les ressources de la SPA, alors `.` est bon. Si elles sont téléchargées vers un CDN, l'URL (de base) du CDN doit être définie.
+
+Exemple:
+
+```json
+{
+  "publicUrl": "https://openmrs-cdn-example.com/mf",
+  "frontendModules": {
+    "@openmrs/esm-patient-chart-app": "latest",
+    "@openmrs/esm-patient-registration-app": "3.0.0"
+  }
+}
+```
+
+Dans ce cas, le fichier `import-map.json` résultant pourrait ressembler à ce qui suit:
+
+```json
+{
+  "imports": {
+    "@openmrs/esm-patient-chart-app": "https://openmrs-cdn-example.com/mf/openmrs-esm-patient-chart-app-3.2.1/openmrs-esm-patient-chart-app.js",
+    "@openmrs/esm-patient-registration-app": "https://openmrs-cdn-example.com/mf/openmrs-esm-patient-registration-app-3.0.0/openmrs-esm-patient-registration-app.js"
+  }
+}
+```
+
+Dans les deux cas, la commande d'assemblage permet de s'assurer que tous les actifs sont correctement mis à disposition.
+
+## Canary vs Stable
+
+En ce qui concerne les versions, vous avez trois options:
+
+- Choisir la balise `latest` (la plus récente)
+- Aller vers la balise `next`.
+- Aller vers une version spécifique (i.e., explicite)
+
+En général, nous recommandons de rester sur des versions qui ne sont pas des versions de prévisualisation (par exemple, `3.2.1`). Les versions de prévisualisation (par exemple, `3.2.1-pre.0`) sont destinées au développement et peuvent ne pas être stables.
+
+Pour créer une distribution fonctionnelle, l'idéal est de s'en tenir à un versionnage explicite des versions qui ne sont pas des versions d'aperçu. Si vous utilisez `latest` alors les modules frontaux individuels peuvent fonctionner comme prévu, mais des incompatibilités (par exemple, si un certain module frontal a été mis à jour mais est maintenant incompatible avec un autre module frontal que vous utilisez également) peuvent alors exister - ce qui nécessite des tests supplémentaires. Avec une version explicite, vous pouvez être sûr qu'un système qui fonctionne reste tel quel dans les scénarios de reconstruction.

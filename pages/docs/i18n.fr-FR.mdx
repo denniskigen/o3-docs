@@ -1,0 +1,26 @@
+# Internationalisation des nouveaux modules O3
+
+L'internationalisation est le processus de conception d'applications logicielles qui peuvent être facilement adaptées à différentes langues et régions sans nécessiter de changements techniques significatifs. L'objectif de l'internationalisation est de rendre l'application sensible à la localisation, ce qui signifie qu'elle peut être facilement adaptée à différentes localités ou régions sans nécessiter de modifications de la base de code.
+
+Nous utilisons [react-i18next](https://react.i18next.com/) pour internationaliser le contenu des modules frontaux.
+
+Afin d'internationaliser votre module frontend, ajoutez cette ligne dans le fichier index.ts pour indiquer au shell de l'application où trouver les fichiers de traduction.
+
+```ts copy
+const importTranslation = require.context("../translations", false, /.json$/, "lazy");
+```
+
+Toutes les traductions sont ajoutées dans le répertoire `translations` qui se trouve au premier niveau du paquet. Le fichier source des traductions est le `en.json` qui contient les traductions en anglais de tous les textes codés en dur.
+Pour ajouter des traductions d'une autre langue, par exemple l'espagnol, créez un nouveau fichier `es.json` dans le répertoire `translations`. Lorsque l'utilisateur change de langue, l'application charge le fichier de ressources approprié et affiche le texte dans la langue préférée de l'utilisateur.
+
+Voici un exemple d'utilisation de la localisation react-i18next dans vos composants react.
+
+```ts copy
+import { useTranslation } from "react-i18next";
+
+const ActiveVisitsTable = () => {
+  const { t } = useTranslation();
+
+  return <h4>{t("activeVisits", "Visites actives")}</h4>;
+};
+```

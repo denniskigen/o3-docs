@@ -191,7 +191,7 @@ The content of config will be pulled from the config files, falling back to the 
 
 #### React support
 
-A React Hook is provided to hide the asynchronicity of config loading. The moduleNameprovided to the openmrsComponentDecorator in esm-react-utils is used to look up the configuration elsewhere in the application.
+A React Hook is provided to hide the asynchronicity of config loading. The moduleName provided to the `openmrsComponentDecorator` in esm-react-utils is used to look up the configuration elsewhere in the application.
 
 ```ts copy
 export default openmrsRootDecorator({
@@ -207,8 +207,7 @@ import { useConfig } from "@openmrs/esm-framework";
 
 export default function DoctorGreeting() {
   const config = useConfig();
-  const greeting =
-    "Hello, my name is Dr. " + config.virtualProvider.name.family;
+  const greeting = "Hello, my name is Dr. " + config.virtualProvider.name.family;
   return <div>{greeting}</div>;
 }
 ```

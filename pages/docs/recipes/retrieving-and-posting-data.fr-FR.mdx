@@ -1,0 +1,162 @@
+# Récupération et affichage des données
+
+
+Les modules frontaux interagissent avec le serveur OpenMRS via les API exposées par ses modules.
+par ses modules. En général, la plupart des points de terminaison que nous utilisons sont fournis par le [FHIR Module](+101%3A+OpenMRS+Strategy).
+par le [FHIR Module](https://wiki.openmrs.org/display/projects/FHIR+101%3A+OpenMRS+Strategy%2C+Tools%2C+FHIR+API%2C+et+Help).
+La plupart des autres éléments sont fournis par le
+[REST Module](https://wiki.openmrs.org/display/docs/REST+Module), qui est documenté [ici](https://wiki.openmrs.org/display/docs/REST+Module), qui est documenté [ici](https://wiki.openmrs.org/display/docs/REST+Module).
+documenté [ici](https://rest.openmrs.org/).
+
+
+Les points de terminaison du module FHIR devraient toujours être préférés, lorsqu'ils sont
+disponibles. FHIR est une norme d'interopérabilité qu'OpenMRS prend en charge.
+
+
+Certaines données sont disponibles en utilisant des fonctions de plus haut niveau ou des crochets React personnalisés fournis
+par `@openmrs/esm-framework`. Celles-ci doivent être utilisées lorsqu'elles sont disponibles.
+
+
+Toutes ces fonctionnalités (à l'exception des crochets React) sont fournies par l'application
+[`@openmrs/esm-api`](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/framework/esm-api)
+qui fait partie de `@openmrs/esm-framework`.
+Les hooks React sont dans
+[`@openmrs/esm-react-utils`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-react-utils),
+qui fait également partie de `@openmrs/esm-framework`. Voir la documentation de l'API
+[API Docs](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md).
+
+## FHIR
+
+Pour utiliser l'API FHIR, nous recommandons d'utiliser les crochets basés sur [SWR](https://swr.vercel.app/docs/data-fetching) et la fonction de récupération [`openmrsFetch`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#openmrsfetch) pour récupérer les données du serveur. SWR offre une multitude de fonctionnalités qui nous permettent d'améliorer l'expérience des utilisateurs.
+
+Voici un exemple d'utilisation de SWR pour récupérer un patient depuis l'API FHIR.
+
+```typescript
+import useSWR from "swr";
+import { fhirBaseUrl, openmrsFetch, fhir } from "@openmrs/esm-framework";
+
+const { data, error, isLoading, mutate } = useSWR<fhir.Patient, Error>(
+  `${fhirBaseUrl}/Patient/${patientUuid}`,
+  openmrsFetch
+);
+```
+
+Si vous avez des questions sur le support de FHIR dans OpenMRS, vous pouvez les poser dans le Slack [FHIR Squad].
+[FHIR Squad Slack channel](https://openmrs.slack.com/archives/CKLPH66BB).
+
+## Autres API du serveur OpenMRS
+
+Certains points de terminaison administratifs n'auront probablement jamais de représentation appropriée dans FHIR (par exemple, les points de terminaison pour la gestion des types de rencontre). Lorsqu'aucun point de terminaison FHIR approprié n'est disponible, vous voudrez utiliser une autre API de serveur OpenMRS. L'API [REST Web Services API](https://rest.openmrs.org/) est largement utilisée dans un grand nombre de nos modules frontaux.
+
+Voici un exemple de hook SWR personnalisé qui récupère les données de visites.
+
+```typescript
+import useSWR from "swr" ;
+import { openmrsFetch, Visit } from "@openmrs/esm-framework";
+
+interface VisitData {
+  results : Array<Visit>;
+}
+
+/* Crochet de récupération de données personnalisé */
+export function useVisits() {
+  const url = `/ws/rest/v1/visit?includeInactive=false`;
+
+  const { data, error, isLoading, mutate } = useSWR<{ data : VisitData }, Error>(
+    url,
+    openmrsFetch
+  );
+
+  return {
+    visits : data,
+    isLoading,
+    erreur,
+    mutate,
+  } ;
+}
+```
+
+Nous pouvons utiliser ce hook `useVisits` dans notre composant `visits` comme suit:
+
+```typescript
+const Visits = () => {
+  const { visits, isError, isLoading } = useVisits();
+
+  if (isLoading) {
+    return <DataTableSkeleton role="progressbar" />
+  }
+  if (error) {
+    // render error state
+  }
+  if (visits?.length) {
+    // render visits
+  }
+  return (
+    // render empty state
+  )
+}
+
+export default Visits;
+```
+
+La fonction `mutate` retournée par `useSWR` peut être utilisée pour mettre à jour le cache et déclencher un nouveau rendu du composant. C'est utile lorsque nous voulons mettre à jour l'interface utilisateur après une mutation réussie.
+
+```TypeScript
+const res = await saveVisitNote(payload);
+
+try {
+  if (res.status === 201) {
+    mutate();
+    closeWorkspace();
+
+    // montre le succès toast
+  }
+} catch (error) {
+  // gère l'erreur
+}
+```
+
+## Envoyer des données au serveur
+
+Voici un exemple qui démontre l'envoi de données de session au serveur.
+
+```typescript
+import { openmrsFetch } from "@openmrs/esm-framework";
+
+const abortController = new AbortController() ;
+abortController.abort() ;
+openmrsFetch("/ws/rest/v1/session", {
+  méthode : "POST",
+  body : {
+    username : "hi",
+    password : "là",
+  },
+  signal : abortController.signal,
+});
+```
+
+La meilleure pratique pour les requêtes POST est de disposer d'une fonction
+[AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController/abort).
+Vous devez vous assurer que `AbortController.abort()` est appelé lorsque le composant est démonté
+si la requête n'est pas encore terminée.
+
+Dans un composant React, cela se fait généralement en effectuant la requête
+dans un [hook `useEffect`](https://reactjs.org/docs/hooks-effect.html) :
+
+```typescript
+useEffect(() => {
+  const abortController = new AbortController() ;
+  someFetchFunction(abortController).then(setResult).catch(setError) ;
+  return () => abortController.abort() ;
+}, []) ;
+```
+
+## Objets de l'API
+
+Certains objets de l'API sont mis à disposition via des crochets React (ou via des abonnements agnostiques au cadre).
+Les crochets se trouvent dans
+`@openmrs/esm-react-utils`,
+et les équivalents pour les abonnements sont dans
+[`@openmrs/esm-api`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#api-functions).
+Voir par exemple [`useVisitTypes`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#usevisittypes)
+et le correspondant [`getVisitTypes`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#getvisittypes).

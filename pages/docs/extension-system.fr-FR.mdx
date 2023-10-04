@@ -1,0 +1,232 @@
+import { Callout } from "nextra-theme-docs";
+
+# Le système d'extension
+
+Introduit par [RFC-27](https://github.com/openmrs/openmrs-rfc-frontend/blob/master/text/0027-extensions.md), le système d'extension permet aux modules frontaux d'insérer des éléments d'interface utilisateur les uns dans les autres, et à ces interactions d'être configurées par les administrateurs du système.
+
+<Callout emoji="ℹ️" type="info">
+  Ceux qui connaissent l'extension [OpenMRS RefApp 2.x extension système](https://wiki.openmrs.org/display/docs/Module+Extension+Points) seront ravis
+  d'apprendre que les seront heureux d'apprendre que les concepts de base sont
+  similaires, mais plus simples. Les "extensions" sont à peu près la même chose
+  qu'avant, les "points" sont maintenant appelés "slots", et il n'y a pas
+  d'autres options. "slots", et il n'y a plus rien comme "apps", que personne ne
+  comprenait vraiment de toute façon. personne ne comprenait vraiment de toute
+  façon.
+</Callout>
+
+## Concepts clés
+
+Le système d'extension repose sur deux concepts: Les `extensions` et les `slots`. Une `extension` est un composant. Un `slot` est un emplacement dans l'interface utilisateur.
+
+Les extensions sont rendues dans des slots. Une extension est associée à un slot de l'une des manières suivantes:
+
+- L'extension nomme le slot dans sa définition, sous slot[s].
+- Un appel à la fonction [attach](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#attach).
+- Un administrateur système ajoute l'extension à l'emplacement à l'aide du tableau add de l'emplacement.
+
+## Quand utiliser les extensions et les slots
+
+Le système d'extension doit être considéré comme un système permettant aux administrateurs de configurer un comportement. Il ne doit pas être considéré comme un moyen de réutiliser les composants entre les modules.
+
+La question clé est la suivante: "Suis-je en train de créer une collection de choses similaires, comme des boutons ou des tuiles, qu'un administrateur pourrait vouloir réorganiser ou modifier d'une autre manière?
+
+Si c'est le cas, il peut s'agir d'un bon endroit pour utiliser les extensions.
+
+### Que se passe-t-il si je veux simplement monter quelque chose d'un framework dans quelque chose d'un autre framework?
+
+Il suffit d'utiliser la fonction Single SPA [mountParcel](https://single-spa.js.org/docs/parcels-overview/#mountrootparcel-vs-mountparcel).
+
+### Que faire si je veux juste utiliser un composant d'un module dans un autre module, et que je peux changer les deux?
+
+Pensez à exporter le composant et à l'utiliser de la manière habituelle.
+
+## Utilisation
+
+Les extensions sont définies dans la fonction setupOpenMRS d'un module, dans un tableau d'extensions. Chaque élément de ce tableau définit une extension, avec un nom et une fonction de chargement. Il peut également spécifier les noms des slots auxquels l'extension est attachée par défaut. Il peut également spécifier un [certain nombre d'autres choses](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/interfaces/ExtensionDefinition.md), dont certaines seront abordées ci-dessous.
+
+Les emplacements sont des composants. Il existe un composant React [ExtensionSlot](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#extensionslot). Si vous travaillez dans un framework différent et que vous souhaitez créer un slot d'extension, veuillez contacter l'équipe OpenMRS Frontend 3.0 sur Slack.
+
+## Principes
+
+### Nomenclature
+
+#### Nommer les extensions
+
+Une extension aura un nom qui l'identifiera. Ce nom doit décrire ce que fait l'extension. Il ne doit rien avoir à voir avec l'endroit où l'extension apparaîtra dans l'application. Elle n'a pas de sens inné de la place.
+
+✅ Bons noms d'extensions:
+
+- Table vitale
+- Avatar de l'utilisateur
+- Tuile biométrique
+
+Mauvais noms d'extension:
+
+- Barre _Top_ ("top" indique un lieu)
+- Lien vers les rapports de la page d'accueil ("page d'accueil" indique un lieu)
+- Steve (les noms doivent être descriptifs)
+
+<Callout emoji="ℹ️" type="info">
+  Remarque: vous verrez probablement de nombreux noms d'extensions et de slots
+  qui sont tous en minuscules avec des tirets. minuscules avec des tirets. Ce
+  n'est pas nécessaire ; il est préférable de donner aux extensions des noms
+  agréables à lire. Il est préférable de donner aux extensions des noms
+  agréables à lire. De même, vous verrez de nombreux slots dont le suffixe est
+  avec "slot". Ce n'est pas non plus nécessaire.
+</Callout>
+
+#### Nommer les slots
+
+Un slot a également un nom qui l'identifie. Ce nom doit décrire l'emplacement qu'il représente dans l'application. S'il décrit les éléments qui peuvent s'y trouver, il ne doit utiliser que les termes les plus généraux possibles, comme "bouton", "tuile" ou "widget".
+
+✅ Bons noms d'emplacements:
+
+- Menu de droite de la navigation principale
+- Boîte de détails de l'en-tête du patient
+- Boutons d'en-tête de formulaire
+
+❌ Mauvais noms de créneaux:
+
+- Adresse du patient (trop prescriptif sur le contenu)
+- homepage-widgets-slot (devrait être `Homepage widgets`)
+- Boutons supplémentaires (trop vagues)
+
+### Style
+
+Une extension doit être aussi indifférente que possible au contexte dans lequel elle apparaît. Cela signifie qu'il faut éviter de définir la taille d'une extension. Les extensions doivent être réactives (dans la limite du raisonnable), de sorte que leur contenu s'adapte à différentes dimensions d'extension.
+
+Les slots doivent être responsables de la quantité de style qui s'applique de manière générique à l'ensemble de leur contenu. Si toutes les extensions d'un slot doivent avoir une bordure, le slot doit appliquer la bordure. Le slot doit également être responsable de la définition des dimensions dans lesquelles les extensions seront rendues.
+
+Un slot peut appliquer des styles à une extension avec le sélecteur CSS suivant:
+
+```css copy
+.slot > * > * {
+  ...;
+}
+```
+
+### Configurabilité des extensions
+
+L'avantage de la configurabilité du système d'extension est qu'il n'est pas nécessaire d'y penser. Les extensions et les slots ont une interface de configuration standard qui permet aux administrateurs d'ajouter, de supprimer et de réorganiser les extensions, ainsi que la configuration spécifique à une extension dans un slot particulier.
+
+Vous pouvez utiliser `useConfig` comme d'habitude dans une extension.
+
+Le schéma d'une extension peut être spécifié en utilisant `defineExtensionConfigSchema`. Si aucun schéma n'est défini spécifiquement pour votre extension, l'extension héritera de la configuration du module qui la contient.
+
+### État
+
+Parfois, les extensions ne sont pas aussi indépendantes que nous le souhaiterions, et doivent s'attendre à un certain état de la part du slot dans lequel elles sont montées. Le plus souvent, les extensions qui concernent un patient spécifique acceptent un paramètre `patientUuid` qui peut être utilisé pour récupérer des informations pertinentes sur le patient.
+
+L'état est fourni en tant que paramètre aux composants `ExtensionSlot` ou `Extension`, et reçu en tant que propriété par l'extension.
+
+Voir [ExtensionSlot API docs](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#extensionslot) pour plus d'informations.
+
+### Meta
+
+Parfois, les extensions peuvent vouloir transmettre des informations au slot qui les reçoit. Ceci est utilisé, par exemple, par les widgets des dossiers des patients. Les tableaux de bord restituent ces widgets sous forme de grille. Lorsqu'un tableau de bord reçoit un widget, celui-ci informe le tableau de bord (qui est un slot) du nombre de colonnes de la grille qu'il souhaite occuper. Cela se fait à l'aide de `meta`.
+
+Les méta sont fournis par les extensions dans leur définition dans la fonction `setupOpenMRS`.
+
+Les slots peuvent accéder à la méta via l'API du système d'extension, par exemple en utilisant [useExtensionSlotMeta](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#useextensionslotmeta).
+
+### Support hors ligne
+
+Pour plus d'informations sur le support hors ligne, veuillez consulter [Offline Mode](https://o3-dev.docs.openmrs.org/#/offline/offline).
+
+### Ordre
+
+Par défaut, les extensions seront rendues dans les slots dans l'ordre dans lequel elles sont déclarées ou attachées. Les extensions ajoutées par un administrateur sont affichées en dernier.
+
+Les extensions peuvent fournir un index `order` dans leur définition pour influencer l'ordre dans lequel elles sont rendues. Cela fonctionne comme [z-index](https://developer.mozilla.org/en-US/docs/Web/CSS/z-index) en CSS - de la même manière, c'est un moyen de définir un ordre relatif entre des éléments qui ne sont pas officiellement connus les uns des autres.
+
+Les administrateurs peuvent également modifier l'ordre des extensions à l'intérieur d'un slot en modifiant le paramètre de configuration `order` de ce slot.
+
+## Ressources supplémentaires
+
+Courtes vidéos d'introduction:
+
+- [OpenMRS Frontend 3 Extension System 1 - Basics](https://youtu.be/Teq3FwKofSc)
+- [OpenMRS Frontend 3 Extension System 2 - State and Meta](https://youtu.be/8514ebpAEWI)
+- [Présentation d'introduction: Quick Guide to Slots (Guide rapide des créneaux)](https://docs.google.com/presentation/d/1mQxh7qAYLD-gc9sh0I58t4o_XNndPcu6hAJmTZQZ_fo/edit#slide=id.gbe34f6b087_0_34)
+
+Pour une description technique succincte du système d'extension, voir le [Extensions RFC](https://github.com/openmrs/openmrs-rfc-frontend/pull/27/files).
+
+## Atelier
+
+Un atelier en direct a été organisé sur Zoom, fournissant une introduction complète au système d'extension, ainsi que des problèmes pratiques. Les enregistrements et le matériel sont disponibles ci-dessous.
+
+- [Partie 1: À propos de l'architecture de notre module frontal et de l'utilisation des extensions](https://iu.mediaspace.kaltura.com/media/t/1_e7kvnx9t?st=702)
+- [Partie 2: Session pratique sur l'architecture de l'EMF et l'utilisation des extensions](https://iu.mediaspace.kaltura.com/media/t/1_iaq63mfd?st=282)
+  - [Tâches pratiques](https://github.com/openmrs/openmrs-esm-testresults/tree/feature/workshop)
+  - [Solutions pratiques](https://github.com/openmrs/openmrs-esm-testresults/tree/feature/workshop-solutions)
+
+## Comment fonctionne le système d'extension
+
+Pour que le système d'extension fonctionne, quatre éléments sont nécessaires:
+
+1. Un modèle de composant générique avec un cycle de vie défini et un mécanisme de chargement
+2. Un moyen de définir où les extensions doivent être placées (ce que l'on appelle un "slot")
+3. Un moyen de définir une extension en la couplant à (1)
+4. Une configuration pour assigner les extensions disponibles de (3) aux slots (2)
+
+Explorons ces quatre éléments en profondeur.
+
+### Les coulisses
+
+Pour (1), on utilise le mécanisme de colisage de single-spa.
+
+Pour (2), vous pouvez utiliser la fonction registerExtensionSlot avec renderExtension. Pour les frameworks tels que React, des composants d'aide peuvent exister (par exemple, ExtensionSlot).
+
+Pour (3), vous pouvez définir une extension dans la valeur de retour de la fonction setupOpenMRS. Voici un exemple:
+
+```ts copy
+function setupOpenMRS() {
+  return {
+    extensions: [
+      {
+        id: "foo",
+        load: getAsyncLifecycle(() => import("./foo.component")),
+      },
+    ],
+  };
+}
+```
+
+Comme raccourci pour (4), vous pouvez déjà spécifier un slot cible via la propriété `slot` dans l'extrait de code précédent. Sans cette commodité, vous seriez toujours capable de l'enregistrer par programme en utilisant `attach`:
+
+```ts copy
+// attache une extension "foo" à un slot "foo-slot"
+attach("foo-slot", "foo");
+```
+
+En général, cela est fait soit par défaut au moment de l'initialisation, soit explicitement via une configuration fournie par l'utilisateur. La seule exception concerne les slots "dynamiques" (ou "spéciaux"). Un exemple dans ce domaine est l'espace de travail du module frontal du dossier patient.
+
+### Extensions et emplacements
+
+Une extension peut se trouver dans l'un des quatre états suivants par rapport à un emplacement d'extension:
+
+- _attached_ (défini par le code en utilisant `attach` et `detach`)
+- _configured_ (défini via la configuration en utilisant: `add` et `remove`)
+- _assigned_ (calculé à partir de attached et configured)
+- _connected_ (calculé à partir de assigned en utilisant connectivity et `online` / `offline`)
+
+### Rendu
+
+Les extensions sont rendues en suivant leurs fonctions de cycle de vie exportées. La fonction `getAsyncLifecycle` de `openmrs/esm-react-utils` est une couche de commodité qui exporte déjà ces fonctions de cycle de vie, reliées ensemble avec `single-spa-react`.
+
+En bref:
+
+1. Lorsque le composant doit être rendu, la fonction `load` est évaluée - dans le cas d'une `Promesse` (via la fonction `import` chargée de manière asynchrone), elle attend d'abord que le composant soit disponible.
+2. Le composant est placé dans les fonctions de son cycle de vie fournies par `single-spa-react`.
+3. Les fonctions de cycle de vie bootstrap, mount, unmount et update sont exportées.
+
+Ces fonctions de cycle de vie ne sont pas magiques - théoriquement, vous pourriez les écrire vous-même, cependant, puisque l'écosystème single-spa fournit déjà des wrappers de commodité tels que `single-spa-react` pour de nombreux frameworks, nous ne le recommandons pas.
+
+Pour effectuer le rendu, deux autres éléments doivent être pris en compte:
+
+1. L'extension rend-elle en mode `offline` ou `online`, et dans quel mode se trouve le navigateur?
+2. Quelles propriétés doivent être passées au composant qui est rendu?
+
+La réponse à (1) se trouve dans `navigator.onLine`. Ce n'est que si `offline` a été mis à `true` ou un objet quelconque que le composant est rendu en mode hors ligne. De même, si `online: false` a été fourni, le composant ne rendra pas en mode online.
+
+La réponse à (2) sont les propriétés `meta` ainsi que le contexte de l'extension (par exemple, le slot sur lequel elle est rendue) et ses services injectés. Les services injectés sont définis par `online` ou `offline`. Dans le cas de `true`, aucun service n'est injecté. Dans le cas d'un objet, les paires clé-valeur fournies sont interprétées comme des services, qui doivent être injectés en fonction du cas de connectivité.

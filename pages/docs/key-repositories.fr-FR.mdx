@@ -1,0 +1,144 @@
+# Dépôts clés [#key-repositories]
+
+Les dépôts que vous devriez connaître dans O3 incluent:
+
+- [Core](#core) - les paquets de base du frontend O3 qui gèrent les préoccupations transversales telles que le chargement des modules du frontend, la configuration, l'internationalizaition, le rendu de l'interface utilisateur, le routage, la gestion des erreurs, le style et ainsi de suite.
+- [Home](#home) - rend l'interface utilisateur de la page d'accueil après que l'utilisateur se soit connecté.
+- [Template](#template) - une application de base qui est généralement la première introduction de la plupart des développeurs à O3.
+- [Patient chart](#patient-chart) - le tableau de bord du patient, comprenant des widgets pour les données vitales et biométriques, les résultats des tests, les formulaires et les allergies. C'est ici que vous trouverez les fonctionnalités courantes du DME.
+- [Patient management](#patient-management) - contient des modules frontaux qui gèrent les problèmes liés aux patients tels que la recherche, les listes de patients, l'enregistrement, les files d'attente et les rendez-vous.
+- [Angular form engine](#angular-form-engine) - un moteur de formulaire développé à l'origine par AMPATH. Il s'appuie sur le puissant support des formulaires d'Angular pour construire un moteur de formulaire à part entière avec des fonctionnalités telles que la validation des champs, l'injection de sources de données personnalisées, le rendu conditionnel, les expressions historiques, et bien plus encore.
+- [React form engine](#react-form-engine) (WIP) - construit à l'origine par l'équipe UCSF-IGHS, ce nouveau moteur de formulaire est construit en React et exploite la puissante bibliothèque formik pour fournir une solution robuste. Le travail est en cours pour amener ce moteur à une version stable qui a une parité de fonctionnalités avec le moteur de formulaire Angular.
+- [Form builder](#form-builder) - outil de construction de formulaire intégré à O3. Il permet aux utilisateurs de construire des schémas de formulaires OpenMRS de manière interactive en utilisant un éditeur de schémas JSON intégré ou une interface utilisateur de construction interactive. Il fournit également un onglet de rendu qui rend votre schéma de formulaire en utilisant le moteur de formulaire React. Les utilisateurs peuvent publier leurs schémas sur leur serveur dorsal, ce qui leur permet d'accéder à leurs formulaires et de collecter des données dans le dossier du patient via le widget de formulaires.
+- [Fast data entry app](#fast-data-entry) - créée par Mekom solutions, permet la saisie rétrospective des données.
+- [Dispensing app](#medication-dispensing) - développée en collaboration par PIH et UCSF-IGHS, l'application de dispensation des médicaments permet aux utilisateurs de suivre les médicaments dispensés au sein d'OpenMRS.
+- [O3 distro refapp config](#distro-refapp-config) - contient la configuration de construction pour l'[application de référence](https://dev3.openmrs.org/openmrs/spa) O3.
+- [Admin tools](#admin-tools) - fournit une page interstitielle qui relie les utilisateurs à divers modules frontaux qui ne font pas partie du DME de base, tels que le générateur de formulaires, le générateur de cohortes et l'ancienne page d'administration.
+- [Cohort builder](#cohort-builder) - permet à l'utilisateur d'effectuer des requêtes ad-hoc pour des patients ayant des caractéristiques définies, et de combiner plusieurs requêtes en des requêtes plus complexes.
+- [Module management](#module-management) - une application d'apprentissage basée sur les anciennes interfaces de gestion des modules. Le code dans ce repo est annoté avec des commentaires et peut servir de bon point de départ pour les nouveaux développeurs.
+- [Frontend RFC](#frontend-rfc) - où les décisions architecturales affectant les technologies et les processus qui s'appliquent à toutes les nouvelles distributions O3 sont d'abord présentées, argumentées, et finalement acceptées par consensus.
+- [JSON schemas](#json-schemas) - où sont hébergés les schémas JSON standards utilisés dans OpenMRS.
+
+## Vue d'ensemble [#overview]
+
+Nos principaux dépôts sont configurés comme des monorepos. Une monorepo est une collection de plusieurs applications et paquets différents dans une base de code unique. Typiquement, ces monorepos sont mis en place en utilisant [`lerna` et `yarn` workspaces](https://medium.com/@jsilvax/a-workflow-guide-for-lerna-with-yarn-workspaces-60f97481149d). La monorepo aura un fichier manifeste `package.json` de niveau racine qui contient tous les scripts de niveau racine en plus des fichiers `package.json` de tous les paquets qui la composent.
+
+### Core
+
+La plupart du temps, vous travaillerez avec les référentiels `patient chart` (dossier du patient) ou `patient management` (gestion du patient). Cependant, vous aurez parfois besoin de vous plonger dans `core`. Les paquets disponibles dans core incluent:
+
+- [Login](#core/tree/main/packages/apps/esm-login-app) - responsable du rendu de la page de chargement, de la page de connexion et du sélecteur d'emplacement.
+- [Devtools](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-devtools-app) - fournit une interface utilisateur qui permet aux développeurs d'utiliser la bibliothèque [import map overrides](https://github.com/single-spa/import-map-overrides) dans O3.Cela permet aux développeurs de remplacer les modules frontaux au moment de l'exécution, en les remplaçant essentiellement par des versions locales. Ce mécanisme permet aux développeurs de tester leurs modifications locales des modules frontaux par rapport à la version de production la plus récente de l'application.
+- [Implementer tools](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-implementer-tools-app) - fournit une interface utilisateur pour les implémenteurs et les développeurs afin de modifier dynamiquement les propriétés de configuration au moment de l'exécution et d'afficher des informations administratives sur leur frontend.Une fois testées et validées, ces propriétés de configuration peuvent ensuite être intégrées à la configuration d'une distribution.
+- [Primary navigation](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-primary-navigation-app) - rend le menu de navigation supérieur de l'application, comprenant l'icône de l'application, la recherche de patients, le menu des outils de l'implémenteur, la page d'enregistrement, le menu de l'application et le menu de l'utilisateur.
+- [Offline tools](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-offline-tools-app) - responsable du rendu des widgets liés au mode hors ligne.
+
+En plus de ces paquets liés à l'interface utilisateur, `core` inclut également les paquets suivants:
+
+- [Framework](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/framework) - contient les paquets qui constituent la bibliothèque principale du framework O3, y compris les objets API partagés (tels que les objets patient et visite), le menu breadcrumbs, le système d'extension, les utilitaires React partagés, les outils de gestion de l'état global, la gestion des erreurs, et le guide de style, entre autres choses.Les fonctionnalités exportées par ces paquets sont regroupées dans un paquet NPM appelé [esm-framework](http://npm.im/@openmrs/esm-framework) qui est réutilisé par la plupart des modules frontaux.
+- [Shell](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/shell) - le shell de l'application, qui forme la base de l'application, et qui est chargé de faire [tout un tas de choses](/docs/core-concepts#app-shell), de l'enregistrement des modules frontaux dans la carte d'importation au démarrage de l'application.
+- [Tooling](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/tooling) - le [openmrs CLI](http://npm.im/openmrs) qui est le CLI unique pour O3, utile pour lancer des serveurs de développement, assembler des modules frontaux pour la distribution, et plus encore.
+
+Une autre chose que vous trouverez dans `core` est la [documentation développeur](https://om.rs/dev3docs) [code source](https://github.com/openmrs/openmrs-esm-core/tree/main/docs) du frontend d'O3. Ces documents sont générés à la volée en utilisant [docsify](https://docsify.js.org/#/).
+
+### Home
+
+Contient le module frontal [home](https://github.com/openmrs/openmrs-esm-home/tree/main/packages/esm-home-app), qui rend la page d'accueil à laquelle les utilisateurs accèdent après s'être connectés. Cette page comporte un menu de gauche avec des entrées pour les rendez-vous, les listes de patients et les applications de files d'attente.
+Par défaut, vous verrez un widget de visites actives et un widget pour les rendez-vous programmés ce jour-là dans l'interface utilisateur. Le [schéma de configuration](https://github.com/openmrs/openmrs-esm-home/blob/main/packages/esm-home-app/src/openmrs-esm-home-schema.ts) de l'application d'accueil permet aux développeurs et aux responsables de la mise en œuvre de configurer l'URL vers laquelle l'utilisateur doit être redirigé après avoir cliqué sur un résultat de recherche dans le cadre d'une recherche de patients. Par défaut, l'utilisateur est dirigé vers le dossier du patient. Le menu latéral et le tableau de bord d'accueil exposent des slots d'extension dans lesquels les tableaux de bord du repo `patient management` se branchent. Ceux-ci incluent les tableaux de bord pour les applications de rendez-vous et de files d'attente (développées par Palladium) et les listes de patients.
+
+### Template
+
+Contient l'application de démarrage.L'application [template app](https://github.com/openmrs/openmrs-esm-template-app) sera la première incursion de la plupart des développeurs dans O3. La plupart des composants de l'application modèle sont annotés de commentaires utiles qui servent de guide aux développeurs travaillant sur l'application. Dans le passé, elle a également servi d'application de base à partir de laquelle les développeurs peuvent créer de nouveaux modules frontaux.
+
+### Patient chart
+
+Contient divers modules frontaux qui constituent des widgets dans un tableau de bord du patient. Ces widgets sont les suivants:
+
+- [Allergies](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-allergies-app) - fournit un aperçu tabulaire des allergies enregistrées pour un patient ainsi qu'un formulaire pour l'enregistrement des allergies.
+- [Appointments](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-appointments-app) - fournit un aperçu tabulaire des rendez-vous enregistrés pour un patient ainsi qu'un formulaire d'enregistrement des rendez-vous.
+- [Pièces jointes](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-attachments-app) - présente une galerie de pièces jointes téléchargées pour le patient ainsi qu'un outil de téléchargement de fichiers permettant de télécharger de nouvelles pièces jointes via le système de fichiers ou l'appareil photo de l'utilisateur.
+- [Biometrics](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-biometrics-app) - fournit des aperçus sous forme de tableaux et de graphiques des données biométriques enregistrées pour un patient, ainsi qu'un formulaire pour l'enregistrement des données vitales et biométriques.
+- [Conditions](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-conditions-app) - fournit un aperçu tabulaire des conditions enregistrées pour un patient ainsi qu'un formulaire permettant d'enregistrer de nouvelles conditions et de modifier les conditions existantes.
+- [Forms](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-forms-app) - fournit un aperçu tabulaire des formulaires cliniques disponibles dans le système.Actuellement, le widget des formulaires est configuré pour utiliser des formulaires construits à l'aide du [moteur de formulaire Angular](https://github.com/openmrs/openmrs-ngx-formentry).
+- [Immunizations](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-immunizations-app) - fournit un aperçu tabulaire des vaccinations enregistrées pour un patient ainsi qu'un formulaire pour l'enregistrement de nouvelles vaccinations. Cette application n'est plus utilisée dans l'application de référence et son entrée dans la carte d'importation est omise dans la configuration de la distribution.
+- [Medications](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-medications-app) - fournit une vue d'ensemble sous forme de tableau des médicaments actifs et passés enregistrés pour un patient. Il permet également de modifier, de commander à nouveau ou d'interrompre des médicaments, ainsi que de commander de nouveaux médicaments à l'aide d'un panier.
+- [Notes](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-notes-app) - fournit un aperçu tabulaire des notes de visite enregistrées pour un patient ainsi qu'un formulaire pour l'enregistrement de nouvelles notes de visite.
+- [Bannière du patient](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-banner-app) - fournit une bannière qui affiche le nom du patient, son avatar, son sexe, son âge et ses identifiants. Elle fournit également un panneau extensible qui affiche son adresse, ses coordonnées et ses relations avec d'autres patients. La bannière du patient peut également afficher des étiquettes personnalisées pour indiquer si un patient a une visite active en cours ou s'il est décédé.
+- [Programmes](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-programs-app) - fournit une vue d'ensemble sous forme de tableau des programmes auxquels un patient est inscrit, ainsi qu'un formulaire permettant d'inscrire le patient à de nouveaux programmes.
+- [Résultats des tests](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-test-results-app) - fournit une vue d'ensemble, sous forme de tableau et de graphique, des résultats des tests disponibles pour un patient.
+- [Vitals](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-vitals-app) - fournit une vue d'ensemble, sous forme de tableau et de graphique, des données vitales enregistrées pour un patient, ainsi qu'un formulaire pour l'enregistrement des données vitales et biométriques.Il fournit également un en-tête des constantes qui affiche un résumé des dernières constantes enregistrées.
+
+En plus de ces widgets, il existe deux autres micro-fenêtres qui englobent des préoccupations transversales.Il s'agit de
+
+- [Common lib](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-common-lib) - une bibliothèque de composants et d'utilitaires partagés par les widgets du dossier du patient.Il s'agit notamment des éléments suivants
+
+  - Composants personnalisés pour les en-têtes de cartes, les états d'erreur et de vide et la pagination.
+  - Crochets personnalisés pour la gestion des espaces de travail, des métadonnées de concept et de la pagination.
+
+- Patient chart](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-chart-app) - fournit le cadre sous-jacent sur lequel tous les widgets individuels sont exécutés. Il configure la disposition du diagramme du patient et gère le routage entre le résumé du diagramme et les tableaux de bord des widgets. Il définit également les extensions de base, l'espace de travail, la navigation de gauche et les menus latéraux, la fonctionnalité des visites ainsi que le mode hors ligne.
+
+Le tableau de bord du patient comprend également des paquets qui fournissent des enveloppes pour les moteurs de formulaire Angular et React:
+
+- [Angular form engine](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-entry-app) (une application Angular)
+- [React form engine](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-engine-app)
+
+### Patient management
+
+Cette monorepo inclut les modules frontaux suivants:
+
+- [Visites actives](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-active-visits-app) - fournit un aperçu tabulaire des patients enregistrés pour la journée en cours.
+- Appointments](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-appointments-app) - permet de créer, de modifier et de gérer les rendez-vous des patients.- Service Queues](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-outpatient-app) - permet de créer, de gérer et de visualiser les files d'attente d'un site.
+- Recherche de patients](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-search-app) - permet de rechercher des patients existants à l'aide d'une recherche simple ou avancée.- Enregistrement des patients](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-registration-app) - permet d'enregistrer de nouveaux patients et de les vérifier par le biais de registres de patients externes configurables.- Liste de patients](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-list-app) - fournit une interface utilisateur pour créer et gérer des listes de patients.
+
+### Angular form engine
+
+Le [moteur de formulaire Angular](https://github.com/openmrs/openmrs-ngx-formentry), également appelé moteur de formulaire AMPATH, est une solution de moteur de formulaire conçue à l'origine par AMPATH. Il exploite les capacités d'Angular en matière de formulaires pour construire un moteur de formulaires à part entière avec des capacités telles que la validation des champs, l'injection de sources de données personnalisées, le rendu conditionnel, les expressions historiques, et bien plus encore. Les formulaires cliniques construits à l'aide du moteur de formulaires sont rendus dans l'espace de travail dans le dossier du patient. Le dossier du patient fournit une [application Angular](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-entry-app) qui consomme la bibliothèque du moteur de formulaires et expose ses fonctionnalités à l'espace de travail via une parcelle SPA unique.
+
+### React form engine
+
+Construit à l'origine par l'équipe UCSF-IGHS, le [moteur de formulaire OHRI](https://github.com/openmrs/openmrs-form-engine-lib) est construit en React et exploite la puissante bibliothèque formik pour fournir une solution robuste.Les schémas JSON construits à l'aide de ce moteur sont conformes à la [spécification](https://gist.github.com/denniskigen/80e4cd0765cbeda0efba79c6e6675e49) du schéma de formulaire OpenMRS 3.0. Des travaux sont en cours pour amener ce moteur à une version stable qui a une parité de fonctionnalités avec le moteur de formulaire Angular.
+
+### Form builder
+
+Le [Form Builder](https://github.com/openmrs/openmrs-esm-form-builder) est un module frontal utilisé pour créer des schémas de formulaires OpenMRS. Il permet aux utilisateurs de créer de nouveaux schémas et de modifier les schémas existants. Il fournit un éditeur de code intégré qui accepte le code JSON, et un éditeur interactif où les utilisateurs peuvent construire un schéma de manière interactive sans écrire de code.Les schémas construits à l'aide du générateur de formulaires peuvent être persistés sur le serveur, et éventuellement publiés, ce qui les rend disponibles pour le frontend via le widget de formulaires.Les schémas construits dans le générateur de formulaires sont rendus via le moteur de formulaire React, ce qui permet aux utilisateurs de valider et de tester leurs formulaires directement à partir de l'interface utilisateur du générateur de formulaires.
+
+### Fast data entry
+
+La [Fast Data Entry App](https://github.com/openmrs/openmrs-esm-fast-data-entry-app) est un module frontal qui permet un flux de travail naturel lors de la saisie de plusieurs formulaires préenregistrés à la fois. Il n'est pas conçu pour les flux de travail au point de soins, mais plutôt comme un moyen de saisir des données rétrospectives. Il permet la saisie rapide de formulaires pour les séances de groupe, ce qui permet d'enregistrer des informations sur une séance de groupe ou sur les participants à la séance.
+
+### Medication dispensing
+
+L'[application de distribution de médicaments](https://github.com/openmrs/openmrs-esm-dispensing-app) est un outil simple qui permet de suivre les médicaments distribués. Elle est conçue pour les petits sites qui ne veulent pas s'occuper de la mise en œuvre d'une chaîne d'approvisionnement externe ou d'un système ERP. Ces sites se contentent généralement de suivre ce qui doit être distribué et ce qui l'a déjà été. Les principaux utilisateurs visés par cette fonctionnalité sont les implémentations et les établissements qui disposent d'une pharmacie sur place et qui ne facturent pas les services au patient/client, et qui souhaitent distribuer des médicaments sur la base de commandes au sein de la même instance d'OpenMRS. La facturation et l'inventaire sont hors champ.
+
+### Distro refapp config
+
+Ce projet contient la configuration de construction pour l'application de référence OpenMRS 3.0, qui se trouve sur https://dev3.openmrs.org et https://o3.openmrs.org. Cette distribution consiste en quatre images docker:
+
+- `db` - C'est juste l'image MariaDB standard fournie pour être utilisée comme base de données
+- `backend` - Cette image est le backend OpenMRS. Elle est construite à partir du fichier Docker principal inclus dans la racine du projet et basé sur le fichier Docker principal d'OpenMRS. Le contenu additionnel de cette image est tiré du sous-répertoire distro qui inclut une configuration complète de l'initialisateur pour l'application de référence destinée à servir de point de départ.
+- `frontend` - Cette image est un simple conteneur nginx qui embarque le frontend 3.x, incluant les modules décrits dans le fichier.
+- `proxy` - Cette image est un proxy inverse nginx encore plus simple qui se place devant les conteneurs backend et frontend et fournit une interface commune aux deux. Fondamentalement, cela permet d'atténuer les problèmes CORS.
+
+### Admin tools
+
+Conçu à l'origine comme un moyen de fournir une interface utilisateur pour les anciens outils d'administration, [admin tools](https://github.com/openmrs/openmrs-esm-admin-tools) fournit une page interstitielle qui relie l'utilisateur à des applications EMR non essentielles telles que le constructeur de cohortes, le constructeur de formulaires, l'ancienne interface d'administration, la page de gestion OCL, et plus encore.Elle contient également le module frontal de l'OCL.
+
+### Cohort builder
+
+Le [cohort builder](https://github.com/openmrs/openmrs-esm-cohortbuilder) s'appuie sur le module Reporting Compatibility pour permettre aux utilisateurs d'effectuer des requêtes ad hoc pour des patients présentant des caractéristiques définies, et de combiner plusieurs requêtes en des requêtes plus complexes.
+
+### Module management
+
+Le module frontal [module management](https://github.com/openmrs/openmrs-esm-module-management-app) est destiné à servir de ressource d'apprentissage pour nos conventions de codage et nos meilleures pratiques lors de la construction d'un microfrontal.
+
+Cette application est basée sur la page de gestion des modules de l'administration du système de l'ancienne application de référence 2.x. Elle permet de gérer les modules.Elle permet de gérer les modules. Elle liste tous les modules installés et permet aux utilisateurs administrateurs de contrôler les modules en utilisant les actions `Start`, `Stop` et `Unload`. Les utilisateurs peuvent également consulter des informations détaillées sur les modules listés.Cela inclut des métadonnées telles que l'auteur du module, la version, la version requise d'OpenMRS, et plus encore.
+
+### Frontend RFC
+
+Un [repo](https://github.com/openmrs/openmrs-rfc-frontend) où les technologies et les processus qui s'appliquent à toutes les nouvelles distributions OpenMRS sont expliqués.Le but de ce repo est de:1. Fournir un moyen d'effectuer des changements dans le frontend d'OpenMRS. 2. Clarifier les choses sur lesquelles nous sommes alignés à travers tout OpenMRS, de sorte que tout le reste peut être décidé par les modules individuels et les distributions.
+
+Le processus RFC a été couronné de succès dans la mise en place de l'architecture du frontend, et les requêtes fusionnées forment une grande ressource pour tous ceux qui souhaitent comprendre comment nous en sommes arrivés là aujourd'hui.
+
+### JSON schemas
+
+Un [repo](https://github.com/openmrs/openmrs-contrib-json-schemas) qui héberge les schémas JSON standard utilisés dans OpenMRS. Ces schémas sont ensuite publiés via une URL accessible sur le web. Par exemple, le schéma standard [routes](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/routes.schema.json) est utilisé pour fournir des capacités d'auto-complétion et de validation lors de l'édition d'un fichier `routes.json` dans Visual Studio Code.

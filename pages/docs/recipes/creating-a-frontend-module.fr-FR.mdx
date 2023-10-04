@@ -1,0 +1,101 @@
+import { Callout, Steps } from "nextra-theme-docs" ;
+
+# Création d'un module frontal
+
+Le module frontal [Template](https://github.com/openmrs/openmrs-esm-template-app) peut être utilisé comme point de départ pour créer un nouveau module frontal. Pour créer un nouveau module frontal, vous pouvez soit forker le dépôt Template, soit le cloner et le copier dans le nouveau dépôt.
+
+## Exemple : Création d'un nouveau module frontal
+
+<Callout emoji="ℹ️" type="info">
+  Notez que nous configurons ce dépôt en tant que
+  [polyrepo](https://monorepo.tools/#what-is-a-monorepo). Si vous voulez créer
+  un nouveau module frontend dans une monorepo, voir la note sur les monorepos ci-dessous.
+</Callout>
+
+Supposons que vous souhaitiez créer un module frontal qui fournisse une interface utilisateur pour la gestion des références.
+La procédure à suivre est la suivante :
+
+<Steps>
+
+### Étape 1
+
+Allez sur le dépôt Github pour l'application [Template](https://github.com/openmrs/openmrs-esm-template-app) seed et cliquez sur le bouton `Use this template`. Cliquez sur `Create a new repository` et suivez les instructions pour créer un nouveau dépôt. Clonez le nouveau dépôt sur votre machine locale. Dans ce cas, nous nommerons le nouveau dépôt `openmrs-esm-referrals-queue`. Cliquez sur le bouton `Créer un dépôt à partir d'un modèle` et clonez le nouveau dépôt sur votre machine locale.
+
+### Étape 2
+
+Ensuite, nous allons suivre les étapes du README pour adapter le code à nos besoins. Cela comprendra les étapes suivantes:
+
+- Remplacer toutes les instances de `template` par `referrals-queue`.
+- Renommer les fichiers avec `hello` dans leur nom en `root`. Par exemple, `src/hello/hello.component.tsx` devrait être renommé en `src/root/root.component.tsx`.
+- Mettez à jour le point d'entrée de l'application à `src/index.ts` comme il convient, y compris ce qui suit :
+
+  - Changer le `moduleName` en `@openmrs/esm-referrals-queue`.
+  - Changez le featureName de `hello-world` à une chaîne vide. Vous changerez ceci pour une valeur plus utile plus tard.
+  - Renommer l'export `hello` en `root`.
+  - Supprimer les exports nommés `redBox`, `blueBox` et `brandBox`.
+
+- Ensuite, dans le fichier `routes.json`, remplacez la valeur de `extensions` par un tableau vide et remplacez le contenu du tableau `pages` par ce qui suit :
+
+  ```json
+  {
+    // ...
+    "extensions" : [],
+    "pages" : [
+      {
+        "component" : "root",
+        "route" : "root"
+      }
+    ]
+  }
+  ```
+
+  Cette configuration fait en sorte que la navigation vers la route `root` charge le composant exporté par la route `root` nommée export.
+
+- Ensuite, supprimez les répertoires `boxes`, `greeter` et `patient-greeter`.
+- Ensuite, remplacez le contenu du schéma de configuration de votre application (dans `config-schema.ts`) par ce qui suit :
+
+  ```ts
+  import { Type, validator } from "@openmrs/esm-framework";
+
+  export const configSchema = {};
+
+  export type Config = {};
+  ```
+
+  Vous pouvez modifier ce fichier ultérieurement pour ajouter vos propres options de configuration.
+
+- Supprimez les clés et les chaînes de traduction dans `translations/en.json`.
+- Remplacez toutes les instances de `hello` par `root`, et `Hello` par `Root`.
+- Amend the contents of the test file at `root.test.tsx` to use an empty configuration schema.
+- Amend `root.component.tsx` as follows:
+  - Rename the default exports from `Hello` to `Root`.
+  - Remove the `Boxes`, `Greeter`, and `PatientGetter` imports.
+  - Replace the contents of the `<div>` with `<p>Referrals Queue goes here</p>`.
+
+### Étape 3
+
+Profitez-en ! Vous devriez maintenant avoir un module frontal personnalisé que vous pouvez utiliser dans votre application OpenMRS.
+
+</Steps>
+
+Le processus de création d'un nouveau module frontal dans une monorepo est presque identique à celui de la création d'un module dans une polyrepo avec quelques modifications :
+
+1. Placez le contenu du Template dans un nouveau répertoire sous `packages/`. Pour notre exemple ci-dessus, nous allons créer un nouveau répertoire appelé `packages/esm-referrals-queue` et y placer le contenu du Template.
+2. Supprimer les fichiers de configuration qui sont déjà présents au niveau de l'espace de travail. Cela inclut les fichiers et les dossiers tels que `.github` et `.eslintrc`.
+3. Supprimez les `devDependencies` du `package.json` du nouveau module frontend
+   qui sont déjà dans les `devDependencies` du `package.json` au niveau du
+   au niveau de l'espace de travail.
+
+Voilà, c'est fait!
+
+Pour en savoir plus sur ce qui est possible avec les modules frontaux, lisez le guide [Overview](/docs/frontend-modules/overview).
+
+## Intégrer votre module frontal dans votre application
+
+Une fois que vous avez créé un module frontal, vous voudrez l'intégrer dans votre application. Il y a deux étapes pour le faire.
+
+Tout d'abord, publiez votre paquet de modules frontaux sur NPM. A la fin, votre paquet devrait être visible sur npm.js,
+comme [`@openmrs/esm-login-app`](https://www.npmjs.com/package/@openmrs/esm-login-app).
+
+Ensuite, vous devrez intégrer ce paquet dans votre distribution. Des informations à ce sujet peuvent être trouvées dans la documentation de l'implémenteur sur
+[Déploiement](https://wiki.openmrs.org/pages/viewpage.action?pageId=224527013).

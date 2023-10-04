@@ -1,0 +1,288 @@
+# Système de configuration
+
+## Utilisation du système de configuration
+
+Un cadre est fourni pour faciliter la configuration pour les développeurs et la configuration pour les implémenteurs.
+
+Pour savoir comment configurer votre distro, consultez la [Documentation pour l'implémentation](https://wiki.openmrs.org/pages/viewpage.action?pageId=224527013#O3ImplementerDocumentation:SetUp,Configure&Deploy-Part2:ConfigureYourO3Application).
+
+### Comment rendre un module frontal configurable
+
+Vous devez utiliser l'OpenMRS Frontend Framework pour rendre les modules configurables.
+
+La tâche principale est de créer un schéma de configuration pour votre module. Le schéma de configuration indique au framework à quoi doivent ressembler les fichiers de configuration, y compris les valeurs par défaut et les validations.
+
+#### Conception d'un schéma
+
+Vous commencerez probablement par avoir une idée de ce à quoi vous voulez que les fichiers de configuration de votre module ressemblent. Essayez de vous mettre à la place de l'implémenteur et imaginez les fonctionnalités qu'il s'attend à voir configurer, et comment il s'attend à ce que la propriété de configuration soit appelée. Supposez qu'il ne sait rien du fonctionnement interne de votre module.
+
+À titre d'exemple, disons que nous construisons un module pour une fonctionnalité de fournisseur virtuel dans un hôpital très futuriste. Peut-être voulons-nous qu'un implémenteur puisse écrire ce qui suit dans son fichier de configuration:
+
+```ts copy
+"@openmrs/esm-hologram-doctor": {
+  "hologram": {
+    "color": true
+  },
+  "virtualProvider": {
+    "name": {
+      "given": ["Qui", "Gon"]
+    }
+  },
+  "robots": [
+    { "name": "R2-D2", "homeworld": "Naboo" },
+    { "name": "BB-8", "homeworld": "Hosnian Prime" }
+  ]
+}
+```
+
+Dans la section suivante, nous verrons comment écrire un schéma de configuration qui supporte ces éléments de configuration.
+
+#### Définir un schéma
+
+Nous allons commencer par le premier élément de configuration imbriqué, `hologram.color`. Nous devons fournir des valeurs par défaut pour toutes les valeurs - dans OpenMRS Frontend 3.0, toute la configuration est optionnelle. Tous les modules doivent faire quelque chose de raisonnable dès le départ.
+
+```ts copy
+import { defineConfigSchema, Type } from "@openmrs/esm-framework"
+
+defineConfigSchema("@openmrs/esm-hologram-doctor", {
+  hologram: {
+    color: {
+      _type: Type.Boolean,
+      _default: false,
+      _description: "Whether the hologram supports color display."
+    }
+  }
+}
+```
+
+Notez que chaque élément de configuration doit avoir un objet pour une valeur, et que cet objet doit définir les propriétés de cet élément. Ne faites pas ceci:
+
+```ts copy
+❌ // Ce n'est pas correct!
+❌ defineConfigSchema("@openmrs/esm-hologram-doctor",
+❌  hologram: {
+❌   salutation: "Some friendly default salutation! ? this is wrong!"
+❌ })
+```
+
+Les mots préfixés par `_` sont des mots-clés de schéma. Ne préfixez pas les noms de vos éléments de configuration avec des underscores. En particulier, n'utilisez pas un mot-clé de schéma comme nom d'élément de configuration.
+
+```ts copy
+❌ // e faites pas ça!
+❌ defineConfigSchema("@openmrs/esm-hologram-doctor",
+❌  hologram: {
+❌    salutation: {
+❌      _default: {
+❌        _default: "Greetings ? this is bad don't do it"
+❌ }}})
+```
+
+#### Typage
+
+Bien que ce ne soit pas strictement nécessaire dans la version actuelle, vous devriez fournir un type pour chaque élément de configuration que vous définissez. Le mot-clé `_type` accepte les valeurs de l'enum Type.
+
+Ces types sont utilisés à la fois pour valider les entrées et pour supporter un comportement spécial dans les outils d'implémentation.
+
+#### Validateurs
+
+Dans la mesure du possible, vous devez fournir des validateurs pour vos éléments de configuration. Cela réduit la probabilité que les implémenteurs qui utilisent votre module aient des erreurs d'exécution difficiles à déboguer. Cela vous donne, en tant que développeur du module, l'opportunité de fournir aux implémenteurs des explications très utiles sur la raison pour laquelle leur configuration ne fonctionne pas.
+
+```ts copy
+robot: {
+  name: {
+    _type: Type.String,
+    _default: "R2D2",
+    _description: "What to call the robot",
+    _validators: [
+      validator(n => /\d/.test(n), "Robots must have numbers in their names")
+    ]
+  }
+}
+```
+
+(Il convient de noter que ce schéma ne fait pas partie de l'exemple ci-dessus. Il ne supporte qu'un seul robot, alors que nous devons permettre à l'implémenteur de fournir un tableau de robots).
+
+Un validateur peut être créé en utilisant la fonction `validator`, comme ci-dessus.
+
+Le premier argument est une fonction qui prend la valeur de la configuration comme seul argument. Si la fonction retourne quelque chose de [vrai](https://developer.mozilla.org/en-US/docs/Glossary/Truthy), la validation passe. Si la fonction renvoie quelque chose de [falsy](https://developer.mozilla.org/en-US/docs/Glossary/Falsy), une erreur est levée avec le second argument comme explication.
+
+Vous pouvez même valider des objets imbriqués:
+
+```ts copy
+colorPicker: {
+  options: { _default: ["green", "red", "blue"] }
+  initial: { _default: "green" },
+  _description: "The color picker for lightsabers",
+  _validators: [
+    validator(o => o.options.includes(o.initial),
+      "Initial must be one of the options")
+  ]
+}
+```
+
+Pour des raisons de commodité, certains validateurs courants sont fournis d'office. Voir [API / validators docs](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#validators).
+
+#### Tableaux
+
+Vous pouvez accepter et valider des tableaux, et des tableaux contenant des objets, dans votre schéma de configuration. Ceci est configuré avec le paramètre `elements`, utilisé avec `_type: Type.Array`. Par exemple, un schéma qui accepterait un tableau de chaînes de caractères d'une longueur maximale de 30 caractères ressemblerait à ceci:
+
+```ts copy
+virtualProvider: {
+  name: {
+    given: {
+      _type: Type.Array,
+      _default: ["Obi", "Wan"]
+      _elements: {
+        _type: Type.String
+        _validators: [validator(n => n.length < 30, "Must be less than 30 characters")]
+      }
+    },
+    _description: "The name of the avatar. Does not have to be the name of the actual provider"
+  },
+  _description: "The avatar of the medical practitioner"
+}
+```
+
+Voici un exemple de schéma qui attend un tableau d'objets structuré d'une manière particulière.
+
+```ts copy
+robots: {
+  _type: Type.Array,
+  _default: [
+    { name: "R2-D2", homeworld: "Naboo" },
+    { name: "C-3PO", homeworld: "Tatooine" }
+  ],
+  _description: "The list of all available robots",
+  _elements: {
+    name: {
+      _type: Type.String,
+      _description: "What to call the robot",
+      _validators: [robotNameValidator]
+    },
+    homeworld: {
+      _type: Type.String,
+      _description: "Where the robot is from",
+      _default: null  // not required
+    }
+  }
+}
+```
+
+Ce schéma impose que tous les objets du tableau robots ne possèdent que les clés `name` et `homeworld`, et que `name` soit obligatoire.
+
+Les objets dans les tableaux n'ont pas besoin d'avoir des valeurs par défaut. Si un objet qui n'a pas de `name` est fourni au tableau `robots`, une erreur sera levée.
+
+#### Utilisation des valeurs de configuration
+
+##### La méthode générique
+
+La configuration est récupérée de manière asynchrone en utilisant `getConfig(moduleName)`. En continuant l'exemple ci-dessus, nous aurions quelque chose comme:
+
+```ts copy
+import { getConfig } from "@openmrs/esm-framework";
+
+async function doctorGreeting() {
+  const config = await getConfig("@openmrs/esm-hologram-doctor");
+  return "Hello, my name is Dr. " + config.virtualProvider.name.family;
+}
+```
+
+#### Support React
+
+Un crochet React est fourni pour masquer l'asynchronisme du chargement de la configuration. Le nom du module fourni à `openmrsComponentDecorator` dans esm-react-utils est utilisé pour rechercher la configuration ailleurs dans l'application.
+
+```ts copy
+export default openmrsRootDecorator({
+  featureName: "hologram doctor",
+  moduleName: "@openmrs/esm-hologram-doctor",
+})(Root);
+```
+
+Vous pouvez ensuite obtenir l'arbre de configuration en tant qu'objet en utilisant le crochet React useConfig
+
+```ts copy
+import { getConfig } from "@openmrs/esm-framework";
+
+async function doctorGreeting() {
+  const config = await getConfig("@openmrs/esm-hologramme-docteur");
+  return "Bonjour, mon nom est Dr. " + config.virtualProvider.name.family;
+}
+```
+
+Le contenu de config sera tiré des fichiers de configuration, en revenant aux valeurs par défaut pour les éléments de configuration pour lesquels aucune valeur n'a été fournie.
+
+#### Support dans d'autres frameworks (Angular, Vue, Svelte, etc.)
+
+Cela n'a pas encore été mis en œuvre, mais nous aimerions le faire ! Voir le guide de contribution.
+
+#### Typage
+
+Il est intéressant d'avoir une validation de type pour votre utilisation de la configuration. Pour ce faire, définissez une interface à côté de votre schéma de configuration.
+
+```ts copy
+import { defineConfigSchema, Type } from "@openmrs/esm-framework";
+
+defineConfigSchema("@openmrs/esm-hologram-doctor", {
+  hologram: {
+    color: {
+      type: Type.Boolean,
+      par défaut: false,
+      _description: "Si l'hologramme prend en charge l'affichage des couleurs",
+    },
+  },
+}) ;
+
+export interface HologramDoctorConfig {
+  hologramme: {
+    color: boolean ;
+  } ;
+}
+```
+
+Vous pouvez ensuite utiliser ces informations de typage en utilisant le mot-clé `as`.
+
+```ts copy
+const config = useConfig() as HologramDoctorConfig;
+```
+
+## Référence au schéma
+
+`_default`
+
+Tous les éléments de configuration doivent avoir une valeur par défaut (à l'exception des éléments dans les tableaux d'objets).
+
+La valeur par défaut n'a pas nécessairement besoin de satisfaire le `_type` ou les `_validators` de l'élément, mais cela pourrait changer dans les versions futures.
+
+`_type`
+
+Une des valeurs de l'enum Type. Utilisé pour la validation et pour aider les outils d'implémentation à travailler avec l'élément.
+
+Doit toujours apparaître à côté de `_default`.
+
+`_description`
+
+Aide les implémenteurs à comprendre ce que l'élément de configuration fait réellement et comment il est censé être utilisé.
+
+Peut être utilisé n'importe où dans la structure du schéma.
+
+`_validators`
+
+Un tableau d'objets validateurs.
+
+Quelques validateurs courants sont fournis: [API / validators](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#config-validation-functions).
+
+Les validateurs personnalisés doivent être créés avec la fonction [validator](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#validator).
+
+Peut être utilisé n'importe où dans la structure du schéma.
+
+`_elements`
+
+Valable uniquement avec `_type_: Type.Array`. Un `_default` doit également être fourni à ce niveau. La valeur doit être un schéma pour les valeurs contenues dans le tableau.
+
+### Documentation de l'API
+
+Voir la section Config Functions de la [API docs](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md).
+
+### Le RFC
+
+Ce paquet a été établi à la suite de la [RFC #14](https://github.com/openmrs/openmrs-rfc-frontend/blob/master/text/0014-configuration.md). Ce document fournit la raison d'être et les principes directeurs du système de configuration.

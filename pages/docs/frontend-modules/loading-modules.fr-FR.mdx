@@ -1,0 +1,11 @@
+# Chargement des modules frontaux dans le shell de l'application
+
+Les modules frontaux dans O3 sont chargés dynamiquement dans l'app shell en utilisant [Webpack Module Federation (MF)](https://webpack.js.org/concepts/module-federation/). La fédération de modules est une architecture JavaScript qui vous permet de partager du code entre des applications JavaScript déployées séparément. Cette architecture peut être utilisée pour créer des microfrontends, qui sont des applications indépendantes plus petites pouvant être combinées pour créer une application plus grande.
+
+Jusqu'à récemment, notre système de chargement de modules était basé sur [SystemJS](https://github.com/systemjs/systemjs). La migration vers [v4.0](https://github.com/openmrs/openmrs-esm-core/commit/8f1b7f54330e70f5b420fc2f6685b4e334bcfbb2) du cadre de base a donné naissance à un système hybride de chargement de modules qui utilise à la fois SystemJS et Module Federation. SystemJS était utilisé pour charger l'application `esm-form-entry' (un module frontal autour du [Angular form engine](/docs/key-repositories#angular-form-engine)), tandis que Module Federation était utilisé pour charger tout le reste. Récemment, nous avons [migré](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1168) `esm-form-entry` vers Module Federation, de sorte que nous avons maintenant un système de chargement de modules entièrement basé sur Module Federation.
+
+## Fédération de modules
+
+Comme mentionné précédemment, notre système de chargement de modules est basé sur la fédération de modules. Nous avons un système de "conteneurs dynamiques à distance". Le `point d'entrée` de l'application est `@openmrs-esm-app-shell`. La liste des modules distants à charger est fournie par des cartes d'importation. Nos cartes d'importation ne sont pas traitées par le navigateur ou SystemJS, mais sont utilisées en interne pour résoudre les noms de modules en URLs.
+
+Chaque module ("remote") est fourni sous la forme d'un nom et d'une URL. Pour chaque URL, un élément `<script>` est ajouté au DOM. Parce que ces scripts ont un `webpack library type` de `var`, quand ils sont chargés, ils créent une nouvelle variable globale qui a l'interface du conteneur Webpack pour ce module : les méthodes `init` et `get`. Nous les utilisons pour obtenir les exportations réelles du module.

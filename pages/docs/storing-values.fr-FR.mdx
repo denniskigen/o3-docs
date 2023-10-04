@@ -1,0 +1,102 @@
+# Stockage des valeurs
+
+Il existe plusieurs formes de stockage dans les navigateurs modernes. Voici un aperçu de ces formes de stockage et des cas dans lesquels elles doivent être privilégiées.
+
+### En mémoire
+
+En général, le stockage en mémoire fait référence à tout ce qui est stocké en Javascript et qui ne fait pas partie d'un stockage persistant. En général, les valeurs stockées en mémoire restent valables pendant:
+
+| Type           | Durée                                      |
+| -------------- | ------------------------------------------ |
+| Variable       | Champ d'application de la variable         |
+| React State    | Cycle de vie d'un composant                |
+| React Memo     | Cycle de vie du composant                  |
+| React Context  | React Context                              |
+| Contexte React | Cycle de vie de la sous-arborescence React |
+| Global Store   | Jusqu'au rechargement de la page           |
+
+Aucune valeur en mémoire ne survit au rechargement de la page. Pour les valeurs qui doivent persister après un rechargement de page (et notez que cela signifie un rafraîchissement de la page du navigateur et pas seulement une navigation dans l'application), utilisez le stockage persistant.
+
+#### Variables
+
+Moyen le plus simple de stocker une valeur. Cela ressemble à quelque chose comme
+
+```ts
+const value = /* une valeur */;
+```
+
+Le cycle de vie de cette variable dépend de sa [portée](https://developer.mozilla.org/en-US/docs/Glossary/Scope). En général, il est préférable de stocker les valeurs dans la portée la plus étroite possible, c'est-à-dire de préférer la portée de la fonction à la portée du module et la portée du module à la portée globale.
+
+Dans React, il est généralement préférable d'utiliser des variables simples, à moins que le recalcul de la variable ne soit coûteux. Par exemple:
+
+```ts
+const name = `${patient.first} ${patient.last}`;
+```
+
+Cela devrait convenir, à moins d'opérer sur une grande liste d'éléments ou d'effectuer des opérations potentiellement compliquées.
+
+#### État React
+
+```ts
+const [value, setValue] = useState(/* some value */);
+```
+
+Parfois, nous avons besoin de variables qui conservent des valeurs cohérentes à travers les rendus des composants. Lorsque ces valeurs sont spécifiques à un composant, `useState()` nous permet de stocker une version spécifique à un composant d'une valeur qui n'est mise à jour que lorsque le setter est appelé.
+
+#### React Memo
+
+```ts
+const value = useMemo(() => /* un calcul */, [dependencies]);
+```
+
+Ce n'est pas exactement un "stockage", mais comme `useState()` fournit une valeur cohérente jusqu'à ce qu'une condition soit remplie (une valeur dans le tableau de dépendances change). Utile pour les états rarement calculés ou coûteux à calculer.
+
+#### Contexte React
+
+Le mécanisme Contexte de React peut être utile pour stocker des données qui doivent être partagées uniquement par des composants dans le même arbre React; par exemple, les valeurs qui sont partagées par plusieurs composants dans le même microfrontend peuvent bénéficier de l'utilisation du contexte de React. Le contexte React fournit des valeurs dont la portée dépasse le cycle de vie d'un seul composant, mais qui ne sont pas maintenues en l'absence de l'arbre React. Par exemple, un formulaire peut utiliser React Context pour stocker toutes les valeurs "actuelles" de tous les composants d'entrée du formulaire.
+
+```ts
+// dans un module parent
+const MyContext = createContext(/* some value */);
+
+// dans un composant parent
+return <MyContext.Provider value={/* some value */}>{children}</MyContext.Provider>;
+
+// à l'intérieur d'un composant enfant
+const myValue = useContext(MyContext);
+```
+
+Ceci est utile pour s'assurer que tout un arbre React a une version cohérente de l'état.
+
+#### Global Store
+
+Fourni par `@openmrs/esm-framework` (et, spécifiquement, `esm-global`); cela nous donne accès aux [Zustand stores](https://github.com/pmndrs/zustand). Ceci est utile pour stocker des valeurs qui sont partagées entre plusieurs composants et qui doivent être cohérentes entre elles. Notez que bien que l'implémentation sous-jacente utilise Zustand, il est préférable d'utiliser [l'API fournie par le framework](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#store-functions), par exemple,
+
+```ts
+// à l'extérieur d'un composant
+const userStore = createGlobalStore<UserStore>('userStore', { user: null });
+
+// à l'intérieur d'un composant
+const user = useStore<UserStore, User | null>(userStore, state => state.user);
+
+// à un autre moment
+userStore.set((state) => state.user = /* valeur provenant de quelque part */);
+```
+
+La mise à jour du magasin en utilisant `set()` mettra à jour toutes les variables souscrites au magasin, y compris (comme dans l'exemple) `user`.
+
+### Stockage persistant
+
+Le stockage persistant fait référence à tout mécanisme de stockage qui persiste au-delà du rendu de la page unique.
+
+#### Le backend
+
+Au moins en ligne, le stockage des données persistantes dans le backend devrait être la valeur par défaut. Cela se fait généralement en utilisant les API REST ou FHIR pour OpenMRS.
+
+#### Stockage de session
+
+Il s'agit d'une API [Storage](https://developer.mozilla.org/en-US/docs/Web/API/Storage) pour les valeurs qui persistent à travers une _page session_. Les sessions de page persistent généralement aussi longtemps qu'un seul onglet du navigateur. Il s'agit du mécanisme de stockage privilégié pour les valeurs qui doivent persister au-delà de la limite de rechargement de la page.
+
+#### Stockage local
+
+Il s'agit d'une API [Storage](https://developer.mozilla.org/en-US/docs/Web/API/Storage) pour les valeurs qui persistent jusqu'à ce qu'elles soient modifiées. Elles sont spécifiques à une origine web, mais s'appliquent à tous les onglets et à toutes les pages. Ceci est utile pour stocker les préférences de l'utilisateur au niveau de l'application (par exemple, la langue), mais ne doit pas être utilisé pour le stockage des données.

@@ -1,0 +1,36 @@
+# Mise en place d'un module frontend
+
+## Prérequis
+
+Pour travailler sur le frontend O3, vous devez disposer des outils et technologies suivants :
+
+- **Git** - Nous utilisons git pour le contrôle de version.
+- Node.js** - Nous utilisons Node pour compiler et regrouper le code du frontend. Nous n'utilisons pas Node pour faire tourner le backend ou le serveur. Nous recommandons d'utiliser la version active `LTS` et d'utiliser [nvm](https://github.com/nvm-sh/nvm) pour gérer plusieurs versions de Node.
+- **Yarn** - Nous utilisons principalement Yarn `v3` comme gestionnaire de paquets.
+
+## Organisation du code
+
+Le code dans O3 est organisé en plusieurs monorepos spécifiques au domaine:
+
+- [openmrs-esm-core](https://github.com/openmrs/openmrs-esm-core) - contient les paquets de base pour le frontend 3.x. Les paquets traitent des questions transversales telles que la gestion des erreurs, les extensions, react utils, le guide de style, le cadre de base, et plus encore.
+- [openmrs-esm-patient-chart](https://github.com/openmrs/openmrs-esm-patient-chart) - contient le tableau de bord du patient qui rend plusieurs widgets incluant les allergies, les conditions, les médicaments, les signes vitaux et les données biométriques.
+- [openmrs-esm-patient-management](https://github.com/openmrs/openmrs-esm-patient-management) - gère les problèmes liés à la gestion des patients. Il comprend des modules frontaux qui gèrent la recherche d'un patient, l'enregistrement des patients, la gestion des listes de patients, la prise de rendez-vous et les files d'attente.
+- [openmrs-esm-home](https://github.com/openmrs/openmrs-esm-home) - contient la page d'accueil, qui configure la navigation d'accueil qui contient des liens vers les tableaux de bord avec les modules frontaux de rendez-vous, de listes de patients et de files d'attente de services.
+
+## Installation
+
+La plupart du temps, vous travaillerez au sein d'une monorepo. En général, pour installer une de ces monorepos localement, vous devez.. :
+
+- Cloner le repo qui vous intéresse.
+- `cd` dans le répertoire racine du repo sur votre copie locale et lancer `yarn` pour installer les dépendances.
+
+## Configuration de l'éditeur
+
+Nous utilisons généralement Visual Studio code lorsque nous développons sur O3. Nous recommandons de configurer les extensions suivantes pour améliorer votre flux de développement :
+
+- [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) - formatage automatique du code. Tous nos monorepos contiennent une configuration Prettier. L'installation de cette extension permet à Prettier de formater automatiquement votre code à chaque fois que vous effectuez un commit.
+- [ESLint](https://www.notion.so/Steve-s-items-bought-from-the-US-99d52797d00a4968a3be2079769e1a93) - outil d'analyse statique du code. ESLint trouve et corrige les problèmes dans votre code et vous aidera à signaler les problèmes de lint au fur et à mesure que vous écrivez votre code.
+
+## Prochaines étapes
+
+Vous avez réussi ! Vous êtes maintenant prêt à construire avec O3 ! 🥳 Lisez notre [guide de contribution](/docs/frontend-modules/contributing) pour avoir une idée des [conventions de codage](/docs/coding-conventions) que nous suivons lorsque nous travaillons sur O3.

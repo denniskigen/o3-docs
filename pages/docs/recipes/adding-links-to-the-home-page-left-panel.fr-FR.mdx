@@ -1,0 +1,160 @@
+import Image from "next/image";
+import { FileTree } from "nextra/components";
+import { Steps } from "nextra-theme-docs";
+
+# Ajout de liens au panneau gauche de la page d'accueil
+
+Ce guide vous explique comment ajouter un lien au [panneau de gauche](https://zeroheight.com/23a080e38/p/796c6a-left-panel) sur la page d'accueil de O3. Le panneau de gauche de la page d'accueil d'O3 contient des liens vers diverses applications. En cliquant sur un lien, vous accédez généralement à l'écran d'atterrissage de l'application.
+
+## Exemple : Ajout d'un lien pour l'application Listes de patients
+
+This guide will walk you through adding a link to the [Patient Lists](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-list-app) app, which is a frontend module that's part of the O3 Patient Management monorepo. The Patient Lists app handles the creation and management of patient lists. This app has a landing screen that displays a tab view of all the lists that have been created. The landing screen also contains a button that allows you to create a new list. Clicking on a list will navigate you to the list details screen.
+
+Vous trouverez ci-dessous une capture d'écran de l'écran d'accueil de l'application Listes de patients:
+
+<br />
+<Image
+  src="/patient-lists-app.png"
+  alt="Screenshot of the Patient Lists app landing screen"
+  width={1000}
+  height={1000}
+/>
+<br />
+
+Pour ce faire, nous devons suivre les étapes suivantes :
+
+<Steps>
+
+### Étape 1 : Configurer le routage pour l'application Listes de patients
+
+Nous allons commencer par nous assurer que l'application Patient Lists est correctement configurée pour gérer le routage. Son composant `Root` doit ressembler à ceci:
+
+```tsx copy
+import React from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import PatientListList from "./patient-list-list/patient-list-list.component";
+import PatientListDetailComponent from "./patient-list-detail/patient-list-detail.component";
+
+const RootComponent: React.FC = () => {
+  const basename = window.getOpenmrsSpaBase() + "home/patient-lists";
+
+  return (
+    <BrowserRouter basename={basename}>
+      <Routes>
+        <Route path="/" element={<PatientListList />} />
+        <Route
+          path="/:patientListUuid"
+          element={<PatientListDetailComponent />}
+        />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default RootComponent;
+```
+
+Cette configuration `BrowserRouter` nous permettra de naviguer vers l'écran d'atterrissage de l'application Patient Lists à `home/patient-lists`. Elle nous permettra également de naviguer vers l'écran de détails de la liste à `home/patient-lists/:patientListUuid`.
+
+### Etape 2 : Ajouter un lien `Listes de patients` au panneau de gauche
+
+Nous allons commencer par ajouter une exportation nommée au fichier `index.ts` de l'application Listes de patients qui ressemble à ce qui suit:
+
+```ts copy {4-7}
+// index.ts
+import { createLeftPanelLink } from "./left-panel.component";
+
+export const patientListLeftPanelLink = getSyncLifecycle(
+  createLeftPanelLink({
+    name: "patient-lists",
+    title: "Patient lists",
+    slot: "patient-lists-dashboard-slot",
+  }),
+  options
+);
+```
+Alors que `left-panel-link.component` ressemble à ceci:
+
+```ts copy
+// left-panel-link.component.tsx
+import React, { useMemo } from "react";
+import last from "lodash-es/last";
+import { BrowserRouter, useLocation } from "react-router-dom";
+import { ConfigurableLink } from "@openmrs/esm-framework";
+
+export interface LinkConfig {
+  name: string;
+  title: string;
+}
+
+function LinkExtension({ config }: { config: LinkConfig }) {
+  const { name, title } = config;
+  const location = useLocation();
+  const spaBasePath = window.getOpenmrsSpaBase() + "home";
+
+  const urlSegment = useMemo(
+    () => decodeURIComponent(last(location.pathname.split("/"))),
+    [location.pathname]
+  );
+
+  return (
+    <ConfigurableLink
+      to={spaBasePath + "/" + name}
+      className={`cds--side-nav__link ${
+        name === urlSegment && "active-left-nav-link"
+      }`}
+    >
+      {title}
+    </ConfigurableLink>
+  );
+}
+
+export const createLeftPanelLink = (config: LinkConfig) => () =>
+  (
+    <BrowserRouter>
+      <LinkExtension config={config} />
+    </BrowserRouter>
+  );
+```
+
+### Etape 3 : Connecter l'extension du lien `Patient lists` au panneau de gauche de la page d'accueil
+
+Ensuite, nous devons connecter l'extension du lien `Patient lists` au panneau de gauche. Pour ce faire, nous devons ajouter la définition d'extension suivante au fichier `routes.json` de l'application Patient Lists:
+
+```json copy
+{
+  "$schema": "https://json.openmrs.org/routes.schema.json",
+  "backendDependencies": {
+    "webservices.rest": "^2.2.0"
+  },
+  "extensions": [
+    {
+      "component": "patientListLeftPanelLink",
+      "name": "patient-lists-home-left-panel-link",
+      "slot": "homepage-dashboard-slot",
+      "meta": {
+        "name": "patient-lists",
+        "title": "Patient lists",
+        "slot": "patient-lists-app-slot"
+      }
+    }
+    // ...
+  ]
+}
+```
+
+Quelques points à noter :
+
+- La propriété `component` est fixée à `patientListLeftPanelLink`, qui est l'export nommé que nous avons défini dans l'étape précédente.
+- La propriété `name` est fixée à `patient-lists-left-panel-link`, qui est le nom de l'extension.
+- La propriété `slot` est fixée à `homepage-dashboard-slot`, qui est le nom du slot auquel nous voulons ajouter l'extension. Ce slot est l'endroit où les liens affichés sur le panneau de gauche de la page d'accueil O3 sont rendus.
+- La propriété `meta` est fixée à l'objet que nous avons passé à `createLeftPanelLink` à l'étape précédente. Cet objet contient les propriétés `name`, `slot`, et `title` qui sont requises par le composant `patientListLeftPanelLink`.
+
+  - La propriété `name` est fixée à `patient-lists`, qui est le nom de l'application.
+  - La propriété `slot` est fixée à `patient-lists-dashboard-slot`, qui est le nom du slot auquel nous voulons ajouter l'extension. Ce slot est l'endroit où les liens qui sont affichés sur le panneau gauche de l'écran d'atterrissage de l'application Listes de patients sont rendus.
+
+### Étape 4 : Profit !
+
+Voilà, c'est fait ! Vous devriez maintenant voir un lien "Listes de patients" sur le panneau gauche de la page d'accueil d'O3. En cliquant sur ce lien, vous serez dirigé vers l'écran d'atterrissage de l'application Listes de patients.
+
+</Steps>

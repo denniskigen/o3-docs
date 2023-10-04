@@ -1,0 +1,11 @@
+{
+  "configure-branding": "Configurez votre image de marque",
+  "choose-o3-apps": "Choisissez les applications O3: Configurez les applications O3 que vous souhaitez",
+  "configure-patient-chart-navigation": "Configuration de la navigation dans le dossier du patient",
+  "configure-chart-page-layout": "Configurer la mise en page d'une page de graphique",
+  "configure-registration-page": "Configurer la page d'enregistrement",
+  "configure-vital-signs-form": "Configurer le formulaire Signes vitaux",
+  "configure-metadata": "Configurer les métadonnées",
+  "configure-template-widget": "Configurez votre premier widget avec un modèle simple",
+  "translation-in-o3": "Configurer les traductions dans O3"
+}

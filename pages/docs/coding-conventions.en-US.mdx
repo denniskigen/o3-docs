@@ -44,7 +44,7 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - [Avoid using effects](https://react.dev/learn/you-might-not-need-an-effect) for things that don't involve synchronizing with external systems. The distinction is nuanced and can be difficult to understand. Please read and internalize the linked article before reaching for effects.
 - Don't reach for performance optimizations like memo, useMemo and useCallback before you need them. These optimizations come at a cost, and can make your code harder to understand. Read [this article](https://kentcdodds.com/blog/usememo-and-usecallback) and [this article](https://overreacted.io/before-you-memo/#solution-2-lift-content-up) to understand when to use these hooks.
 - Omit the value of a prop when it is explicitly `true`. For example, `<UserComponent isAdmin />` is preferred over `<UserComponent isAdmin={true} />`.
-- Follow consisent code formatting, naming conventions and folder structure. This makes the codebase more readable and easier to maintain.
+- Follow consistent code formatting, naming conventions and folder structure. This makes the codebase more readable and easier to maintain.
 
 ### Data fetching
 

@@ -1,0 +1,33 @@
+# Introduction
+
+## Qu'est-ce qu'O3 [#what-o3-is]
+
+**O3**, ou **3.0**, **OpenMRS 3.0**, ou **OpenMRS 3.x**, est un nouveau **cadre frontal** pour OpenMRS qui exploite les technologies frontales modernes dans le but d'être utilisé par le plus grand nombre d'organisations possible.
+
+## Ce qu'O3 n'est pas [#what-o3-is-not]
+
+O3 n'est **pas** une nouvelle version de la plateforme OpenMRS.
+
+O3 est un cadre frontal que vous pouvez exécuter par-dessus votre base de données existante. Il communique avec la même API REST et l'API FHIR que l'interface utilisateur O2. Bien qu'O3 nécessite une version minimale de la plateforme et des versions minimales de divers modules pour fonctionner, son exécution ne nécessite pas de refonte complète de votre backend existant. Si vous souhaitez exécuter O3 par-dessus votre installation existante, suivez le guide [Mise en place d'une instance O3](/docs/recipes/setting-up-an-o3-instance).
+
+## Principes directeurs [#guiding-principles]
+
+Les principes directeurs d'O3 comprennent:
+
+- **Réutilisation du code** et **réduction des efforts en double**
+- **Architecture modulaire** - permet une ajout, une suppression ou une mise à jour faciles de modules pour étendre les fonctionnalités ou adapter le système à des besoins spécifiques.
+- **Configuration d'abord** - chaque module frontal peut spécifier ses propriétés de configuration.
+- **Utilisabilité** - interface utilisateur optimisée pour les soins de proximité, la réactivité et les dossiers de soins des patients qui peuvent être simples ou très complexes.
+- **Interface utilisateur améliorée** - interface utilisateur plus intuitive, conviviale et visuellement attrayante.
+- **Technologies modernes** - plus grande attractivité pour le bassin mondial de talents des développeurs.
+- **Interopérabilité améliorée**
+
+## Stack technologique [#tech-stack]
+
+O3 exploite les technologies suivantes:
+
+- [React](https://react.dev) - bibliothèque JavaScript pour la construction d'interfaces utilisateur
+- [TypeScript](https://typescriptlang.org) - ajoute la sécurité des types à JavaScript
+- [Système de conception Carbon](https://carbondesignsystem.com) - système de conception d'IBM.
+- [Single SPA](https://single-spa.js.org) - routeur JavaScript pour les microservices frontend.
+- APIs Backend - combinaison de l'[API REST OpenMRS](https://rest.openmrs.org) et de l'API FHIR.

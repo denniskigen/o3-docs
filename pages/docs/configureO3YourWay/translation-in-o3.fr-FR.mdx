@@ -7,6 +7,7 @@ Il existe plusieurs catégories de traductions au sein de notre projet de logici
 - dans le code: Nous utilisons un outil appelé [Transifex](https://explore.transifex.com/openmrs/) pour extraire automatiquement les mots codés en dur (par exemple, "Cliquez ici"), les traduire dans l'interface utilisateur Transifex et renvoyer ces traductions à l'O3 RefApp.
 - dans les formulaires
 - dans la terminologie: par exemple, le code CIEL 121375 pour l'asthme est associé à plusieurs traductions existantes ([comme vous pouvez le voir ici](https://app.openconceptlab.org/#/orgs/CIEL/sources/CIEL/concepts/121375/)). Si vous utilisiez ce code et souhaitiez une nouvelle option linguistique, il faudrait l'ajouter en tant que métadonnée à ce concept.
+- dans les formulaire: Si vous avez déjà des traductions attachées à des concepts particuliers que vous utilisez, vous pouvez faire apparaître ces traductions dans vos formulaires. Il suffit de ne pas fournir d'étiquette dans le générateur de formulaires, et le formulaire utilisera automatiquement le nom du concept à la place. Notez qu'en raison des différences entre les moteurs de formulaires, cela apparaîtra comme une question sans étiquette dans le Form Builder, mais cela fonctionnera dans le Angular Engine. En date d'octobre 2023, le moteur de formulaire Angular a une couverture de traduction plus complète que le moteur React (bien que nous prévoyions d'améliorer cela dans les mois à venir).
 
 ## Utilisation de Transifex
 

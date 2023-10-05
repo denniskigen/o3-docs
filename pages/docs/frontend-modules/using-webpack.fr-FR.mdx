@@ -12,7 +12,7 @@ partager du code entre différentes applications sans avoir besoin de reconstrui
 permet un certain nombre de modèles de partage de code, dont des exemples peuvent être trouvés [dans le repo module-federation-examples](https://github.com/module-federation/module-federation-examples).
 
 O3 utilise un modèle de fédération de modules appelé "conteneurs distants dynamiques". En substance, cela signifie que non seulement les dépendances sont résolues au moment de l'exécution, mais que les modules disponibles sont également résolus au moment de l'exécution.
-modules sont disponibles est également résolu au moment de l'exécution. Cela permet à O3 d'être un système très flexible et modulaire : nous n'avons pas besoin de savoir à l'avance quelles applications et bibliothèques sont utilisées.
+modules sont disponibles est également résolu au moment de l'exécution. Cela permet à O3 d'être un système très flexible et modulaire: nous n'avons pas besoin de savoir à l'avance quelles applications et bibliothèques sont utilisées.
 bibliothèques sont utilisées. Cependant, cela a quelques implications pour la configuration Webpack de tout module afin qu'il puisse être correctement chargé par l'app
 shell d'O3. En particulier, un module chargé par l'app shell O3 ne doit pas déclarer de point d'entrée explicite ; tous les modules à part l'app shell lui-même sont chargés en tant que
 dynamiques. La configuration que nous utilisons est fortement inspirée des [dynamic remotes examples](https://github.com/module-federation/module-federation-examples/tree/master/advanced-api)
@@ -20,12 +20,12 @@ fournis par l'équipe chargée de la fédération des modules.
 
 Au moment de l'exécution, nous nous attendons à ce que chaque module frontal qui charge les applications OpenMRS soit construit en utilisant [le type `var` de Webpack](https://webpack.js.org/configuration/output/#outputlibrarytype).
 Le type `var` permet au module d'être exposé en tant que propriété globale. Nous nous attendons à ce que le nom de cette variable soit le même que le nom du module
-sauf qu'il est légèrement modifié pour produire un nom de variable JS valide. Pour modifier le nom du module, nous utilisons ce qui suit : `nom.replace(/[\N-@]/g, "_")`, qui remplace tous les `@`, `_, `_ et `_.
+sauf qu'il est légèrement modifié pour produire un nom de variable JS valide. Pour modifier le nom du module, nous utilisons ce qui suit: `nom.replace(/[\N-@]/g, "_")`, qui remplace tous les `@`, `_, `_ et `_.
 tous les caractères `@`, `/` et `-` par des underscores de sorte que `@openmrs/esm-patient-chart-app` soit exposé via la variable `_openmrs_esm_patient_chart_app`. Ceci est nécessaire
 car pour charger dynamiquement du code à partir du module, nous devons être en mesure d'accéder au module.
 
 Chaque module fédéré qui fournit des extensions ou des pages destinées à être chargées par le shell de l'application doit exposer un module appelé `"./start"`, qui
-contient les exportations pour : `importTranslations`, `setupOpenMRS()`, etc. Dans notre configuration Webpack, cela est fait en exposant le fichier `index.ts` comme le fichier
+contient les exportations pour: `importTranslations`, `setupOpenMRS()`, etc. Dans notre configuration Webpack, cela est fait en exposant le fichier `index.ts` comme le fichier
 `"./start"`. Si vous chargez dynamiquement du code vous-même en utilisant la fonction `importDynamic` fournie par `esm-framework`, vous pouvez le faire pointer vers un module exposé différent.
 module exposé. Cependant, les extensions et les pages exposées via d'autres modules devront être enregistrées manuellement avant d'être disponibles.
 

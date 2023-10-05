@@ -24,7 +24,7 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
 - Les modules frontaux dans monorepos doivent avoir des noms qui commencent par le préfixe `esm-`. Le nom du module doit décrire ce qu'il fait. Par exemple, `esm-user-management` est un bon nom pour un module frontal gérant les problèmes de gestion des utilisateurs.
 - Les accessoires des gestionnaires d'événements doivent être nommés d'après l'événement qu'ils gèrent `e.g. onClick` pour un gestionnaire de clic. Par convention, les accessoires des gestionnaires d'événements doivent commencer par le préfixe `on`, suivi d'une lettre majuscule.
 - Les fonctions de mise à jour d'état doivent être nommées d'après l'état qu'elles mettent à jour. Par exemple, `setFirstName` est un bon nom pour une fonction de mise à jour d'état qui met à jour l'état `firstName`.
-- Le choix du nom de vos branches est typiquement une question de préférence personnelle. Cependant, en cas de doute, nommez vos branches en utilisant le type [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/) auquel votre travail se conforme, suivi d'une barre oblique et d'une courte description du travail séparée par des tirets. De bons exemples incluent : `feat/debounced-order-basket-search`, `fix/missing-translation`, `chore/bump-dependencies` et `refactor/remove-unused-code`.
+- Le choix du nom de vos branches est typiquement une question de préférence personnelle. Cependant, en cas de doute, nommez vos branches en utilisant le type [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/) auquel votre travail se conforme, suivi d'une barre oblique et d'une courte description du travail séparée par des tirets. De bons exemples incluent: `feat/debounced-order-basket-search`, `fix/missing-translation`, `chore/bump-dependencies` et `refactor/remove-unused-code`.
 
 ### Structure du projet [#Project structure]
 
@@ -37,7 +37,7 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
 
 - Ne gardez pas de code inutilisé dans vos composants. Le fait de conserver du code mort peut être source de confusion et rend la maintenance de la base de code plus difficile.
 - Validez les éléments transmis à votre composant en utilisant des alias de type ou des interfaces. Cela permet de détecter rapidement les bogues et de comprendre plus facilement comment le composant est utilisé.
-- Assurez-vous de lire l'API d'un composant Carbon particulier avant de l'utiliser. Cela vous aidera à comprendre les accessoires du composant et comment les utiliser. Cela vous aidera également à comprendre le comportement du composant et vous évitera d'avoir à écrire du code personnalisé. Par exemple, voici l'[API du composant Button] (https://react.carbondesignsystem.com/?path=/docs/components-button--default).
+- Assurez-vous de lire l'API d'un composant Carbon particulier avant de l'utiliser. Cela vous aidera à comprendre les accessoires du composant et comment les utiliser. Cela vous aidera également à comprendre le comportement du composant et vous évitera d'avoir à écrire du code personnalisé. Par exemple, voici l'[API du composant Button](https://react.carbondesignsystem.com/?path=/docs/components-button--default).
 - [Utiliser des clés dans les listes](https://react.dev/learn/rendering-lists). Cela permet à React d'identifier les éléments qui ont été modifiés, ajoutés ou supprimés. C'est particulièrement important si vous rendez une liste de composants contenant de l'état.
 - [Générer des clés à partir des données elles-mêmes](https://react.dev/learn/rendering-lists#where-to-get-your-key) si possible. Par exemple, si vous rendez une liste de patients à partir de la base de données, utilisez l'identifiant du patient comme clé. Cela garantit que la clé est unique et stable d'un rendu à l'autre.
 - [Évitez d'utiliser les effets](https://react.dev/learn/you-might-not-need-an-effect) pour des choses qui n'impliquent pas de synchronisation avec des systèmes externes. La distinction est nuancée et peut être difficile à comprendre. Veuillez lire et assimiler l'article en lien avant d'utiliser les effets.
@@ -46,8 +46,9 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
 - Respectez un formatage de code, des conventions de dénomination et une structure de dossier cohérents. Cela rend la base de code plus lisible et plus facile à maintenir.
 
 ### Récupération de données [#Data fetching]
+
 - Placez votre logique de récupération des données dans un fichier suffixé par `.resource`. Par exemple, `user.resource.ts` contient la logique de récupération des données pour la ressource utilisateur.
-- Dans la mesure du possible, préférez abstraire votre récupération de données dans un hook personnalisé plutôt que dans [fetching with effects] (https://react.dev/reference/react/useEffect#fetching-data-with-effects). La récupération de données avec des effets présente de nombreux [inconvénients](https://react.dev/reference/react/useEffect#fetching-data-with-effects) et doit être évitée. Préférez plutôt utiliser les crochets [SWR](https://swr.vercel.app/).
+- Dans la mesure du possible, préférez abstraire votre récupération de données dans un hook personnalisé plutôt que dans [fetching with effects](https://react.dev/reference/react/useEffect#fetching-data-with-effects). La récupération de données avec des effets présente de nombreux [inconvénients](https://react.dev/reference/react/useEffect#fetching-data-with-effects) et doit être évitée. Préférez plutôt utiliser les crochets [SWR](https://swr.vercel.app/).
 - Utilisez les crochets [SWR](https://swr.vercel.app/) pour récupérer les données du backend. Utilisez SWRImmutable pour les ressources qui ne devraient pas changer souvent, telles que les configurations du backend.
 - Placez le crochet SWR dans un fichier séparé et exportez-le en tant que fonction. Cela nous permet de réutiliser le même crochet dans plusieurs composants.
 - Mémoriser la valeur de retour de votre hook SWR en utilisant `useMemo` pour éviter les re-renders inutiles. Ceci est particulièrement important si le hook est utilisé dans un composant qui est rendu plusieurs fois, comme une ligne de table.
@@ -59,7 +60,7 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
 
 - Utilisez le crochet [useTranslation](https://react.i18next.com/latest/usetranslation-hook) pour traduire les chaînes de caractères dans vos composants.
 - Utilisez le composant [Trans](https://react.i18next.com/latest/trans-component) pour traduire les chaînes contenant des balises HTML.
-- Pour gérer la pluralisation, utilisez le modèle suivant :
+- Pour gérer la pluralisation, utilisez le modèle suivant:
 
   ```tsx
   // S'il n'y a qu'un seul indicateur de risque, la chaîne "1 indicateur de risque" est affichée.
@@ -72,11 +73,11 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
   </span>
   ```
 
-  Les clés et chaînes correspondantes pour le code ci-dessus devraient ressembler à ceci :
+  Les clés et chaînes correspondantes pour le code ci-dessus devraient ressembler à ceci:
 
   ```json
-  "flagCount_one" : "{{ count }} drapeau à risque",
-  "flagCount_other" : "{{ count }} drapeaux de risque"
+  "flagCount_one": "{{ count }} drapeau à risque",
+  "flagCount_other": "{{ count }} drapeaux de risque"
   ```
 
 ### Gestion de l'État [#State management]
@@ -92,12 +93,12 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
 
 ### Annotations de type [#Type annotations]
 
-- Suivez les directives énoncées dans [React TypeScript Cheatsheets] (https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/).
+- Suivez les directives énoncées dans [React TypeScript Cheatsheets](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/).
 - Annotez toujours les paramètres de vos fonctions avec des types. Cela facilite la compréhension de ce que fait la fonction et exprime explicitement les contrats de la fonction.
-- S'appuyer sur l'inférence de type de TypeScript pour des choses comme l'initialisation des variables et des tableaux, et dans certains cas, les types de retour des fonctions. Le but du système de type n'est pas d'annoter chaque variable avec un type, mais plutôt de s'assurer que les parties importantes de votre code sont sûres. Pour en savoir plus sur l'inférence de type [ici] (https://www.typescriptlang.org/docs/handbook/type-inference.html).
+- S'appuyer sur l'inférence de type de TypeScript pour des choses comme l'initialisation des variables et des tableaux, et dans certains cas, les types de retour des fonctions. Le but du système de type n'est pas d'annoter chaque variable avec un type, mais plutôt de s'assurer que les parties importantes de votre code sont sûres. Pour en savoir plus sur l'inférence de type [ici](https://www.typescriptlang.org/docs/handbook/type-inference.html).
 - Les `interfaces` TypeScript permettent la fusion des déclarations et peuvent être étendues par d'autres interfaces. Cela les rend plus flexibles que les alias `type`, qui ne peuvent pas être étendus. Si vous n'avez pas besoin de ces fonctionnalités, préférez utiliser les alias `type` à la place.
 - N'utilisez pas `any` à moins que vous n'en ayez absolument besoin. Utilisez plutôt `unknown` ou `never` pour exprimer le fait que vous ne connaissez pas le type d'une variable ou qu'une fonction ne retourne jamais.
-- Dans la mesure du possible, utilisez la syntaxe `import type` pour importer des types. Cela évite que le type soit importé à l'exécution, ce qui réduit la taille du paquetage. Par exemple :
+- Dans la mesure du possible, utilisez la syntaxe `import type` pour importer des types. Cela évite que le type soit importé à l'exécution, ce qui réduit la taille du paquetage. Par exemple:
 
   ```ts
   // Préférer
@@ -107,7 +108,7 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
   import { User } from "@openmrs/esm-user-management";
   ```
 
-- [Préférer les types d'union aux enums de statut] (https://fettblog.eu/tidy-typescript-avoid-enums/). Par exemple, préférez `type Status = "loading" | "error" | "success" ` à `enum Status { Loading, Error, Success }`. En effet, les enums ne sont pas des types sûrs, et n'importe quelle valeur peut leur être attribuée. Par exemple, `Status.Loading = "error"` est une déclaration valide, mais `Status = "error"` ne l'est pas.
+- [Préférer les types d'union aux enums de statut](https://fettblog.eu/tidy-typescript-avoid-enums/). Par exemple, préférez `type Status = "loading" | "error" | "success" ` à `enum Status { Loading, Error, Success }`. En effet, les enums ne sont pas des types sûrs, et n'importe quelle valeur peut leur être attribuée. Par exemple, `Status.Loading = "error"` est une déclaration valide, mais `Status = "error"` ne l'est pas.
 
 ### Stylisme [#Styling]
 
@@ -133,8 +134,8 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
   }
   ```
 
-- Placez les dérogations au style Carbon dans [overrides.scss] (https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-styleguide/src/_overrides.scss). Cela permet de s'assurer que les dérogations sont appliquées de manière cohérente dans l'ensemble de l'application.
-- Préférer l'utilisation des jetons Carbon [color](https://carbondesignsystem.com/guidelines/color/overview/), [spacing](https://carbondesignsystem.com/guidelines/spacing/overview/) et [type](https://carbondesignsystem.com/guidelines/typography/overview/) aux valeurs codées en dur. Voici quelques exemples d'utilisation de jetons dans le code :
+- Placez les dérogations au style Carbon dans [overrides.scss](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-styleguide/src/_overrides.scss). Cela permet de s'assurer que les dérogations sont appliquées de manière cohérente dans l'ensemble de l'application.
+- Préférer l'utilisation des jetons Carbon [color](https://carbondesignsystem.com/guidelines/color/overview/), [spacing](https://carbondesignsystem.com/guidelines/spacing/overview/) et [type](https://carbondesignsystem.com/guidelines/typography/overview/) aux valeurs codées en dur. Voici quelques exemples d'utilisation de jetons dans le code:
 
   ```scss
   @use "@carbon/styles/scss/colors";
@@ -158,7 +159,7 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
   Vous trouverez une référence utile pour les correspondances de jetons de couleur [ici](https://carbon-elements.netlify.app/colors/examples/preview/).
 
 - Utilisez les [fonctionnalités] de SASS (https://sass-lang.com/documentation) comme l'interpolation, les at-rules, les mixins et les fonctions pour rendre vos styles plus réutilisables et plus faciles à maintenir.
-- Si vous souhaitez appliquer des styles en fonction de la taille de l'écran de l'utilisateur, utilisez nos [breakpoints](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-styleguide/src/breakpoints/index.ts) prédéfinis. Par exemple, pour appliquer des styles différents selon qu'il s'agit d'une tablette ou d'un ordinateur de bureau, procédez comme suit :
+- Si vous souhaitez appliquer des styles en fonction de la taille de l'écran de l'utilisateur, utilisez nos [breakpoints](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-styleguide/src/breakpoints/index.ts) prédéfinis. Par exemple, pour appliquer des styles différents selon qu'il s'agit d'une tablette ou d'un ordinateur de bureau, procédez comme suit:
 
   ```scss
   // Fenêtres de visualisation de la tablette
@@ -176,21 +177,27 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
   }
   ```
 
+  {" "}
+
+  {" "}
+
+  {" "}
+
   <Callout emoji="ℹ️" type="info">
-    Veillez à placer vos styles sous un nom de classe 
-    (comme `.form` dans l'exemple ci-dessus) pour éviter qu'ils n'affectent d'autres composants.
+    Veillez à placer vos styles sous un nom de classe (comme `.form` dans l'exemple ci-dessus) pour éviter qu'ils
+    n'affectent d'autres composants.
   </Callout>
 
 ### Essais [#Testing]
 
-- [Éviter l'utilisateur de test] (https://kentcdodds.com/blog/avoid-the-test-user).
+- [Éviter l'utilisateur de test](https://kentcdodds.com/blog/avoid-the-test-user).
 - Évitez de tester les détails de l'implémentation. Testez plutôt l'API publique du composant. Il est ainsi plus facile de remanier le composant sans avoir à réécrire les tests.
-- Suivez les lignes directrices décrites [ici] (https://kentcdodds.com/blog/common-mistakes-with-react-testing-library).
+- Suivez les lignes directrices décrites [ici](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library).
 - Ne commettez pas ces [erreurs] de test courantes (https://kentcdodds.com/blog/common-testing-mistakes).
 - [Écrivez des tests moins nombreux et plus longs](https://kentcdodds.com/blog/write-fewer-longer-tests).
 - Structurer les grandes suites de tests à l'aide de [modèles objet-page](https://playwright.dev/docs/pom) lors de l'écriture de tests e2e à l'aide de Playwright.
 - Suivre les [meilleures pratiques](https://playwright.dev/docs/test-best-practices) de test e2e décrites dans la documentation de Playwright.
-- Les fonctions de `@openmrs/esm-framework` sont [mocked](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/mock.tsx) automatiquement lors de l'exécution des tests. Pour surcharger le mock par défaut, utilisez l'API `jest.mock`. Par exemple :
+- Les fonctions de `@openmrs/esm-framework` sont [mocked](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/mock.tsx) automatiquement lors de l'exécution des tests. Pour surcharger le mock par défaut, utilisez l'API `jest.mock`. Par exemple:
 
   ```ts
   // Remplacer le simulacre par défaut pour usePatient

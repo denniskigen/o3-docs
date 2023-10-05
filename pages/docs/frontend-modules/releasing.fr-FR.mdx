@@ -19,9 +19,9 @@ Si vous voulez publier une version release de votre module, vous devez d'abord r
 
 Par exemple, si le dernier numéro de version d'un module frontal est `v1.0.0` :
 
-  - Une version `patch` incrémenterait le numéro de version à `1.0.1`.
-  - Une version `minor` incrémenterait le numéro de version à `1.1.0`.
-  - Une version `major` incrémenterait le numéro de version à `2.0.0`.
+- Une version `patch` incrémenterait le numéro de version à `1.0.1`.
+- Une version `minor` incrémenterait le numéro de version à `1.1.0`.
+- Une version `major` incrémenterait le numéro de version à `2.0.0`.
 
 Avec cette connaissance, vous pouvez commencer à rédiger un changelog. Pour ce faire:
 
@@ -68,7 +68,7 @@ Vous pouvez alors basculer vers votre navigateur et retourner sur la page des ve
 Sous le capot, ce job exécute le script suivant:
 
 ```jsx copy
-"ci:publish-next" : "lerna publish from-package --no-git-reset --dist-tag next --yes",
+"ci:publish-next": "lerna publish from-package --no-git-reset --dist-tag next --yes",
 ```
 
 Cette commande publie un nouveau paquet étiqueté `next`. C'est la version que les utilisateurs obtiendront lorsqu'ils installeront votre module frontal avec le tag `next`. C'est utile pour tester de nouvelles fonctionnalités avant qu'elles ne soient publiées avec la balise `latest`.

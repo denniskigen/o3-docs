@@ -26,11 +26,11 @@ Un magasin Zustand peut être créé en utilisant
 import { createGlobalStore } de "@openmrs/esm-framework";
 
 export interface BooksStore {
-  books : Array<string> ;
+  books: Array<string> ;
 }
 
 createGlobalStore("books", {
-  livres : [],
+  livres: [],
 }) ;
 ```
 
@@ -43,7 +43,7 @@ import { getGlobalStore } de "@openmrs/esm-framework";
 const bookStore = getGlobalStore("books");
 console.log(bookStore.getState());
 bookStore.subscribe((books) => console.log(books));
-bookStore.setState({ books : ["Pathologies du pouvoir"] });
+bookStore.setState({ books: ["Pathologies du pouvoir"] });
 ```
 
 ### Dans React:
@@ -71,13 +71,13 @@ Si votre structure de répertoire le permet, vous pouvez aussi passer des magasi
 ```typescript
 // bookStore.ts
 export bookStore = createGlobalStore("books", {
-  livres : [],
+  livres: [],
 });
 ```
 
 ```typescript
 import { bookStore } de "./bookStore";
-bookStore.setState({ books : ["A History of Global Health"] });
+bookStore.setState({ books: ["A History of Global Health"] });
 ```
 
 Voir [Zustand docs](https://docs.pmnd.rs/zustand/getting-started/introduction) pour plus d'informations sur les magasins.

@@ -1,6 +1,5 @@
 # Récupération et affichage des données
 
-
 Les modules frontaux interagissent avec le serveur OpenMRS via les API exposées par ses modules.
 par ses modules. En général, la plupart des points de terminaison que nous utilisons sont fournis par le [FHIR Module](+101%3A+OpenMRS+Strategy).
 par le [FHIR Module](https://wiki.openmrs.org/display/projects/FHIR+101%3A+OpenMRS+Strategy%2C+Tools%2C+FHIR+API%2C+et+Help).
@@ -8,14 +7,11 @@ La plupart des autres éléments sont fournis par le
 [REST Module](https://wiki.openmrs.org/display/docs/REST+Module), qui est documenté [ici](https://wiki.openmrs.org/display/docs/REST+Module), qui est documenté [ici](https://wiki.openmrs.org/display/docs/REST+Module).
 documenté [ici](https://rest.openmrs.org/).
 
-
 Les points de terminaison du module FHIR devraient toujours être préférés, lorsqu'ils sont
 disponibles. FHIR est une norme d'interopérabilité qu'OpenMRS prend en charge.
 
-
 Certaines données sont disponibles en utilisant des fonctions de plus haut niveau ou des crochets React personnalisés fournis
 par `@openmrs/esm-framework`. Celles-ci doivent être utilisées lorsqu'elles sont disponibles.
-
 
 Toutes ces fonctionnalités (à l'exception des crochets React) sont fournies par l'application
 [`@openmrs/esm-api`](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/framework/esm-api)
@@ -51,28 +47,25 @@ Certains points de terminaison administratifs n'auront probablement jamais de re
 Voici un exemple de hook SWR personnalisé qui récupère les données de visites.
 
 ```typescript
-import useSWR from "swr" ;
+import useSWR from "swr";
 import { openmrsFetch, Visit } from "@openmrs/esm-framework";
 
 interface VisitData {
-  results : Array<Visit>;
+  results: Array<Visit>;
 }
 
-/* Crochet de récupération de données personnalisé */
+/* Custom data fetching hook */
 export function useVisits() {
   const url = `/ws/rest/v1/visit?includeInactive=false`;
 
-  const { data, error, isLoading, mutate } = useSWR<{ data : VisitData }, Error>(
-    url,
-    openmrsFetch
-  );
+  const { data, error, isLoading, mutate } = useSWR<{ data: VisitData }, Error>(url, openmrsFetch);
 
   return {
-    visits : data,
+    visits: data,
     isLoading,
-    erreur,
+    error,
     mutate,
-  } ;
+  };
 }
 ```
 
@@ -123,15 +116,15 @@ Voici un exemple qui démontre l'envoi de données de session au serveur.
 ```typescript
 import { openmrsFetch } from "@openmrs/esm-framework";
 
-const abortController = new AbortController() ;
-abortController.abort() ;
+const abortController = new AbortController();
+abortController.abort();
 openmrsFetch("/ws/rest/v1/session", {
-  méthode : "POST",
-  body : {
-    username : "hi",
-    password : "là",
+  method: "POST",
+  body: {
+    username: "hi",
+    password: "there",
   },
-  signal : abortController.signal,
+  signal: abortController.signal,
 });
 ```
 
@@ -141,14 +134,14 @@ Vous devez vous assurer que `AbortController.abort()` est appelé lorsque le com
 si la requête n'est pas encore terminée.
 
 Dans un composant React, cela se fait généralement en effectuant la requête
-dans un [hook `useEffect`](https://reactjs.org/docs/hooks-effect.html) :
+dans un [hook `useEffect`](https://reactjs.org/docs/hooks-effect.html):
 
 ```typescript
 useEffect(() => {
-  const abortController = new AbortController() ;
-  someFetchFunction(abortController).then(setResult).catch(setError) ;
-  return () => abortController.abort() ;
-}, []) ;
+  const abortController = new AbortController();
+  someFetchFunction(abortController).then(setResult).catch(setError);
+  return () => abortController.abort();
+}, []);
 ```
 
 ## Objets de l'API

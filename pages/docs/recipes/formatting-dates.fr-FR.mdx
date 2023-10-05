@@ -6,16 +6,15 @@ OpenMRS fournit plusieurs utilitaires pour travailler avec les dates. Ces utilit
 
 ### formatDate
 
-Cet utilitaire accepte une date en entrée et renvoie une chaîne de caractères. Il formate la date d'entrée en fonction de la locale courante et des paramètres donnés :
+Cet utilitaire accepte une date en entrée et renvoie une chaîne de caractères. Il formate la date d'entrée en fonction de la locale courante et des paramètres donnés:
 
 ```typescript
-formatDate(date : Date, options : {
-  mode : "standard" | "wide",
-  time? : booléen,
-  day? : booléen,
-  year? : booléen
-}) : chaîne
-
+formatDate(date: Date, options: {
+  mode: "standard" | "wide",
+  time?: boolean,
+  day?: boolean,
+  year?: boolean
+}): chaîne
 ```
 
 Le paramètre mode peut être réglé sur `standard` ou `wide`.
@@ -30,16 +29,11 @@ Voici un exemple d'utilisation de `formaDate` avec un exemple de date au format 
 ```typescript
 import { formatDate } from "@openmrs/esm-framework";
 
-const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
-  appointment,
-}) => {
-  return (
-    <span>
-      {formatDate(appointment.patient?.birthDate, { mode: "standard" })}
-    </span>
-  );
+const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) => {
+  return <span>{formatDate(appointment.patient?.birthDate, { mode: "standard" })}</span>;
 };
 ```
+
 The returned value will be a string in this format `18-May-2023`
 
 ### formatDatetime
@@ -56,9 +50,7 @@ Here's an example of how to use `formaDatetime` given a sample date in the omrs 
 ```typescript
 import { formatDatetime } from "@openmrs/esm-framework";
 
-const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
-  appointment,
-}) => {
+const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) => {
   return <span>{formatDatetime(appointment.patient?.birthDate)}</span>;
 };
 ```
@@ -78,9 +70,7 @@ Here's an example of how to use `formatTime` given a sample date in the omrs for
 ```typescript
 import { formatTime } from "@openmrs/esm-framework";
 
-const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
-  appointment,
-}) => {
+const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) => {
   return <span>{formatTime(encounter.encounterDateTime)}</span>;
 };
 ```
@@ -93,16 +83,16 @@ Cet utilitaire est STRICTE sur le fait de vérifier si une chaîne de date est a
 Elle accepte une chaîne `omrsPayloadString` et retourne un `bolean`.
 
 ```typescript
-  isOmrsDateStrict(omrsPayloadString : string) : booléen
+  isOmrsDateStrict(omrsPayloadString: string) :boolean
 ```
 
 ### isOmrsDateToday
 
 This utility checksif the provided date is today. Accepts a `date` input and returns a `boolean`.
 
-```typescript
+````typescript
   isOmrsDateToday(date: Date): boolean
-```
+```::
 
 ### parseDate
 
@@ -113,12 +103,10 @@ Here's an example of how to use `parseDate` given a sample dateString `168438726
 ```typescript
 import { formatDate, parseDate } from "@openmrs/esm-framework";
 
-const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
-  appointment,
-}) => {
+const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) => {
   return <span>{formatDate(parseDate(encounter.encounterDateTime))}</span>;
 };
-```
+````
 
 The returned value will be a string in this format `18-May-2023`
 
@@ -135,15 +123,15 @@ This utility function converts an object to a date object if it is a valid ISO d
 Cette fonction utilitaire formate la `date` d'entrée en une `chaîne` en utilisant le format `YYY-MM-DDTHH:mm:ss.SSSZZ`. Il est principalement utilisé pour formater les dates avant de soumettre les données dans les payloads.
 
 ```TypeScript
-  toOmrsIsoString(omrsDateString, Date) : string
+  toOmrsIsoString(omrsDateString, Date): string
 ```
 
-Voici un exemple d'utilisation de `toOmrsIsoString` dans un payload :
+Voici un exemple d'utilisation de `toOmrsIsoString` dans un payload:
 
 ```typescript
-body : {
-  visit : visitUuid,
-  patientUuid : patientUuid,
-  startedAt : toDateObjectStrict(toOmrsIsoString(new Date())),
+body: {
+  visit: visitUuid,
+  patientUuid: patientUuid,
+  startedAt: toDateObjectStrict(toOmrsIsoString(new Date())),
 }
 ```

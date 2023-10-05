@@ -1,15 +1,14 @@
-import { Callout, Steps } from "nextra-theme-docs" ;
+import { Callout, Steps } from "nextra-theme-docs";
 
 # Création d'un module frontal
 
 Le module frontal [Template](https://github.com/openmrs/openmrs-esm-template-app) peut être utilisé comme point de départ pour créer un nouveau module frontal. Pour créer un nouveau module frontal, vous pouvez soit forker le dépôt Template, soit le cloner et le copier dans le nouveau dépôt.
 
-## Exemple : Création d'un nouveau module frontal
+## Exemple: Création d'un nouveau module frontal
 
 <Callout emoji="ℹ️" type="info">
-  Notez que nous configurons ce dépôt en tant que
-  [polyrepo](https://monorepo.tools/#what-is-a-monorepo). Si vous voulez créer
-  un nouveau module frontend dans une monorepo, voir la note sur les monorepos ci-dessous.
+  Notez que nous configurons ce dépôt en tant que [polyrepo](https://monorepo.tools/#what-is-a-monorepo). Si vous voulez
+  créer un nouveau module frontend dans une monorepo, voir la note sur les monorepos ci-dessous.
 </Callout>
 
 Supposons que vous souhaitiez créer un module frontal qui fournisse une interface utilisateur pour la gestion des références.
@@ -39,11 +38,11 @@ Ensuite, nous allons suivre les étapes du README pour adapter le code à nos be
   ```json
   {
     // ...
-    "extensions" : [],
-    "pages" : [
+    "extensions": [],
+    "pages": [
       {
-        "component" : "root",
-        "route" : "root"
+        "component": "root",
+        "route": "root"
       }
     ]
   }
@@ -66,15 +65,15 @@ Ensuite, nous allons suivre les étapes du README pour adapter le code à nos be
 
 - Supprimez les clés et les chaînes de traduction dans `translations/en.json`.
 - Remplacez toutes les instances de `hello` par `root`, et `Hello` par `Root`.
-- Amend the contents of the test file at `root.test.tsx` to use an empty configuration schema.
-- Amend `root.component.tsx` as follows:
-  - Rename the default exports from `Hello` to `Root`.
-  - Remove the `Boxes`, `Greeter`, and `PatientGetter` imports.
-  - Replace the contents of the `<div>` with `<p>Referrals Queue goes here</p>`.
+- Modifier le contenu du fichier de test `root.test.tsx` pour utiliser un schéma de configuration vide.
+- Modifier `root.component.tsx` comme suit:
+  - Renommer les exportations par défaut de `Hello` en `Root`.
+  - Supprimer les importations `Boxes`, `Greeter`, et `PatientGetter`.
+  - Remplacez le contenu de `<div>` par `<p>La file d'attente des renvois va ici</p>`.
 
 ### Étape 3
 
-Profitez-en ! Vous devriez maintenant avoir un module frontal personnalisé que vous pouvez utiliser dans votre application OpenMRS.
+Profitez-en! Vous devriez maintenant avoir un module frontal personnalisé que vous pouvez utiliser dans votre application OpenMRS.
 
 </Steps>
 

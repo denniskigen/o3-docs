@@ -155,36 +155,36 @@ Pour déplacer `pages` de `index.ts` vers `routes.json`, nous devons extraire le
 
 - `component` - l'export nommé du composant. Il est obtenu à partir de la propriété `load` de la définition de la page. Prenons l'exemple de la connexion:
 
-```ts {2,13}
-{
-  load: getAsyncLifecycle(() => import("./root.component"), options),
-  route: "login",
-  // Les propriétés de l'objet `sharedOnlineOfflineProps`sont réparties ici par souci de concision
-  online: {
-    isLoginEnabled: true,
+  ```ts {2,13}
+  {
+    load: getAsyncLifecycle(() => import("./root.component"), options),
+    route: "login",
+    // Les propriétés de l'objet `sharedOnlineOfflineProps`sont réparties ici par souci de concision
+    online: {
+      isLoginEnabled: true,
+    },
+    offline: {
+      isLoginEnabled: false,
+    }
   },
-  offline: {
-    isLoginEnabled: false,
+  {
+    load: getAsyncLifecycle(() => import("./root.component"), options),
+    route: "logout",
+    // Les propriétés de l'objet`sharedOnlineOfflineProps` sont réparties ici par souci de concision
+    online: {
+      isLoginEnabled: true,
+    },
+    offline: {
+      isLoginEnabled: false,
+    }
   }
-},
-{
-  load: getAsyncLifecycle(() => import("./root.component"), options),
-  route: "logout",
-  // Les propriétés de l'objet`sharedOnlineOfflineProps` sont réparties ici par souci de concision
-  online: {
-    isLoginEnabled: true,
-  },
-  offline: {
-    isLoginEnabled: false,
-  }
-}
-```
+  ```
 
-Nous pourrions extraire le composant suivant:
+  Nous pourrions extraire le composant suivant:
 
-```ts
-export const root = getAsyncLifecycle(() => import("./root.component"), options);
-```
+  ```ts
+  export const root = getAsyncLifecycle(() => import("./root.component"), options);
+  ```
 
 - `route` - nous pouvons l'extraire directement de la propriété `route` de la définition de la page. Dans l'exemple du login, ce serait respectivement `"login"` et `"logout"`. Ces routes utilisent le même composant, donc nous pouvons utiliser la même propriété `component` pour les deux.
 

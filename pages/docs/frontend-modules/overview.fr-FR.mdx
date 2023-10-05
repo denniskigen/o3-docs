@@ -1,19 +1,18 @@
-import Image from 'next/image';
-import { Callout } from 'nextra-theme-docs';
-import { FileTree } from 'nextra/components';
+import Image from "next/image";
+import { Callout } from "nextra-theme-docs";
+import { FileTree } from "nextra/components";
 
 # Vue d'ensemble
 
 <Callout emoji="ℹ️" type="info">
-  Des changements significatifs dans l'architecture de l'app shell liés à la façon dont les modules
-  du frontend sont chargés ont été introduits dans le cadre de la nouvelle version de l'application.
-  chargement des modules frontaux ont été introduits dans [Core v5](/docs/changelog). Si vous n'avez
-  pas vous n'avez pas migré vos modules frontaux pour tirer parti de ces nouvelles fonctionnalités,
-  suivez le [Guide de migration](/docs/changelog), suivez le [Guide de
+  Des changements significatifs dans l'architecture de l'app shell liés à la façon dont les modules du frontend sont
+  chargés ont été introduits dans le cadre de la nouvelle version de l'application. chargement des modules frontaux ont
+  été introduits dans [Core v5](/docs/changelog). Si vous n'avez pas vous n'avez pas migré vos modules frontaux pour
+  tirer parti de ces nouvelles fonctionnalités, suivez le [Guide de migration](/docs/changelog), suivez le [Guide de
   migration](/docs/migration-guide) pour une présentation détaillée comment le faire.
 </Callout>
 
-Les modules frontaux sont les éléments de base d'O3. Dans O3, les modules frontaux sont des éléments autonomes de fonctionnalité qui peuvent être chargés dans le shell de l'application. Ils sont généralement organisés en [monorepos] (https://monorepo.tools/#what-is-a-monorepo) spécifiques à un domaine. Par exemple, les modules frontaux concernant la gestion des patients existent dans le monorepos [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management).
+Les modules frontaux sont les éléments de base d'O3. Dans O3, les modules frontaux sont des éléments autonomes de fonctionnalité qui peuvent être chargés dans le shell de l'application. Ils sont généralement organisés en [monorepos](https://monorepo.tools/#what-is-a-monorepo) spécifiques à un domaine. Par exemple, les modules frontaux concernant la gestion des patients existent dans le monorepos [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management).
 
 Dans cette structure, vous aurez typiquement un répertoire `packages` à la racine de votre monorepo. Ce répertoire contient tous vos modules frontaux. Par exemple, la monorepo de gestion des patients a la structure suivante:
 
@@ -39,76 +38,76 @@ Dans cette structure, vous aurez typiquement un répertoire `packages` à la rac
 
 Chaque module frontal a son propre fichier `package.json` séparé du fichier `package.json` au niveau de la racine. C'est parce que chaque module frontal est un paquet NPM séparé. Cela signifie que chaque module frontal peut avoir ses propres scripts et dépendances. De plus, chaque module frontal a un répertoire `src` qui contient le code source du module frontal. Le répertoire `src` contient également deux fichiers importants du point de vue de l'app shell - `index.ts` et `routes.json`. Ces deux fichiers définissent les métadonnées dynamiques et statiques du module frontend, respectivement. Ils sont discutés plus en détail ci-dessous.
 
-Les modules frontaux sont aussi appelés `microfrontends` dans O3. Ils sont livrés dans le format de module ES, ce qui explique le préfixe `esm-` dans leur nomenclature. Ils peuvent avoir un suffixe `-app` dans leur nom, mais ce n'est pas nécessaire. Dans O3, les modules frontaux sont généralement constitués de composants React, mais ce n'est pas une obligation. Ils peuvent être écrits dans n'importe quel framework frontal que [single-spa] (https://single-spa.js.org/) supporte. Par exemple, le module frontal [Angular form engine] est écrit en Angular et est une enveloppe autour du [AMPATH form engine](https://ampath-forms.vercel.app/). En ce sens, l'app shell est agnostique. En pratique, le fonctionnement de bas niveau de l'app shell a été abstrait de manière à ce que les ingénieurs frontaux puissent se concentrer sur l'écriture de modules frontaux sans avoir à se préoccuper du cadre sous-jacent.
+Les modules frontaux sont aussi appelés `microfrontends` dans O3. Ils sont livrés dans le format de module ES, ce qui explique le préfixe `esm-` dans leur nomenclature. Ils peuvent avoir un suffixe `-app` dans leur nom, mais ce n'est pas nécessaire. Dans O3, les modules frontaux sont généralement constitués de composants React, mais ce n'est pas une obligation. Ils peuvent être écrits dans n'importe quel framework frontal que [single-spa](https://single-spa.js.org/) supporte. Par exemple, le module frontal [Angular form engine] est écrit en Angular et est une enveloppe autour du [AMPATH form engine](https://ampath-forms.vercel.app/). En ce sens, l'app shell est agnostique. En pratique, le fonctionnement de bas niveau de l'app shell a été abstrait de manière à ce que les ingénieurs frontaux puissent se concentrer sur l'écriture de modules frontaux sans avoir à se préoccuper du cadre sous-jacent.
 
-Frontend modules get loaded into the application based on a special JSON file called an [import map](http://localhost:3001/docs/core-concepts#import-map). More details about how frontend modules get loaded are discussed in the [App shell](/docs/app-shell) and [Module loading](/docs/frontend-modules/loading-modules) guide.
+Les modules frontaux sont chargés dans l'application sur la base d'un fichier JSON spécial appelé [import map](http://localhost:3001/docs/core-concepts#import-map). Pour plus de détails sur le chargement des modules frontaux, consultez les guides [App shell](/docs/app-shell) et [Module loading](/docs/frontend-modules/loading-modules).
 
 <br />
 <Image src="/o3-execution.png" alt="O3 architecture" width={600} height={600} />
 
-This diagram walks through what happens when the application gets executed. The app shell loads configuration files, the import map specifies where frontend modules get fetched from, and [loads frontend modules](/docs/frontend-modules/module-loading).
+Ce diagramme décrit ce qui se passe lorsque l'application est exécutée. Le shell de l'application charge les fichiers de configuration, la carte d'importation spécifie où les modules frontaux sont récupérés, et [charge les modules frontaux](/docs/frontend-modules/module-loading).
 
 ## Anatomy of a frontend module
 
 ### Manifest file (package.json)
 
-Each frontend module has a root-level `package.json` file that defines its dependencies and metadata. Below is a snippet of the `package.json` file from the form builder frontend module:
+Chaque module frontal a un fichier `package.json` de niveau racine qui définit ses dépendances et ses métadonnées. Voici un extrait du fichier `package.json` du module frontend form builder :
 
 ```json
 {
-  "name" : "@openmrs/esm-form-builder-app",
-  "version" : "2.0.1",
+  "name": "@openmrs/esm-form-builder-app",
+  "version": "2.0.1",
   "license": "MPL-2.0",
   "description": "OpenMRS ESM Form Builder App",
-  "browser" : "dist/openmrs-esm-form-builder-app.js",
-  "main" : "src/index.ts",
-  "source" : true,
-  "scripts" : {
-    "start" : "openmrs develop",
-    "serve" : "webpack serve --mode=development",
-    "build" : "webpack --mode production",
-    "analyze" : "webpack --mode=production --env.analyze=true",
-    "lint" : "TIMING=1 eslint src --ext js,jsx,ts,tsx",
-    "prettier" : "prettier --write \"src/**/*.{ts,tsx}\",
-    "typescript" : "tsc",
-    "test" : "jest --config jest.config.js",
-    "test-e2e" : "playwright test",
-    "verify" : "turbo lint typescript coverage",
-    "coverage" : "yarn test --coverage --passWithNoTests",
-    "postinstall" : "husky install",
-    "extract-translations" : "i18next 'src/**/*.component.tsx' --config ./i18next-parser.config.js",
-    "ci:bump-form-engine-lib" : "yarn up @openmrs/openmrs-form-engine-lib@next".
+  "browser": "dist/openmrs-esm-form-builder-app.js",
+  "main": "src/index.ts",
+  "source": true,
+  "scripts": {
+    "start": "openmrs develop",
+    "serve": "webpack serve --mode=development",
+    "build": "webpack --mode production",
+    "analyze": "webpack --mode=production --env.analyze=true",
+    "lint": "TIMING=1 eslint src --ext js,jsx,ts,tsx",
+    "prettier": "prettier --write 'src/**/*.{ts,tsx}'",
+    "typescript": "tsc",
+    "test": "jest --config jest.config.js",
+    "test-e2e": "playwright test",
+    "verify": "turbo lint typescript coverage",
+    "coverage": "yarn test --coverage --passWithNoTests",
+    "postinstall": "husky install",
+    "extract-translations": "i18next 'src/**/*.component.tsx' --config ./i18next-parser.config.js",
+    "ci:bump-form-engine-lib": "yarn up @openmrs/openmrs-form-engine-lib@next".
   }
 }
 ```
 
 Voici quelques éléments clés à retenir de l'examen de ce fichier:
 
-- La propriété `name` qui définit le nom du module. Cette propriété est utilisée comme identifiant unique du module dans la [import map] (/docs/core-concepts#import-map).
+- La propriété `name` qui définit le nom du module. Cette propriété est utilisée comme identifiant unique du module dans la [import map](/docs/core-concepts#import-map).
 - La propriété `browser` qui pointe vers le point d'entrée du bundle webpack.
 - La propriété `main` qui définit le [point d'entrée](#the-application-entry-point-indexts) du code source du module frontend, qui est typiquement `src/index.ts`.
 
 ### Le point d'entrée de l'application (`index.ts`)
 
-Les modules frontaux ont leur [point d'entrée] (https://webpack.js.org/concepts/entry-points/) défini dans `src/index.ts`.
+Les modules frontaux ont leur [point d'entrée](https://webpack.js.org/concepts/entry-points/) défini dans `src/index.ts`.
 
 ```ts
-import { defineConfigSchema, getAsyncLifecycle, registerBreadcrumbs } from '@openmrs/esm-framework';
-import { configSchema } from './config-schema';
+import { defineConfigSchema, getAsyncLifecycle, registerBreadcrumbs } from "@openmrs/esm-framework";
+import { configSchema } from "./config-schema";
 
-const moduleName = '@openmrs/esm-form-builder-app';
+const moduleName = "@openmrs/esm-form-builder-app";
 
 const options = {
-  featureName: 'form-builder',
+  featureName: "form-builder",
   moduleName,
 };
 
-export const importTranslation = require.context('../translations', true, /.json$/, 'lazy');
+export const importTranslation = require.context("../translations", true, /.json$/, "lazy");
 
-export const root = getAsyncLifecycle(() => import('./root.component'), options);
+export const root = getAsyncLifecycle(() => import("./root.component"), options);
 
 export const systemAdministrationFormBuilderCardLink = getAsyncLifecycle(
-  () => import('./form-builder-admin-card-link.component'),
+  () => import("./form-builder-admin-card-link.component"),
   options
 );
 
@@ -118,17 +117,17 @@ export function startupApp() {
   registerBreadcrumbs([
     {
       path: `${window.spaBase}/form-builder`,
-      title: 'Form Builder',
+      title: "Form Builder",
       parent: `${window.spaBase}/home`,
     },
     {
       path: `${window.spaBase}/form-builder/new`,
-      title: 'Form Editor',
+      title: "Form Editor",
       parent: `${window.spaBase}/form-builder`,
     },
     {
       path: `${window.spaBase}/form-builder/edit/:uuid`,
-      title: 'Form Editor',
+      title: "Form Editor",
       parent: `${window.spaBase}/form-builder`,
     },
   ]);
@@ -173,7 +172,7 @@ Pour créer une nouvelle page, vous devrez généralement suivre les étapes sui
 - Ajouter une exportation nommée pour la page dans le fichier `index.ts`. Par exemple, voici comment une page nommée `root` est exportée depuis le fichier `index.ts`:
 
   ```typescript
-  export const root = getAsyncLifecycle(() => import('./root'), options);
+  export const root = getAsyncLifecycle(() => import("./root"), options);
   ```
 
 - Ajouter une définition de page pour la nouvelle page au tableau `pages` du fichier `routes.json`:

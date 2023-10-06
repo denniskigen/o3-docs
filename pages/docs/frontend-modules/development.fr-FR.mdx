@@ -98,7 +98,7 @@ Le cookie doit être obtenu par vous et dépend fortement du backend utilisé.
 
 ## Dois-je rédiger des tests?
 
-Oui, absolument ! Nous avons une suite de tests pour les modules frontaux dans la monorepo. Nous utilisons [Jest](https://jestjs.io/) pour les tests. Nous utilisons également [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) pour tester les composants React. Nous avons un [guide de test](/docs/frontend-modules/testing) auquel vous pouvez vous référer pour plus d'informations sur la façon d'écrire des tests. Nous ajoutons la prise en charge des [Playwright e2e tests](https://playwright.dev/) dans nos dépôts. Envisagez également d'ajouter des tests e2e pour vos modifications. La lecture du guide des tests ainsi que des tests dans la base de code devrait vous donner une bonne idée de la façon d'écrire des tests.
+Oui, absolument! Nous avons une suite de tests pour les modules frontaux dans la monorepo. Nous utilisons [Jest](https://jestjs.io/) pour les tests. Nous utilisons également [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) pour tester les composants React. Nous avons un [guide de test](/docs/frontend-modules/testing) auquel vous pouvez vous référer pour plus d'informations sur la façon d'écrire des tests. Nous ajoutons la prise en charge des [Playwright e2e tests](https://playwright.dev/) dans nos dépôts. Envisagez également d'ajouter des tests e2e pour vos modifications. La lecture du guide des tests ainsi que des tests dans la base de code devrait vous donner une bonne idée de la façon d'écrire des tests.
 
 ## Pousser vos modifications vers GitHub
 
@@ -132,9 +132,9 @@ Si vous travaillez à partir d'un fork, il est possible que votre fork manque le
 git pull upstream main --rebase
 ```
 
-### J'obtiens une erreur `Error : ENOSPC : System limit for number of file watchers reached` error
+### J'obtiens une erreur `Error: ENOSPC: System limit for number of file watchers reached` error
 
-Si vous utilisez Linux, il se peut que vous voyiez l'erreur suivante la première fois que vous lancez un serveur de développement : `Erreur : ENOSPC : System limit for number of file watchers reached`. Si cela se produit, vous devez augmenter la limite du système pour le nombre d'observateurs de fichiers. Voir cette [réponse StackOverflow](https://stackoverflow.com/a/55763478/1464495).
+Si vous utilisez Linux, il se peut que vous voyiez l'erreur suivante la première fois que vous lancez un serveur de développement: `Erreur: ENOSPC: System limit for number of file watchers reached`. Si cela se produit, vous devez augmenter la limite du système pour le nombre d'observateurs de fichiers. Voir cette [réponse StackOverflow](https://stackoverflow.com/a/55763478/1464495).
 
 ### Je ne vois pas la dernière version de @openmrs/esm-framework. Comment mettre à jour la dépendance?
 

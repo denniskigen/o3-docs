@@ -4,7 +4,7 @@ D'une manière générale, lorsqu'il s'agit de tester des composants dans O3, il
 
 1. **Tests unitaires** - vérifient que les éléments individuels et isolés de la fonctionnalité fonctionnent ensemble comme prévu.
 2. **Tests d'intégration** - vérifient que plusieurs unités fonctionnent ensemble de manière harmonieuse.
-3. **Tests de bout en bout (e2e) - un robot d'assistance qui se comporte comme un utilisateur pour cliquer sur l'application et vérifier qu'elle fonctionne correctement.
+3. **Tests de bout en bout (e2e)** - un robot d'assistance qui se comporte comme un utilisateur pour cliquer sur l'application et vérifier qu'elle fonctionne correctement.
 
 Lorsque l'on travaille avec un module frontal, les tests unitaires (et parfois les tests d'intégration) qui l'accompagnent sont généralement regroupés dans un fichier nommé **\*.test.tsx**. Ces tests suivent généralement le schéma suivant :
 
@@ -42,34 +42,33 @@ function renderModuleManagement() {
   renderWithSwr(<ModuleManagement />);
 }
 ```
+
 Note: Cette fonction d'aide `renderWithSwr` enveloppe un composant dans un contexte SWR qui fournit une configuration globale pour tous les crochets SWR.
 
 #### Tester qu'un état de chargement est rendu
 
 Nous ne voulons pas toucher directement la base de données avec notre test et pour éviter cela, nous pouvons simuler la logique de récupération des données comme suit:
+
 ```ts copy
 mockedOpenmrsFetch.mockReturnValueOnce({ data: { results: [] } });
 ```
+
 Ce code simule la fonction `openmrsFetch`, en supprimant son implémentation et en la remplaçant par une simulation qui retourne un objet avec une propriété `results` qui est un tableau vide.
 
 Ensuite, nous voulons rendre le composant:
 
 ```ts copy
-await waitForElementToBeRemoved(
-  () => [...screen.queryAllByRole(/progressbar/i)],
-  {
-    timeout: 4000,
-  }
-);
+await waitForElementToBeRemoved(() => [...screen.queryAllByRole(/progressbar/i)], {
+  timeout: 4000,
+});
 ```
+
 Ce code demande à Jest d'attendre que le chargeur soit retiré de l'interface utilisateur. Cela imite l'attente de la résolution d'une requête du backend. Ensuite, nous voulons commencer à écrire nos assertions:
 
 ```ts copy
 expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
 expect(screen.queryByRole("table")).not.toBeInTheDocument();
-expect(
-  screen.getByText(/there are no modules to display/i)
-).toBeInTheDocument();
+expect(screen.getByText(/there are no modules to display/i)).toBeInTheDocument();
 ```
 
 Ces affirmations :
@@ -100,9 +99,7 @@ it("renders an error state view if there was a problem fetching module data", as
   // Wait for the loading state to disappear from the screen
   await waitForLoadingToFinish();
 
-  expect(
-    screen.getByText(/sorry, there was a problem fetching modules/i)
-  ).toBeInTheDocument();
+  expect(screen.getByText(/sorry, there was a problem fetching modules/i)).toBeInTheDocument();
 });
 ```
 
@@ -144,8 +141,7 @@ it("renders detailed information about the module", async () => {
       uuid: "serialization.xstream",
       display: "Serialization Xstream",
       name: "Serialization Xstream",
-      description:
-        "Core (de)serialize API and services supported by xstream library",
+      description: "Core (de)serialize API and services supported by xstream library",
       packageName: "org.openmrs.module.serialization.xstream",
       author: "luzhuangwei",
       version: "0.2.15",
@@ -169,28 +165,14 @@ it("renders detailed information about the module", async () => {
   await waitForLoadingToFinish();
 
   expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: /add \/ upgrade modules/i })
-  ).toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: /search from addons/i })
-  ).toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: /check for updates/i })
-  ).toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: /start all/i })
-  ).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /add \/ upgrade modules/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /search from addons/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /check for updates/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /start all/i })).toBeInTheDocument();
   expect(screen.getByRole("table")).toBeInTheDocument();
-  expect(
-    screen.getByRole("heading", { name: /manage modules/i })
-  ).toBeInTheDocument();
-  expect(
-    screen.getByRole("searchbox", { name: /filter table/i })
-  ).toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: /clear search input/i })
-  ).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: /manage modules/i })).toBeInTheDocument();
+  expect(screen.getByRole("searchbox", { name: /filter table/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /clear search input/i })).toBeInTheDocument();
 
   const modules = testModules.map((module) => module);
 
@@ -199,18 +181,10 @@ it("renders detailed information about the module", async () => {
     expect(screen.getByText(module.description)).toBeInTheDocument();
   });
 
-  const expectedColumnHeaders = [
-    /status/,
-    /name/,
-    /author/,
-    /version/,
-    /Description/,
-  ];
+  const expectedColumnHeaders = [/status/, /name/, /author/, /version/, /Description/];
 
   expectedColumnHeaders.forEach((row) => {
-    expect(
-      screen.getByRole("columnheader", { name: new RegExp(row, "i") })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: new RegExp(row, "i") })).toBeInTheDocument();
   });
 
   const searchbox = screen.getByRole("searchbox", { name: /filter table/i });
@@ -238,7 +212,6 @@ Bien que ce test soit réussi et qu'il nous donne une certaine assurance que ce 
 
 - Comme nous n'examinons pas le point de terminaison de l'API ni les paramètres de la demande, nous ne pouvons pas savoir si l'utilisateur fait la bonne demande.
 - Comme nous simulons le backend, nous ne pouvons pas prédire avec certitude ce qui se passera si le serveur réel est en panne ou s'il renvoie un résultat inattendu.
-
 
 En fin de compte, pour obtenir la bonne stratégie de test, vous aurez probablement besoin d'un mélange de tests unitaires, de tests d'intégration et de tests e2e. Vous devrez également déterminer le bon niveau de simulation à appliquer. Si vous ne le faites pas assez, vous testerez probablement trop de détails d'implémentation. Si vous le faites trop, vous risquez de sacrifier une grande partie de la confiance.
 
@@ -317,18 +290,10 @@ test("Search patient by patient identifier", async ({ page, api }) => {
   });
 
   await test.step("Then I should see only the patient with the entered identifier", async () => {
-    await expect(homePage.floatingSearchResultsContainer()).toHaveText(
-      /1 search result/
-    );
-    await expect(homePage.floatingSearchResultsContainer()).toHaveText(
-      new RegExp(firstName)
-    );
-    await expect(homePage.floatingSearchResultsContainer()).toHaveText(
-      new RegExp(lastName)
-    );
-    await expect(homePage.floatingSearchResultsContainer()).toHaveText(
-      new RegExp(openmrsIdentifier)
-    );
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(/1 search result/);
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(new RegExp(firstName));
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(new RegExp(lastName));
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(new RegExp(openmrsIdentifier));
   });
 
   await test.step("When I click on the patient", async () => {
@@ -409,7 +374,7 @@ Pour améliorer l'efficacité du processus de test E2E, nous avons mis en œuvre
    Il n'est donc pas nécessaire de générer des données lors de la configuration initiale de l'environnement de test.
    Par conséquent, le temps de configuration est considérablement réduit, ce qui permet une création rapide de l'instance de test.
 
-2. **Pour exécuter les tests automatisés, une version dynamique et légère du frontend est utilisée.
+2. \*\*Pour exécuter les tests automatisés, une version dynamique et légère du frontend est utilisée.
    Cette version inclut exclusivement les applications et les changements présents dans le référentiel actuel, ainsi que les applications esm essentielles comme l'application de navigation principale.
    Cette image frontale est construite pendant le flux de travail des actions GitHub des tests E2E.
 

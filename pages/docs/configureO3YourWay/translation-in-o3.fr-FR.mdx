@@ -4,9 +4,10 @@ import Image from "next/image";
 
 Il existe plusieurs catégories de traductions au sein de notre projet de logiciel:
 
-- dans le code : Nous utilisons un outil appelé [Transifex](https://explore.transifex.com/openmrs/) pour extraire automatiquement les mots codés en dur (par exemple, "Cliquez ici"), les traduire dans l'interface utilisateur Transifex et renvoyer ces traductions à l'O3 RefApp.
+- dans le code: Nous utilisons un outil appelé [Transifex](https://explore.transifex.com/openmrs/) pour extraire automatiquement les mots codés en dur (par exemple, "Cliquez ici"), les traduire dans l'interface utilisateur Transifex et renvoyer ces traductions à l'O3 RefApp.
 - dans les formulaires
-- dans la terminologie : par exemple, le code CIEL 121375 pour l'asthme est associé à plusieurs traductions existantes ([comme vous pouvez le voir ici](https://app.openconceptlab.org/#/orgs/CIEL/sources/CIEL/concepts/121375/)). Si vous utilisiez ce code et souhaitiez une nouvelle option linguistique, il faudrait l'ajouter en tant que métadonnée à ce concept.
+- dans la terminologie: par exemple, le code CIEL 121375 pour l'asthme est associé à plusieurs traductions existantes ([comme vous pouvez le voir ici](https://app.openconceptlab.org/#/orgs/CIEL/sources/CIEL/concepts/121375/)). Si vous utilisiez ce code et souhaitiez une nouvelle option linguistique, il faudrait l'ajouter en tant que métadonnée à ce concept.
+- dans les formulaire: Si vous avez déjà des traductions attachées à des concepts particuliers que vous utilisez, vous pouvez faire apparaître ces traductions dans vos formulaires. Il suffit de ne pas fournir d'étiquette dans le générateur de formulaires, et le formulaire utilisera automatiquement le nom du concept à la place. Notez qu'en raison des différences entre les moteurs de formulaires, cela apparaîtra comme une question sans étiquette dans le Form Builder, mais cela fonctionnera dans le Angular Engine. En date d'octobre 2023, le moteur de formulaire Angular a une couverture de traduction plus complète que le moteur React (bien que nous prévoyions d'améliorer cela dans les mois à venir).
 
 ## Utilisation de Transifex
 
@@ -18,13 +19,13 @@ Des conseils sur l'utilisation de Transifex pour les anciens modules OpenMRS (OM
 
 ### Comment ingérer le contenu d'une chaîne d'application depuis Transifex dans O3 RefApp
 
-Résumé : _Les fichiers de traduction devront être extraits de Transifex et intégrés au code directement, pour chaque repo._
+Résumé: _Les fichiers de traduction devront être extraits de Transifex et intégrés au code directement, pour chaque repo._
 
-- _Etape 1 : Installation de Transifex:_ Assurez-vous que les dépôts O3 dont vous avez besoin sont inclus dans le projet OpenMRS Org Transifex 4 (par exemple, vous pouvez voir esm-patient-management est ici 1, esm-patient-chart est ici 1, etc).
+- _Etape 1: Installation de Transifex:_ Assurez-vous que les dépôts O3 dont vous avez besoin sont inclus dans le projet OpenMRS Org Transifex 4 (par exemple, vous pouvez voir esm-patient-management est ici 1, esm-patient-chart est ici 1, etc).
 
-- _Étape 2 : Traduction complète dans l'interface Transifex:_ Assurez-vous que votre équipe de traduction passe par l'interface pour traduire les chaînes de chaque repo (voir le guide de l'interface ci-dessus).
+- _Étape 2: Traduction complète dans l'interface Transifex:_ Assurez-vous que votre équipe de traduction passe par l'interface pour traduire les chaînes de chaque repo (voir le guide de l'interface ci-dessus).
 
-- _Etape 3 : Workflow manuel simple pour exporter JSON depuis Transifex et télécharger vers O3:_
+- _Etape 3: Workflow manuel simple pour exporter JSON depuis Transifex et télécharger vers O3:_
 
   - _Exporter JSON depuis Transifex:_ Dans la navigation de gauche, cliquez sur Ressources pour le Repo, puis cliquez sur la langue que vous voulez, et cliquez sur "Télécharger pour utiliser" à partir de la fenêtre modale Ressources qui s'est affichée. Cela télécharge un fichier JSON pour vous.
 
@@ -36,7 +37,7 @@ Résumé : _Les fichiers de traduction devront être extraits de Transifex et in
 
     ![Interface utilisateur du commutateur de langues](/translation-locale-switcher.png)
 
-- _Alternative à l'étape 3 : flux de travail automatisé:_ Cela peut également être fait en utilisant la fonction [CLI Client Transifex](https://developers.transifex.com/docs/cli) et en cours d'exécution `tx pull -l fr` (pour obtenir la locale fr par exemple) et valider les modifications.
+- _Alternative à l'étape 3: flux de travail automatisé:_ Cela peut également être fait en utilisant la fonction [CLI Client Transifex](https://developers.transifex.com/docs/cli) et en cours d'exécution `tx pull -l fr` (pour obtenir la locale fr par exemple) et valider les modifications.
 
 ## Remplacements de traduction spécifiques à un module O3 individuel
 

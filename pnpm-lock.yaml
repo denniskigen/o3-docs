@@ -12,7 +12,7 @@ specifiers:
   react-dom: ^18.2.0
   react-markdown: ^9.0.0
   remark-gfm: ^4.0.0
-  remark-github: ^12.0.0
+  remark-github: ^11.2.4
   sharp: ^0.32.6
   swr: ^2.2.4
   tailwindcss: ^3.3.3
@@ -27,7 +27,7 @@ dependencies:
   react-dom: 18.2.0_react@18.2.0
   react-markdown: 9.0.0_2un522rsefzocghoy2w4cfzkfa
   remark-gfm: 4.0.0
-  remark-github: 12.0.0
+  remark-github: 11.2.4
   sharp: 0.32.6
   swr: 2.2.4_react@18.2.0
 
@@ -3417,15 +3417,14 @@ packages:
       - supports-color
     dev: false
 
-  /remark-github/12.0.0:
-    resolution: {integrity: sha512-ByefQKFN184LeiGRCabfl7zUJsdlMYWEhiLX1gpmQ11yFg6xSuOTW7LVCv0oc1x+YvUMJW23NU36sJX2RWGgvg==}
+  /remark-github/11.2.4:
+    resolution: {integrity: sha512-GJjWFpwqdrHHhPWqMbb8+lqFLiHQ9pCzUmXmRrhMFXGpYov5n2ljsZzuWgXlfzArfQYkiKIZczA2I8IHYMHqCA==}
     dependencies:
-      '@types/mdast': 4.0.1
-      mdast-util-find-and-replace: 3.0.1
-      mdast-util-to-string: 4.0.0
-      to-vfile: 8.0.0
-      unist-util-visit: 5.0.0
-      vfile: 6.0.1
+      '@types/mdast': 3.0.13
+      mdast-util-find-and-replace: 2.2.2
+      mdast-util-to-string: 3.2.0
+      unified: 10.1.2
+      unist-util-visit: 4.1.2
     dev: false
 
   /remark-math/5.1.1:
@@ -3873,12 +3872,6 @@ packages:
     dependencies:
       is-number: 7.0.0
     dev: true
-
-  /to-vfile/8.0.0:
-    resolution: {integrity: sha512-IcmH1xB5576MJc9qcfEC/m/nQCFt3fzMHz45sSlgJyTWjRbKW1HAkJpuf3DgE57YzIlZcwcBZA5ENQbBo4aLkg==}
-    dependencies:
-      vfile: 6.0.1
-    dev: false
 
   /trim-lines/3.0.1:
     resolution: {integrity: sha512-kRj8B+YHZCc9kQYdWfJB2/oUl9rA99qbowYYBtr4ui4mZyAQ2JpvVBd/6U2YloATfqBhBTSMhTpgBHtU0Mf3Rg==}

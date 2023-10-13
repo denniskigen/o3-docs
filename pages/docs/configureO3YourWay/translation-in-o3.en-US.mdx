@@ -7,7 +7,7 @@ There are several categories translations live in within our software project:
 - in Code: We use a tool called [Transifex](https://explore.transifex.com/openmrs/) to automatically extract hard-coded words (e.g. "Click Here"), translate them in the Transifex UI, and contribute those translations back to the O3 RefApp.
 - in Terminology: e.g. the CIEL code 121375 for Asthma has multiple existing translations attached to it ([as you can see here](https://app.openconceptlab.org/#/orgs/CIEL/sources/CIEL/concepts/121375/)). If you were using that code and wanted a new language option, you would need that added as metadata on this concept.
 - in Forms: If you already have translations attached to particular concepts you are using, you can have those translations show up in your forms. Simply _don’t_ supply a label in the Form Builder, and then the form will automatically use the concept name instead. Note that because of differences in the form engines, it will show up as an unlabelled question in the Form Builder, but it will work in the Angular Engine. As of Oct 2023, the Angular Form Engine has more complete translation coverage than the React one (though we plan to improve that in the coming months). 
-
+  - If you add a brand-new locale that was not in O3 before, note that the form-entry-app currently expects translation files (ex. ar.json) to exist, so you may see issues with the forms loading. Workaround here: [Issue O3-2492](https://issues.openmrs.org/browse/O3-2492). 
 
 ## Using Transifex
 

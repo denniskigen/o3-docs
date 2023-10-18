@@ -112,7 +112,7 @@ Passons en revue les changements que nous devons apporter à ce fichier pour con
 
 Créez un fichier `routes.json` dans le répertoire racine du module:
 
-```json copy
+```json
 {
   "$schema": "https://json.openmrs.org/routes.schema.json"
 }
@@ -124,7 +124,7 @@ La propriété `$schema` pointe vers le fichier [routes schema](https://json.ope
 
 `backendDependencies` représente une liste de modules backend nécessaires pour que ce module frontend fonctionne et les versions requises correspondantes. Déplacez `backendDependencies` de `index.ts` vers `routes.json` comme suit:
 
-```json copy
+```json
 {
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {
@@ -193,7 +193,7 @@ Pour déplacer `pages` de `index.ts` vers `routes.json`, nous devons extraire le
 
 En assemblant tout cela, nous obtenons la définition suivante de `pages`:
 
-```json {6-19} copy
+```json {6-19}
 {
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {
@@ -245,7 +245,7 @@ Pour déplacer `extensions` de `index.ts` vers `routes.json`, nous devons extrai
 
 En rassemblant tout cela, nous obtenons la définition suivante de `extensions`:
 
-```json {21-41} copy
+```json {21-41}
 {
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {
@@ -296,7 +296,7 @@ En rassemblant tout cela, nous obtenons la définition suivante de `extensions`:
 
 Le fichier `routes.json` final ressemble à ceci:
 
-```json {21-42} copy
+```json {21-42}
 {
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {
@@ -450,7 +450,7 @@ Passons en revue les modifications que nous devons apporter à ce fichier pour f
 
 Parce que nous allons nous débarrasser de la fonction `setupOpenMRS`, nous devons déplacer les variables `moduleName` et `options` et la fonction `defineConfigSchema` en dehors de `setupOpenMRS` au niveau supérieur.
 
-```ts copy
+```ts
 import { getAsyncLifecycle, defineConfigSchema } from "@openmrs/esm-framework";
 import { configSchema } from "./config-schema";
 
@@ -464,7 +464,7 @@ const options = {
 
 ### 2. Faites de la fonction `importTranslation` une exportation nommée
 
-```ts copier
+```ts
 export const importTranslation = require.context("../translations", false, /.json$/, "lazy");
 ```
 
@@ -472,7 +472,7 @@ export const importTranslation = require.context("../translations", false, /.jso
 
 Chaque page et extension dans les tableaux `pages` et `extensions` doit être une exportation nommée au niveau supérieur.
 
-```ts copy
+```ts
 export const root = getAsyncLifecycle(() => import("./root.component"), options);
 
 export const locationPicker = getAsyncLifecycle(() => import("./location-picker/location-picker.component"), options);
@@ -491,7 +491,7 @@ Ceux-ci correspondent à la propriété `component` de chaque page et extension 
 
 Cette fonction `startupApp` contiendra toutes les fonctions qui devraient être exécutées par le shell de l'application au moment de l'exécution, y compris la fonction `defineConfigSchema` qui définit la configuration pour le module frontend.
 
-```ts copy
+```ts
 export function startupApp() {
   defineConfigSchema(moduleName, configSchema);
 }
@@ -511,7 +511,7 @@ Supprimez les métadonnées suivantes:
 
 En rassemblant tous ces changements, nous obtenons le fichier `index.ts` suivant:
 
-```ts copy
+```ts
 import { getAsyncLifecycle, defineConfigSchema } from "@openmrs/esm-framework";
 import { configSchema } from "./config-schema";
 
@@ -544,13 +544,17 @@ export const changeLocationLink = getAsyncLifecycle(
 
 Ensuite, vous devrez mettre à jour vers les dernières versions de `@openmrs/esm-framework` et `openmrs`. Pour ce faire, lancez
 
-```sh copy
+```sh
 yarn up openmrs@next @openmrs/esm-framework@next
 ```
 
-Vérifiez que vous avez la dernière version du framework en lançant: ``sh copy yarn up openmrs@next @enmrs/esm-framework@next
+Vérifiez que vous avez la dernière version du framework en lançant:
 
-```sh copy
+```sh yarn up openmrs@next @openmrs/esm-framework@next
+
+```
+
+```sh
 yarn why openmrs
 ```
 
@@ -581,7 +585,7 @@ export { Dexie$1 as Dexie, RangeSet, Dexie$1 as default, liveQuery, mergeRanges,
 
 Cela signifie qu'il y a un problème avec la correspondance d'importation de module pour le paquet `dexie` dans votre configuration Jest. Pour corriger cela, modifiez l'option de configuration `moduleNameMapper` pour `dexie` dans votre `jest.config.js` comme suit:
 
-```js copy
+```js
 '^dexie$': require.resolve('dexie')
 ```
 
@@ -591,7 +595,7 @@ Si votre configuration Jest est dans un fichier JSON, vous pourriez vouloir le d
 
 Cette erreur signifie qu'il vous manque la dépendance [css-loader](https://www.npmjs.com/package/css-loader), que le framework utilise. To fix this, make sure you install `swc-node/loader` as a devDependency in your frontend module:
 
-```sh copy
+```sh
 yarn add -D css-loader
 ```
 

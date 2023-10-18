@@ -6,11 +6,9 @@ Introduced by [RFC-27](https://github.com/openmrs/openmrs-rfc-frontend/blob/mast
 
 <Callout emoji="ℹ️" type="info">
   Those familiar with the [OpenMRS RefApp 2.x extension
-  system](https://wiki.openmrs.org/display/docs/Module+Extension+Points) will be
-  glad to know that the basic concepts here are similar, but simpler.
-  “Extensions” are roughly the same thing as before, “points” are now called
-  “slots,” and there is no longer anything like “apps,” which no one really
-  understood anyway.
+  system](https://wiki.openmrs.org/display/docs/Module+Extension+Points) will be glad to know that the basic concepts
+  here are similar, but simpler. “Extensions” are roughly the same thing as before, “points” are now called “slots,” and
+  there is no longer anything like “apps,” which no one really understood anyway.
 </Callout>
 
 ## Key Concepts
@@ -66,10 +64,9 @@ An extension will have a name which identifies it. That name should describe wha
 - Steve (names should be descriptive)
 
 <Callout emoji="ℹ️" type="info">
-  Note: You will likely see a lot of extension and slot names which are all
-  lowercase with dashes. This is not necessary; it is better to give extensions
-  names that are pleasant to read. Similarly, you will see many slots suffixed
-  with “slot.” This is also not necessary.
+  Note: You will likely see a lot of extension and slot names which are all lowercase with dashes. This is not
+  necessary; it is better to give extensions names that are pleasant to read. Similarly, you will see many slots
+  suffixed with “slot.” This is also not necessary.
 </Callout>
 
 #### Naming slots
@@ -96,7 +93,7 @@ Slots should be responsible for as much styling as generically applies to all of
 
 A slot can apply styles to an extension with the following CSS selector:
 
-```css copy
+```css
 .slot > * > * {
   ...;
 }
@@ -176,7 +173,7 @@ For (2) you can use the registerExtensionSlot function together with renderExten
 
 For (3) you can define an extension in the return value from the setupOpenMRS function. An example for this:
 
-```ts copy
+```ts
 function setupOpenMRS() {
   return {
     extensions: [
@@ -191,7 +188,7 @@ function setupOpenMRS() {
 
 As a shorthand for (4) you could already specify a target slot via the `slot` property in the previous code snippet. Without that convenience way you’d still be able to register it programmatically using `attach`:
 
-```ts copy
+```ts
 // attaches an extension "foo" to a slot "foo-slot"
 attach("foo-slot", "foo");
 ```

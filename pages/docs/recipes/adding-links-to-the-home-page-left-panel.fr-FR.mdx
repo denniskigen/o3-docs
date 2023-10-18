@@ -29,7 +29,7 @@ Pour ce faire, nous devons suivre les étapes suivantes :
 
 Nous allons commencer par nous assurer que l'application Patient Lists est correctement configurée pour gérer le routage. Son composant `Root` doit ressembler à ceci:
 
-```tsx copy
+```tsx
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import PatientListList from "./patient-list-list/patient-list-list.component";
@@ -57,8 +57,7 @@ Cette configuration `BrowserRouter` nous permettra de naviguer vers l'écran d'a
 
 Nous allons commencer par ajouter une exportation nommée au fichier `index.ts` de l'application Listes de patients qui ressemble à ce qui suit:
 
-```ts copy {4-7}
-// index.ts
+```ts filename="index.ts" {4-7}
 import { createLeftPanelLink } from "./left-panel.component";
 
 export const patientListLeftPanelLink = getSyncLifecycle(
@@ -73,8 +72,7 @@ export const patientListLeftPanelLink = getSyncLifecycle(
 
 Alors que `left-panel-link.component` ressemble à ceci:
 
-```ts copy
-// left-panel-link.component.tsx
+```ts filename="left-panel-link.component.tsx"
 import React, { useMemo } from "react";
 import last from "lodash-es/last";
 import { BrowserRouter, useLocation } from "react-router-dom";
@@ -114,7 +112,7 @@ export const createLeftPanelLink = (config: LinkConfig) => () =>
 
 Ensuite, nous devons connecter l'extension du lien `Patient lists` au panneau de gauche. Pour ce faire, nous devons ajouter la définition d'extension suivante au fichier `routes.json` de l'application Patient Lists:
 
-```json copy
+```json
 {
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {

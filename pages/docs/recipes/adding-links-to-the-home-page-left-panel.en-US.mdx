@@ -29,7 +29,7 @@ To achieve this, we'll need to follow these steps:
 
 We'll begin by making sure that the Patient Lists app is properly set up to handle routing. Its `Root` component should look like this:
 
-```tsx copy
+```tsx
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import PatientListList from "./patient-list-list/patient-list-list.component";
@@ -42,10 +42,7 @@ const RootComponent: React.FC = () => {
     <BrowserRouter basename={basename}>
       <Routes>
         <Route path="/" element={<PatientListList />} />
-        <Route
-          path="/:patientListUuid"
-          element={<PatientListDetailComponent />}
-        />
+        <Route path="/:patientListUuid" element={<PatientListDetailComponent />} />
       </Routes>
     </BrowserRouter>
   );
@@ -60,8 +57,7 @@ This `BrowserRouter` configuration will allow us to navigate to the Patient List
 
 We'll begin by adding a named export to the Patient Lists app `index.ts` file that resembles the following:
 
-```ts copy {4-7}
-// index.ts
+```ts filename="index.ts" {4-7}
 import { createLeftPanelLink } from "./left-panel.component";
 
 export const patientListLeftPanelLink = getSyncLifecycle(
@@ -76,8 +72,7 @@ export const patientListLeftPanelLink = getSyncLifecycle(
 
 Whereas `left-panel-link.component` looks like this:
 
-```ts copy
-// left-panel-link.component.tsx
+```ts filename="left-panel-link.component.tsx"
 import React, { useMemo } from "react";
 import last from "lodash-es/last";
 import { BrowserRouter, useLocation } from "react-router-dom";
@@ -93,17 +88,12 @@ function LinkExtension({ config }: { config: LinkConfig }) {
   const location = useLocation();
   const spaBasePath = window.getOpenmrsSpaBase() + "home";
 
-  const urlSegment = useMemo(
-    () => decodeURIComponent(last(location.pathname.split("/"))),
-    [location.pathname]
-  );
+  const urlSegment = useMemo(() => decodeURIComponent(last(location.pathname.split("/"))), [location.pathname]);
 
   return (
     <ConfigurableLink
       to={spaBasePath + "/" + name}
-      className={`cds--side-nav__link ${
-        name === urlSegment && "active-left-nav-link"
-      }`}
+      className={`cds--side-nav__link ${name === urlSegment && "active-left-nav-link"}`}
     >
       {title}
     </ConfigurableLink>
@@ -122,7 +112,7 @@ export const createLeftPanelLink = (config: LinkConfig) => () =>
 
 Next, we'll need to wire up the `Patient lists` link extension to the left panel. To do this, we'll need to add the following extension definition to the Patient Lists app `routes.json` file:
 
-```json copy
+```json
 {
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {

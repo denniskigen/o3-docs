@@ -18,7 +18,7 @@ You’ll probably start with some idea of what you want configs for your module 
 
 By way of example, let’s say we’re building a module for a virtual provider functionality at a very futuristic hospital. Maybe we want an implementer to be able to write the following in their config file:
 
-```ts copy
+```ts
 "@openmrs/esm-hologram-doctor": {
   "hologram": {
     "color": true
@@ -41,7 +41,7 @@ In the following section, we’ll see how to write a config schema that supports
 
 We’ll start with just that first nested config element from above, `hologram.color`. We must provide defaults for all of the values—in OpenMRS Frontend 3.0, all configuration is optional. All modules should do something reasonable out of the box.
 
-```ts copy
+```ts
 import { defineConfigSchema, Type } from "@openmrs/esm-framework"
 
 defineConfigSchema("@openmrs/esm-hologram-doctor", {
@@ -57,7 +57,7 @@ defineConfigSchema("@openmrs/esm-hologram-doctor", {
 
 Note that each configuration element should have an object for a value, and that this object must define the properties for that element. Do not do this:
 
-```ts copy
+```ts
 ❌ // This is wrong!
 ❌ defineConfigSchema("@openmrs/esm-hologram-doctor",
 ❌  hologram: {
@@ -67,7 +67,7 @@ Note that each configuration element should have an object for a value, and that
 
 The words prefixed with `_` are schema keywords. Do not prefix the names of your config elements with underscores. Especially do not use a schema keyword as a config element name.
 
-```ts copy
+```ts
 ❌ // Don't do this!
 ❌ defineConfigSchema("@openmrs/esm-hologram-doctor",
 ❌  hologram: {
@@ -87,7 +87,7 @@ These types are used both to validate input and to support special behavior in t
 
 You should provide validators for your configuration elements wherever possible. This reduces the probability that implementers using your module will have hard-to-debug runtime errors. It gives you, the module developer, the opportunity to provide implementers with very helpful explanations about why their configuration doesn’t work.
 
-```ts copy
+```ts
 robot: {
   name: {
     _type: Type.String,
@@ -126,7 +126,7 @@ For convenience, some common validators are provided out of the box. See the [AP
 
 You can accept and validate arrays, and arrays containing objects, in your configuration schema. This is configured with the `elements` parameter, used with `_type: Type.Array`. For example, a schema which would accept an array of strings up to 30 characters long would look like this:
 
-```ts copy
+```ts
 virtualProvider: {
   name: {
     given: {
@@ -145,7 +145,7 @@ virtualProvider: {
 
 Here is an example of a schema that expects an array of objects structured in a particular way.
 
-```ts copy
+```ts
 robots: {
   _type: Type.Array,
   _default: [
@@ -178,7 +178,7 @@ Objects within arrays do not have to have defaults. If an object is supplied to 
 
 The config is fetched asynchronously using `getConfig(moduleName)`. Continuing the above example, we would have something like:
 
-```ts copy
+```ts
 import { getConfig } from "@openmrs/esm-framework";
 
 async function doctorGreeting() {
@@ -193,7 +193,7 @@ The content of config will be pulled from the config files, falling back to the 
 
 A React Hook is provided to hide the asynchronicity of config loading. The moduleName provided to the `openmrsComponentDecorator` in esm-react-utils is used to look up the configuration elsewhere in the application.
 
-```ts copy
+```ts
 export default openmrsRootDecorator({
   featureName: "hologram doctor",
   moduleName: "@openmrs/esm-hologram-doctor",
@@ -202,7 +202,7 @@ export default openmrsRootDecorator({
 
 You can then get the config tree as an object using the useConfig React hook.
 
-```ts copy
+```ts
 import { useConfig } from "@openmrs/esm-framework";
 
 export default function DoctorGreeting() {
@@ -222,7 +222,7 @@ This hasn’t been implemented yet, but we would like to implement it! See Contr
 
 It is nice to be able to have type validation for your use of configuration. To accomplish this, define an interface alongside your config schema.
 
-```ts copy
+```ts
 import { defineConfigSchema, Type } from "@openmrs/esm-framework";
 
 defineConfigSchema("@openmrs/esm-hologram-doctor", {
@@ -244,7 +244,7 @@ export interface HologramDoctorConfig {
 
 You can then use this typing information using the `as` keyword.
 
-```ts copy
+```ts
 const config = useConfig() as HologramDoctorConfig;
 ```
 

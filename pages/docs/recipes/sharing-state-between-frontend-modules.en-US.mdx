@@ -22,7 +22,7 @@ managing state using [Zustand](https://docs.pmnd.rs/zustand/getting-started/intr
 A Zustand store can be created using
 [`createGlobalStore`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#createglobalstore):
 
-```typescript
+```ts
 import { createGlobalStore } from "@openmrs/esm-framework";
 
 export interface BooksStore {
@@ -37,7 +37,7 @@ createGlobalStore("books", {
 The store can then be accessed using
 [`getGlobalStore`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#getglobalstore)
 
-```typescript
+```ts
 import { getGlobalStore } from "@openmrs/esm-framework";
 
 const bookStore = getGlobalStore("books");
@@ -48,7 +48,7 @@ bookStore.setState({ books: ["Pathologies of Power"] });
 
 ### In React:
 
-```typescript
+```ts
 import React, { useEffect } from "react";
 import { getGlobalStore, useStore } from "@openmrs/esm-framework";
 
@@ -68,14 +68,13 @@ this method is by far the simplest.
 
 If your directory structure allows, you can also pass stores around explicitly:
 
-```typescript
-// bookStore.ts
+```ts filename="bookStore.ts"
 export bookStore = createGlobalStore("books", {
   books: [],
 });
 ```
 
-```typescript
+```ts
 import { bookStore } from "./bookStore";
 bookStore.setState({ books: ["A History of Global Health"] });
 ```

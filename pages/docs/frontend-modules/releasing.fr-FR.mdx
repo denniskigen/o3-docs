@@ -40,13 +40,13 @@ Nous avons établi une convention au sein d'O3 où les titres des PR contiennent
 
 L'examen du journal des modifications généré avec ces types de livraisons à l'esprit devrait vous donner une bonne idée du type de saut de version sémantique que votre version devrait créer. A ce stade, vous pouvez basculer vers votre IDE pour initier le processus de publication. Typiquement, nous utilisons lerna pour versionner les modules frontaux. Lancez la commande suivante à la racine de votre monorepo pour déclencher un saut de version:
 
-```sh copy
+```sh
 yarn lerna version [release type] --no-git-tag-version --no-push --yes --sort
 ```
 
 Par exemple, si vous voulez faire une version `major`, vous devez exécuter:
 
-```sh copy
+```sh
 yarn lerna version major --no-git-tag-version --no-push --yes --sort
 ```
 
@@ -67,7 +67,7 @@ Vous pouvez alors basculer vers votre navigateur et retourner sur la page des ve
 
 Sous le capot, ce job exécute le script suivant:
 
-```jsx copy
+```jsx
 "ci:publish-next": "lerna publish from-package --no-git-reset --dist-tag next --yes",
 ```
 

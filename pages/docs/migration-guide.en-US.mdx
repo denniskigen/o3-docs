@@ -197,7 +197,7 @@ Let's walk through the changes that we need to make to this file to build out th
 
 Create a `routes.json` file in the module's root directory:
 
-```json copy
+```json
 {
   "$schema": "https://json.openmrs.org/routes.schema.json"
 }
@@ -209,7 +209,7 @@ The `$schema` property points to the [routes schema](https://json.openmrs.org/ro
 
 `backendDependencies` represents a list of backend modules necessary for this frontend module to work and the corresponding required versions. Move `backendDependencies` from `index.ts` to `routes.json` as follows:
 
-```json copy
+```json
 {
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {
@@ -278,7 +278,7 @@ To move `pages` from `index.ts` to `routes.json`, we need to extract the followi
 
 Putting this together gives us the following `pages` definition:
 
-```json {6-19} copy
+```json {6-19}
 {
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {
@@ -330,7 +330,7 @@ To move `extensions` from `index.ts` to `routes.json`, we need to extract the fo
 
 Putting this all together gives us the following `extensions` definition:
 
-```json {21-41} copy
+```json {21-41}
 {
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {
@@ -381,7 +381,7 @@ Putting this all together gives us the following `extensions` definition:
 
 The final `routes.json` file looks like this:
 
-```json {21-42} copy
+```json {21-42}
 {
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {
@@ -521,7 +521,7 @@ Let's walk through the changes that we need to make to this file to factor out t
 
 Because we're going to get rid of the `setupOpenMRS` function, we need to move the `moduleName` and `options` variable and the `defineConfigSchema` function outside of `setupOpenMRS` to the top level.
 
-```ts copy
+```ts
 import { getAsyncLifecycle, defineConfigSchema } from "@openmrs/esm-framework";
 import { configSchema } from "./config-schema";
 
@@ -535,7 +535,7 @@ const options = {
 
 ### 2. Make the `importTranslation` function a named export
 
-```ts copy
+```ts
 export const importTranslation = require.context("../translations", false, /.json$/, "lazy");
 ```
 
@@ -543,7 +543,7 @@ export const importTranslation = require.context("../translations", false, /.jso
 
 Each page and extension in the `pages` and `extensions` arrays needs to be a named export at the top-level.
 
-```ts copy
+```ts
 export const root = getAsyncLifecycle(() => import("./root.component"), options);
 
 export const locationPicker = getAsyncLifecycle(() => import("./location-picker/location-picker.component"), options);
@@ -562,7 +562,7 @@ These correspond to the `component` property of each page and extension in the `
 
 This `startupApp` function will contain all the functions that should be executed by the app shell at runtime, including the `defineConfigSchema` function which sets up configuration for the frontend module.
 
-```ts copy
+```ts
 export function startupApp() {
   defineConfigSchema(moduleName, configSchema);
 }
@@ -582,7 +582,7 @@ Remove the following metadata:
 
 Bringing all these changes together, we get the following `index.ts` file:
 
-```ts copy
+```ts
 import { getAsyncLifecycle, defineConfigSchema } from "@openmrs/esm-framework";
 import { configSchema } from "./config-schema";
 
@@ -615,13 +615,13 @@ export const changeLocationLink = getAsyncLifecycle(
 
 Next, you'll need to upgrade to the latest versions of `@openmrs/esm-framework` and `openmrs`. To do so, run:
 
-```sh copy
+```sh
 yarn up openmrs@next @openmrs/esm-framework@next
 ```
 
 Check that you have the latest version of the framework by running:
 
-```sh copy
+```sh
 yarn why openmrs
 ```
 
@@ -652,7 +652,7 @@ export { Dexie$1 as Dexie, RangeSet, Dexie$1 as default, liveQuery, mergeRanges,
 
 This means that there's a problem with the module import mapping for the `dexie` package in your Jest configuration. To fix this, amend the `moduleNameMapper` config option for `dexie` in your `jest.config.js` to the following:
 
-```js copy
+```js
 '^dexie$': require.resolve('dexie')
 ```
 
@@ -662,7 +662,7 @@ If your Jest config is in a JSON file, you might want to move that over to a Jav
 
 This error means that you're missing [css-loader](https://www.npmjs.com/package/css-loader) dependency, which the framework uses . To fix this, make sure you install `swc-node/loader` as a devDependency in your frontend module:
 
-```sh copy
+```sh
 yarn add -D css-loader
 ```
 

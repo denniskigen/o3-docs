@@ -7,7 +7,7 @@ La fonction registerBreadcrumb prend un objet avec deux propriétés: `path` et 
 
 Voici un exemple de fil d'Ariane simple pour une page:
 
-```ts copy
+```ts
 import { registerBreadcrumb } from "@openmrs/esm-framework";
 
 function setupOpenmrs() {
@@ -28,7 +28,7 @@ Les fils d'Ariane peuvent également représenter une piste de liens hiérarchiq
 
 Voici un exemple de fil d'Ariane avec des ancêtres/sous-pages:
 
-```ts copy
+```ts
 import { registerBreadcrumbs } from "@openmrs/esm-framework";
 
 function setupOpenmrs() {
@@ -59,7 +59,7 @@ Le fil d'Ariane sera affiché à l'utilisateur sous la forme `Ma première page`
 
 Voici un exemple d'utilisation des fils d'Ariane dans votre composant:
 
-```ts copier
+```ts
 <ExtensionSlot name={slotName} />
 ```
 

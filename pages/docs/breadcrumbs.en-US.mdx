@@ -7,7 +7,7 @@ The registerBreadcrumb function takes an object with two properties: `path` and 
 
 Here is an example of a simple breadcrumb for a page:
 
-```ts copy
+```ts
 import { registerBreadcrumb } from "@openmrs/esm-framework";
 
 function setupOpenmrs() {
@@ -29,7 +29,7 @@ be the parent breadcrumb.
 
 Here is an example of a breadcrumb with ancestors/sub pages:
 
-```ts copy
+```ts
 import { registerBreadcrumbs } from "@openmrs/esm-framework";
 
 function setupOpenmrs() {
@@ -60,7 +60,7 @@ The breadcrumb will be displayed to the user as `My First Page` `My First Page /
 
 Here is an example of how to use breadcrumbs in your component:
 
-```ts copy
+```ts
 <ExtensionSlot name={slotName} />
 ```
 

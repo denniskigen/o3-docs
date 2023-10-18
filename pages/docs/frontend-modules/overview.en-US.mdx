@@ -5,11 +5,9 @@ import { FileTree } from "nextra/components";
 # Overview
 
 <Callout emoji="ℹ️" type="info">
-  Significant changes to the architecture of the app shell related to how
-  frontend modules get loaded were introduced in [Core v5](/docs/changelog). If
-  you haven't migrated your frontend modules to leverage these new capabilities,
-  follow the [Migration Guide](/docs/migration-guide) for a in-depth walkthrough
-  of how to do so.
+  Significant changes to the architecture of the app shell related to how frontend modules get loaded were introduced in
+  [Core v5](/docs/changelog). If you haven't migrated your frontend modules to leverage these new capabilities, follow
+  the [Migration Guide](/docs/migration-guide) for a in-depth walkthrough of how to do so.
 </Callout>
 
 Frontend modules are the basic building blocks of O3. In O3, frontend modules are self-contained pieces of functionality that can be loaded into the app shell. They are typically organized into domain-specific [monorepos](https://monorepo.tools/#what-is-a-monorepo). For example, frontend modules concerning the management of patients exist in the [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management) monorepo.
@@ -92,11 +90,7 @@ Some key things to note from looking at this file include:
 Frontend modules have their [entry point](https://webpack.js.org/concepts/entry-points/) defined in `src/index.ts`.
 
 ```ts
-import {
-  defineConfigSchema,
-  getAsyncLifecycle,
-  registerBreadcrumbs,
-} from "@openmrs/esm-framework";
+import { defineConfigSchema, getAsyncLifecycle, registerBreadcrumbs } from "@openmrs/esm-framework";
 import { configSchema } from "./config-schema";
 
 const moduleName = "@openmrs/esm-form-builder-app";
@@ -106,17 +100,9 @@ const options = {
   moduleName,
 };
 
-export const importTranslation = require.context(
-  "../translations",
-  true,
-  /.json$/,
-  "lazy"
-);
+export const importTranslation = require.context("../translations", true, /.json$/, "lazy");
 
-export const root = getAsyncLifecycle(
-  () => import("./root.component"),
-  options
-);
+export const root = getAsyncLifecycle(() => import("./root.component"), options);
 
 export const systemAdministrationFormBuilderCardLink = getAsyncLifecycle(
   () => import("./form-builder-admin-card-link.component"),
@@ -183,7 +169,7 @@ To create a new page, you'll typically need to follow these steps:
 - Create a new React component that will be the page's entry point.
 - Add a named export for the page in the `index.ts` file. For example, here's how a page named `root` is exported from the `index.ts` file:
 
-  ```typescript
+  ```ts
   export const root = getAsyncLifecycle(() => import("./root"), options);
   ```
 

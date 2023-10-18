@@ -37,7 +37,7 @@ Créez un nouveau fichier à côté de `module-management.component.tsx` nommé 
 
 Configurez une fonction qui rend le composant:
 
-```ts copy
+```ts
 function renderModuleManagement() {
   renderWithSwr(<ModuleManagement />);
 }
@@ -49,7 +49,7 @@ Note: Cette fonction d'aide `renderWithSwr` enveloppe un composant dans un conte
 
 Nous ne voulons pas toucher directement la base de données avec notre test et pour éviter cela, nous pouvons simuler la logique de récupération des données comme suit:
 
-```ts copy
+```ts
 mockedOpenmrsFetch.mockReturnValueOnce({ data: { results: [] } });
 ```
 
@@ -57,7 +57,7 @@ Ce code simule la fonction `openmrsFetch`, en supprimant son implémentation et 
 
 Ensuite, nous voulons rendre le composant:
 
-```ts copy
+```ts
 await waitForElementToBeRemoved(() => [...screen.queryAllByRole(/progressbar/i)], {
   timeout: 4000,
 });
@@ -65,7 +65,7 @@ await waitForElementToBeRemoved(() => [...screen.queryAllByRole(/progressbar/i)]
 
 Ce code demande à Jest d'attendre que le chargeur soit retiré de l'interface utilisateur. Cela imite l'attente de la résolution d'une requête du backend. Ensuite, nous voulons commencer à écrire nos assertions:
 
-```ts copy
+```ts
 expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
 expect(screen.queryByRole("table")).not.toBeInTheDocument();
 expect(screen.getByText(/there are no modules to display/i)).toBeInTheDocument();
@@ -81,7 +81,7 @@ A tout moment, vous pouvez lancer des tests en appelant `yarn test` ou `yarn tur
 
 Pour évaluer l'état d'erreur, vous pouvez écrire:
 
-```ts copy
+```ts
 it("renders an error state view if there was a problem fetching module data", async () => {
   const error = {
     message: "Internal Server Error",
@@ -105,7 +105,7 @@ it("renders an error state view if there was a problem fetching module data", as
 
 Pour tester le chemin heureux, nous pourrions écrire le test suivant:
 
-```ts copy
+```ts
 it("renders detailed information about the module", async () => {
   const user = userEvent.setup();
 
@@ -229,7 +229,7 @@ Idéalement, chaque demande d'extension devrait être accompagnée des tests qui
 
 Pour commencer, vous aurez besoin d'installer Playwright:
 
-```bash copy
+```bash
 npx playwright install
 ```
 
@@ -273,7 +273,7 @@ Pour plus d'informations sur la syntaxe de type BDD, vous pouvez consulter la do
 Cette ressource fournit des informations détaillées sur Gherkin, le langage utilisé pour écrire les spécifications BDD.
 L'extrait de code ci-dessous montre comment cette syntaxe de type BDD est utilisée pour écrire un cas de test:
 
-```ts copy
+```ts
 test("Search patient by patient identifier", async ({ page, api }) => {
   // extract details from the created patient
   const openmrsIdentifier = patient.identifiers[0].display.split("=")[1].trim();

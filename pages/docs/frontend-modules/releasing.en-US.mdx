@@ -40,13 +40,13 @@ We have established a convention within O3 where PR titles contain a conventiona
 
 Reviewing the generated changelog with these commit types in mind should give you a good idea of the kind of semantic version bump your release should create. At this point, you can switch to your IDE to initiate the release process. Typically, we use lerna to version frontend modules. Run the following command at the root of your monorepo to trigger a version bump:
 
-```sh copy
+```sh
 yarn lerna version [release type] --no-git-tag-version --no-push --yes --sort
 ```
 
 For example, if you want to do a `major` release, you would run:
 
-```sh copy
+```sh
 yarn lerna version major --no-git-tag-version --no-push --yes --sort
 ```
 
@@ -67,7 +67,7 @@ You can then switch to your browser and head back to the releases page of the re
 
 Under the hood, that job runs the following script:
 
-```jsx copy
+```jsx
 "ci:publish-next": "lerna publish from-package --no-git-reset --dist-tag next --yes",
 ```
 

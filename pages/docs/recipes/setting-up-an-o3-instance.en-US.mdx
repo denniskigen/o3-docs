@@ -26,7 +26,7 @@ These prerequisites are explained in detail in the [SDK wiki](https://wiki.openm
   but `$JAVA_HOME` doesn't point to it, you could try adding the following
   alias to your `.zshrc` file (or `.bashrc` file if you're using Bash):
 
-  ```sh copy
+  ```sh
     alias mvn='JAVA_HOME="$(/usr/libexec/java_home -v 1.8)" mvn'
   ```
 
@@ -36,7 +36,7 @@ These prerequisites are explained in detail in the [SDK wiki](https://wiki.openm
 
 Run the following command to setup the SDK:
 
-```sh copy
+```sh
 mvn openmrs-sdk:setup
 ```
 
@@ -57,7 +57,7 @@ This command will run a prompt that walks you through choosing:
 
 Run the following command to fire up the SDK:
 
-```sh copy
+```sh
 mvn openmrs-sdk:run
 ```
 
@@ -226,11 +226,9 @@ Once you've set up your O3 instance, there are various things you might want to 
 - Thinking about how to set up your forms in O3. Forms in O3 are built using JSON and conform to this standard schema, If your existing forms were built using HTML Form Entry, you'll need to convert them into JSON schemas. Check out the embedded form builder in O3 for an idea of what this format looks like. The schema editor can allow you to build a new form using a dummy schema scaffold. To learn more about forms in O3, read the `Building forms in O3` recipe.
 
   <Callout emoji="ℹ️" type="info">
-    An OpenMRS module exists for converting HTML Form Entry schemas into JSON
-    schemas compatible with the O3 standard schema at
-    https://github.com/openmrs/hfe-o3-form-schema-converter. Currently, work is
-    ongoing to improve the tool. Go through the repo's README to learn what's
-    possible.
+    An OpenMRS module exists for converting HTML Form Entry schemas into JSON schemas compatible with the O3 standard
+    schema at https://github.com/openmrs/hfe-o3-form-schema-converter. Currently, work is ongoing to improve the tool.
+    Go through the repo's README to learn what's possible.
   </Callout>
 
 ## Useful links

@@ -6,7 +6,7 @@ Nous utilisons [react-i18next](https://react.i18next.com/) pour internationalise
 
 Afin d'internationaliser votre module frontend, ajoutez cette ligne dans le fichier index.ts pour indiquer au shell de l'application où trouver les fichiers de traduction.
 
-```ts copy
+```ts
 const importTranslation = require.context("../translations", false, /.json$/, "lazy");
 ```
 
@@ -15,7 +15,7 @@ Pour ajouter des traductions d'une autre langue, par exemple l'espagnol, créez 
 
 Voici un exemple d'utilisation de la localisation react-i18next dans vos composants react.
 
-```ts copy
+```ts
 import { useTranslation } from "react-i18next";
 
 const ActiveVisitsTable = () => {

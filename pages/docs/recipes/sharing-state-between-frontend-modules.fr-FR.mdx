@@ -22,7 +22,7 @@ gérer l'état en utilisant [Zustand](https://docs.pmnd.rs/zustand/getting-start
 Un magasin Zustand peut être créé en utilisant
 [`createGlobalStore`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#createglobalstore):
 
-```typescript
+```ts
 import { createGlobalStore } de "@openmrs/esm-framework";
 
 export interface BooksStore {
@@ -37,7 +37,7 @@ createGlobalStore("books", {
 Le magasin est alors accessible en utilisant
 [`getGlobalStore`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#getglobalstore)
 
-```TypeScript
+```ts
 import { getGlobalStore } de "@openmrs/esm-framework";
 
 const bookStore = getGlobalStore("books");
@@ -48,7 +48,7 @@ bookStore.setState({ books: ["Pathologies du pouvoir"] });
 
 ### Dans React:
 
-```typescript
+```ts
 import React, { useEffect } from "react";
 import { getGlobalStore, useStore } from "@openmrs/esm-framework";
 
@@ -68,14 +68,13 @@ mais cette méthode est de loin la plus simple.
 
 Si votre structure de répertoire le permet, vous pouvez aussi passer des magasins explicitement:
 
-```typescript
-// bookStore.ts
+```ts filename="bookStore.ts"
 export bookStore = createGlobalStore("books", {
   livres: [],
 });
 ```
 
-```typescript
+```ts
 import { bookStore } de "./bookStore";
 bookStore.setState({ books: ["A History of Global Health"] });
 ```

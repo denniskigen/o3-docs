@@ -37,7 +37,7 @@ Create a new file next to `module-management.component.tsx` named `module-manage
 
 Setup a function that renders the component:
 
-```ts copy
+```ts
 function renderModuleManagement() {
   renderWithSwr(<ModuleManagement />);
 }
@@ -49,7 +49,7 @@ Note: This `renderWithSwr` helper function wraps a component in an SWR context w
 
 We don’t want to directly hit the database with our test and to avoid that, we could mock the data fetching logic as follows:
 
-```ts copy
+```ts
 mockedOpenmrsFetch.mockReturnValueOnce({ data: { results: [] } });
 ```
 
@@ -57,23 +57,18 @@ This code mocks out the `openmrsFetch` function, stubbing out its implementation
 
 Next, we want to render the component:
 
-```ts copy
-await waitForElementToBeRemoved(
-  () => [...screen.queryAllByRole(/progressbar/i)],
-  {
-    timeout: 4000,
-  }
-);
+```ts
+await waitForElementToBeRemoved(() => [...screen.queryAllByRole(/progressbar/i)], {
+  timeout: 4000,
+});
 ```
 
 This code asks Jest to wait until the loader gets removed from the UI. This mimics waiting for a backend request to resolve. Next, we want to start writing our assertions:
 
-```ts copy
+```ts
 expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
 expect(screen.queryByRole("table")).not.toBeInTheDocument();
-expect(
-  screen.getByText(/there are no modules to display/i)
-).toBeInTheDocument();
+expect(screen.getByText(/there are no modules to display/i)).toBeInTheDocument();
 ```
 
 These assertions:
@@ -86,7 +81,7 @@ At any point, you can run tests by calling `yarn test` or `yarn turbo test` (if 
 
 To evaluate the error state, you could write:
 
-```ts copy
+```ts
 it("renders an error state view if there was a problem fetching module data", async () => {
   const error = {
     message: "Internal Server Error",
@@ -104,15 +99,13 @@ it("renders an error state view if there was a problem fetching module data", as
   // Wait for the loading state to disappear from the screen
   await waitForLoadingToFinish();
 
-  expect(
-    screen.getByText(/sorry, there was a problem fetching modules/i)
-  ).toBeInTheDocument();
+  expect(screen.getByText(/sorry, there was a problem fetching modules/i)).toBeInTheDocument();
 });
 ```
 
 To test the happy path, we could write the following test:
 
-```ts copy
+```ts
 it("renders detailed information about the module", async () => {
   const user = userEvent.setup();
 
@@ -148,8 +141,7 @@ it("renders detailed information about the module", async () => {
       uuid: "serialization.xstream",
       display: "Serialization Xstream",
       name: "Serialization Xstream",
-      description:
-        "Core (de)serialize API and services supported by xstream library",
+      description: "Core (de)serialize API and services supported by xstream library",
       packageName: "org.openmrs.module.serialization.xstream",
       author: "luzhuangwei",
       version: "0.2.15",
@@ -173,28 +165,14 @@ it("renders detailed information about the module", async () => {
   await waitForLoadingToFinish();
 
   expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: /add \/ upgrade modules/i })
-  ).toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: /search from addons/i })
-  ).toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: /check for updates/i })
-  ).toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: /start all/i })
-  ).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /add \/ upgrade modules/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /search from addons/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /check for updates/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /start all/i })).toBeInTheDocument();
   expect(screen.getByRole("table")).toBeInTheDocument();
-  expect(
-    screen.getByRole("heading", { name: /manage modules/i })
-  ).toBeInTheDocument();
-  expect(
-    screen.getByRole("searchbox", { name: /filter table/i })
-  ).toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: /clear search input/i })
-  ).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: /manage modules/i })).toBeInTheDocument();
+  expect(screen.getByRole("searchbox", { name: /filter table/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /clear search input/i })).toBeInTheDocument();
 
   const modules = testModules.map((module) => module);
 
@@ -203,18 +181,10 @@ it("renders detailed information about the module", async () => {
     expect(screen.getByText(module.description)).toBeInTheDocument();
   });
 
-  const expectedColumnHeaders = [
-    /status/,
-    /name/,
-    /author/,
-    /version/,
-    /Description/,
-  ];
+  const expectedColumnHeaders = [/status/, /name/, /author/, /version/, /Description/];
 
   expectedColumnHeaders.forEach((row) => {
-    expect(
-      screen.getByRole("columnheader", { name: new RegExp(row, "i") })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: new RegExp(row, "i") })).toBeInTheDocument();
   });
 
   const searchbox = screen.getByRole("searchbox", { name: /filter table/i });
@@ -259,7 +229,7 @@ Ideally, each pull request ought to be accompanied by the tests that assert that
 
 To get started, you’ll typically need to install playwright:
 
-```bash copy
+```bash
 npx playwright install
 ```
 
@@ -303,7 +273,7 @@ For more information on BDD-like syntax, you can refer to the documentation at h
 This resource provides detailed information on Gherkin, the language used for writing BDD specifications.
 The code snippet below demonstrates how this BDD-like syntax is employed to write a test case:
 
-```ts copy
+```ts
 test("Search patient by patient identifier", async ({ page, api }) => {
   // extract details from the created patient
   const openmrsIdentifier = patient.identifiers[0].display.split("=")[1].trim();
@@ -320,18 +290,10 @@ test("Search patient by patient identifier", async ({ page, api }) => {
   });
 
   await test.step("Then I should see only the patient with the entered identifier", async () => {
-    await expect(homePage.floatingSearchResultsContainer()).toHaveText(
-      /1 search result/
-    );
-    await expect(homePage.floatingSearchResultsContainer()).toHaveText(
-      new RegExp(firstName)
-    );
-    await expect(homePage.floatingSearchResultsContainer()).toHaveText(
-      new RegExp(lastName)
-    );
-    await expect(homePage.floatingSearchResultsContainer()).toHaveText(
-      new RegExp(openmrsIdentifier)
-    );
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(/1 search result/);
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(new RegExp(firstName));
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(new RegExp(lastName));
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(new RegExp(openmrsIdentifier));
   });
 
   await test.step("When I click on the patient", async () => {

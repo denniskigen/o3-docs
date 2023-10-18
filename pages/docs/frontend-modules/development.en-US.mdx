@@ -6,7 +6,7 @@ After setting up your local environment, you'll typically want to work on a fron
 
 We use `yarn` as our package manager. To install dependencies, you'll typically `cd` into the repo of the frontend module you want to work on and run `yarn`. For example, if you want to work on the `patient-chart` frontend module, you'd run:
 
-```sh copy
+```sh
 cd openmrs-esm-patient-chart
 yarn
 ```
@@ -15,19 +15,19 @@ yarn
 
 Typically, you’ll want to run a specific frontend module within a monorepo. For example, you might want to run only the `conditions` frontend module. To do that, run `yarn start --sources` and pass in the name of your package of interest as a string:
 
-```sh copy
+```sh
 yarn start --sources 'packages/esm-patient-conditions-app'
 ```
 
 Note that the argument following packages in the command has to be the frontend module’s full path. It is also possible to pass multiple arguments to `yarn start --sources`. Doing so allows you to run multiple frontend modules simultaneously. Imagine a situation where you need to make a change to both the vitals and biometrics widgets in the patient chart. To get them to run simultaneously, you’d run:
 
-```sh copy
+```sh
 yarn start --sources 'packages/esm-patient-biometrics-app' 'packages/esm-patient-vitals-app'
 ```
 
 Running this command fires up a dev server in your default browser. By default, this server will run on port 8080. If you wish to run the server on a different you can specify that by passing a `--port` argument. For example, if you run the command above, you'd have biometrics and vitals getting served from http://localhost:8080/openmrs/spa. If you then want to run, say the patient search frontend module from the patient management monorepo, you could specify a different port number. You'd then run it like so:
 
-```sh copy
+```sh
 yarn start --sources 'packages/esm-patient-chart-app' --port=7000
 ```
 
@@ -61,7 +61,7 @@ Most of the time, this should be all a developer needs to do to get a local dev 
 
 To run the app shell, you’ll need to `cd` into the `esm-core` monorepo and run:
 
-```sh copy
+```sh
 yarn run:shell
 ```
 
@@ -69,7 +69,7 @@ This command will fire up a dev server at `http://localhost:8080/openmrs/spa`. Y
 
 Because these applications reside in the `apps` directory of the `esm-core` monorepo, running them within the context of the app shell makes it a lot easier to test out changes. Something to note when using this approach, however, is that for your changes to propagate to your local server, you might need to rebuild your frontend module. To do this, run:
 
-```sh copy
+```sh
 yarn turbo build
 ```
 
@@ -90,7 +90,7 @@ There are no hard and fast rules for figuring out where to make changes. The bes
 
 In general you can develop against another environment using the `--backend` flag. If the other environment is guarded, e.g., by an IP or network restriction then this is something you need to take care of on your local machine. In case the guarded environment is restricted via some SSO mechanism using a cookie you could use the `--add-cookie` flag to achieve this. As an example, look at the access for a development server from the ICRC:
 
-```sh copy
+```sh
 npx openmrs start --backend "https://emr-v2.test.icrc.org/" --add-cookie "MRHSession=1234..."
 ```
 
@@ -116,7 +116,7 @@ If any of these tasks fail, the push should fail. The terminal should display th
 
 Maintaining up to date dependencies is important to leverage the latest features, performance improvements and security patches. Yarn 3 provides a handy interactive tool to help you keep your dependencies up to date. To use it, run the following command:
 
-```sh copy
+```sh
 yarn upgrade-interactive
 ```
 
@@ -128,7 +128,7 @@ This command lists your projects dependencies that are eligible for updates. You
 
 If you're working off of a fork, it's possible that your fork might miss the latest changes from `main`. To fix this, you can run the following command to update your fork:
 
-```sh copy
+```sh
 git pull upstream main --rebase
 ```
 
@@ -140,7 +140,7 @@ If you’re running Linux, you may see the following error the first time you ru
 
 If you notice your app suddenly stop working, it might be because a core library has changed in the app shell on the server you are developing against. The main dependencies shared by all OpenMRS frontend modules are `openmrs` and `@openmrs/esm-framework`. They can be updated like this:
 
-```sh copy
+```sh
 # Upgrade core libraries
 yarn up openmrs @openmrs/esm-framework
 
@@ -155,7 +155,7 @@ yarn
 
 If you're running or building the `form-entry` package (an Angular wrapper around the AMPATH Form Engine) using Node v18, you may see the following error:
 
-```sh copy
+```sh
 Error: error:0308010C:digital envelope routines::unsupported
     at new Hash (node:internal/crypto/hash:71:19)
     at Object.createHash (node:crypto:133:10)
@@ -176,7 +176,7 @@ Error: error:0308010C:digital envelope routines::unsupported
 
 To get around this, run:
 
-```sh copy
+```sh
 export NODE_OPTIONS=--openssl-legacy-provider
 ```
 
@@ -194,7 +194,7 @@ TS2305: Module '"@carbon/react"' has no exported member 'Pagination'.
 
 To fix these, you need to update Carbon's ambient type declarations. To do so, add the following entries to your `declarations.d.ts` file:
 
-```ts copy
+```ts
 declare module "@carbon/react";
 declare type SideNavProps = {};
 ```
@@ -203,7 +203,7 @@ declare type SideNavProps = {};
 
 To resolve merge conflicts in your `yarn.lock` file, run the following command:
 
-```sh copy
+```sh
 git checkout HEAD yarn.lock && yarn
 ```
 

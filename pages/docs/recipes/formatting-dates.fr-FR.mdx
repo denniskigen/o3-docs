@@ -8,7 +8,7 @@ OpenMRS fournit plusieurs utilitaires pour travailler avec les dates. Ces utilit
 
 Cet utilitaire accepte une date en entrée et renvoie une chaîne de caractères. Il formate la date d'entrée en fonction de la locale courante et des paramètres donnés:
 
-```typescript
+```ts
 formatDate(date: Date, options: {
   mode: "standard" | "wide",
   time?: boolean,
@@ -26,7 +26,7 @@ Lorsque l'option time est définie à true, l'heure est ajoutée avec une virgul
 
 Voici un exemple d'utilisation de `formaDate` avec un exemple de date au format omrs `1684387260000`
 
-```typescript
+```ts
 import { formatDate } from "@openmrs/esm-framework";
 
 const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) => {
@@ -41,13 +41,13 @@ The returned value will be a string in this format `18-May-2023`
 This utility function accepts a `date` input and returns a `string`.
 It formats the input date to display both the date and time, separated by a comma, according to the current locale and the given options.
 
-```typescript
+```ts
   formatDatetime(date: Date, options?: { mode?: "standard" | "wide" }): string
 ```
 
 Here's an example of how to use `formaDatetime` given a sample date in the omrs format `1684387260000`
 
-```typescript
+```ts
 import { formatDatetime } from "@openmrs/esm-framework";
 
 const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) => {
@@ -61,13 +61,13 @@ The returned value will be `18-May-2023, 08:21`
 
 This utility function accepts a date input and returns a string. It formats the time according to the current locale using the 12- or 24-hour format.
 
-```typescript
+```ts
   formatTime(date: Date): string
 ```
 
 Here's an example of how to use `formatTime` given a sample date in the omrs format `1684387260000`
 
-```typescript
+```ts
 import { formatTime } from "@openmrs/esm-framework";
 
 const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) => {
@@ -82,7 +82,7 @@ The returned value will be `08:21`
 Cet utilitaire est STRICTE sur le fait de vérifier si une chaîne de date est au format openmrs. Le format doit être `YYY-MM-DDTHH:mm:ss.SSSZZ`.
 Elle accepte une chaîne `omrsPayloadString` et retourne un `bolean`.
 
-```typescript
+```ts
   isOmrsDateStrict(omrsPayloadString: string) :boolean
 ```
 
@@ -90,9 +90,9 @@ Elle accepte une chaîne `omrsPayloadString` et retourne un `bolean`.
 
 This utility checksif the provided date is today. Accepts a `date` input and returns a `boolean`.
 
-````typescript
+```ts
   isOmrsDateToday(date: Date): boolean
-```::
+```
 
 ### parseDate
 
@@ -100,13 +100,13 @@ This utility function parses an arbitrary `dateString` into a `date`. It uses da
 
 Here's an example of how to use `parseDate` given a sample dateString `1684387260000`
 
-```typescript
+```ts
 import { formatDate, parseDate } from "@openmrs/esm-framework";
 
 const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) => {
   return <span>{formatDate(parseDate(encounter.encounterDateTime))}</span>;
 };
-````
+```
 
 The returned value will be a string in this format `18-May-2023`
 
@@ -114,7 +114,7 @@ The returned value will be a string in this format `18-May-2023`
 
 This utility function converts an object to a date object if it is a valid ISO date time string. It accepts `omrsDateString` and returns a `date` or `null`.
 
-```typescript
+```ts
   toDateObjectStrict(omrsDateString: string): Date | null
 ```
 
@@ -122,16 +122,20 @@ This utility function converts an object to a date object if it is a valid ISO d
 
 Cette fonction utilitaire formate la `date` d'entrée en une `chaîne` en utilisant le format `YYY-MM-DDTHH:mm:ss.SSSZZ`. Il est principalement utilisé pour formater les dates avant de soumettre les données dans les payloads.
 
-```TypeScript
+```ts
   toOmrsIsoString(omrsDateString, Date): string
 ```
 
 Voici un exemple d'utilisation de `toOmrsIsoString` dans un payload:
 
-```typescript
+```ts
 body: {
   visit: visitUuid,
   patientUuid: patientUuid,
   startedAt: toDateObjectStrict(toOmrsIsoString(new Date())),
 }
+```
+
+```
+
 ```

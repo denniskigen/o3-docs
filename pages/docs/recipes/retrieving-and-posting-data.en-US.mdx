@@ -27,7 +27,7 @@ To use the FHIR API, we recommend using [SWR](https://swr.vercel.app/docs/data-f
 
 Here's an example of using SWR to retrieve a patient from the FHIR API.
 
-```typescript
+```ts
 import useSWR from "swr";
 import { fhirBaseUrl, openmrsFetch, fhir } from "@openmrs/esm-framework";
 
@@ -46,7 +46,7 @@ Some administrative endpoints will likely never have a proper representation in 
 
 Here's an example of a custom SWR hook that retrieves visits data.
 
-```typescript
+```ts
 import useSWR from "swr";
 import { openmrsFetch, Visit } from "@openmrs/esm-framework";
 
@@ -58,10 +58,7 @@ interface VisitData {
 export function useVisits() {
   const url = `/ws/rest/v1/visit?includeInactive=false`;
 
-  const { data, error, isLoading, mutate } = useSWR<{ data: VisitData }, Error>(
-    url,
-    openmrsFetch
-  );
+  const { data, error, isLoading, mutate } = useSWR<{ data: VisitData }, Error>(url, openmrsFetch);
 
   return {
     visits: data,
@@ -74,7 +71,7 @@ export function useVisits() {
 
 We can leverage this `useVisits` hook in our `visits` component as follows:
 
-```typescript
+```ts
 const Visits = () => {
   const { visits, isError, isLoading } = useVisits();
 
@@ -97,7 +94,7 @@ export default Visits;
 
 The `mutate` function returned by `useSWR` can be used to update the cache and trigger a re-render of the component. This is useful when we want to update the UI after a successful mutation.
 
-```typescript
+```ts
 const res = await saveVisitNote(payload);
 
 try {
@@ -116,7 +113,7 @@ try {
 
 Here's an example that demonstrates posting session data to the server.
 
-```typescript
+```ts
 import { openmrsFetch } from "@openmrs/esm-framework";
 
 const abortController = new AbortController();
@@ -139,7 +136,7 @@ if the request is not yet completed.
 In a React Component this is usually accomplished by making the request
 in a [`useEffect` hook](https://reactjs.org/docs/hooks-effect.html):
 
-```typescript
+```ts
 useEffect(() => {
   const abortController = new AbortController();
   someFetchFunction(abortController).then(setResult).catch(setError);

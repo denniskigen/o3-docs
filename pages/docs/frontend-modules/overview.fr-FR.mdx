@@ -171,7 +171,7 @@ Pour créer une nouvelle page, vous devrez généralement suivre les étapes sui
 - Créez un nouveau composant React qui sera le point d'entrée de la page.
 - Ajouter une exportation nommée pour la page dans le fichier `index.ts`. Par exemple, voici comment une page nommée `root` est exportée depuis le fichier `index.ts`:
 
-  ```typescript
+  ```ts
   export const root = getAsyncLifecycle(() => import("./root"), options);
   ```
 

@@ -27,7 +27,7 @@ Pour utiliser l'API FHIR, nous recommandons d'utiliser les crochets basés sur [
 
 Voici un exemple d'utilisation de SWR pour récupérer un patient depuis l'API FHIR.
 
-```typescript
+```ts
 import useSWR from "swr";
 import { fhirBaseUrl, openmrsFetch, fhir } from "@openmrs/esm-framework";
 
@@ -46,7 +46,7 @@ Certains points de terminaison administratifs n'auront probablement jamais de re
 
 Voici un exemple de hook SWR personnalisé qui récupère les données de visites.
 
-```typescript
+```ts
 import useSWR from "swr";
 import { openmrsFetch, Visit } from "@openmrs/esm-framework";
 
@@ -71,7 +71,7 @@ export function useVisits() {
 
 Nous pouvons utiliser ce hook `useVisits` dans notre composant `visits` comme suit:
 
-```typescript
+```ts
 const Visits = () => {
   const { visits, isError, isLoading } = useVisits();
 
@@ -94,7 +94,7 @@ export default Visits;
 
 La fonction `mutate` retournée par `useSWR` peut être utilisée pour mettre à jour le cache et déclencher un nouveau rendu du composant. C'est utile lorsque nous voulons mettre à jour l'interface utilisateur après une mutation réussie.
 
-```TypeScript
+```ts
 const res = await saveVisitNote(payload);
 
 try {
@@ -113,7 +113,7 @@ try {
 
 Voici un exemple qui démontre l'envoi de données de session au serveur.
 
-```typescript
+```ts
 import { openmrsFetch } from "@openmrs/esm-framework";
 
 const abortController = new AbortController();
@@ -136,7 +136,7 @@ si la requête n'est pas encore terminée.
 Dans un composant React, cela se fait généralement en effectuant la requête
 dans un [hook `useEffect`](https://reactjs.org/docs/hooks-effect.html):
 
-```typescript
+```ts
 useEffect(() => {
   const abortController = new AbortController();
   someFetchFunction(abortController).then(setResult).catch(setError);

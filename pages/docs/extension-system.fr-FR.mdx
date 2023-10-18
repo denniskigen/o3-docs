@@ -5,13 +5,12 @@ import { Callout } from "nextra-theme-docs";
 Introduit par [RFC-27](https://github.com/openmrs/openmrs-rfc-frontend/blob/master/text/0027-extensions.md), le système d'extension permet aux modules frontaux d'insérer des éléments d'interface utilisateur les uns dans les autres, et à ces interactions d'être configurées par les administrateurs du système.
 
 <Callout emoji="ℹ️" type="info">
-  Ceux qui connaissent l'extension [OpenMRS RefApp 2.x extension système](https://wiki.openmrs.org/display/docs/Module+Extension+Points) seront ravis
-  d'apprendre que les seront heureux d'apprendre que les concepts de base sont
-  similaires, mais plus simples. Les "extensions" sont à peu près la même chose
-  qu'avant, les "points" sont maintenant appelés "slots", et il n'y a pas
-  d'autres options. "slots", et il n'y a plus rien comme "apps", que personne ne
-  comprenait vraiment de toute façon. personne ne comprenait vraiment de toute
-  façon.
+  Ceux qui connaissent l'extension [OpenMRS RefApp 2.x extension
+  système](https://wiki.openmrs.org/display/docs/Module+Extension+Points) seront ravis d'apprendre que les seront
+  heureux d'apprendre que les concepts de base sont similaires, mais plus simples. Les "extensions" sont à peu près la
+  même chose qu'avant, les "points" sont maintenant appelés "slots", et il n'y a pas d'autres options. "slots", et il
+  n'y a plus rien comme "apps", que personne ne comprenait vraiment de toute façon. personne ne comprenait vraiment de
+  toute façon.
 </Callout>
 
 ## Concepts clés
@@ -67,12 +66,10 @@ Mauvais noms d'extension:
 - Steve (les noms doivent être descriptifs)
 
 <Callout emoji="ℹ️" type="info">
-  Remarque: vous verrez probablement de nombreux noms d'extensions et de slots
-  qui sont tous en minuscules avec des tirets. minuscules avec des tirets. Ce
-  n'est pas nécessaire ; il est préférable de donner aux extensions des noms
-  agréables à lire. Il est préférable de donner aux extensions des noms
-  agréables à lire. De même, vous verrez de nombreux slots dont le suffixe est
-  avec "slot". Ce n'est pas non plus nécessaire.
+  Remarque: vous verrez probablement de nombreux noms d'extensions et de slots qui sont tous en minuscules avec des
+  tirets. minuscules avec des tirets. Ce n'est pas nécessaire ; il est préférable de donner aux extensions des noms
+  agréables à lire. Il est préférable de donner aux extensions des noms agréables à lire. De même, vous verrez de
+  nombreux slots dont le suffixe est avec "slot". Ce n'est pas non plus nécessaire.
 </Callout>
 
 #### Nommer les slots
@@ -99,7 +96,7 @@ Les slots doivent être responsables de la quantité de style qui s'applique de 
 
 Un slot peut appliquer des styles à une extension avec le sélecteur CSS suivant:
 
-```css copy
+```css
 .slot > * > * {
   ...;
 }
@@ -179,7 +176,7 @@ Pour (2), vous pouvez utiliser la fonction registerExtensionSlot avec renderExte
 
 Pour (3), vous pouvez définir une extension dans la valeur de retour de la fonction setupOpenMRS. Voici un exemple:
 
-```ts copy
+```ts
 function setupOpenMRS() {
   return {
     extensions: [
@@ -194,7 +191,7 @@ function setupOpenMRS() {
 
 Comme raccourci pour (4), vous pouvez déjà spécifier un slot cible via la propriété `slot` dans l'extrait de code précédent. Sans cette commodité, vous seriez toujours capable de l'enregistrer par programme en utilisant `attach`:
 
-```ts copy
+```ts
 // attache une extension "foo" à un slot "foo-slot"
 attach("foo-slot", "foo");
 ```

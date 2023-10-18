@@ -6,7 +6,7 @@ Après avoir configuré votre environnement local, vous voudrez généralement t
 
 Nous utilisons `yarn` comme gestionnaire de paquets. Pour installer les dépendances, vous devez typiquement `cd` dans le repo du module frontend sur lequel vous voulez travailler et lancer `yarn`. Par exemple, si vous voulez travailler sur le module frontend `patient-chart`, vous devez lancer `yarn`:
 
-```sh copie
+```sh
 cd openmrs-esm-patient-chart
 yarn
 ```
@@ -15,19 +15,19 @@ yarn
 
 Typiquement, vous voudrez exécuter un module frontend spécifique dans une monorepo. Par exemple, vous pourriez vouloir lancer uniquement le module frontend `conditions`. Pour ce faire, lancez `yarn start --sources` et passez le nom du paquet qui vous intéresse sous la forme d'une chaîne:
 
-```sh copie
+```sh
 yarn start --sources 'packages/esm-patient-conditions-app'
 ```
 
 Notez que l'argument qui suit packages dans la commande doit être le chemin complet du module frontend. Il est également possible de passer plusieurs arguments à `yarn start --sources`. Cela vous permet d'exécuter plusieurs modules frontaux simultanément. Imaginez une situation où vous avez besoin d'apporter un changement aux widgets "vitals" et "biométriques" dans le dossier du patient. Pour les faire fonctionner simultanément, vous devez lancer arn start --sources`:
 
-```sh copie
+```sh
 yarn start --sources 'packages/esm-patient-biometrics-app' 'packages/esm-patient-vitals-app'
 ```
 
 Cette commande lance un serveur de développement dans votre navigateur par défaut. Par défaut, ce serveur fonctionnera sur le port 8080. Si vous souhaitez faire tourner le serveur sur un autre port, vous pouvez le spécifier en passant l'argument `--port`. Par exemple, si vous exécutez la commande ci-dessus, les données biométriques et vitales seront envoyées depuis http://localhost:8080/openmrs/spa. Si vous voulez ensuite exécuter, par exemple, le module frontal de recherche de patients à partir de la monorepo de gestion des patients, vous pouvez spécifier un numéro de port différent. Vous l'exécuteriez alors comme suit:
 
-```sh copie
+```sh
 yarn start --sources 'packages/esm-patient-chart-app' --port=7000
 ```
 
@@ -61,7 +61,7 @@ La plupart du temps, c'est tout ce qu'un développeur doit faire pour faire fonc
 
 Pour lancer l'app shell, vous devrez `cd` dans la monorepo `esm-core` et lancer:
 
-```sh copie
+```sh
 yarn run:shell
 ```
 
@@ -69,7 +69,7 @@ Cette commande va démarrer un serveur de développement à `http://localhost:80
 
 Parce que ces applications résident dans le répertoire `apps` de la monorepo `esm-core`, les exécuter dans le contexte de l'app shell rend beaucoup plus facile le test des changements. Cependant, une chose à noter lors de l'utilisation de cette approche est que pour que vos changements se propagent sur votre serveur local, vous devrez peut-être reconstruire votre module frontend. Pour ce faire, exécutez:
 
-```sh copie
+```sh
 yarn turbo build
 ```
 
@@ -90,7 +90,7 @@ Il n'existe pas de règles strictes pour déterminer où apporter des changement
 
 En général, vous pouvez développer contre un autre environnement en utilisant le drapeau `--backend`. Si l'autre environnement est protégé, par exemple par une restriction d'IP ou de réseau, alors c'est quelque chose dont vous devez vous occuper sur votre machine locale. Dans le cas où l'environnement surveillé est restreint par un mécanisme SSO utilisant un cookie, vous pouvez utiliser l'option `--add-cookie` pour y parvenir. A titre d'exemple, regardez l'accès à un serveur de développement du ICRC:
 
-```sh copie
+```sh
 npx openmrs start --backend "https://emr-v2.test.icrc.org/" --add-cookie "MRHSession=1234..."
 ```
 
@@ -116,7 +116,7 @@ Si l'une de ces tâches échoue, la poussée doit échouer. Le terminal doit aff
 
 Il est important de maintenir les dépendances à jour pour bénéficier des dernières fonctionnalités, des améliorations de performance et des correctifs de sécurité. Yarn 3 fournit un outil interactif pratique pour vous aider à maintenir vos dépendances à jour. Pour l'utiliser, exécutez la commande suivante:
 
-```sh copie
+```sh
 yarn upgrade-interactive
 ```
 
@@ -128,7 +128,7 @@ Cette commande dresse la liste des dépendances de vos projets susceptibles d'ê
 
 Si vous travaillez à partir d'un fork, il est possible que votre fork manque les derniers changements de `main`. Pour y remédier, vous pouvez lancer la commande suivante pour mettre à jour votre fork:
 
-```sh copie
+```sh
 git pull upstream main --rebase
 ```
 
@@ -140,7 +140,7 @@ Si vous utilisez Linux, il se peut que vous voyiez l'erreur suivante la premièr
 
 Si vous remarquez que votre application cesse soudainement de fonctionner, cela peut être dû au fait qu'une bibliothèque principale a été modifiée dans le shell de l'application sur le serveur sur lequel vous développez. Les principales dépendances partagées par tous les modules frontaux d'OpenMRS sont `openmrs` et `@openmrs/esm-framework`. Elles peuvent être mises à jour comme suit:
 
-```sh copie
+```sh
 # Mise à jour des bibliothèques de base
 yarn up openmrs @openmrs/esm-framework
 
@@ -155,7 +155,7 @@ yarn
 
 Si vous exécutez ou construisez le paquet `form-entry` (une enveloppe Angular autour du moteur de formulaire AMPATH) en utilisant Node v18, vous pouvez voir l'erreur suivante:
 
-```sh copie
+```sh
 Error: error:0308010C:digital envelope routines::unsupported
     at new Hash (node:internal/crypto/hash:71:19)
     at Object.createHash (node:crypto:133:10)
@@ -176,7 +176,7 @@ Error: error:0308010C:digital envelope routines::unsupported
 
 Pour contourner ce problème, exécutez:
 
-```sh copie
+```sh
 export NODE_OPTIONS=--openssl-legacy-provider
 ```
 
@@ -194,7 +194,7 @@ TS2305: Module '"@carbon/react"' has no exported member 'Pagination'.
 
 Pour corriger cela, vous devez mettre à jour les déclarations de type ambiant de Carbon. Pour ce faire, ajoutez les entrées suivantes à votre fichier `declarations.d.ts`:
 
-```ts copie
+```ts
 declare module "@carbon/react";
 declare type SideNavProps = {};
 ```
@@ -203,7 +203,7 @@ declare type SideNavProps = {};
 
 Pour résoudre les conflits de fusion dans votre fichier `yarn.lock`, exécutez la commande suivante:
 
-```sh copie
+```sh
 git checkout HEAD yarn.lock && yarn
 ```
 

@@ -1,0 +1,269 @@
+import Image from "next/image";
+import { Steps } from "nextra-theme-docs";
+
+# Adding a left panel
+
+The [left panel](https://zeroheight.com/23a080e38/p/796c6a-left-panel) provides navigation within an App in O3. It is based on Carbon's [UI shell left panel](https://carbondesignsystem.com/components/UI-shell-left-panel/usage/), and is positioned below the header, fixed to the left edge of the page. It is possible to add a left panel to any page in O3 if you need to leverage its navigation capabilities.
+
+This guide will walk you through the process of adding a left panel to the [Bed Management app](https://github.com/METS-Programme/esm-ugandaemr-bed-management-app), which is a frontend module that's part of the UgandaEMR+ instance. The bed management app handles the management of beds in a hospital, and is a good candidate for a left panel because it has multiple pages that need to be navigated to.
+
+## Example: Adding a left panel to the Bed Management app
+
+The Bed Management app has the following screens that need to be navigated to:
+
+- The landing screen, which shows a summary of the number of beds in each ward.
+- A detail screen for a specific ward, which shows the number of beds in that ward and their current status.
+- A ward allocation screen, which allows you to add, edit and delete beds, as well as allocating beds to wards.
+
+We'll need to setup the following navigation links in the left panel:
+
+- A `Summary` link for the landing screen and the ward detail screen.
+- An `Administration` link for the bed management administration screen.
+
+Below is a screenshot of how the app looks like:
+
+<br />
+<Image
+  src="/left-panel-home.png"
+  alt="Screenshot of the bed management app landing page showing the left panel"
+  width={1000}
+  height={1000}
+/>
+<br />
+
+To achieve this, we're going to follow the steps below:
+
+<Steps>
+
+### Step 1: Set up the left panel
+
+Begin by updating your root component (or whatever component your app uses to set up routing) as follows:
+
+```tsx {13-19, 23} filename="src/root.component.tsx"
+import React, { useEffect } from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { LeftNavMenu, setLeftNav, unsetLeftNav } from "@openmrs/esm-framework";
+import BedAdministrationTable from "./bed-administration/bed-administration-table.component";
+import Home from "./home.component";
+import WardWithBeds from "./ward-with-beds/ward-with-beds.component";
+import styles from "./root.scss";
+
+const Root: React.FC = () => {
+  const spaBasePath = window.spaBase;
+
+  useEffect(() => {
+    setLeftNav({
+      name: "bed-management-left-panel-slot",
+      basePath: spaBasePath,
+    });
+    return () => unsetLeftNav("bed-management-left-panel-slot");
+  }, [spaBasePath]);
+
+  return (
+    <BrowserRouter basename={`${window.getOpenmrsSpaBase()}bed-management`}>
+      <LeftNavMenu />
+      <main className={styles.container}>
+        <Routes>
+          <Route path="/summary" element={<Home />} />
+          <Route path="/ward/:wardUuid" element={<WardWithBeds />} />
+          <Route path="/ward-allocation" element={<BedAdministrationTable />} />
+        </Routes>
+      </main>
+    </BrowserRouter>
+  );
+};
+
+export default Root;
+```
+
+Some key things to note here are:
+
+- We're importing the `LeftNavMenu` component from the `@openmrs/esm-framework` package. This component renders the left panel. We're also importing the `setLeftNav` and `unsetLeftNav` functions from the same package. These functions are used to register and unregister the left panel with the [LeftNav store](https://github.com/openmrs/openmrs-esm-core/blob/da401641b4b1895e593e9bcea73af8f8dbd505e5/packages/framework/esm-styleguide/src/left-nav/index.tsx#L18) respectively. The LeftNav store is a [Zustand](https://github.com/pmndrs/zustand) store that keeps track of all the left panels that have been registered in the app.
+
+- We're calling the `setLeftNav` function in a `useEffect` hook. This function takes an object with two properties:
+
+  - `name`: The name of the slot that the left panel should be rendered in. This is the same name that you'll use when adding the left panel to the `extensions` array of your `routes.json` file.
+  - `basePath`: The base path of the app (`/openmrs/spa` by default). This is used to ensure that the left panel links are relative to the app's base path.
+
+- We're calling the `unsetLeftNav` function in a `useEffect` cleanup function. This function takes the name of the slot that the left panel was rendered in. This ensures that the left panel gets unregistered when the component unmounts.
+
+- We're rendering the `LeftNavMenu` component as the first child of the `BrowserRouter` component. This ensures that the left panel gets rendersd in all the routes of the app.
+
+- We're setting up three routes for the Bed Management app:
+
+  - A `/summary` route that renders the `Home` component.
+  - A `/ward/:wardUuid` route that renders the `WardWithBeds` component. The `:ward` portion of the route is a URL parameter that gets passed to the `WardWithBeds` component as a prop. This component is used to render the detail page for a specific ward.
+  - An `/ward-allocation` route that renders the `BedAdministrationTable` component.
+
+### Step 2: Wiring up the root page
+
+Next, we'll create a named export for the `Root` component inside the `index.ts` file. This is the component that we'll use to wire up the `Root` component to the `bed-management` route so that it gets rendered when you navigate to that route.
+
+Add the following to your `index.ts` file:
+
+```ts filename="src/index.ts"
+export const root = getAsyncLifecycle(() => import("./root.component"), options);
+```
+
+Next, modify your `routes.json` file to include the following page definition:
+
+```json {7-12}
+{
+  "$schema": "https://json.openmrs.org/routes.schema.json",
+  "backendDependencies": {
+    "fhir2": "^1.2.0",
+    "webservices.rest": "^2.24.0"
+  },
+  "pages": [
+    {
+      "component": "root",
+      "route": "bed-management"
+    }
+  ]
+}
+```
+
+This page definition tells O3 to render the `Root` component when you navigate to the `bed-management` route.
+
+### Step 3: Add links to the left panel
+
+Next, we'll want to add the two links that we mentioned earlier to the left panel:
+
+- A `Summary` link for the landing screen.
+- A `Ward allocation` link for the ward allocation screen.
+
+To do this, we'll need to create two extensions that render the links. We'll then add those extensions to the `extensions` array of our `routes.json` file. The named exports of those extensions will be used as the `component` property of the extensions, and look like the following:
+
+```ts filename="src/index.ts"
+export const summaryLeftPanelLink = getSyncLifecycle(
+  createLeftPanelLink({
+    name: "summary",
+    title: t("summary", "Summary"),
+  }),
+  options
+);
+
+export const wardAllocationLeftPanelLink = getSyncLifecycle(
+  createLeftPanelLink({
+    name: "ward-allocation",
+    title: t("wardAllocation", "Ward Allocation"),
+  }),
+  options
+);
+```
+
+The `createLeftPanelLink` function is a higher-order function that takes a `name` and a `title` property. The `name` property is the unique path that the URL segment gets matched against. If the name matches the last portion of the URL, then the matching link gets some special styling to indicate that it is the active link. The `title` property gets rendered as the link text.
+
+We're importing this `createLeftPanelLink` function from a separate file called `left-panel-link.component.tsx` that looks like the following:
+
+```tsx {8-9, 13-19} filename="src/left-panel-link.component.tsx"
+import React, { useMemo } from "react";
+import last from "lodash-es/last";
+import { BrowserRouter, useLocation } from "react-router-dom";
+import { ConfigurableLink } from "@openmrs/esm-framework";
+
+export interface LinkConfig {
+  name: string;
+  title: string;
+}
+
+function LinkExtension({ config }: { config: LinkConfig }) {
+  const { name, title } = config;
+  const location = useLocation();
+
+  let urlSegment = useMemo(() => decodeURIComponent(last(location.pathname.split("/"))), [location.pathname]);
+
+  const isUUID = (value) => {
+    const regex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/;
+    return regex.test(value);
+  };
+
+  if (isUUID(urlSegment)) {
+    urlSegment = "summary";
+  }
+
+  return (
+    <ConfigurableLink
+      to={`${window.getOpenmrsSpaBase()}bed-management${name ? `/${name}` : ""}`}
+      className={`cds--side-nav__link ${name === urlSegment && "active-left-nav-link"}`}
+    >
+      {title}
+    </ConfigurableLink>
+  );
+}
+
+export const createLeftPanelLink = (config: LinkConfig) => () =>
+  (
+    <BrowserRouter>
+      <LinkExtension config={config} />
+    </BrowserRouter>
+  );
+```
+
+Some key things to note here are:
+
+- We're using the [ConfigurableLink](https://github.com/openmrs/openmrs-esm-core/blob/f5538148b48f5f8c3fc621ffde0e2d25fb60db6d/packages/framework/esm-react-utils/src/ConfigurableLink.tsx#L42) component from the `@openmrs/esm-framework` package to render the link. The `title` property gets rendered as the link text. The link also gets some special styling
+  if the `name` property matches the last portion of the URL that distinguishes it as the active link.
+- We're using the `useLocation` hook from the `react-router-dom` package to get the current URL. We then extract the last segment of the current pathname and decode it. This segment is stored in the `urlSegment` variable. We then use the `urlSegment` variable to determine whether the link is active or not.
+- We're using the `createLeftPanelLink` higher-order function to create a component that renders the link. This function takes a `name` and a `title` property. The `name` property is the unique path that the URL segment gets matched against. If the name matches the last portion of the URL, then the matching link gets some special styling to indicate that it is the active link. The `title` property gets rendered as the link text.
+- When the last segment of the URL is a UUID (which is the case when you click on a ward card on the landing page), we're setting the `urlSegment` variable to `summary`. This ensures that both the landing and detail screen s get the `Summary` link highlighted as the active link.
+- Finally, we're exporting the `createLeftPanelLink` function so that it can be used to create the `Summary` and `Ward allocation` links.
+
+### Step 4: Add the extensions to the routes.json file
+
+Finally, we'll need to add the two extensions that we created in the previous step to the `extensions` array of our `routes.json` file as shown below:
+
+```json {7-17}
+"extensions": [
+  {
+    "component": "adminCardLink",
+    "name": "bed-management-admin-card-link",
+    "slot": "system-admin-page-card-link-slot"
+  },
+  {
+    "component": "summaryLeftPanelLink",
+    "name": "bed-management-left-panel-link",
+    "slot": "bed-management-left-panel-slot",
+    "order": 0
+  },
+  {
+    "component": "wardAllocationLeftPanelLink",
+    "name": "ward-allocation-left-panel-link",
+    "slot": "bed-management-left-panel-slot"
+  }
+]
+```
+
+### Step 5: Profit!
+
+That's it! When you navigate to the `bed-management` route, you should see the landing screen of the Bed Management app, which should look like the following:
+
+<br />
+<Image
+  src="/left-panel-home.png"
+  alt="Screenshot of the bed management app landing page showing the left panel"
+  width={1000}
+  height={1000}
+/>
+
+Clicking on the `General Men Ward` card navigates you to a detail page for a specific ward, which should look like the following:
+
+<br />
+<Image
+  src="/ward-page.png"
+  alt="Screenshot of the ward page which is a nested route of the landing page"
+  width={1000}
+  height={1000}
+/>
+
+Finally, clicking the `Ward Allocation` link in the left panel leads you to the Ward Allocation page, which looks like the following:
+
+<br />
+<Image
+  src="/ward-allocation.png"
+  alt="Screenshot of the administration page of the bed management app"
+  width={1000}
+  height={1000}
+/>
+
+</Steps>

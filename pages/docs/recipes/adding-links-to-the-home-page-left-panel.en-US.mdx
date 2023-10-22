@@ -57,8 +57,11 @@ This `BrowserRouter` configuration will allow us to navigate to the Patient List
 
 We'll begin by adding a named export to the Patient Lists app `index.ts` file that resembles the following:
 
-```ts filename="index.ts" {4-7}
+```ts {5-14} filename="index.ts"
 import { createLeftPanelLink } from "./left-panel.component";
+import { getAsyncLifecycle, getSyncLifecycle } from "@openmrs/esm-framework";
+
+const root = getAsyncLifecycle(() => import("./root.component"), options);
 
 export const patientListLeftPanelLink = getSyncLifecycle(
   createLeftPanelLink({
@@ -128,6 +131,11 @@ Next, we'll need to wire up the `Patient lists` link extension to the left panel
         "title": "Patient lists",
         "slot": "patient-lists-app-slot"
       }
+    },
+    {
+      "component": "root",
+      "name": "patient-lists-root",
+      "slot": "patient-lists-app-slot"
     }
     // ...
   ]

@@ -2,7 +2,7 @@ import Image from "next/image";
 import { FileTree } from "nextra/components";
 import { Steps } from "nextra-theme-docs";
 
-# Ajout de liens au panneau gauche de la page d'accueil
+# Ajout de liens au panneau de gauche de la page d'accueil
 
 Ce guide vous explique comment ajouter un lien au [panneau de gauche](https://zeroheight.com/23a080e38/p/796c6a-left-panel) sur la page d'accueil de O3. Le panneau de gauche de la page d'accueil d'O3 contient des liens vers diverses applications. En cliquant sur un lien, vous accédez généralement à l'écran d'atterrissage de l'application.
 
@@ -21,7 +21,7 @@ Vous trouverez ci-dessous une capture d'écran de l'écran d'accueil de l'applic
 />
 <br />
 
-Pour ce faire, nous devons suivre les étapes suivantes :
+Pour ce faire, nous devons suivre les étapes suivantes:
 
 <Steps>
 
@@ -57,8 +57,9 @@ Cette configuration `BrowserRouter` nous permettra de naviguer vers l'écran d'a
 
 Nous allons commencer par ajouter une exportation nommée au fichier `index.ts` de l'application Listes de patients qui ressemble à ce qui suit:
 
-```ts filename="index.ts" {4-7}
+```ts {5-14} filename="index.ts"
 import { createLeftPanelLink } from "./left-panel.component";
+import { getAsyncLifecycle, getSyncLifecycle } from "@openmrs/esm-framework";
 
 export const patientListLeftPanelLink = getSyncLifecycle(
   createLeftPanelLink({
@@ -128,13 +129,18 @@ Ensuite, nous devons connecter l'extension du lien `Patient lists` au panneau de
         "title": "Patient lists",
         "slot": "patient-lists-app-slot"
       }
+    },
+    {
+      "component": "root",
+      "name": "patient-lists-root",
+      "slot": "patient-lists-app-slot"
     }
     // ...
   ]
 }
 ```
 
-Quelques points à noter :
+Quelques points à noter:
 
 - La propriété `component` est fixée à `patientListLeftPanelLink`, qui est l'export nommé que nous avons défini dans l'étape précédente.
 - La propriété `name` est fixée à `patient-lists-left-panel-link`, qui est le nom de l'extension.
@@ -144,7 +150,7 @@ Quelques points à noter :
   - La propriété `name` est fixée à `patient-lists`, qui est le nom de l'application.
   - La propriété `slot` est fixée à `patient-lists-dashboard-slot`, qui est le nom du slot auquel nous voulons ajouter l'extension. Ce slot est l'endroit où les liens qui sont affichés sur le panneau gauche de l'écran d'atterrissage de l'application Listes de patients sont rendus.
 
-### Étape 4: Profit !
+### Étape 4: Profit!
 
 Voilà, c'est fait! Vous devriez maintenant voir un lien "Listes de patients" sur le panneau gauche de la page d'accueil d'O3. En cliquant sur ce lien, vous serez dirigé vers l'écran d'atterrissage de l'application Listes de patients.
 

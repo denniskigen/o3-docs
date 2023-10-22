@@ -6,7 +6,7 @@ D'une manière générale, lorsqu'il s'agit de tester des composants dans O3, il
 2. **Tests d'intégration** - vérifient que plusieurs unités fonctionnent ensemble de manière harmonieuse.
 3. **Tests de bout en bout (e2e)** - un robot d'assistance qui se comporte comme un utilisateur pour cliquer sur l'application et vérifier qu'elle fonctionne correctement.
 
-Lorsque l'on travaille avec un module frontal, les tests unitaires (et parfois les tests d'intégration) qui l'accompagnent sont généralement regroupés dans un fichier nommé **\*.test.tsx**. Ces tests suivent généralement le schéma suivant :
+Lorsque l'on travaille avec un module frontal, les tests unitaires (et parfois les tests d'intégration) qui l'accompagnent sont généralement regroupés dans un fichier nommé **\*.test.tsx**. Ces tests suivent généralement le schéma suivant:
 
 - Les tests d'intégration rendent généralement l'application complète tout en simulant quelques éléments tels que les requêtes réseau ou l'accès à la base de données.
 - Les tests unitaires testent généralement des fonctions pures et affirment qu'elles renvoient une sortie donnée lorsqu'elles reçoivent une entrée.
@@ -20,7 +20,7 @@ Plus vos tests ressemblent à la manière dont votre logiciel est utilisé, plus
 
 Nous allons parcourir un exemple de suite de tests pour comprendre l'approche adoptée. Dans ce cas, nous utiliserons le module frontal [module-management](https://github.com/openmrs/openmrs-esm-module-management-app). Cette application reprend la page `Manage Module` de l'application de référence OpenMRS 2.x et la redessine pour qu'elle fonctionne dans O3. Elle fournit une interface permettant aux utilisateurs de gérer les modules backend. Elle liste tous les modules installés et permet aux administrateurs de contrôler l'exécution des modules via les actions exposées `Start`, `Stop` et `Unload`. Les utilisateurs peuvent également consulter des informations détaillées sur les modules listés.
 
-Voyons comment nous pouvons tester le composant `ModuleManagement`. En regardant son code, nous pouvons voir qu'il fait plusieurs choses :
+Voyons comment nous pouvons tester le composant `ModuleManagement`. En regardant son code, nous pouvons voir qu'il fait plusieurs choses:
 
 - Il récupère les données du module depuis le backend en utilisant un crochet SWR personnalisé.
 - Lorsque les données sont chargées, un état de chargement est affiché.
@@ -71,7 +71,7 @@ expect(screen.queryByRole("table")).not.toBeInTheDocument();
 expect(screen.getByText(/there are no modules to display/i)).toBeInTheDocument();
 ```
 
-Ces affirmations :
+Ces affirmations:
 
 1. Affirme qu'un élément DOM avec le rôle `progressbar` ne devrait pas être dans le document.
 2. Affirme que le DOM ne contient pas d'élément de rôle `table` .
@@ -217,7 +217,7 @@ En fin de compte, pour obtenir la bonne stratégie de test, vous aurez probablem
 
 ## Test de bout en bout avec Playwright
 
-[Playwright](https://playwright.dev) est un cadre de test qui vous permet d'écrire des tests fiables de bout en bout en JavaScript. Grâce à l'excellent travail de l'équipe QA d'OpenMRS, Playwright est désormais installé dans les dépôts suivants :
+[Playwright](https://playwright.dev) est un cadre de test qui vous permet d'écrire des tests fiables de bout en bout en JavaScript. Grâce à l'excellent travail de l'équipe QA d'OpenMRS, Playwright est désormais installé dans les dépôts suivants:
 
 - [Form builder](https://github.com/openmrs/openmrs-esm-form-builder/tree/main/e2e)
 - [Gestion des patients](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/e2e)
@@ -310,7 +310,7 @@ test("Search patient by patient identifier", async ({ page, api }) => {
 
 ### Utilisation des données de démonstration
 
-Pour vous assurer que le test contient les métadonnées nécessaires, vous pouvez suivre les procédures décrites ci-dessous :
+Pour vous assurer que le test contient les métadonnées nécessaires, vous pouvez suivre les procédures décrites ci-dessous:
 
 1. Utiliser l'interface utilisateur - Supposons que le scénario de test implique la modification des informations relatives au patient. Dans ce cas, vous pouvez utiliser l'interface utilisateur pour créer un nouveau dossier patient à des fins de test.
 2. Exploiter les données de démonstration - Si le scénario de test ne nécessite que la visualisation de données, les données de démonstration disponibles dans la RefApp peuvent suffire. Consultez le module de données de démonstration pour en savoir plus.
@@ -322,7 +322,7 @@ Reportez-vous à [cette documentation](https://playwright.dev/docs/debug) pour s
 
 ### Afficher les rapports de test à partir de GitHub Actions / Bamboo
 
-Pour télécharger le rapport à partir d'une action GitHub ou d'un plan Bamboo, procédez comme suit :
+Pour télécharger le rapport à partir d'une action GitHub ou d'un plan Bamboo, procédez comme suit:
 
 1. Allez dans la section artefact de l'action/du plan et localisez le fichier de rapport.
 2. Téléchargez le fichier de rapport et décompressez-le à l'aide de l'outil de votre choix.
@@ -355,7 +355,7 @@ L'automatisation des tests de bout en bout (E2E) à l'aide des actions GitHub co
 #### Environnement de test Dockerisé
 
 Nos tests E2E sont exécutés dans un environnement dockerisé pour chaque pull request et commit dans les dépôts O3.
-Cette approche offre plusieurs avantages par rapport aux méthodes traditionnelles :
+Cette approche offre plusieurs avantages par rapport aux méthodes traditionnelles:
 
 - **Dépendance réduite sur le serveur Dev3:** En utilisant un environnement dockerisé, les tests E2E ne dépendent pas de l'état ou de la disponibilité du serveur dev3.
   Cette indépendance garantit que les tests peuvent se dérouler même si le serveur dev3 rencontre des problèmes.
@@ -368,7 +368,7 @@ Cette approche offre plusieurs avantages par rapport aux méthodes traditionnell
 
 #### Optimisation du processus de test
 
-Pour améliorer l'efficacité du processus de test E2E, nous avons mis en œuvre plusieurs méthodes d'optimisation :
+Pour améliorer l'efficacité du processus de test E2E, nous avons mis en œuvre plusieurs méthodes d'optimisation:
 
 1. **Images Docker pré-remplies:** Les images Docker du backend et de la base de données utilisées pour les tests e2E automatisés sont pré-remplies avec les données et les configurations nécessaires.
    Il n'est donc pas nécessaire de générer des données lors de la configuration initiale de l'environnement de test.

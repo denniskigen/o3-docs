@@ -39,8 +39,7 @@ To achieve this, we're going to follow the steps below:
 
 Begin by updating your root component (or whatever component your app uses to set up routing) as follows:
 
-```tsx {13-19, 23} copy
-// src/root.component.tsx
+```tsx {13-19, 23} filename="src/root.component.tsx"
 import React, { useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { LeftNavMenu, setLeftNav, unsetLeftNav } from "@openmrs/esm-framework";
@@ -102,17 +101,13 @@ Next, we'll create a named export for the `Root` component inside the `index.ts`
 
 Add the following to your `index.ts` file:
 
-```ts copy
-// src/index.ts
-export const root = getAsyncLifecycle(
-  () => import("./root.component"),
-  options
-);
+```ts filename="src/index.ts"
+export const root = getAsyncLifecycle(() => import("./root.component"), options);
 ```
 
 Next, modify your `routes.json` file to include the following page definition:
 
-```json {7-12} copy
+```json {7-12}
 {
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {
@@ -139,8 +134,7 @@ Next, we'll want to add the two links that we mentioned earlier to the left pane
 
 To do this, we'll need to create two extensions that render the links. We'll then add those extensions to the `extensions` array of our `routes.json` file. The named exports of those extensions will be used as the `component` property of the extensions, and look like the following:
 
-```ts copy
-// src/index.ts
+```ts filename="src/index.ts"
 export const summaryLeftPanelLink = getSyncLifecycle(
   createLeftPanelLink({
     name: "summary",
@@ -162,8 +156,7 @@ The `createLeftPanelLink` function is a higher-order function that takes a `name
 
 We're importing this `createLeftPanelLink` function from a separate file called `left-panel-link.component.tsx` that looks like the following:
 
-```tsx copy {8-9, 13-19}
-// src/left-panel-link.component.tsx
+```tsx {8-9, 13-19} filename="src/left-pa"nel-link.component.tsx
 import React, { useMemo } from "react";
 import last from "lodash-es/last";
 import { BrowserRouter, useLocation } from "react-router-dom";
@@ -178,14 +171,10 @@ function LinkExtension({ config }: { config: LinkConfig }) {
   const { name, title } = config;
   const location = useLocation();
 
-  let urlSegment = useMemo(
-    () => decodeURIComponent(last(location.pathname.split("/"))),
-    [location.pathname]
-  );
+  let urlSegment = useMemo(() => decodeURIComponent(last(location.pathname.split("/"))), [location.pathname]);
 
   const isUUID = (value) => {
-    const regex =
-      /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/;
+    const regex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/;
     return regex.test(value);
   };
 
@@ -195,12 +184,8 @@ function LinkExtension({ config }: { config: LinkConfig }) {
 
   return (
     <ConfigurableLink
-      to={`${window.getOpenmrsSpaBase()}bed-management${
-        name ? `/${name}` : ""
-      }`}
-      className={`cds--side-nav__link ${
-        name === urlSegment && "active-left-nav-link"
-      }`}
+      to={`${window.getOpenmrsSpaBase()}bed-management${name ? `/${name}` : ""}`}
+      className={`cds--side-nav__link ${name === urlSegment && "active-left-nav-link"}`}
     >
       {title}
     </ConfigurableLink>
@@ -228,7 +213,7 @@ Some key things to note here are:
 
 Finally, we'll need to add the two extensions that we created in the previous step to the `extensions` array of our `routes.json` file as shown below:
 
-```json {7-17} copy
+```json {7-17}
 "extensions": [
   {
     "component": "adminCardLink",

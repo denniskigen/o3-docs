@@ -9,15 +9,15 @@ La publication d'une version d'O3 se fait en deux étapes:
 1. La mise à jour des versions locales des paquets et l'envoi de ces changements sur GitHub. Cette étape déclenchera la tâche `pre-release` de l'IC.
 2. Couper une version en utilisant l'interface utilisateur des versions de Github. Cette étape déclenche la tâche `release` de l'IC.
 
-Si vous voulez publier une version release de votre module, vous devez d'abord réfléchir à quelques points, notamment :
+Si vous voulez publier une version release de votre module, vous devez d'abord réfléchir à quelques points, notamment:
 
-- Le `type' de version - le [type de version sémantique](https://docs.npmjs.com/about-semantic-versioning) auquel vos changements se conforment. Nos versions utilisent la spécification semver, ce qui signifie que nous avons trois types de versions :
+- Le `type' de version - le [type de version sémantique](https://docs.npmjs.com/about-semantic-versioning) auquel vos changements se conforment. Nos versions utilisent la spécification semver, ce qui signifie que nous avons trois types de versions:
 
   - `patch` - lorsque vous apportez des corrections de bogues rétrocompatibles.
   - `minor` - lorsque vous ajoutez des fonctionnalités d'une manière compatible avec le passé.
   - `major` - quand vous faites des changements d'API incompatibles.
 
-Par exemple, si le dernier numéro de version d'un module frontal est `v1.0.0` :
+Par exemple, si le dernier numéro de version d'un module frontal est `v1.0.0`:
 
 - Une version `patch` incrémenterait le numéro de version à `1.0.1`.
 - Une version `minor` incrémenterait le numéro de version à `1.1.0`.
@@ -50,7 +50,7 @@ Par exemple, si vous voulez faire une version `major`, vous devez exécuter:
 yarn lerna version major --no-git-tag-version --no-push --yes --sort
 ```
 
-Cette commande :
+Cette commande:
 
 - Augmente le numéro de version `major` pour tous les paquets de votre monorepo. Par exemple, si la version actuelle est `1.0.0`, elle passera à `2.0.0`.first-letter.
 - Indique à lerna de ne pas créer de tag git pour la version.

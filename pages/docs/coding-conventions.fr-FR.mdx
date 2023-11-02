@@ -177,16 +177,91 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
   }
   ```
 
-  {" "}
-
-  {" "}
-
-  {" "}
-
   <Callout emoji="ℹ️" type="info">
     Veillez à placer vos styles sous un nom de classe (comme `.form` dans l'exemple ci-dessus) pour éviter qu'ils
     n'affectent d'autres composants.
   </Callout>
+
+- Utilisez la bibliothèque [classnames](https://npm.im/classnames) pour appliquer conditionnellement des styles à un élément. Par exemple, l'extrait suivant montre une `div` stylisée avec plusieurs styles conditionnels:
+
+  ```tsx
+  return (
+    <div
+      className={`${styles.textInputContainer} ${disabled && styles.disabledInput} ${
+        !isWithinNormalRange && styles.danger
+      } ${useMuacColors ? muacColorCode : undefined}`}
+    >
+      // ... détails omis pour plus de brièveté
+    </div>
+  );
+  ```
+
+  Vous pouvez refactoriser cet extrait pour tirer parti de `classnames` comme suit:
+
+  ```tsx
+  import classNames from "classnames";
+
+  const containerClasses = classNames(styles.textInputContainer, {
+    [styles.disabledInput]: disabled,
+    [styles.danger]: !isWithinNormalRange,
+    [muacColorCode]: useMuacColors,
+  });
+
+  return <div className={containerClasses}>// ... détails omis pour plus de brièveté</div>;
+  ```
+
+### Entrées de recherche
+
+- Débouncez les entrées de recherche pour éviter des requêtes inutiles au backend. Utilisez le hook [useDebounce](https://github.com/openmrs/openmrs-esm-core/blob/2396ab96a37bc7202c853110969d82c17fe098a6/packages/framework/esm-react-utils/src/useDebounce.ts) pour débouncer les entrées de recherche. Voici un extrait (certains bits sont omis pour plus de brièveté) montrant comment vous pourriez utiliser le hook:
+
+  ```tsx
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm);
+
+  return (
+    <TableToolbarSearch
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+      placeholder={t("searchThisList", "Search this list")}
+    />
+  );
+
+  // Do something with the debouncedSearchTerm
+  ```
+
+- Utilisez [fuzzy](https://npm.im/fuzzy) pour implémenter une recherche floue. La recherche floue est une stratégie pour faire correspondre des termes de recherche qui sont similaires, mais pas exactement les mêmes que le terme de recherche. Par exemple, si le terme de recherche est `John`, la recherche floue correspondra à `Jon`, `Jhon`, et `Johhn`. Ceci est utile pour faire correspondre des termes de recherche qui sont mal orthographiés ou contiennent des fautes de frappe. Voici comment nous pouvons utiliser fuzzy pour améliorer l'expérience de recherche à partir de l'extrait ci-dessus:
+
+  ```tsx
+  const [filter, setFilter] = useState("");
+
+  const filteredForms: Array<TypedForm> = useMemo(() => {
+    if (!debouncedSearchTerm) {
+      if (filter === "Retired") {
+        return forms.filter((form) => form.retired);
+      }
+
+      if (filter === "Published") {
+        return forms.filter((form) => form.published);
+      }
+
+      if (filter === "Unpublished") {
+        return forms.filter((form) => !form.published);
+      }
+
+      return forms;
+    }
+
+    return debouncedSearchTerm
+      ? fuzzy
+          .filter(debouncedSearchTerm, forms, {
+            extract: (form: TypedForm) => `${form.name} ${form.version}`,
+          })
+          .sort((r1, r2) => r1.score - r2.score)
+          .map((result) => result.original)
+      : forms;
+  }, [filter, forms, debouncedSearchTerm]);
+  ```
+
+  Nous utilisons le `debouncedSearchTerm` du snippet ci-dessus pour filtrer la liste des formulaires. Nous utilisons également l'option `extract` pour indiquer à fuzzy comment extraire le terme de recherche du formulaire. Dans ce cas, nous extrayons le terme de recherche du nom et de la version du formulaire. C'est parce que nous voulons faire correspondre les formulaires qui contiennent le terme de recherche dans leur nom ou version. Enfin, nous trions les résultats par score, qui est une mesure de la correspondance entre le terme de recherche et le formulaire.
 
 ### Essais [#Testing]
 

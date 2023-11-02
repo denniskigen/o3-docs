@@ -178,11 +178,91 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
   }
   ```
 
-  {" "}
   <Callout emoji="ℹ️" type="info">
     Make sure to scope your styles under a class name (such as `.form` in the example above) to avoid them affecting
     other components.
   </Callout>
+
+- Use the [classnames](https://npm.im/classnames) library to conditionally apply styles to an element. For example, the following snippet shows a `div` styled with multiple conditional styles:
+
+  ```tsx
+  return (
+    <div
+      className={`${styles.textInputContainer} ${disabled && styles.disabledInput} ${
+        !isWithinNormalRange && styles.danger
+      } ${useMuacColors ? muacColorCode : undefined}`}
+    >
+      // ... details omitted for brevity
+    </div>
+  );
+  ```
+
+  You can refactor this snippet to leverage `classnames` as follows:
+
+  ```tsx
+  import classNames from "classnames";
+
+  const containerClasses = classNames(styles.textInputContainer, {
+    [styles.disabledInput]: disabled,
+    [styles.danger]: !isWithinNormalRange,
+    [muacColorCode]: useMuacColors,
+  });
+
+  return <div className={containerClasses}>// ... details omitted for brevity</div>;
+  ```
+
+### Search inputs
+
+- Debounce search inputs to prevent unnecessary requests to the backend. Use the [useDebounce](https://github.com/openmrs/openmrs-esm-core/blob/2396ab96a37bc7202c853110969d82c17fe098a6/packages/framework/esm-react-utils/src/useDebounce.ts) hook to debounce search inputs. Here's a snippet (some bits are omitted for brevity) showing how you could use the hook:
+
+  ```tsx
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm);
+
+  return (
+    <TableToolbarSearch
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+      placeholder={t("searchThisList", "Search this list")}
+    />
+  );
+
+  // Do something with the debouncedSearchTerm
+  ```
+
+- Use [fuzzy](https://npm.im/fuzzy) to implement fuzzy search. Fuzzy search is a strategy for matching search terms that are similar to, but not exactly the same as, the search term. For example, if the search term is `John`, fuzzy search will match `Jon`, `Jhon`, and `Johhn`. This is useful for matching search terms that are misspelled or contain typos. Here's how we can leverage fuzzy to enhance the search experience from the snippet above:
+
+  ```tsx
+  const [filter, setFilter] = useState("");
+
+  const filteredForms: Array<TypedForm> = useMemo(() => {
+    if (!debouncedSearchTerm) {
+      if (filter === "Retired") {
+        return forms.filter((form) => form.retired);
+      }
+
+      if (filter === "Published") {
+        return forms.filter((form) => form.published);
+      }
+
+      if (filter === "Unpublished") {
+        return forms.filter((form) => !form.published);
+      }
+
+      return forms;
+    }
+
+    return debouncedSearchTerm
+      ? fuzzy
+          .filter(debouncedSearchTerm, forms, {
+            extract: (form: TypedForm) => `${form.name} ${form.version}`,
+          })
+          .sort((r1, r2) => r1.score - r2.score)
+          .map((result) => result.original)
+      : forms;
+  }, [filter, forms, debouncedSearchTerm]);
+  ```
+
+  We're using the `debouncedSearchTerm` from the snippet above to filter the list of forms. We're also using the `extract` option to tell fuzzy how to extract the search term from the form. In this case, we're extracting the search term from the form's name and version. This is because we want to match forms that contain the search term in their name or version. Finally, we're sorting the results by score, which is a measure of how closely the search term matches the form.
 
 ### Testing
 

@@ -182,7 +182,29 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
     n'affectent d'autres composants.
   </Callout>
 
-- Utilisez la bibliothèque [classnames](https://npm.im/classnames) pour appliquer conditionnellement des styles à un élément. Par exemple, l'extrait suivant montre une `div` stylisée avec plusieurs styles conditionnels:
+- Utilisez la bibliothèque [classnames](https://npm.im/classnames) pour appliquer conditionnellement des styles à un élément. Envisagez d'utiliser classnames si vous interpolez plusieurs noms de classe dans une chaîne. Par exemple, l'extrait suivant:
+
+  ```tsx
+  <NumberInput
+    allowEmpty
+    className={`${styles.textInput} ${val.className}`}
+    // other props omitted for brevity
+  />
+  ```
+
+  Pourrait être remplacé par:
+
+  ```tsx
+  import classnames from "classnames";
+
+  <NumberInput
+    allowEmpty
+    className={classNames(styles.textInput, val.className)}
+    // ... autres props omis pour plus de brièveté
+  />;
+  ```
+
+  L'extrait suivant montre un cas plus avancé - une `div` stylisée avec plusieurs styles conditionnels:
 
   ```tsx
   return (

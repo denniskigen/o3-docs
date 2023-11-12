@@ -1,0 +1,50 @@
+# Personnaliser votre carte d'importation
+
+Une carte d'importation est un fichier JSON qui mappe les noms de modules aux URL. Dans ce cas, ces modules sont ce qu'on appelle des [modules frontend](/docs/frontend-modules/overview) ou microfrontends dans O3. L'URL est l'URL du fichier `index.js` du module. L'URL peut être un chemin relatif ou une URL absolue. Dans ce cas, les URL sont relatives à l'emplacement du fichier de carte d'importation sur le serveur où le frontend est hébergé.
+
+La carte d'importation par défaut pour une instance O3 vanille ressemble à ceci:
+
+```json
+{
+  "imports":
+    {
+      "@openmrs/esm-home-app": "./openmrs-esm-home-app-5.1.1-pre.286/openmrs-esm-home-app.js",
+      "@openmrs/esm-patient-flags-app": "./openmrs-esm-patient-flags-app-5.1.1-pre.2911/openmrs-esm-patient-flags-app.js",
+      "@openmrs/esm-patient-chart-app": "./openmrs-esm-patient-chart-app-5.1.1-pre.2911/openmrs-esm-patient-chart-app.js",
+      "@openmrs/esm-form-entry-app": "./openmrs-esm-form-entry-app-5.1.1-pre.2911/openmrs-esm-form-entry-app.js",
+      "@openmrs/esm-patient-forms-app": "./openmrs-esm-patient-forms-app-5.1.1-pre.2911/openmrs-esm-patient-forms-app.js",
+      "@openmrs/esm-patient-allergies-app": "./openmrs-esm-patient-allergies-app-5.1.1-pre.2911/openmrs-esm-patient-allergies-app.js",
+      "@openmrs/esm-patient-banner-app": "./openmrs-esm-patient-banner-app-5.1.1-pre.2911/openmrs-esm-patient-banner-app.js",
+      "@openmrs/esm-patient-orders-app": "./openmrs-esm-patient-orders-app-5.1.1-pre.2911/openmrs-esm-patient-orders-app.js",
+      "@openmrs/esm-system-admin-app": "./openmrs-esm-system-admin-app-4.0.1-pre.86/openmrs-esm-system-admin-app.js",
+      "@openmrs/esm-patient-attachments-app": "./openmrs-esm-patient-attachments-app-5.1.1-pre.2911/openmrs-esm-patient-attachments-app.js",
+      "@openmrs/esm-openconceptlab-app": "./openmrs-esm-openconceptlab-app-4.0.1-pre.86/openmrs-esm-openconceptlab-app.js",
+      "@openmrs/esm-generic-patient-widgets-app": "./openmrs-esm-generic-patient-widgets-app-5.1.1-pre.2911/openmrs-esm-generic-patient-widgets-app.js",
+      "@openmrs/esm-active-visits-app": "./openmrs-esm-active-visits-app-5.1.1-pre.2324/openmrs-esm-active-visits-app.js",
+      "@openmrs/esm-devtools-app": "./openmrs-esm-devtools-app-5.2.1-pre.1156/openmrs-esm-devtools-app.js",
+      "@openmrs/esm-login-app": "./openmrs-esm-login-app-5.2.1-pre.1156/openmrs-esm-login-app.js",
+      "@openmrs/esm-patient-labs-app": "./openmrs-esm-patient-labs-app-5.1.1-pre.2911/openmrs-esm-patient-labs-app.js",
+      "@openmrs/esm-patient-conditions-app": "./openmrs-esm-patient-conditions-app-5.1.1-pre.2911/openmrs-esm-patient-conditions-app.js",
+      "@openmrs/esm-patient-programs-app": "./openmrs-esm-patient-programs-app-5.1.1-pre.2911/openmrs-esm-patient-programs-app.js",
+      "@openmrs/esm-patient-appointments-app": "./openmrs-esm-patient-appointments-app-5.1.1-pre.2911/openmrs-esm-patient-appointments-app.js",
+      "@openmrs/esm-patient-notes-app": "./openmrs-esm-patient-notes-app-5.1.1-pre.2911/openmrs-esm-patient-notes-app.js",
+      "@openmrs/esm-cohort-builder-app": "./openmrs-esm-cohort-builder-app-3.0.1-pre.179/openmrs-esm-cohort-builder-app.js",
+      "@openmrs/esm-patient-search-app": "./openmrs-esm-patient-search-app-5.1.1-pre.2324/openmrs-esm-patient-search-app.js",
+      "@openmrs/esm-patient-medications-app": "./openmrs-esm-patient-medications-app-5.1.1-pre.2911/openmrs-esm-patient-medications-app.js",
+      "@openmrs/esm-patient-list-app": "./openmrs-esm-patient-list-app-5.1.1-pre.2324/openmrs-esm-patient-list-app.js",
+      "@openmrs/esm-patient-registration-app": "./openmrs-esm-patient-registration-app-5.1.1-pre.2324/openmrs-esm-patient-registration-app.js",
+      "@openmrs/esm-primary-navigation-app": "./openmrs-esm-primary-navigation-app-5.2.1-pre.1156/openmrs-esm-primary-navigation-app.js",
+      "@openmrs/esm-service-queues-app": "./openmrs-esm-service-queues-app-5.1.1-pre.2324/openmrs-esm-service-queues-app.js",
+      "@openmrs/esm-implementer-tools-app": "./openmrs-esm-implementer-tools-app-5.2.1-pre.1156/openmrs-esm-implementer-tools-app.js",
+      "@openmrs/esm-appointments-app": "./openmrs-esm-appointments-app-5.1.1-pre.2324/openmrs-esm-appointments-app.js",
+      "@openmrs/esm-dispensing-app": "./openmrs-esm-dispensing-app-1.1.1-pre.244/openmrs-esm-dispensing-app.js",
+      "@openmrs/esm-patient-vitals-app": "./openmrs-esm-patient-vitals-app-5.1.1-pre.2911/openmrs-esm-patient-vitals-app.js",
+      "@openmrs/esm-fast-data-entry-app": "./openmrs-esm-fast-data-entry-app-1.0.1-pre.117/openmrs-esm-fast-data-entry-app.js",
+      "@openmrs/esm-form-builder-app": "./openmrs-esm-form-builder-app-2.1.1-pre.626/openmrs-esm-form-builder-app.js",
+    },
+}
+```
+
+Elle est construite à partir des modules spécifiés dans la clé `frontendModules` du fichier de [configuration de construction spa](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/720408a57c98f51355496cb990fd19a0a8ebfce8/frontend/spa-build-config.json) de l'application de référence de la distribution.
+
+Les implémenteurs ont la possibilité de choisir quels modules frontend inclure dans leur instance. Cela se fait en personnalisant la carte d'importation. Vous pouvez ajouter ou supprimer des URL de module frontend du fichier `spa-build config` puis reconstruire l'application de référence de la distribution. La carte d'importation sera mise à jour en conséquence.

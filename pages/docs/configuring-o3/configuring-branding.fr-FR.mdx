@@ -1,0 +1,122 @@
+# Configuration de la marque
+
+Les responsables de la mise en œuvre peuvent configurer divers aspects de l'interface utilisateur pour qu'elle corresponde à leur image de marque. Il s'agit notamment de:
+
+- Changer le logo sur l'écran de connexion
+- Changer le logo sur la barre de navigation
+- Changer les couleurs de la marque
+
+## Modifier les logos
+
+Les logos sont utilisés à deux endroits dans O3:
+
+- La page de connexion 
+- La barre de navigation
+
+### Changer le logo utilisé sur la page de connexion
+
+Le logo par défaut utilisé dans la page du logo O3 est le sprite SVG OpenMRS défini [ici](https://github.com/openmrs/openmrs-esm-core/blob/0def92114577a10bd81e78c25de0edd4ced3a84d/packages/apps/esm-login-app/src/login/login.component.tsx#L160). Vous pouvez remplacer le logo en fournissant une image valide `src` URL comme valeur de la propriété `src` dans le schéma de configuration du module frontend login. Ce qui suit est un extrait de ce à quoi cela ressemblerait:
+
+```json
+{
+  "@openmrs/esm-login-app": {
+    "logo": {
+      "src": "https://data.kenyahmis.org/openmrs/images/logos/kenyaemr-logo.svg",
+      "alt": "KenyaEMR logo"
+    }
+  }
+}
+```
+
+Dans ce cas, le logo spécifié à cette URL sera appliqué comme logo par défaut de la page de connexion. Pour persister dans ce changement, vous devrez ajouter la configuration à la configuration de votre instance.
+
+### Modifier le logo utilisé dans la barre de navigation
+
+De même, le logo par défaut utilisé dans la barre de navigation est configuré [ici](https://github.com/openmrs/openmrs-esm-core/blob/0def92114577a10bd81e78c25de0edd4ced3a84d/packages/apps/esm-primary-navigation-app/src/components/logo/logo.component.tsx#L10). Vous pouvez utiliser une chaîne de caractères ou une image SVG comme logo de la barre de navigation. Pour remplacer le logo de la barre de navigation, utilisez une configuration similaire à l'extrait ci-dessous:
+
+```json
+{
+  "@openmrs/esm-primary-navigation-app": {
+    "logo": {
+      // Utilisation d'une image SVG URL
+      "src": "https://data.kenyahmis.org/openmrs/images/logos/kenyaemr-logo-nav.svg"
+      // Ou en utilisant une chaîne de caractères
+      "name": "KenyaEMR",
+    }
+  }
+}
+```
+
+## Changer les couleurs de la marque
+
+Les implémenteurs peuvent changer les couleurs de marque par défaut spécifiées dans le guide de style, en les remplaçant par des valeurs hexadécimales qui correspondent à leurs propres couleurs de marque. Les couleurs de marque par défaut qui déterminent l'apparence de l'interface utilisateur sont définies dans le schéma de configuration du `guide de style`. Pour les remplacer, utilisez une configuration similaire à l'extrait ci-dessous:
+
+```json
+{
+  "@openmrs/esm-styleguide": {
+    "Couleur de la marque #1": "#00473F", // La couleur 'principale'
+    "Couleur de la marque #2": "#363463", // La couleur 'secondaire'
+    "Couleur de la marque #3": "#51A351" // La couleur 'tertiaire'
+  }
+}
+```
+
+Ces couleurs ont un impact sur les éléments d'interface utilisateur suivants:
+
+### Couleur principale
+
+La couleur principale affecte:
+
+- La couleur de la barre de navigation
+  <br />
+  ![navbar](/navbar.png)
+  <br />
+
+- La couleur de survol des éléments du menu de l'application
+  <br />
+  ![couleur de survol des éléments du menu de l'application](/app-menu-items-hover.png)
+  <br />
+
+- La couleur de l'application sélectionnée dans la barre latérale
+  <br />
+  ![icône de la barre latérale sélectionnée](/siderail-icon.png)
+  <br />
+
+### Couleur secondaire
+
+La couleur secondaire affecte:
+
+- La couleur de fond des éléments du menu de l'application
+  <br />
+  ![éléments du menu de l'application](/app-menu-items.png)
+  <br />
+
+### Couleur tertiaire
+
+La couleur tertiaire affecte:
+
+- La couleur des boutons
+  <br />
+  ![couleur du bouton](/button.png)
+  <br />
+
+- La couleur de soulignement du titre du widget
+  <br />
+  ![couleur de soulignement du titre du widget](/widget-title-underline-color.png)
+  <br />
+
+## Démonstration vidéo
+
+Regardez la vidéo pour voir une démo de comment configurer la marque:
+
+  <br />
+  <iframe
+    width="560"
+    height="315"
+    src="https://www.youtube.com/embed/u5TmUFBrm_s"
+    title="Thématique et étiquetage blanc avec OpenMRS 3"
+    frameborder="0"
+    allow="accelerometer ; autoplay ; clipboard-write ; encrypted-media ; gyroscope ; picture-in-picture ; web-share"
+    allowfullscreen
+  />
+```

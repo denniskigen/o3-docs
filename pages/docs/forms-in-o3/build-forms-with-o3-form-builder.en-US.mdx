@@ -1,0 +1,175 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+# Building forms using the O3 form builder
+
+O3 comes out of the box with a built-in form builder that you could leverage to build your form schemas. To access it, click the app switcher icon in the navigation bar and click the `System Administration` link. You'll get navigated to the System Administration page where you'll see a list of cards for apps. Click on the `Form Builder` card and you'll be navigated to the Form Builder UI.
+
+## Features of the O3 form builder
+
+The main pages in the O3 form builder are:
+
+- The `Forms Dashboard` - where you'll see a tabular list of form schemas saved in your server. You can search through the available forms and filter them by publish status. You can also click on the Edit icon next to each form to launch it in the form editor, where you can make changes to it.
+- The `Form Editor` - where you can create a new form schema or edit an existing one. The Form Editor consists of the following things:
+
+  - `Schema Editor` - contains an embedded JSON editor that uses the [React Ace](https://github.com/securingsincity/react-ace) library. Changes made to the schema editor have to be synced over to the Form Preview by clicking the `Render changes` button at the top of the editor. JSON code typed into the editor should match the [standard O3 form schema](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). Read the [docs](https://ampath-forms.vercel.app/docs/core-concepts/forms) to learn more about what schema properties are available.
+  - `Form Preview` - a live form preview that renders the form schema as you would see it within your EMR. The Form Preview responds to changes made to the Schema Editor and the Interactive Builder.
+  - `Interactive Builder` - an interactive UI that enables you to build out your form schemas without writing JSON code. Changes to your schema get synced over to both the Schema Editor and the Form Preview as you build your form. You can use the Interactive Builder to add pages, sections, and questions to your form.
+  - `Audit details` - a UI that displays audit information related to a form, including the form's name, description, version, and published status.
+
+Once you've built out your form schema to fit your requirements, you could choose to:
+
+- `Validate fields` - the O3 Form Builder has rich validation capabilities. To learn more about what's possible, read the [Validation guide](https://ampath-forms.vercel.app/docs/validation/date-based-validation).
+- `Save` your form to the server - saving your schema to your own database is the best way to guarantee persistence. The O3 server is ephemeral at best and should not be relied upon for persisting your schemas. We recommend maintaining a local backup of your schemas to avoid losing them when working with the O3 server.
+- `Publish` or `unpublish` your form - Once you've saved your form, you can choose to publish it. Only published forms are accessible to the forms workspace in the patient chart. We recommend maintaining some kind of versioning scheme so you can control which forms are accessible to users and which ones aren't. In addition to publishing forms, you can also unpublish existing published forms. This can be useful if, say, you want to deprecate an older version of a form and replace it with a new version but wish to maintain some kind of version history.
+
+## Using the form builder
+
+<Callout emoji="ℹ️" type="info">
+  If you're starting from a point where you have forms built using the HTML Form
+  Entry module that don't match the [standard O3 form
+  schema](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json),
+  you might want to begin by reading the
+  [conversion](/docs/forms/convert-existing-hfe-forms) guide.
+</Callout>
+
+### Creating a new form
+
+To create a new form, do the following:
+
+<Steps>
+
+#### Step 1
+
+Launch the form builder and click the `Create a new form` button. You'll be directed to the Form Editor.
+
+#### Step 2
+
+Here, you can choose to type JSON code into the Schema Editor or to build your form dynamically using the Interactive Builder.
+
+To use the Schema Editor:
+
+- Press the `Input Dummy Schema` button to get a scaffold in your editor where you can begin editing from. Amend the scaffold by deleting the replacing the values of the properties highlighted below with your own content:
+
+```json {3, 7, 10, 13, 16, 17, 19, 20-21, 23, 28, 32-33, 35, 38-52, 55}
+{
+  "encounterType": "",
+  "name": "Sample Form",
+  "processor": "EncounterFormProcessor",
+  "referencedForms": [],
+  "uuid": "",
+  "version": "1.0",
+  "pages": [
+    {
+      "label": "First Page",
+      "sections": [
+        {
+          "label": "A Section",
+          "isExpanded": "true",
+          "questions": [
+            {
+              "label": "A Question of type obs that renders a text input",
+              "type": "obs",
+              "questionOptions": {
+                "rendering": "text",
+                "concept": "a-system-defined-concept-uuid"
+              },
+              "id": "sampleQuestion"
+            }
+          ]
+        },
+        {
+          "label": "Another Section",
+          "isExpanded": "true",
+          "questions": [
+            {
+              "label": "Another Question of type obs whose answers get rendered as radio inputs",
+              "type": "obs",
+              "questionOptions": {
+                "rendering": "radio",
+                "concept": "system-defined-concept-uuid",
+                "answers": [
+                  {
+                    "concept": "another-system-defined-concept-uuid",
+                    "label": "Choice 1",
+                    "conceptMappings": []
+                  },
+                  {
+                    "concept": "yet-another-system-defined-concept-uuid",
+                    "label": "Choice 2",
+                    "conceptMappings": []
+                  },
+                  {
+                    "concept": "yet-one-more-system-defined-concept-uuid",
+                    "label": "Choice 3",
+                    "conceptMappings": []
+                  }
+                ]
+              },
+              "id": "anotherSampleQuestion"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+To use the Interactive Builder:
+
+- Click on the `Interactive Builder` tab
+- Click the `Start building` button
+- Enter a `form name` and an optional `form description`
+- Click the `Create form` button
+- Click the `Add Page +` button to add a new page
+- Click the `Add Section +` button to add a new section
+- Click the `Add Question +` button to add a new question
+
+</Steps>
+
+### Editing an existing form
+
+Follow the steps below to edit existing forms:
+
+<Steps>
+
+#### Step 1
+
+Launch the form builder and click the Pen icon next to a form schema. You'll be directed to the Form Editor.
+
+#### Step 2
+
+Here, you can choose to use either the Schema Editor or the Interactive Builder to edit your schema. Follow the steps above for guidance.
+
+#### Step 3
+
+Ultimately, when you're done editing your form, you'll want to save it. Click the `Save` button and click the `Update existing version` button. Any details entered from either the Schema Editor and Interactive Builder should get picked up here automatically. If you've made significant changes, you might consider updating the version of your form, as well as describing what changed in the description field. Click the `Save` button to persist your changes to the server.
+
+#### Step 4
+
+At this point, if your form is ready for use, you can choose to publish it. To do so, click the `Publish form` button at the top of the Form Editor to publis h the form and make it available in the patient chart.
+
+</Steps>
+
+## Useful resources
+
+- Angular form engine [documentation](https://ampath-forms.vercel.app/docs)
+- [Form Builder app repo](https://github.com/openmrs/openmrs-esm-form-builder)
+- Video tutorial: Form Builder demo (old version)
+
+  <br />
+  <iframe
+    width="560"
+    height="315"
+    src="https://www.youtube.com/embed/PS15rtHut9A"
+    title="YouTube video player"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen
+  ></iframe>
+
+  <Callout emoji="ℹ️" type="info">
+    Note: For the ID, please use a Unique ID (eg generate one
+    [here](https://www.uuidgenerator.net/)) rather than re-using the Concept ID
+    as is shown in the video.
+  </Callout>

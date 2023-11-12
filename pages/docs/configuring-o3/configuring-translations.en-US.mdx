@@ -1,0 +1,70 @@
+import { Steps } from 'nextra-theme-docs';
+
+# Configuring translations
+
+There are several categories translations live in within our software project:
+
+- `Code`: We use a tool called [Transifex](https://explore.transifex.com/openmrs/) to automatically extract hard-coded words (e.g. "Click Here"), translate them in the Transifex UI, and contribute those translations back to the O3 RefApp.
+- `Terminology`: e.g. the CIEL code 121375 for Asthma has multiple existing translations attached to it ([as you can see here](https://app.openconceptlab.org/#/orgs/CIEL/sources/CIEL/concepts/121375/)). If you were using that code and wanted a new language option, you would need that added as metadata on this concept.
+- `Forms`: If you already have translations attached to particular concepts you are using, you can have those translations show up in your forms. Simply _don’t_ supply a label in the Form Builder, and then the form will automatically use the concept name instead. Note that because of differences in the form engines, it will show up as an unlabelled question in the Form Builder, but it will work in the Angular Engine. As of Oct 2023, the Angular Form Engine has more complete translation coverage than the React one (though we plan to improve that in the coming months). 
+  - If you add a brand-new locale that was not in O3 before, note that the form-entry-app currently expects translation files (ex. ar.json) to exist, so you may see issues with the forms loading. Workaround here: [Issue O3-2492](https://issues.openmrs.org/browse/O3-2492). 
+
+## Using Transifex
+
+### How to translate strings in OpenMRS code elements via Transifex
+
+You can find the OpenMRS Transifex tutorial [here](https://mekom.notion.site/Translating-OpenMRS-frontend-via-Transifex-398836d729ff46d0b30232daa2c59945). Questions or feedback on this Tutorial can be shared in [this Talk Forum thread](https://talk.openmrs.org/t/translating-openmrs-frontend-via-transifex/37490).
+
+Guidance on using Transifex for older OpenMRS Modules (OMODs) can be found [here](https://wiki.openmrs.org/display/docs/Maintaining+OpenMRS+Module+Translations+via+Transifex). Tips on Transifex integration with OpenMRS repos in general are also discussed [here](https://talk.openmrs.org/t/transifex-integration-with-openmrs-repositories/34557).
+
+### How to get translate strings from Transifex into the O3 RefApp
+
+<Steps>
+
+#### Step 1: Set up Transifex
+  
+Ensure the O3 repos you need are included in the OpenMRS organization's Transifex project.
+
+#### Step 2: Complete translation in the Transifex UI
+
+Ensure your translation team goes through the Transifex UI to translate each repo’s strings (see the UI guide above).
+
+#### Step 3a: Simple manual workflow for exporting JSON from Transifex and uploading to O3
+
+Export translated JSON content from Transifex by going to the left navigation, clicking Resources for the Repo, then click the language you want, and click “Download for use” from the Resources modal that pops up. This downloads a JSON file for you.
+
+![Transifex Modal to Download a JSON Export](/transifex-download-json-export.png)
+
+#### Step 3b: Automated Workflow (alternative to Step 3a above)
+
+This can also be done by using the [CLI Transifex client](https://developers.transifex.com/docs/cli) and running `tx pull -l fr` (to get the fr locale for instance) and commit the changes.
+
+#### Step 4: Upload JSON into the repo’s src/translations/ directory
+
+Upload JSON into the repo’s esm-NAME-app/translations/ directory:_ E.g. [this example](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-active-visits-app/translations) of JSON string translations uploaded for the active visits app.
+
+Following this, the strings should be translated in the UI when the user switches their locale.
+
+![Locale Switcher UI](/translation-locale-switcher.png)
+
+</Steps>
+
+## Translation Overrides Specific to an Individual O3 Module
+
+You can use the configuration system to provide localised translations for O3 components. This is useful if, for example, you want to change the label on a button or rename a link. This should not be used to translate components into a new locale. Instead, please help us out by adding those translations directly to the RefApp using [Transifex](https://explore.transifex.com/openmrs/).
+
+For example, if you wanted to rename the "Start a Visit " action on the patient chart, you can use this configuration:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "Translation overrides": {
+      "en": {
+        "startVisit": "Check-in"
+      }
+    }
+  }
+}
+```
+
+Translation overrides, like this, can be provided at any level of configuration, including the configuration for a particular slot or an extension in a slot. Note that the string "Translation overrides" must be in exactly that case, the key, like "en" should be the locale you want to override the translation for and the translation key, e.g., "startVisit" should match what is in the translation file for the locale you want to override. Multiple languages can be specified by having multiple keys, e.g., "en" and "fr" would allow you to override the text in both English and French.

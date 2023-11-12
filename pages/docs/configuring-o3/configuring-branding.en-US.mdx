@@ -1,0 +1,121 @@
+# Configuring branding
+
+Implementers can configure various aspects of the user interface to match their branding. This includes:
+
+- Changing the logo on the login screen
+- Changing the logo on the navbar
+- Changing brand colors
+
+## Changing logos
+
+Logos are used in two places in O3:
+
+- The login page 
+- The navbar
+
+### Changing the logo used on the login page
+
+The default logo used in the O3 logo page is the OpenMRS SVG sprite defined [here](https://github.com/openmrs/openmrs-esm-core/blob/0def92114577a10bd81e78c25de0edd4ced3a84d/packages/apps/esm-login-app/src/login/login.component.tsx#L160). You can override the logo by providing a valid image `src` URL as the value of `src` property in the login frontend module's configuration schema. The following is a snippet of how this would look like:
+
+```json
+{
+  "@openmrs/esm-login-app": {
+    "logo": {
+      "src": "https://data.kenyahmis.org/openmrs/images/logos/kenyaemr-logo.svg",
+      "alt": "KenyaEMR logo"
+    }
+  }
+}
+```
+
+In this case, the logo specified at that URL will get applied as the default login page logo. To persist this change, you will need to add the configuration to your instance's configuration.
+
+### Changing the logo used on the navbar
+
+Similarly, the default logo used on the navbar is configured [here](https://github.com/openmrs/openmrs-esm-core/blob/0def92114577a10bd81e78c25de0edd4ced3a84d/packages/apps/esm-primary-navigation-app/src/components/logo/logo.component.tsx#L10). You can optionally use a string or an SVG image as the navbar logo. To override the navbar logo, use a configuration similar to the snippet below:
+
+```json
+{
+  "@openmrs/esm-primary-navigation-app": {
+    "logo": {
+      // Using an SVG image URL
+      "src": "https://data.kenyahmis.org/openmrs/images/logos/kenyaemr-logo-nav.svg"
+      // Or, using a string
+      "name": "KenyaEMR",
+    }
+  }
+}
+```
+
+## Changing brand colors
+
+Implementers can change the default brand colors specified in the styleguide, overriding them hex values that conform to their own brand colors. The default brand colors that determine how the UI looks like are defined in the `styleguide` configuration schema. To override them, use a configuration similar to the snippet below:
+
+```json
+{
+  "@openmrs/esm-styleguide": {
+    "Brand color #1": "#00473F", // The 'primary' color
+    "Brand color #2": "#363463", // The 'secondary' color
+    "Brand color #3": "#51A351" // The 'tertiary' color
+  }
+}
+```
+
+These colors impact the following UI elements:
+
+### Primary color
+
+The primary color affects:
+
+- The navbar color
+  <br />
+  ![navbar](/navbar.png)
+  <br />
+
+- The app menu item hover color
+  <br />
+  ![app menu item hover color](/app-menu-items-hover.png)
+  <br />
+
+- The color of the selected app in the siderail
+  <br />
+  ![selected siderail icon](/siderail-icon.png)
+  <br />
+
+### Secondary color
+
+The secondary color affects:
+
+- App menu items background color
+  <br />
+  ![app menu items](/app-menu-items.png)
+  <br />
+
+### Tertiary color
+
+The tertiary color affects:
+
+- The color of buttons
+  <br />
+  ![button color](/button.png)
+  <br />
+
+- Widget title underline color
+  <br />
+  ![widget title underline color](/widget-title-underline-color.png)
+  <br />
+
+## Video demo
+
+Watch the video to see a demo of how to configure branding:
+  
+  <br />
+  <iframe
+    width="560"
+    height="315"
+    src="https://www.youtube.com/embed/u5TmUFBrm_s"
+    title="Theming and White Labelling with OpenMRS 3"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen
+  />

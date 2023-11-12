@@ -1,0 +1,16 @@
+# Configurer le formulaire des signes vitaux et de biométrie
+
+Dans certains cas, vous pouvez vouloir ou avoir besoin d'utiliser un formulaire spécifique (par exemple, un formulaire d'évaluation de triage existant) en remplacement du formulaire structuré de l'application des signes vitaux par défaut. Dans ce cas, vous allez instruire l'application esm-patient-vitals-app pour utiliser un formulaire particulier que vous avez déjà configuré. (Pour plus d'informations sur la configuration des formulaires dans O3, voir la section _Formulaires dans O3_).
+
+### Exemple de configuration
+
+```json
+"@openmrs/esm-patient-vitals-app": {
+  "vitals": {
+    "useFormEngine": true,
+    "formName": "Opération chirurgicale",
+    "formUuid": "96637f12-3c04-311f-b477-3fa6a866e895",
+    "encounterTypeUuid": "67a71486-1a54-468f-ac3e-7091a9a79584"
+  }
+}
+```

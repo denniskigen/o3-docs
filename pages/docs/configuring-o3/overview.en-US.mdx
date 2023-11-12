@@ -1,0 +1,57 @@
+# Overview
+
+There are various approaches implementers can use to configure their O3 instances. These include:
+
+- Distro-level configuration
+- Metadata configuration
+- Import map configuration
+- Configuring individual frontend modules
+
+## Distro-level configuration
+
+Implementers can configure their instances at the distro-level using the following approaches:
+
+- Specifying configuration properties in the `distro.properties` file.
+- Specifying a JSON configuration in your distro.
+
+### Configuring branding for your distro
+
+Read the [branding guide](/docs/configuring-o3/configure-branding) to learn how to configure the appearance of your O3 instance.
+
+## Configuring metadata
+
+Metadata configurations get loaded through the [initializer module](https://github.com/mekomsolutions/openmrs-module-initializer) in O3. The initializer module, or iniz for short, is a module that allows implementers to load metadata into their OpenMRS instances through JSON files. The various configuration files tht ship with O3 are located in the `distro/configuration` directory of the [distro reference application config](https://github.com/openmrs/openmrs-distro-referenceapplication/tree/main/distro/configuration) repository. The Initializer module supports loading a wide variety of data and metadata types, including but not limited to:
+
+- Concepts
+- Locations
+- Person attribute types
+- Global properties
+- Encounter types
+- Visit types
+- Programs
+- Program workflows
+- Program workflow states
+
+## Customizing your import map
+
+An import map is a mechanism that maps JavaScript module specifiers to URLs. The import map is a crucial aspect of the O3 architecture, allowing for the dynamic loading of modules at runtime. This means implementers can add, remove or update modules from their import map and thus customize the UI of their O3 instance.
+
+The default import map that ships with O3 gets built out from the modules specified in the `frontendModules` key of the distro reference application's [spa-build config](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/720408a57c98f51355496cb990fd19a0a8ebfce8/frontend/spa-build-config.json) file.
+
+## Configuring individual frontend modules
+
+Per-app configuration is available in O3 via the built-in [configuration system](/docs/configuration-system). Each frontend module can define its own configuration schema in a `config-schema.ts` file inside it's `src` directory. The properties specified in the config schema allow implementers to tailor the behavior of the module to their needs. The configuration system also allows implementers to specify default values for the various configuration properties. 
+
+Implementers are able to make changes to frontend module configurations through the built-in implementer tools panel. Once you log into O3, clicking the caret arrow centered at the bottom of the screen will pull up the implemeter tools. Alternatively, you can click on the cog icon in the navbar. Once open, you can look up configuration properties by searching through the configuration and modify them on the fly. Note that any tweaks made to the configuration through the implementer tools will be lost once you refresh the page. To make permanent changes to the configuration, you will need to commit those changes to your distro configuration. The implementer tools allow you to download a temporary config file containing your changes by clicking the `Download temporary config` button.
+
+When working on a frontend module, any changes you make to the `config-schema.ts` file get can then be accessed programmatically via the `useConfig` hook as shown in the code snippet below:
+
+```ts
+import { useConfig } from "@openmrs/esm-framework";
+
+export default function GreetUser({user}) {
+  const config = useConfig();
+  const greeting = config.greeting + ', ' + user.name
+  return <span>{greeting}</span>;
+}
+```

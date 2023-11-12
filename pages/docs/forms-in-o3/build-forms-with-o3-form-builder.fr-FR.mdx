@@ -1,0 +1,171 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+# Construire des formulaires en utilisant le constructeur de formulaires O3
+
+O3 est livré avec un constructeur de formulaires intégré que vous pouvez utiliser pour construire vos schémas de formulaires. Pour y accéder, cliquez sur l'icône du sélecteur d'applications dans la barre de navigation et cliquez sur le lien `Administration du Système`. Vous serez dirigé vers la page d'administration du système où vous verrez une liste de cartes pour les applications. Cliquez sur la carte `Constructeur de Formulaires` et vous serez dirigé vers l'interface utilisateur du constructeur de formulaires.
+
+## Fonctionnalités du constructeur de formulaires O3
+Les principales pages du constructeur de formulaires O3 sont:
+
+- Le `Tableau de bord des formulaires` - où vous verrez une liste tabulaire des schémas de formulaires enregistrés sur votre serveur. Vous pouvez rechercher parmi les formulaires disponibles et les filtrer par statut de publication. Vous pouvez également cliquer sur l'icône d'édition à côté de chaque formulaire pour le lancer dans l'éditeur de formulaires, où vous pouvez y apporter des modifications.
+- `L'Éditeur de formulaires` - où vous pouvez créer un nouveau schéma de formulaire ou en modifier un existant. L'éditeur de formulaires se compose des éléments suivants:
+
+  - `Éditeur de schéma` - contient un éditeur JSON intégré qui utilise la bibliothèque [React Ace](https://github.com/securingsincity/react-ace). Les modifications apportées à l'éditeur de schéma doivent être synchronisées avec l'aperçu du formulaire en cliquant sur le bouton `Rendre les modifications` en haut de l'éditeur. Le code JSON saisi dans l'éditeur doit correspondre au [schéma de formulaire O3 standard](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). Lisez les [documents](https://ampath-forms.vercel.app/docs/core-concepts/forms) pour en savoir plus sur les propriétés de schéma disponibles.
+  - `Aperçu du formulaire` - un aperçu en direct du formulaire qui rend le schéma du formulaire comme vous le verriez dans votre DME. L'aperçu du formulaire répond aux modifications apportées à l'éditeur de schéma et au constructeur interactif.
+  - `Constructeur interactif` - une interface utilisateur interactive qui vous permet de construire vos schémas de formulaires sans écrire de code JSON. Les modifications apportées à votre schéma sont synchronisées avec l'éditeur de schéma et l'aperçu du formulaire lorsque vous construisez votre formulaire. Vous pouvez utiliser le constructeur interactif pour ajouter des pages, des sections et des questions à votre formulaire.
+  - `Détails de l'audit` - une interface utilisateur qui affiche les informations d'audit relatives à un formulaire, y compris le nom du formulaire, sa description, sa version et son statut de publication.
+
+Une fois que vous avez construit votre schéma de formulaire pour répondre à vos exigences, vous pouvez choisir de:
+
+  - `Valider les champs` - le Constructeur de Formulaires O3 a de riches capacités de validation. Pour en savoir plus sur ce qui est possible, lisez le [guide Validation](https://ampath-forms.vercel.app/docs/validation/date-based-validation).
+  - Enregistrer votre formulaire sur le `serveur` - sauvegarder votre schéma sur votre propre base de données est le meilleur moyen de garantir la persistance. Le serveur O3 est éphémère au mieux et ne doit pas être utilisé pour persister vos schémas. Nous recommandons de maintenir une sauvegarde locale de vos schémas pour éviter de les perdre lors de l'utilisation du serveur O3.
+  - `Publier` ou `dépublier` votre formulaire - Une fois que vous avez enregistré votre formulaire, vous pouvez choisir de le publier. Seuls les formulaires publiés sont accessibles à l'espace de travail des formulaires dans le dossier du patient. Nous recommandons de maintenir un certain type de système de versionnement afin de pouvoir contrôler quels formulaires sont accessibles aux utilisateurs et lesquels ne le sont pas. En plus de publier des formulaires, vous pouvez également dépublier des formulaires déjà publiés. Cela peut être utile si, par exemple, vous souhaitez déprécier une ancienne version d'un formulaire et la remplacer par une nouvelle version, mais souhaitez conserver une certaine historique des versions.
+
+## Utilisation du constructeur de formulaires
+
+  <Callout emoji="ℹ️" type="info">
+    Si vous partez d'un point où vous avez des formulaires construits en utilisant le module HTML Form Entry qui ne correspondent pas au [schéma de formulaire O3 standard](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json), vous voudrez peut-être commencer par lire le guide de [conversion](/docs/forms/convert-existing-hfe-forms).
+  </Callout>
+
+### Créer un nouveau formulaire
+
+Pour créer un nouveau formulaire, faites ce qui suit:
+
+<Steps>
+
+#### Étape 1
+
+Lancez le constructeur de formulaires et cliquez sur le bouton `Créer un nouveau formulaire`. Vous serez dirigé vers l'Éditeur de Formulaires.
+
+#### Étape 2
+
+Ici, vous pouvez choisir de taper du code JSON dans l'Éditeur de Schémas ou de construire votre formulaire de manière dynamique en utilisant le Constructeur Interactif.
+
+Pour utiliser l'Éditeur de Schémas:
+
+- Appuyez sur le bouton `Input Dummy Schema` pour obtenir une ébauche dans votre éditeur à partir de laquelle vous pouvez commencer à éditer. Modifiez l'ébauche en supprimant et en remplaçant les valeurs des propriétés mises en évidence ci-dessous par votre propre contenu:
+
+```json {3, 7, 10, 13, 16, 17, 19, 20-21, 23, 28, 32-33, 35, 38-52, 55}
+{
+  "encounterType": "",
+  "name": "Sample Form",
+  "processor": "EncounterFormProcessor",
+  "referencedForms": [],
+  "uuid": "",
+  "version": "1.0",
+  "pages": [
+    {
+      "label": "First Page",
+      "sections": [
+        {
+          "label": "A Section",
+          "isExpanded": "true",
+          "questions": [
+            {
+              "label": "A Question of type obs that renders a text input",
+              "type": "obs",
+              "questionOptions": {
+                "rendering": "text",
+                "concept": "a-system-defined-concept-uuid"
+              },
+              "id": "sampleQuestion"
+            }
+          ]
+        },
+        {
+          "label": "Another Section",
+          "isExpanded": "true",
+          "questions": [
+            {
+              "label": "Another Question of type obs whose answers get rendered as radio inputs",
+              "type": "obs",
+              "questionOptions": {
+                "rendering": "radio",
+                "concept": "system-defined-concept-uuid",
+                "answers": [
+                  {
+                    "concept": "another-system-defined-concept-uuid",
+                    "label": "Choice 1",
+                    "conceptMappings": []
+                  },
+                  {
+                    "concept": "yet-another-system-defined-concept-uuid",
+                    "label": "Choice 2",
+                    "conceptMappings": []
+                  },
+                  {
+                    "concept": "yet-one-more-system-defined-concept-uuid",
+                    "label": "Choice 3",
+                    "conceptMappings": []
+                  }
+                ]
+              },
+              "id": "anotherSampleQuestion"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+Pour utiliser le Constructeur Interactif:
+
+- Cliquez sur l'onglet `Constructeur Interactif`
+- Cliquez sur le bouton `Commencer la construction`
+- Entrez un `nom de formulaire` et une `description de formulaire` optionnelle
+- Cliquez sur le bouton `Créer un formulaire`
+- Cliquez sur le bouton `Ajouter une page +` pour ajouter une nouvelle page
+- Cliquez sur le bouton `Ajouter une section +` pour ajouter une nouvelle section
+- Cliquez sur le bouton `Ajouter une question +` pour ajouter une nouvelle question
+
+</Steps>
+
+### Modifier un formulaire existant
+
+Suivez les étapes ci-dessous pour modifier les formulaires existants:
+
+<Steps>
+
+#### Étape 1
+
+Lancez le constructeur de formulaires et cliquez sur l'icône de stylo à côté d'un schéma de formulaire. Vous serez dirigé vers l'Éditeur de Formulaires.
+
+#### Étape 2
+
+Ici, vous pouvez choisir d'utiliser soit l'Éditeur de Schémas, soit le Constructeur Interactif pour modifier votre schéma. Suivez les étapes ci-dessus pour obtenir des conseils.
+
+#### Étape 3
+
+Finalement, lorsque vous avez terminé de modifier votre formulaire, vous voudrez le sauvegarder. Cliquez sur le bouton `Enregistrer` et cliquez sur le bouton `Mettre à jour la version existante`. Tous les détails entrés à partir de l'Éditeur de Schémas et du Constructeur Interactif devraient être récupérés ici automatiquement. Si vous avez apporté des modifications significatives, vous pourriez envisager de mettre à jour la version de votre formulaire, ainsi que de décrire ce qui a changé dans le champ de description. Cliquez sur le bouton `Enregistrer` pour persister vos modifications sur le serveur.
+
+#### Étape 4
+
+À ce stade, si votre formulaire est prêt à être utilisé, vous pouvez choisir de le publier. Pour ce faire, cliquez sur le bouton `Publier le formulaire` en haut de l'Éditeur de Formulaires pour publier le formulaire et le rendre disponible dans le dossier du patient.
+
+</Steps>
+
+## Ressources utiles
+
+- Documentation du moteur de formulaire Angular [documentation](https://ampath-forms.vercel.app/docs)
+- [Dépôt de l'application Form Builder](https://github.com/openmrs/openmrs-esm-form-builder)
+- Tutoriel vidéo: Démonstration de Form Builder (ancienne version)
+
+  <br />
+  <iframe
+    width="560"
+    height="315"
+    src="https://www.youtube.com/embed/PS15rtHut9A"
+    title="Lecteur vidéo YouTube"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen
+  ></iframe>
+
+  <Callout emoji="ℹ️" type="info">
+    Remarque: Pour l'ID, veuillez utiliser un ID unique (par exemple, en générer un
+    [ici](https://www.uuidgenerator.net/)) plutôt que de réutiliser l'ID de concept
+    comme il est montré dans la vidéo.
+  </Callout>
+

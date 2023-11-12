@@ -1,0 +1,29 @@
+import { Callout } from 'nextra-theme-docs';
+
+# Convert HTML Form Entry forms to O3
+
+## Overview
+
+O3 form schemas conform to a standard JSON [schema](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). Forms that match this schema can be used with the [Form Engine](/docs/key-repositories#angular-form-engine) that ships with. This means that if you have a form that doesn't match this schema, you'll need to convert it to a JSON representation that is compatible O3 schema before you can use it with O3.
+
+  <Callout emoji="ℹ️" type="info">
+    To learn more about the various properties that make up the schema, read the [core concepts](https://ampath-forms.vercel.app/docs/core-concepts/forms) section of the Angular Form Engine docs.
+  </Callout>
+
+Many implementers have forms built using the HTML Form Entry module. To make it easier to migrate these forms to O3, the Palladium Kenya team built a tool that helps you convert your HTML Form Entry forms to O3 schema. This [HFE to O3 schema converter](https://github.com/openmrs/hfe-o3-form-schema-converter) tool helps you migrate your forms by taking care of some important aspects, including:
+
+- Handling obs with defined `answerConcepts` and where the answers should be inferred from the dictionary
+- Handling of obs styling for radio, checkbox, dropdown
+- Handling obs fields that are marked as required
+- Handling of `diagnosis` answerClass
+- Handling of custom labels as defined in answerLabel/answerLabels
+- Schema generation for the `obsgroup` tag. The logic is able to group questions within an obs group. It also generates schema for groups marked as `repeating`
+- Exporting the HFE schema to a configurable directory. This is helpful in cases where the HFE schema requires further updates in order to generate the correct JSON schema
+- Provide labels for grouped obs. A new attribute `labelText` is supported for that
+- Grouping of related `checkbox`es
+
+While this won't get you all the way there in terms of migrating your forms, it should get you far along enough that you can use O3's built in form builder to make the remaining changes to your schemas.
+
+If you wish to contribute to improving the tool, feel free to read through the project [README](https://github.com/openmrs/hfe-o3-form-schema-converter/blob/main/README.md) to see what the feature roadmap looks like. We'd love to you have on there!
+
+You can also read through the related [talk post](https://talk.openmrs.org/t/o3-new-initiative-to-automate-hfe-o3-forms/36825) on OpenMRS Talk.

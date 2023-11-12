@@ -5,12 +5,19 @@ import { FileTree } from "nextra/components";
 # Overview
 
 <Callout emoji="ℹ️" type="info">
-  Significant changes to the architecture of the app shell related to how frontend modules get loaded were introduced in
-  [Core v5](/docs/changelog). If you haven't migrated your frontend modules to leverage these new capabilities, follow
-  the [Migration Guide](/docs/migration-guide) for a in-depth walkthrough of how to do so.
+  Significant changes to the architecture of the app shell related to how frontend modules get loaded were introduced in [Core v5](/docs/changelog). If you haven't migrated your frontend modules to leverage these new capabilities, follow the [Migration Guide](/docs/migration-guide) for a in-depth walkthrough of how to do so.
 </Callout>
 
-Frontend modules are the basic building blocks of O3. In O3, frontend modules are self-contained pieces of functionality that can be loaded into the app shell. They are typically organized into domain-specific [monorepos](https://monorepo.tools/#what-is-a-monorepo). For example, frontend modules concerning the management of patients exist in the [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management) monorepo.
+Frontend modules are the fundamental building block for creating applications in O3. They are self-contained pieces of functionality that can be loaded into O3 by the [app shell](/docs/app-shell). For example, you could have a frontend module that handles rendering concerns related to vitals and biometrics. This module could include the following: 
+
+- A page that displays a tabular overview of a patient's vitals and biometrics
+- A page that displays chart visualizations of a patient's vitals and biometrics.
+- A form that allows a user to record a new set of vitals and biometrics readings.
+- A vitals header that displays a patient's most recent vitals and biometrics readings.
+
+This frontend module could then be loaded into the app shell and displayed in the patient chart. Frontend modules in O3 are typically built using React, but because we use [single-spa](https://single-spa.js.org/) under the hood, they can be built using any frontend framework that single-spa supports. For example, the [Angular form engine](/docs/key-repositories#angular-form-engine) frontend module is written in Angular and is a wrapper around the [AMPATH form engine](https://ampath-forms.vercel.app/). So in that sense, the app shell is framework-agnostic. In practice, the lower-level workings of the app shell have been abstracted in such a way that frontend engineers can focus on building frontend modules without having to worry about the underlying framework.
+
+Frontend modules are typically organized into domain-specific [monorepos](https://monorepo.tools/#what-is-a-monorepo). For example, frontend modules concerning the management of patients exist in the [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management) monorepo.
 
 In this structure, you'll typically have a `packages` directory at the root of your monorepo. This packages directory will contain all of your frontend modules. For example, the patient management monorepo has the following structure:
 
@@ -36,7 +43,7 @@ In this structure, you'll typically have a `packages` directory at the root of y
 
 Each frontend module has its own `package.json` file separate from the root-level `package.json` file. This is because each frontend module is a separate NPM package. This means that each frontend module can have its own scripts and dependencies. Additionally, each frontend module has a `src` directory that contains the source code for the frontend module. The `src` directory also contains two important files from the perspective of the app shell - `index.ts` and `routes.json`. These two files define the dynamic and static metadata of the frontend module, respectively. They are discussed in more detail below.
 
-Frontend modules are also referred to as `microfrontends` in O3. They get shipped in the ES module format, which explains the `esm-` prefix in their nomenclature. They may have an `-app` suffix in their name, but this is not required. In O3, frontend modules typically consist of React components, but this is not a requirement. They can be written in any frontend framework that [single-spa](https://single-spa.js.org/) supports. For example, the [Angular form engine] frontend module is written in Angular and is a wrapper around the [AMPATH form engine](https://ampath-forms.vercel.app/). So in that sense, the app shell is framework-agnostic. In practice, the lower-level workings of the app shell have been abstracted in such a way that frontend engineers can focus on writing frontend modules without having to worry about the underlying framework.
+Frontend modules are also referred to as `microfrontends` in O3. They get shipped in the ES module format, which explains the `esm-` prefix in their nomenclature. They may have an `-app` suffix in their name, but this is not required. 
 
 Frontend modules get loaded into the application based on a special JSON file called an [import map](http://localhost:3001/docs/core-concepts#import-map). More details about how frontend modules get loaded are discussed in the [App shell](/docs/app-shell) and [Module loading](/docs/frontend-modules/loading-modules) guide.
 
@@ -46,6 +53,13 @@ Frontend modules get loaded into the application based on a special JSON file ca
 This diagram walks through what happens when the application gets executed. The app shell loads configuration files, the import map specifies where frontend modules get fetched from, and [loads frontend modules](/docs/frontend-modules/module-loading).
 
 ## Anatomy of a frontend module
+
+Every component must have:
+
+- A `package.json` manifest file that defines the module's dependencies and metadata
+- A `src/index.ts` file that defines the module's entry point
+- A `startupApp` function that defines the module's dynamic metadata
+- A `src/routes.json` file that defines the module's static metadata
 
 ### Manifest file (package.json)
 
@@ -140,25 +154,21 @@ This file is the entry point of the frontend module. It is the first file that g
 
 #### The `startupApp` function
 
-Each frontend module defines a function named `startupApp`. This function performs any setup that should occur at the time the module gets loaded. It returns an object that communicates how the app shell should load the module. The startupApp function where
+Each frontend module defines a function named `startupApp`. This function performs any setup that should occur at the time the module gets loaded. It returns an object that communicates how the app shell should load the module. The startupApp function where we:
 
-- define the module's [configuration schema](config.md).
-- register [breadcrumbs](breadcrumbs.md).
+- define the module's configuration schema
+- register breadcrumbs
 
 #### The `importTranslation` function
 
-This is required for translations to work. It tells the frontend application
-how to load translation strings. Note that the first argument to
-`require.context` is a directory, `../translations`.
-That directory must exist at that location relative to the `index.ts` file.
+This is required for translations to work. It tells the frontend application how to load translation strings. Note that the first argument to `require.context` is a directory, `../translations`. That directory must exist at that location relative to the `index.ts` file.
 
 ### Static metadata in `routes.json`
 
 The `routes.json` file is used to set up the frontend module's static metadata. These include:
 
-- The `extensions` that frontend module provides.
-- The `pages` that frontend module provides.
-- The `backend` dependencies that frontend module requires. This is an object that tells the frontend application what OpenMRS server modules the frontend module depends on, and what versions. If these dependencies are not met, administrators will be alerted.
+- The `pages` that frontend module provides
+- The `backend` dependencies that frontend module requires. This is an object that tells the frontend application what OpenMRS server modules the frontend module depends on, and what versions. If these dependencies are not met, administrators will be alerted
 
 The structure of this static file is dictated by the OpenMRS Routes standard [JSON schema](https://json.openmrs.org/routes.schema.json).
 

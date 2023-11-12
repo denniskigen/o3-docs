@@ -5,14 +5,19 @@ import { FileTree } from "nextra/components";
 # Vue d'ensemble
 
 <Callout emoji="ℹ️" type="info">
-  Des changements significatifs dans l'architecture de l'app shell liés à la façon dont les modules du frontend sont
-  chargés ont été introduits dans le cadre de la nouvelle version de l'application. chargement des modules frontaux ont
-  été introduits dans [Core v5](/docs/changelog). Si vous n'avez pas vous n'avez pas migré vos modules frontaux pour
-  tirer parti de ces nouvelles fonctionnalités, suivez le [Guide de migration](/docs/changelog), suivez le [Guide de
-  migration](/docs/migration-guide) pour une présentation détaillée comment le faire.
+  Des changements significatifs dans l'architecture de l'app shell concernant la façon dont les modules frontend sont chargés ont été introduits dans [Core v5](/docs/changelog). Si vous n'avez pas migré vos modules frontend pour tirer parti de ces nouvelles capacités, suivez le [Guide de migration](/docs/migration-guide) pour une explication détaillée de comment faire.
 </Callout>
 
-Les modules frontaux sont les éléments de base d'O3. Dans O3, les modules frontaux sont des éléments autonomes de fonctionnalité qui peuvent être chargés dans le shell de l'application. Ils sont généralement organisés en [monorepos](https://monorepo.tools/#what-is-a-monorepo) spécifiques à un domaine. Par exemple, les modules frontaux concernant la gestion des patients existent dans le monorepos [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management).
+Les modules frontend sont le bloc de construction fondamental pour créer des applications dans O3. Ce sont des morceaux de fonctionnalité autonomes qui peuvent être chargés dans O3 par l'[app shell](/docs/app-shell). Par exemple, vous pourriez avoir un module frontend qui gère les préoccupations de rendu liées aux signes vitaux et aux biométriques. Ce module pourrait inclure ce qui suit:
+
+- Une page qui affiche un aperçu tabulaire des signes vitaux et des biométriques d'un patient
+- Une page qui affiche des visualisations de graphiques des signes vitaux et des biométriques d'un patient.
+- Un formulaire qui permet à un utilisateur d'enregistrer un nouvel ensemble de lectures de signes vitaux et de biométriques.
+- Un en-tête de signes vitaux qui affiche les lectures les plus récentes des signes vitaux et des biométriques d'un patient.
+
+Ce module frontend pourrait alors être chargé dans l'app shell et affiché dans le dossier du patient. Les modules frontend dans O3 sont généralement construits en utilisant React, mais parce que nous utilisons [single-spa](https://single-spa.js.org/) sous le capot, ils peuvent être construits en utilisant n'importe quel framework frontend que single-spa supporte. Par exemple, le module frontend [Angular form engine](/docs/key-repositories#angular-form-engine) est écrit en Angular et est un wrapper autour du [AMPATH form engine](https://ampath-forms.vercel.app/). Donc, en ce sens, l'app shell est agnostique du framework. En pratique, les fonctionnements de bas niveau de l'app shell ont été abstraits de telle manière que les ingénieurs frontend peuvent se concentrer sur la construction de modules frontend sans avoir à se soucier du framework sous-jacent.
+
+Les modules frontend sont généralement organisés en [monorepos](https://monorepo.tools/#what-is-a-monorepo) spécifiques à un domaine. Par exemple, les modules frontend concernant la gestion des patients existent dans le monorepo [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management).
 
 Dans cette structure, vous aurez typiquement un répertoire `packages` à la racine de votre monorepo. Ce répertoire contient tous vos modules frontaux. Par exemple, la monorepo de gestion des patients a la structure suivante:
 
@@ -47,9 +52,16 @@ Les modules frontaux sont chargés dans l'application sur la base d'un fichier J
 
 Ce diagramme décrit ce qui se passe lorsque l'application est exécutée. Le shell de l'application charge les fichiers de configuration, la carte d'importation spécifie où les modules frontaux sont récupérés, et [charge les modules frontaux](/docs/frontend-modules/module-loading).
 
-## Anatomy of a frontend module
+## Anatomie d'un module frontend
 
-### Manifest file (package.json)
+Chaque composant doit avoir:
+
+- Un fichier manifeste package.json qui définit les dépendances et les métadonnées du module
+- Un fichier src/index.ts qui définit le point d'entrée du module
+- Une fonction startupApp qui définit les métadonnées dynamiques du module
+- Un fichier src/routes.json qui définit les métadonnées statiques du module
+
+### Fichier manifeste (package.json)
 
 Chaque module frontal a un fichier `package.json` de niveau racine qui définit ses dépendances et ses métadonnées. Voici un extrait du fichier `package.json` du module frontend form builder:
 
@@ -142,25 +154,22 @@ Ce fichier est le point d'entrée du module frontal. C'est le premier fichier qu
 
 #### La fonction `startupApp` (démarrage)
 
-Chaque module frontal définit une fonction nommée `startupApp`. Cette fonction exécute toute configuration qui devrait se produire au moment où le module est chargé. Elle renvoie un objet qui indique comment le shell de l'application doit charger le module. La fonction startupApp où
+Chaque module frontal définit une fonction nommée `startupApp`. Cette fonction effectue toute configuration qui doit être effectuée au moment où le module est chargé. Elle renvoie un objet qui communique la façon dont l'application shell doit charger le module. La fonction startupApp est l'endroit où:
 
-- définit le [schéma de configuration] du module (config.md).
-- enregistrer [breadcrumbs](breadcrumbs.md).
+- définit le schéma de configuration
+- enregistrer breadcrumbs
 
 #### La fonction `importTranslation`
 
-Elle est nécessaire pour que les traductions fonctionnent. Elle indique à l'application frontale
-comment charger les chaînes de traduction. Notez que le premier argument de
-`require.context` est un répertoire, `../translations`.
-Ce répertoire doit exister à cet endroit par rapport au fichier `index.ts`.
+Elle est nécessaire pour que les traductions fonctionnent. Elle indique à l'application frontale comment charger les chaînes de traduction. Notez que le premier argument de `require.context` est un répertoire, `../translations`. Ce répertoire doit exister à cet endroit par rapport au fichier `index.ts`.
 
 ### Métadonnées statiques dans `routes.json`
 
 Le fichier `routes.json` est utilisé pour configurer les métadonnées statiques du module frontal. Celles-ci incluent:
 
-- Les `extensions` que le module frontend fournit.
-- Les `pages` que le module frontend fournit.
-- Les dépendances `backend` que le module frontend requiert. C'est un objet qui indique à l'application frontend quels sont les modules du serveur OpenMRS dont le module frontend dépend, et de quelles versions. Si ces dépendances ne sont pas respectées, les administrateurs seront alertés.
+- Les `extensions` que le module frontend fournit
+- Les `pages` que le module frontend fournit
+- Les dépendances `backend` que le module frontend requiert. C'est un objet qui indique à l'application frontend quels sont les modules du serveur OpenMRS dont le module frontend dépend, et de quelles versions. Si ces dépendances ne sont pas respectées, les administrateurs seront alertés
 
 La structure de ce fichier statique est dictée par le standard OpenMRS Routes [JSON schema](https://json.openmrs.org/routes.schema.json).
 

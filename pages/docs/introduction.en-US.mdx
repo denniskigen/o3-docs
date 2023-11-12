@@ -1,18 +1,14 @@
 # Introduction
 
-## What O3 is
+## Qu'est-ce que O3 ?
 
-**O3**, or **3.0**, **OpenMRS 3.0**, or **OpenMRS 3.x**, is a new **frontend framework** for OpenMRS that leverages modern frontend technologies with the goal of being used across as many organizations as possible.
+O3 est un framework frontend pour OpenMRS qui exploite les technologies frontend modernes pour permettre aux développeurs de créer de meilleures expériences utilisateur pour les implémentations.
 
-## What O3 is _not_
+O3 fournit une large gamme d'outils, de composants, d'API et de modèles qui peuvent être exploités pour créer des applications frontend pour OpenMRS. Il est conçu pour être modulaire, permettant aux développeurs de choisir les composants dont ils ont besoin pour créer leurs applications frontend. O3 est également conçu pour être extensible, permettant aux développeurs d'étendre le framework avec leurs propres composants et API.
 
-O3 is **not** a new platform version of OpenMRS.
+## Principes directeurs
 
-O3 is a frontend framework that you can run on top of your existing database. It communicates with the same REST API and FHIR API that the O2 UI communicates with. Whilst O3 requires a minimum platform version and minimum versions of various modules to run, running O3 doesn't require overhauling your existing backend. If you're interested in running O3 on top of your existing installation, follow the [Setting up an O3 instance](/docs/recipes/setting-up-an-o3-instance) guide.
-
-## Guiding principles
-
-The guiding principles behind O3 include:
+The guiding principles behind O3's design include:
 
 - **Code reuse** and **reduction of duplicated effort**
 - **Modular architecture** - allows for easy addition, removal, or updating of modules to extend functionality or tailor the system to specific needs.
@@ -31,3 +27,9 @@ O3 leverages the following technologies:
 - [Carbon design system](https://carbondesignsystem.com) - design system from IBM.
 - [Single SPA](https://single-spa.js.org) - JavaScript router for frontend microservices.
 - Backend APIs - combination of the [OpenMRS REST API](https://rest.openmrs.org) and the FHIR API.
+
+## What O3 is _not_
+
+O3 is **not** a new platform version of OpenMRS.
+
+O3 is a frontend framework that you can run on top of your existing database. It communicates with the same REST API and FHIR API that the O2 UI communicates with. Whilst O3 requires a minimum platform version and minimum versions of various modules to run, running O3 doesn't require overhauling your existing backend. If you're interested in running O3 on top of your existing installation, follow the [Setting up an O3 instance](/docs/recipes/setting-up-an-o3-instance) guide.

@@ -2,21 +2,9 @@
 
 There are various approaches implementers can use to configure their O3 instances. These include:
 
-- Distro-level configuration
 - Metadata configuration
-- Import map configuration
 - Configuring individual frontend modules
-
-## Distro-level configuration
-
-Implementers can configure their instances at the distro-level using the following approaches:
-
-- Specifying configuration properties in the `distro.properties` file.
-- Specifying a JSON configuration in your distro.
-
-### Configuring branding for your distro
-
-Read the [branding guide](/docs/configuring-o3/configure-branding) to learn how to configure the appearance of your O3 instance.
+- Distro-level configuration
 
 ## Configuring metadata
 
@@ -31,12 +19,6 @@ Metadata configurations get loaded through the [initializer module](https://gith
 - Programs
 - Program workflows
 - Program workflow states
-
-## Customizing your import map
-
-An import map is a mechanism that maps JavaScript module specifiers to URLs. The import map is a crucial aspect of the O3 architecture, allowing for the dynamic loading of modules at runtime. This means implementers can add, remove or update modules from their import map and thus customize the UI of their O3 instance.
-
-The default import map that ships with O3 gets built out from the modules specified in the `frontendModules` key of the distro reference application's [spa-build config](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/720408a57c98f51355496cb990fd19a0a8ebfce8/frontend/spa-build-config.json) file.
 
 ## Configuring individual frontend modules
 
@@ -55,3 +37,12 @@ export default function GreetUser({user}) {
   return <span>{greeting}</span>;
 }
 ```
+
+## Distro-level configuration
+
+Implementers can configure their instances at the distro-level using the following approaches:
+
+- Specifying configuration properties in the `distro.properties` file.
+- Specifying a JSON configuration in your distro.
+
+To learn more about how to configure your O3 instance, read the [distro configuration](/docs/configuring-o3/configuring-your-o3-instance) guide.

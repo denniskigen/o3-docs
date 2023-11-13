@@ -1,0 +1,105 @@
+# Vue d'ensemble
+
+Il est possible de configurer différents aspects du dossier du patient. Ce guide vous guidera à travers les différentes options de configuration.
+
+## Configuration de la navigation dans le dossier du patient: Pages et tableaux de bord
+
+Vous pouvez configurer la navigation dans le dossier du patient en ajoutant une extension à l'emplacement patient-chart-dashboard de l'application esm-patient-chart. 
+
+### Exemple de configuration: 
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "extensionSlots": {
+      "patient-chart-dashboard-slot": {
+        "add": [
+          "nav-group#HIVAdultReturn",
+          "nav-group#NCDOutpatient"
+        ],
+        "configure": {
+          "nav-group#HIVAdultReturn": {
+            "title": "Retour du VIH chez l'adulte",
+            "slotName": "hiv-nav-group-slot"
+          },
+          "nav-group#NCDOutpatient": {
+            "title": "NCD Outpatient",
+            "slotName": "heart-nav-group-slot"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Configurer le formulaire des signes vitaux et des données biométriques
+
+Dans certains cas, vous pouvez vouloir ou avoir besoin d'utiliser un formulaire spécifique (par exemple un formulaire d'évaluation de triage existant) pour remplacer le formulaire structuré de l'application Vital Signs prête à l'emploi. Dans ce cas, vous demanderez à l'application esm-patient-vitals-app de s'appuyer sur un formulaire particulier que vous avez déjà configuré. (Pour plus d'informations sur la configuration des formulaires dans O3, voir la section _Formulaires dans O3_). 
+
+### Exemple de configuration
+
+```json
+"@openmrs/esm-patient-vitals-app": {
+  "vitals": {
+    "useFormEngine": true,
+    "formName": "Opération chirurgicale",
+    "formUuid": "96637f12-3c04-311f-b477-3fa6a866e895",
+    "encounterTypeUuid": "67a71486-1a54-468f-ac3e-7091a9a79584"
+  }
+}
+```
+
+### Tutorial Video for O3 Patient Chart Configuration:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/57nRWhJdf1E" title="YouTube video player" frameborder="0" allow="accelerometer ; autoplay ; clipboard-write ; encrypted-media ; gyroscope ; picture-in-picture ; web-share" allowfullscreen></iframe>
+
+## Configurer votre première application en utilisant le widget Obs-by-encounter
+
+Ceci peut être réalisé en ajoutant une extension à l'emplacement patient-chart-allergies-dashboard de l'application esm-patient-chart-app. 
+
+Remarque: La "couleur" intervient dans l'aspect visuel du tableau. Le code couleur que vous choisissez dicte la couleur de la ligne de données dans le graphique.
+
+### Exemple de configuration
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "extensionSlots": {
+      "patient-chart-allergies-dashboard-slot": {
+        "add": [
+          "obs-by-encounter-widget#hiv",
+          "obs-by-encounter-widget#diabetes"
+        ],
+        "configure": {
+          "obs-by-encounter-widget#hiv": {
+            "title": "Widget VIH",
+            "resultName": "HIV",
+            "data": [
+              {
+                "concept": "1132AAAAAAAAAAAAAAAAAAAAAAAAA",
+                "label": "sodium",
+                "color": "vert"
+              },
+              {
+                "concept": "856AAAAAAAAAAAAAAAAAAAAAAAAA",
+                "label": "Charge virale",
+                "color": "red"
+              }
+            ],
+            "table": {
+              "pageSize": 5
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Tutoriel vidéo: Ajouter le modèle de widget "obs-by-encounter 
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Nv-9hrRC758" title="YouTube video player" frameborder="0" allow="accelerometer ; autoplay ; clipboard-write ; encrypted-media ; gyroscope ; picture-in-picture ; web-share" allowfullscreen></iframe>
+
+_Remarque: avez-vous développé une extension configurable ? Pensez à réaliser une vidéo similaire pour montrer comment effectuer la configuration et partagez votre vidéo sur notre [Forum de discussion](https://talk.openmrs.org/)! Vous créerez ainsi une bibliothèque de widgets que nous pourrons présenter._

@@ -1,57 +1,48 @@
 # Vue d'ensemble
 
-Il existe différentes approches que les implémenteurs peuvent utiliser pour configurer leurs instances O3. Celles-ci comprennent:
+Il existe plusieurs approches que les implémenteurs peuvent utiliser pour configurer leurs instances O3. Ces approches sont les suivantes:
 
-- Configuration au niveau de la distribution
 - Configuration des métadonnées
-- Configuration de la carte d'importation
-- Configuration des modules frontend individuels
-
-## Configuration au niveau de la distribution
-
-Les implémenteurs peuvent configurer leurs instances au niveau de la distribution en utilisant les approches suivantes:
-
-- Spécification des propriétés de configuration dans le fichier `distro.properties`.
-- Spécification d'une configuration JSON dans votre distribution.
-
-### Configuration de la marque pour votre distribution
-
-Lisez le [guide de la marque](/docs/configuring-o3/configure-branding) pour apprendre comment configurer l'apparence de votre instance O3.
+- Configuration des modules frontaux individuels
+- Configuration au niveau de la distribution
 
 ## Configuration des métadonnées
 
-Les configurations de métadonnées sont chargées via le [module d'initialisation](https://github.com/mekomsolutions/openmrs-module-initializer) dans O3. Le module d'initialisation, ou iniz en abrégé, est un module qui permet aux implémenteurs de charger des métadonnées dans leurs instances OpenMRS via des fichiers JSON. Les différents fichiers de configuration qui sont livrés avec O3 sont situés dans le répertoire `distro/configuration` du [référentiel de configuration de l'application de référence de la distribution](https://github.com/openmrs/openmrs-distro-referenceapplication/tree/main/distro/configuration). Le module d'initialisation prend en charge le chargement d'une grande variété de types de données et de métadonnées, y compris mais sans s'y limiter:
+Les configurations de métadonnées sont chargées via le [module d'initialisation](https://github.com/mekomsolutions/openmrs-module-initializer) dans O3. Le module d'initialisation, ou iniz en abrégé, est un module qui permet aux implémenteurs de charger des métadonnées dans leurs instances OpenMRS par le biais de fichiers JSON. Les différents fichiers de configuration livrés avec O3 sont situés dans le répertoire `distro/configuration` du dépôt [distro reference application config](https://github.com/openmrs/openmrs-distro-referenceapplication/tree/main/distro/configuration). Le module Initializer prend en charge le chargement d'une grande variété de types de données et de métadonnées, y compris, mais sans s'y limiter:
 
 - Concepts
-- Lieux
+- Les emplacements
 - Types d'attributs de personne
 - Propriétés globales
 - Types de rencontres
 - Types de visites
 - Programmes
-- Flux de travail du programme
+- Flux de travail des programmes
 - États du flux de travail du programme
 
-## Personnaliser votre carte d'importation
+## Configuration des modules frontaux individuels
 
-Une carte d'importation est un mécanisme qui mappe les spécificateurs de modules JavaScript vers des URL. La carte d'importation est un aspect crucial de l'architecture O3, permettant le chargement dynamique de modules à l'exécution. Cela signifie que les implémenteurs peuvent ajouter, supprimer ou mettre à jour des modules de leur carte d'importation et ainsi personnaliser l'interface utilisateur de leur instance O3.
+La configuration par application est disponible dans O3 via le [système de configuration intégré](/docs/configuration-system). Chaque module frontal peut définir son propre schéma de configuration dans un fichier `config-schema.ts` dans son répertoire `src`. Les propriétés spécifiées dans le schéma de configuration permettent aux implémenteurs d'adapter le comportement du module à leurs besoins. Le système de configuration permet également aux implémenteurs de spécifier des valeurs par défaut pour les différentes propriétés de configuration. 
 
-La carte d'importation par défaut qui est livrée avec O3 est construite à partir des modules spécifiés dans la clé `frontendModules` du fichier de [configuration de construction spa](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/720408a57c98f51355496cb990fd19a0a8ebfce8/frontend/spa-build-config.json) de l'application de référence de la distribution.
+Les implémenteurs sont en mesure d'apporter des modifications aux configurations des modules frontaux par le biais du panneau d'outils intégré de l'implémenteur. Une fois que vous vous êtes connecté à O3, cliquez sur la flèche centrée en bas de l'écran pour faire apparaître les outils de l'implémenteur. Vous pouvez également cliquer sur l'icône en forme de roue dentée dans la barre de navigation. Une fois l'outil ouvert, vous pouvez rechercher les propriétés de configuration en parcourant la configuration et les modifier à la volée. Notez que toute modification apportée à la configuration à l'aide des outils de l'implémenteur sera perdue lorsque vous actualiserez la page. Pour apporter des modifications permanentes à la configuration, vous devrez valider ces modifications dans la configuration de votre distro. Les outils d'implémentation vous permettent de télécharger un fichier de configuration temporaire contenant vos changements en cliquant sur le bouton `Télécharger la configuration temporaire`.
 
-## Configuration des modules frontend individuels
-
-La configuration par application est disponible dans O3 via le [système de configuration](/docs/configuration-system) intégré. Chaque module frontend peut définir son propre schéma de configuration dans un fichier `config-schema.ts` dans son répertoire `src`. Les propriétés spécifiées dans le schéma de configuration permettent aux implémenteurs d'adapter le comportement du module à leurs besoins. Le système de configuration permet également aux implémenteurs de spécifier des valeurs par défaut pour les différentes propriétés de configuration.
-
-Les implémenteurs peuvent apporter des modifications aux configurations des modules frontend via le panneau d'outils de l'implémenteur intégré. Une fois que vous vous êtes connecté à O3, en cliquant sur la flèche de la caret centrée en bas de l'écran, vous ferez apparaître les outils de l'implémenteur. Alternativement, vous pouvez cliquer sur l'icône d'engrenage dans la barre de navigation. Une fois ouvert, vous pouvez rechercher des propriétés de configuration en parcourant la configuration et les modifier à la volée. Notez que toute modification apportée à la configuration via les outils de l'implémenteur sera perdue une fois que vous aurez rafraîchi la page. Pour apporter des modifications permanentes à la configuration, vous devrez valider ces modifications dans votre configuration de distribution. Les outils de l'implémenteur vous permettent de télécharger un fichier de configuration temporaire contenant vos modifications en cliquant sur le bouton `Télécharger la configuration temporaire`.
-
-Lorsque vous travaillez sur un module frontend, toutes les modifications que vous apportez au fichier `config-schema.ts` peuvent ensuite être accessibles de manière programmatique via le hook `useConfig` comme le montre l'extrait de code ci-dessous:
+Lorsque vous travaillez sur un module frontend, toutes les modifications que vous apportez au fichier `config-schema.ts` sont accessibles par programmation via le hook `useConfig`, comme le montre l'extrait de code ci-dessous:
 
 ```ts
-import { useConfig } from "@openmrs/esm-framework";
+import { useConfig } from "@openmrs/esm-framework" ;
 
-export default function SaluerUtilisateur({user}) {
-  const config = useConfig();
-  const salutation = config.salutation + ', ' + user.name
-  return <span>{salutation}</span>;
+export default function GreetUser({utilisateur}) {
+  const config = useConfig() ;
+  const greeting = config.greeting + ', ' + user.name
+  return <span>{greeting}</span>;
 }
 ```
+
+## Configuration au niveau de la distribution
+
+Les implémenteurs peuvent configurer leurs instances au niveau de la distribution en utilisant les approches suivantes:
+
+- Spécifier les propriétés de configuration dans le fichier `distro.properties`.
+- Spécifier une configuration JSON dans votre distro.
+
+Pour en savoir plus sur la façon de configurer votre instance O3, lisez le guide [distro configuration](/docs/configuring-o3/configuring-your-o3-instance).

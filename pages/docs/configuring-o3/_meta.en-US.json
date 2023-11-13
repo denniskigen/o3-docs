@@ -1,10 +1,8 @@
 {
   "overview": "Overview",
-  "customizing-your-import-map": "Customizing your import map",
+  "configuring-your-o3-instance": "Configuring your O3 instance",
   "configuring-branding": "Configuring branding",
-  "configuring-registration-app": "Configuring the registration app",
-  "configuring-vitals-and-biometrics-form": "Configuring the Vitals and Biometrics form",
-  "configuring-obs-by-encounter-widget": "Configuring the obs-by-encounter widget",
-  "configuring-translations": "Configuring translations",
-  "configuring-patient-chart-navigation": "Configuration Patient Chart navigation"
+  "configuring-the-patient-chart": "Configuring the patient chart",
+  "configuring-the-registration-app": "Configuring the registration app",
+  "configuring-translations": "Configuring translations"
 }

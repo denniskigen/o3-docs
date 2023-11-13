@@ -1,0 +1,104 @@
+# Overview
+
+There are various aspects of the Patient Chart that can be configured. This guide will walk you through the various configuration options.
+
+## Configuring the Patient Chart navigation: Pages & Dashboards
+
+You can configure the patient chart navigation by adding an extension  to the patient-chart-dashboard-slot of the  esm-patient-chart-app. 
+
+### Sample Config: 
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "extensionSlots": {
+      "patient-chart-dashboard-slot": {
+        "add": [
+          "nav-group#HIVAdultReturn",
+          "nav-group#NCDOutpatient"
+        ],
+        "configure": {
+          "nav-group#HIVAdultReturn": {
+            "title": "HIV Adult Return",
+            "slotName": "hiv-nav-group-slot"
+          },
+          "nav-group#NCDOutpatient": {
+            "title": "NCD Outpatient",
+            "slotName": "heart-nav-group-slot"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Configure the Vitals and Biometrics form
+
+In some cases, you may want or need to use a specific form (e.g. an existing Triage Assessment Form) as a replacement for the out-of-the-box Vital Signs app's structured form. In that case, you will instruct the esm-patient-vitals-app to leverage a particular form that you have already set up. (For more information on setting up forms in O3, see the section _Forms in O3_). 
+
+### Sample Config
+
+```json
+"@openmrs/esm-patient-vitals-app": {
+  "vitals": {
+    "useFormEngine": true,
+    "formName": "Surgical Operation",
+    "formUuid": "96637f12-3c04-311f-b477-3fa6a866e895",
+    "encounterTypeUuid": "67a71486-1a54-468f-ac3e-7091a9a79584"
+  }
+}
+```
+
+### Tutorial Video for O3 Patient Chart Configuration:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/57nRWhJdf1E" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+## Configuring your first app using the Obs-by-encounter widget
+
+This can be achieved by adding an extension to the patient-chart-allergies-dashboard-slot of the esm-patient-chart-app. 
+
+Note: The "color" comes in for the chart visual. The color code you choose dictates the color of the data line in the chart.
+
+### Sample Config
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "extensionSlots": {
+      "patient-chart-allergies-dashboard-slot": {
+        "add": [
+          "obs-by-encounter-widget#hiv",
+          "obs-by-encounter-widget#diabetes"
+        ],
+        "configure": {
+          "obs-by-encounter-widget#hiv": {
+            "title": "HIV Widget",
+            "resultName": "HIV",
+            "data": [
+              {
+                "concept": "1132AAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "label": "sodium",
+                "color": "green"
+              },
+              {
+                "concept": "856AAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "label": "Viral load",
+                "color": "red"
+              }
+            ],
+            "table": {
+              "pageSize": 5
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Video Tutorial: Add the Template "obs-by-encounter" Widget 
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Nv-9hrRC758" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+_Note: Have you developed a configurable extension? Please consider making a similar video to showcase how to do the configuration, and share your video on our [Talk Forum](https://talk.openmrs.org/)! This will create a library of widgets for us to showcase._

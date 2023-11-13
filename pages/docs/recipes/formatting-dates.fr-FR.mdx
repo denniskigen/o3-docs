@@ -88,7 +88,7 @@ Elle accepte une chaîne `omrsPayloadString` et retourne un `bolean`.
 
 ### isOmrsDateToday
 
-This utility checksif the provided date is today. Accepts a `date` input and returns a `boolean`.
+Cette fonction vérifie si la date fournie est aujourd'hui. Elle accepte une entrée de type `date` et retourne un `booléen`.
 
 ```ts
   isOmrsDateToday(date: Date): boolean
@@ -96,9 +96,9 @@ This utility checksif the provided date is today. Accepts a `date` input and ret
 
 ### parseDate
 
-This utility function parses an arbitrary `dateString` into a `date`. It uses dayjs(dateString).
+Cette fonction utilitaire analyse une `dateString` arbitraire en une `date`. Elle utilise dayjs(dateString).
 
-Here's an example of how to use `parseDate` given a sample dateString `1684387260000`
+Voici un exemple de comment utiliser `parseDate` avec une dateString d'échantillon `1684387260000`.
 
 ```ts
 import { formatDate, parseDate } from "@openmrs/esm-framework";
@@ -108,11 +108,11 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) 
 };
 ```
 
-The returned value will be a string in this format `18-May-2023`
+La valeur retournée sera une chaîne de caractères dans ce format `18-Mai-2023`
 
 ### toDateObjectStrict
 
-This utility function converts an object to a date object if it is a valid ISO date time string. It accepts `omrsDateString` and returns a `date` or `null`.
+Cette fonction utilitaire convertit un objet en un objet date s'il est une chaîne de caractères de date et heure ISO valide. Elle accepte `omrsDateString` et retourne une `date` ou `null`.
 
 ```ts
   toDateObjectStrict(omrsDateString: string): Date | null

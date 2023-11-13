@@ -7,46 +7,6 @@ Il y a plusieurs catégories de traductions dans notre projet logiciel:
 - `Formes`: Si vous avez déjà des traductions attachées à des concepts particuliers que vous utilisez, vous pouvez faire apparaître ces traductions dans vos formulaires. Il suffit de ne pas fournir d'étiquette dans le constructeur de formulaire, et le formulaire utilisera automatiquement le nom du concept à la place. Notez qu'en raison des différences entre les moteurs de formulaires, cela apparaîtra comme une question sans étiquette dans le Form Builder, mais cela fonctionnera dans le Angular Engine. En date d'octobre 2023, le moteur de formulaire Angular a une couverture de traduction plus complète que le moteur React (bien que nous prévoyions d'améliorer cela dans les mois à venir). 
   - Si vous ajoutez une toute nouvelle locale qui n'était pas dans O3 auparavant, notez que le formulaire-entry-app s'attend actuellement à ce que les fichiers de traduction (ex. ar.json) existent, de sorte que vous pouvez voir des problèmes avec le chargement des formulaires. Solution ici: [Problème O3-2492](https://issues.openmrs.org/browse/O3-2492). 
 
-## Utilisation de Transifex
-
-### Comment traduire les chaînes de caractères dans les éléments de code OpenMRS via Transifex
-
-Vous pouvez trouver le tutoriel OpenMRS Transifex [ici](https://mekom.notion.site/Translating-OpenMRS-frontend-via-Transifex-398836d729ff46d0b30232daa2c59945). Les questions ou les commentaires sur ce tutoriel peuvent être partagés dans [ce fil de discussion du forum](https://talk.openmrs.org/t/translating-openmrs-frontend-via-transifex/37490).
-
-Des conseils sur l'utilisation de Transifex pour les anciens modules OpenMRS (OMOD) peuvent être trouvés [ici](https://wiki.openmrs.org/display/docs/Maintaining+OpenMRS+Module+Translations+via+Transifex). Des conseils sur l'intégration de Transifex avec les dépôts OpenMRS en général sont également discutés [ici](https://talk.openmrs.org/t/transifex-integration-with-openmrs-repositories/34557).
-
-### Comment obtenir des chaînes de traduction de Transifex dans le RefApp O3
-
-<Steps>
-
-#### Étape 1: Configurer Transifex
-  
-Assurez-vous que les dépôts O3 dont vous avez besoin sont inclus dans le projet Transifex de l'organisation OpenMRS.
-
-#### Étape 2: Terminer la traduction dans l'interface Transifex
-
-Assurez-vous que votre équipe de traduction passe par l'interface utilisateur de Transifex pour traduire les chaînes de chaque dépôt (voir le guide de l'interface utilisateur ci-dessus).
-
-#### Étape 3a: Flux de travail manuel simple pour l'exportation de JSON depuis Transifex et le téléchargement vers O3
-
-Exportez le contenu JSON traduit depuis Transifex en allant dans la navigation de gauche, en cliquant sur Ressources pour le Repo, puis cliquez sur la langue que vous voulez, et cliquez sur "Télécharger pour utiliser" à partir de la fenêtre modale Ressources qui s'affiche. Un fichier JSON est alors téléchargé pour vous.
-
-![Modale Transifex pour télécharger un export JSON](/transifex-download-json-export.png)
-
-#### Étape 3b: Flux de travail automatisé (alternative à l'étape 3a ci-dessus)
-
-Ceci peut aussi être fait en utilisant le [CLI Transifex client](https://developers.transifex.com/docs/cli) et en lançant `tx pull -l fr` (pour obtenir la locale fr par exemple) et en livrant les changements.
-
-#### Étape 4: Télécharger JSON dans le répertoire src/translations/ du repo
-
-Téléchargez JSON dans le répertoire esm-NAME-app/translations/ du repo:_ E.g. [cet exemple](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-active-visits-app/translations) de traductions de chaînes JSON téléchargées pour l'application de visites active.
-
-Ensuite, les chaînes doivent être traduites dans l'interface utilisateur lorsque l'utilisateur change de locale.
-
-![Locale Switcher UI](/translation-locale-switcher.png)
-
-</Steps>
-
 ## Remplacements de traduction spécifiques à un module O3 individuel
 
 Vous pouvez utiliser le système de configuration pour fournir des traductions localisées pour les composants O3. C'est utile si, par exemple, vous voulez changer l'étiquette d'un bouton ou renommer un lien. Ce système ne doit pas être utilisé pour traduire des composants dans une nouvelle langue. Au lieu de cela, aidez-nous en ajoutant ces traductions directement dans RefApp en utilisant [Transifex](https://explore.transifex.com/openmrs/).

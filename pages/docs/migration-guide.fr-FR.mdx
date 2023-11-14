@@ -507,13 +507,38 @@ Supprimez les métadonnées suivantes:
 - L'objet `sharedOnlineOfflineProps`.
 - La déclaration `export` au bas du fichier
 
-### Fichier `index.ts` final
+### 6. Ajuster les importations de composants pour limiter le nombre de chunks Webpack créés
 
-En rassemblant tous ces changements, nous obtenons le fichier `index.ts` suivant:
+<Callout emoji="ℹ️" type="info">
+  Il s'agit d'une optimisation récente des performances qui a permis de réduire considérablement le nombre de fichiers JavaScript chargés au moment de l'exécution.
+</Callout>
+
+Les optimisations proposées ci-dessus nous ont appris qu'il est possible de réduire le nombre de chunks Webpack créés en important directement les composants au lieu de les importer via un appel de fonction. Par exemple, au lieu de faire ceci:
+
+```ts
+export const root = getAsyncLifecycle(() => import("./root.component"), options);
+```
+
+Nous pouvons faire ceci:
+
+```ts
+import rootComponent from './root.component' ;
+
+export const root = getSyncLifecycle(rootComponent, options) ;
+```
+
+En effet, la fonction `getAsyncLifecycle` n'est nécessaire que lorsque nous devons importer dynamiquement un composant. Dans ce cas, nous importons le composant directement, donc nous pouvons utiliser la fonction `getSyncLifecycle` à la place. La façon dont l'algorithme de découpage de Webpack fonctionne est que, en gros, chaque fois que nous créons un import dynamique comme `getAsyncLifecycle() => import('./some-file')))`, Webpack crée un nouveau "chunk" pour ce fichier. Cela signifie que si nous avons 10 importations dynamiques dans un fichier, Webpack créera 10 chunks. Ce n'est pas idéal car cela signifie que nous chargeons 10 chunks à l'exécution, ce qui a un impact sur les performances. Pour éviter cela, nous pouvons importer les composants directement et utiliser la fonction `getSyncLifecycle` à la place. Nous avons testé cette méthode et nous avons constaté un net gain de performance.
+
+Pour revenir à l'exemple de la connexion, nous pouvons modifier les importations de composants comme suit:
 
 ```ts
 import { getAsyncLifecycle, defineConfigSchema } from "@openmrs/esm-framework";
 import { configSchema } from "./config-schema";
+
+import rootComponent from "./root.component";
+import locationPickerComponent from "./location-picker/location-picker.component";
+import logoutButtonComponent from "./logout/logout.component";
+import changeLocationLinkComponent from "./change-location-link/change-location-link.component";
 
 const moduleName = "@openmrs/esm-login-app";
 
@@ -528,14 +553,51 @@ export function startupApp() {
   defineConfigSchema(moduleName, configSchema);
 }
 
-export const root = getAsyncLifecycle(() => import("./root.component"), options);
+export const root = getSyncLifecycle(rootComponent, options);
 
-export const locationPicker = getAsyncLifecycle(() => import("./location-picker/location-picker.component"), options);
+export const locationPicker = getSyncLifecycle(locationPickerComponent, options);
 
-export const logoutButton = getAsyncLifecycle(() => import("./logout/logout.component"), options);
+export const logoutButton = getSyncLifecycle(logoutButtonComponent, options);
 
-export const changeLocationLink = getAsyncLifecycle(
-  () => import("./change-location-link/change-location-link.component"),
+export const changeLocationLink = getSyncLifecycle(
+  changeLocationLinkComponent,
+  options
+);
+```
+### Fichier `index.ts` final
+
+En rassemblant tous ces changements, nous obtenons le fichier `index.ts` suivant:
+
+```ts
+import { getAsyncLifecycle, defineConfigSchema } from "@openmrs/esm-framework";
+import { configSchema } from "./config-schema";
+
+import rootComponent from "./root.component";
+import locationPickerComponent from "./location-picker/location-picker.component";
+import logoutButtonComponent from "./logout/logout.component";
+import changeLocationLinkComponent from "./change-location-link/change-location-link.component";
+
+const moduleName = "@openmrs/esm-login-app";
+
+const options = {
+  featureName: "login",
+  moduleName,
+};
+
+export const importTranslation = require.context("../translations", false, /.json$/, "lazy");
+
+export function startupApp() {
+  defineConfigSchema(moduleName, configSchema);
+}
+
+export const root = getSyncLifecycle(rootComponent, options);
+
+export const locationPicker = getSyncLifecycle(locationPickerComponent, options);
+
+export const logoutButton = getSyncLifecycle(logoutButtonComponent, options);
+
+export const changeLocationLink = getSyncLifecycle(
+  changeLocationLinkComponent,
   options
 );
 ```
@@ -550,8 +612,8 @@ yarn up openmrs@next @openmrs/esm-framework@next
 
 Vérifiez que vous avez la dernière version du framework en lançant:
 
-```sh yarn up openmrs@next @openmrs/esm-framework@next
-
+```sh 
+yarn up openmrs@next @openmrs/esm-framework@next
 ```
 
 ```sh

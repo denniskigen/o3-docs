@@ -63,17 +63,6 @@ cette bibliothèque pour traiter également ces fichiers Typescript. Notez que c
 `esm-patient-common-lib` via l'espace de travail Yarn plutôt que via `node_modules`, donc à l'intérieur de la monorepo du dossier patient, `esm-patient-common-lib` est traité
 correctement.
 
-Si votre module a besoin de charger `esm-patient-common-lib` depuis `node_modules` au moment de la compilation, nous recommandons que le fichier `webpack.config.js` de votre module ressemble à ceci:
-
-```js
-const config = require("openmrs/default-webpack-config");
-config.scriptRuleConfig.exclude = /node_modules(?![\/\\]@openmrs)/;
-// this is a CommonJS module
-module.exports = config;
-```
-
-Cela change la `scriptRule` dans la configuration par défaut de Webpack, lui disant de traiter tout ce qui se trouve dans le dossier `node_modules` et qui provient d'un paquet de l'organisation NPM `openmrs`.
-
 #### esm-form-entry-app
 
 Le module frontal de saisie de formulaire est une application Angular qui encapsule les capacités du [moteur de formulaire Angular](/docs/key-repositories#angular-form-engine). Il tire parti d'une configuration webpack personnalisée qui prend en charge la [fédération de modules](http://localhost:3000/docs/frontend-modules/loading-modules#module-federation) en utilisant des conteneurs dynamiques distants. Ces capacités sont activées par la bibliothèque [@angular-architects/module-federation](https://github.com/angular-architects/module-federation-plugin). Cette bibliothèque modifie la [configuration de l'espace de travail d'Angular](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-entry-app/angular.json), en ajoutant une propriété `extraWebpackConfig` aux cibles de construction `build` et `serve`. Cette propriété pointe vers une [configuration webpack personnalisée](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-entry-app/webpack.config.js) qui entre autres choses:

@@ -63,18 +63,6 @@ that library to also process those Typescript files. Note that this does not app
 `esm-patient-common-lib` via the Yarn workspace rather than via `node_modules` so inside the patient chart monorepo, `esm-patient-common-lib` is processed
 properly.
 
-If your module needs to load `esm-patient-common-lib` from `node_modules` at build time, we recommend that your module's `webpack.config.js` looks like this:
-
-```js
-const config = require("openmrs/default-webpack-config");
-config.scriptRuleConfig.exclude = /node_modules(?![\/\\]@openmrs)/;
-// this is a CommonJS module
-module.exports = config;
-```
-
-That changes the `scriptRule` in the default Webpack configuration, telling it to processing anything in the `node_modules` folder that is from a package from
-the `openmrs` NPM organisation.
-
 #### esm-form-entry-app
 
 The form entry frontend module is an Angular application that encapsulates the capabilities of the [Angular form engine](/docs/key-repositories#angular-form-engine)). It leverages a custom webpack configuration that supports [module federation](http://localhost:3000/docs/frontend-modules/loading-modules#module-federation) using dynamic remote containers. These capabilities are enabled by the [@angular-architects/module-federation](https://github.com/angular-architects/module-federation-plugin) library. This library modifies the Angular [workspace configuration](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-entry-app/angular.json), adding a an `extraWebpackConfig` property to the `build` and `serve` builder targets. This property points to a [custom webpack configuration](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-entry-app/webpack.config.js) that among other things:

@@ -215,3 +215,7 @@ You likely have a lint or typescript error in your code. ESLint is setup to fail
 
 If you're running a local dev server and you're getting `502` errors from attempting to fetch the session, that's likely because the dev3 server (which your local dev server proxies to) is down. Check that you can log in to [dev3](https://dev3.openmrs.org/openmrs/spa) first.
 If you cannot log in, then you'll need to wait for the server to come back up.
+
+### I'm using `@openmrs/esm-patient-common-lib` and getting "No workspace named '...' has been registered"
+
+If you're getting this error, you most likely need to add `@openmrs/esm-patient-common-lib` to the `peerDependencies` list in your `package.json`.

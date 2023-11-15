@@ -215,3 +215,7 @@ Vous avez probablement une erreur de lint ou de typecript dans votre code. ESLin
 
 Si vous utilisez un serveur de développement local et que vous obtenez des erreurs `502` en essayant de récupérer la session, c'est probablement parce que le serveur dev3 (vers lequel votre serveur de développement local se connecte par proxy) est hors service. Vérifiez d'abord que vous pouvez vous connecter à [dev3](https://dev3.openmrs.org/openmrs/spa).
 Si vous ne pouvez pas vous connecter, vous devrez attendre que le serveur se rétablisse.
+
+### J'utilise `@openmrs/esm-patient-common-lib` et j'obtiens « No workspace named '...' has been registered «
+
+Si vous obtenez cette erreur, vous devrez probablement ajouter `@openmrs/esm-patient-common-lib` à la liste `peerDependencies` dans votre `package.json`.

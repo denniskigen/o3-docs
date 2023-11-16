@@ -59,9 +59,10 @@ We'll begin by adding a named export to the Patient Lists app `index.ts` file th
 
 ```ts {5-14} filename="index.ts"
 import { createLeftPanelLink } from "./left-panel.component";
-import { getAsyncLifecycle, getSyncLifecycle } from "@openmrs/esm-framework";
+import { getSyncLifecycle } from "@openmrs/esm-framework";
+import rootComponent from './root.component';
 
-const root = getAsyncLifecycle(() => import("./root.component"), options);
+export const root = getSyncLifecycle(rootComponent), options);
 
 export const patientListLeftPanelLink = getSyncLifecycle(
   createLeftPanelLink({

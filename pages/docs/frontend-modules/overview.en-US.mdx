@@ -104,8 +104,10 @@ Some key things to note from looking at this file include:
 Frontend modules have their [entry point](https://webpack.js.org/concepts/entry-points/) defined in `src/index.ts`.
 
 ```ts
-import { defineConfigSchema, getAsyncLifecycle, registerBreadcrumbs } from "@openmrs/esm-framework";
+import { defineConfigSchema, getSyncLifecycle, registerBreadcrumbs } from "@openmrs/esm-framework";
 import { configSchema } from "./config-schema";
+import rootComponent from ""./root.component";
+import systemAdministrationFormBuilderCardLinkComponent from "./form-builder-admin-card-link.component";
 
 const moduleName = "@openmrs/esm-form-builder-app";
 
@@ -115,13 +117,6 @@ const options = {
 };
 
 export const importTranslation = require.context("../translations", true, /.json$/, "lazy");
-
-export const root = getAsyncLifecycle(() => import("./root.component"), options);
-
-export const systemAdministrationFormBuilderCardLink = getAsyncLifecycle(
-  () => import("./form-builder-admin-card-link.component"),
-  options
-);
 
 export function startupApp() {
   defineConfigSchema(moduleName, configSchema);
@@ -144,6 +139,13 @@ export function startupApp() {
     },
   ]);
 }
+
+export const root = getSyncLifecycle(rootComponent, options);
+
+export const systemAdministrationFormBuilderCardLink = getSyncLifecycle(
+  (systemAdministrationFormBuilderCardLinkComponent),
+  options
+);
 ```
 
 This file is the entry point of the frontend module. It is the first file that gets executed when the frontend module gets loaded. It is responsible for setting up the frontend module and exporting the module’s configuration. Specifically, in this example:
@@ -180,7 +182,9 @@ To create a new page, you'll typically need to follow these steps:
 - Add a named export for the page in the `index.ts` file. For example, here's how a page named `root` is exported from the `index.ts` file:
 
   ```ts
-  export const root = getAsyncLifecycle(() => import("./root"), options);
+  import rootComponent from ""./root.component";
+
+  export const root = getSyncLifecycle(rootComponent, options);
   ```
 
 - Add a page definition for the new page to the `routes.json` file's `pages` array:

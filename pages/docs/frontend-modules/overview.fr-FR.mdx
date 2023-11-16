@@ -104,8 +104,10 @@ Voici quelques éléments clés à retenir de l'examen de ce fichier:
 Les modules frontaux ont leur [point d'entrée](https://webpack.js.org/concepts/entry-points/) défini dans `src/index.ts`.
 
 ```ts
-import { defineConfigSchema, getAsyncLifecycle, registerBreadcrumbs } from "@openmrs/esm-framework";
+import { defineConfigSchema, getSyncLifecycle, registerBreadcrumbs } from "@openmrs/esm-framework";
 import { configSchema } from "./config-schema";
+import rootComponent from ""./root.component";
+import systemAdministrationFormBuilderCardLinkComponent from "./form-builder-admin-card-link.component";
 
 const moduleName = "@openmrs/esm-form-builder-app";
 
@@ -115,13 +117,6 @@ const options = {
 };
 
 export const importTranslation = require.context("../translations", true, /.json$/, "lazy");
-
-export const root = getAsyncLifecycle(() => import("./root.component"), options);
-
-export const systemAdministrationFormBuilderCardLink = getAsyncLifecycle(
-  () => import("./form-builder-admin-card-link.component"),
-  options
-);
 
 export function startupApp() {
   defineConfigSchema(moduleName, configSchema);
@@ -144,6 +139,13 @@ export function startupApp() {
     },
   ]);
 }
+
+export const root = getSyncLifecycle(rootComponent, options);
+
+export const systemAdministrationFormBuilderCardLink = getSyncLifecycle(
+  (systemAdministrationFormBuilderCardLinkComponent),
+  options
+);
 ```
 
 Ce fichier est le point d'entrée du module frontal. C'est le premier fichier qui est exécuté lorsque le module frontal est chargé. Il est responsable de la mise en place du module frontal et de l'exportation de la configuration du module. Plus précisément, dans cet exemple:
@@ -181,7 +183,9 @@ Pour créer une nouvelle page, vous devrez généralement suivre les étapes sui
 - Ajouter une exportation nommée pour la page dans le fichier `index.ts`. Par exemple, voici comment une page nommée `root` est exportée depuis le fichier `index.ts`:
 
   ```ts
-  export const root = getAsyncLifecycle(() => import("./root"), options);
+  import rootComponent from ""./root.component";
+
+  export const root = getSyncLifecycle(rootComponent, options);
   ```
 
 - Ajouter une définition de page pour la nouvelle page au tableau `pages` du fichier `routes.json`:
@@ -190,7 +194,7 @@ Pour créer une nouvelle page, vous devrez généralement suivre les étapes sui
 {
   "pages": [
     {
-      "component": "root", // correspond à l'export nommé dans `index.ts`
+      "component": "root", // maps to the named export in `index.ts`
       "route": "form-builder",
       "online": true,
       "offline": true

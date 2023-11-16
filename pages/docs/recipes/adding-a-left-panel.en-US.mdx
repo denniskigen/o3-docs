@@ -102,7 +102,9 @@ Next, we'll create a named export for the `Root` component inside the `index.ts`
 Add the following to your `index.ts` file:
 
 ```ts filename="src/index.ts"
-export const root = getAsyncLifecycle(() => import("./root.component"), options);
+import rootComponent from './root.component';
+
+export const root = getSyncLifecycle(rootComponent), options);
 ```
 
 Next, modify your `routes.json` file to include the following page definition:

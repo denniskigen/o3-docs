@@ -1,0 +1,40 @@
+# Workspaces
+
+The workspace is the interactive layer of the Patient chart. It allows healthcare professionals to perform a variety of actions related to the patient, like order medications, record vitals and write visit notes.
+
+For understanding how the workspaces are designed, please refer to the Zero-height docs at https://zeroheight.com/23a080e38/p/483a22-workspace
+
+## Workspace Window
+
+Workspace window is rendered inside the patient chart app, which handles rendering and showcasing multiple workspaces opened by the user.
+
+## Workspace Variants
+
+Workspaces in patient chart can be of 3 variations:
+
+### 1. Siderail
+
+Is used across OMRS interface for all actions and workflows that have a Siderail link. Currently, they are:
+
+1. order basket
+2. visit note
+
+The workspace width is fixed at 420px.
+
+In this variant, the Button pair is composed by two 2XL buttons in full-span aligment
+
+### 2. Independent actions
+
+Is used across OMRS interface for actions and workflows that don't have a Siderail link. Examples of such actions are:
+
+1. appointments
+2. record vitals
+3. start a visit
+
+The only visual difference between this variant and the Siderail is that instead of a collapse/expand button, it has a close button in the right corner. This indicates that the action performed in that context cannot be interrupted and restarted later. More details about this behaviour here.
+
+### 3. Clinical form
+
+This variant is used only on Clinical forms, and is 100px wider than the other variants, with a total width of 520px, as it contains the Form navigation menu on the left side.
+
+In this variant, the Button group is composed by two Small buttons, stacked.

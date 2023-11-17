@@ -1,0 +1,65 @@
+# Registering workspaces
+
+## Workspace Properties
+
+Workspace have a few properties defining the structure and behaviour of handling the workspace window.
+
+1. **name**: string - Unique identifier for the workspace.
+2. **title**: string - Title shown in the workspace header.
+3. **load**: Function - path to the component to be rendered.
+4. **type**: string - type of the workspace (Default = form)
+5. **canHide**: boolean - can the workspace be collapsed/ hidden (Default = false)
+6. **canMaximize**: boolean - can the workspace be maximized to the full screen(Default = false)
+7. **width**: 'narrow' | 'wider' - Whether the workspace should have a width of 420px (narrow) or 520px (wide, especially for forms with sub forms (sub-sections)) width.
+8. **preferredWindowSize**: 'normal' | 'maximized' - Whether to open the workspace in normal view or in maximized view. (Default = 'normal')
+
+> 💡 Please note that `canHide` property should be allowed for workspaces having their corresponding siderail nav button
+
+Registering a new workspace can be simply done in either of the 2 ways:
+
+## Registering workspace in `index.ts` (Recommended)
+
+A new workspace can be registered in the `index.ts` file, using the `registerWorkspace` function from the `@openmrs/esm-patient-common-lib`
+
+```ts copy
+// index.ts
+import { registerWorkspace } from '@openmrs/esm-patient-common-lib';
+
+registerWorkspace({
+  name: string,
+  title: string,
+  load: getAsyncLifecycle(() => import(<path-to-component>), options),
+  type: string,
+  canHide?: boolean = false,
+  canMaximize?: boolean = false,
+  width?: 'narrow' | 'wider' = 'narrow',
+  preferredWindowSize?: 'normal' | 'maximized' = 'normal'
+});
+
+```
+
+## Registering workspace as an extension in `routes.json`
+
+```json copy
+// routes.json
+{
+  "extensions": [
+    {
+      "name": "visit-notes-form-workspace",
+      "component": "visitNotesForm",
+      "meta": {
+        "title": {
+          "key": "visitNote",
+          "default": "Visit Note"
+        },
+        "type": "visit-note",
+        // Optional
+        "canHide": false,
+        "canMaximize": false,
+        "width": "narrow",
+        "preferredWindowSize": "normal"
+      }
+    }
+  ]
+}
+```

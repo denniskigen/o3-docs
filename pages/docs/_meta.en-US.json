@@ -12,6 +12,7 @@
   "extension-system": "Extension system",
   "configuration-system": "Configuration system",
   "i18n": "i18n of New O3 Modules",
+  "workspaces-in-o3": "Workspaces in O3",
   "storing-values": "Storing values",
   "breadcrumbs": "Breadcrumbs",
   "migration-guide": "Migrating to Core v5",

@@ -1,0 +1,34 @@
+# Launching patient workspace
+
+To launch a workspace for a patient, you can do the same by calling the `launchPatientWorkspace` method. You need to pass the workspace name and any other meta data in the second argument as an object
+
+```ts copy
+import { launchPatientWorkspace } from "@openmrs/esm-patient-common-lib";
+
+const MyComponent() {
+  const openOrderBasket = () => {
+    launchPatientWorkspace(
+      'order-basket',
+      //Optional
+      {
+        title: "Order Basket"
+      }
+    )
+  }
+  return (
+    <button onClick={openOrderBasket}>
+      Open order basket
+    </button>
+  )
+}
+```
+
+## Implementation
+
+`launchPatientWorkspace` handles the following scenarios before opening a workspace:
+
+1. No previous opened workspaces -> launching new workspace should open the new workspace
+2. If the workspace with the same name is already open and is focussed, then update the additionalProps.
+3. The currently focussed workspace cannot hide, i.e. canHide = false, launching new workspace should confirm the user from opening the new workspace, as it will then close the opened workspace.
+4. The new workspace launched has the same type with a workspace already opened, hence the previous workspace will be brought to the front (so that the workspace relating to the prompt is visible to the user), and the modal is shown for confirmation to close the current workspace before opening a new form.
+5. Situation conforming to both pt. 4 and 5, if an user opens the workspace A with type clinical-form and then opens another workspace B with type form and cannot be collapsed (canHide = false), and the user tries to open the workspace C, with type clinical-form (matching with workspace A), then the user will be shown the first modal to confirm closing the workspace B (which cannot be collapsed), and then the second modal for workspace A, which has the same type clinical-form (since no 2 workspaces with same type cannot be opened at the same type).

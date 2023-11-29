@@ -13,25 +13,23 @@
 
 > 💡 Please note that `canHide` property should be `true` for workspaces with a `type` that corresponds to a siderail nav button.
 
-Registering a new workspace can be simply done in either of the 2 ways:
+## How to Register a Workspace
 
-## Registering workspace in `index.ts` (Recommended)
-
-A new workspace can be registered in the `index.ts` file, using the `registerWorkspace` function from the `@openmrs/esm-patient-common-lib`
+A new workspace can be registered in the `index.ts` file, using the `registerWorkspace` function from `@openmrs/esm-patient-common-lib`. Here's an example, which would go in the index file of an app called `@myorg/esm-gastrodynamics-app`.
 
 ```ts copy
 // index.ts
 import { registerWorkspace } from '@openmrs/esm-patient-common-lib';
 
-registerWorkspace({
-  name: string,
-  title: string,
-  load: getAsyncLifecycle(() => import(<path-to-component>), options),
-  type: string,
-  canHide?: boolean = false,
-  canMaximize?: boolean = false,
-  width?: 'narrow' | 'wider' = 'narrow',
-  preferredWindowSize?: 'normal' | 'maximized' = 'normal'
-});
-
-```
+export function startupApp() {
+  registerWorkspace({
+    name: "gastrodynamics-form,
+    title: translateFrom("@myorg/esm-gastrodynamics-app", "gastrodynamicsTitle", "Gastrodynamics"),
+    load: getAsyncLifecycle(() => import("./gastrodynamics.workspace"), options),
+    type: "other-form",
+    canHide: false,
+    canMaximize: true,
+    width: 'narrow',
+    preferredWindowSize: 'maximized'
+  });
+}

@@ -8,7 +8,7 @@
 4. **type**: string - type of the workspace (Default = form)
 5. **canHide**: boolean - Can the workspace be collapsed/hidden (Default = false)
 6. **canMaximize**: boolean - Can the workspace be maximized to the full screen (Default = false)
-7. **width**: 'narrow' | 'wider' - Whether the workspace should have a width of 420px (narrow) or 520px (wide, especially for forms with sub forms (sub-sections)) width.
+7. **width**: 'narrow' | 'wider' - Whether the workspace should have a width of 420px (narrow) or 520px (wider; especially for forms with navigation)
 8. **preferredWindowSize**: 'normal' | 'maximized' - Whether to open the workspace in normal view or in maximized view (Default = 'normal')
 
 > 💡 Please note that `canHide` property should be `true` for workspaces with a `type` that corresponds to a siderail nav button.
@@ -34,30 +34,4 @@ registerWorkspace({
   preferredWindowSize?: 'normal' | 'maximized' = 'normal'
 });
 
-```
-
-## Registering workspace as an extension in `routes.json`
-
-```json copy
-// routes.json
-{
-  "extensions": [
-    {
-      "name": "visit-notes-form-workspace",
-      "component": "visitNotesForm",
-      "meta": {
-        "title": {
-          "key": "visitNote",
-          "default": "Visit Note"
-        },
-        "type": "visit-note",
-        // Optional
-        "canHide": false,
-        "canMaximize": false,
-        "width": "narrow",
-        "preferredWindowSize": "normal"
-      }
-    }
-  ]
-}
 ```

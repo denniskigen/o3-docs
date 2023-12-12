@@ -578,13 +578,15 @@ Remove the following metadata:
 - The `sharedOnlineOfflineProps` object
 - The `export` statement at the bottom of the file
 
-### 6. Tweak component imports to limit the number of Webpack chunks created
+### 6. Use fewer dynamic imports for improved performance 
 
 <Callout emoji="ℹ️" type="info">
   This is a recent performance optimization that has been shown to reduce the number of JavaScript files loaded at runtime significantly.
 </Callout>
 
-From the optimizations suggested above, we've learned that we can reduce the number of Webpack chunks created by importing components directly instead of importing them via a function call. For example, instead of doing this:
+By importing components directly instead of using a function call, we can reduce the number of chunks that Webpack creates for a frontend module. Browsers have a limit on the number of network requests that can be made at any given time. For example, Chrome has a limit of 6 concurrent requests per domain. This means that the more chunks we have, the longer it takes to load a frontend module. We've seen a marked performance improvement from reducing the number of chunks for a frontend module, especially for modules with a large number of components.
+
+The `getAsyncLifecycle` function is only necessary when we need to dynamically import a component. To leverage this optimization, we can import the components directly and use the `getSyncLifecycle` function instead. For example, instead of doing this:
 
 ```ts
 export const root = getAsyncLifecycle(() => import("./root.component"), options);
@@ -597,8 +599,6 @@ import rootComponent from './root.component';
 
 export const root = getSyncLifecycle(rootComponent, options);
 ```
-
-This is because the `getAsyncLifecycle` function is only necessary when we need to dynamically import a component. In this case, we're importing the component directly, so we can use the `getSyncLifecycle` function instead. The way Webpack's chunking algorithm works is that, loosely, each time we create a dynamic import like `getAsyncLifecycle(() => import('./some-file')))`, Webpack creates a new "chunk" for that file. This means that if we have 10 dynamic imports in a file, Webpack will create 10 chunks. This is not ideal because it means that we're loading 10 chunks at runtime, which has a performance impact. To avoid this, we can import the components directly and use the `getSyncLifecycle` function instead. We've tested this out and we've seen a marked performance benefit from doing so.
 
 Going back to the Login example, we can tweak the component imports as follows:
 

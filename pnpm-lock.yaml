@@ -63,8 +63,8 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /@babel/runtime@7.23.5:
-    resolution: {integrity: sha512-NdUTHcPe4C99WxPub+K9l9tK5/lV4UXIoaHSYgzco9BCyjKAAwzdBI+wWtYqHt7LJdbo74ZjRPJgzVweq1sz0w==}
+  /@babel/runtime@7.23.6:
+    resolution: {integrity: sha512-zHd0eUrf5GZoOWVCXp6koAKQTfZV07eit6bGPmJgnZdnSAvvZee6zniW2XMF7Cmc4ISOOnPy3QaSiIJGJkVEDQ==}
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.0
@@ -826,7 +826,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001568
-      electron-to-chromium: 1.4.609
+      electron-to-chromium: 1.4.610
       node-releases: 2.0.14
       update-browserslist-db: 1.0.13(browserslist@4.22.2)
     dev: true
@@ -1000,26 +1000,26 @@ packages:
     resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
     dev: false
 
-  /cytoscape-cose-bilkent@4.1.0(cytoscape@3.27.0):
+  /cytoscape-cose-bilkent@4.1.0(cytoscape@3.28.0):
     resolution: {integrity: sha512-wgQlVIUJF13Quxiv5e1gstZ08rnZj2XaLHGoFMYXz7SkNfCDOOteKBE6SYRfA9WxxI/iBc3ajfDoc6hb/MRAHQ==}
     peerDependencies:
       cytoscape: ^3.2.0
     dependencies:
       cose-base: 1.0.3
-      cytoscape: 3.27.0
+      cytoscape: 3.28.0
     dev: false
 
-  /cytoscape-fcose@2.2.0(cytoscape@3.27.0):
+  /cytoscape-fcose@2.2.0(cytoscape@3.28.0):
     resolution: {integrity: sha512-ki1/VuRIHFCzxWNrsshHYPs6L7TvLu3DL+TyIGEsRcvVERmxokbf5Gdk7mFxZnTdiGtnA4cfSmjZJMviqSuZrQ==}
     peerDependencies:
       cytoscape: ^3.2.0
     dependencies:
       cose-base: 2.2.0
-      cytoscape: 3.27.0
+      cytoscape: 3.28.0
     dev: false
 
-  /cytoscape@3.27.0:
-    resolution: {integrity: sha512-pPZJilfX9BxESwujODz5pydeGi+FBrXq1rcaB1mfhFXXFJ9GjE6CNndAk+8jPzoXGD+16LtSS4xlYEIUiW4Abg==}
+  /cytoscape@3.28.0:
+    resolution: {integrity: sha512-x7+BHQXN90Audv5xXvdOECmiKuZdeKeoqOmDuYoht4zDKSdObC0Z9AdJXFkXEQvXU8UndI6WnTz47TRI7duReg==}
     engines: {node: '>=0.10'}
     dependencies:
       heap: 0.2.7
@@ -1365,8 +1365,8 @@ packages:
     resolution: {integrity: sha512-ilkD8YEnnGh1zJ240uJsW7AzE+2qpbOUYjacomn3AvJ6J4JhKGSZ2nh4wUIXPZrEPppaCLx5jFe8T89Rk8tQ7w==}
     dev: false
 
-  /electron-to-chromium@1.4.609:
-    resolution: {integrity: sha512-ihiCP7PJmjoGNuLpl7TjNA8pCQWu09vGyjlPYw1Rqww4gvNuCcmvl+44G+2QyJ6S2K4o+wbTS++Xz0YN8Q9ERw==}
+  /electron-to-chromium@1.4.610:
+    resolution: {integrity: sha512-mqi2oL1mfeHYtOdCxbPQYV/PL7YrQlxbvFEZ0Ee8GbDdShimqt2/S6z2RWqysuvlwdOrQdqvE0KZrBTipAeJzg==}
     dev: true
 
   /elkjs@0.8.2:
@@ -2037,7 +2037,7 @@ packages:
   /match-sorter@6.3.1:
     resolution: {integrity: sha512-mxybbo3pPNuA+ZuCUhm5bwNkXrJTbsk5VWbR5wiwz/GC6LIiegBGn2w3O08UG/jdbYLinw51fSQ5xNU1U3MgBw==}
     dependencies:
-      '@babel/runtime': 7.23.5
+      '@babel/runtime': 7.23.6
       remove-accents: 0.4.2
     dev: false
 
@@ -2428,9 +2428,9 @@ packages:
       '@braintree/sanitize-url': 6.0.4
       '@types/d3-scale': 4.0.8
       '@types/d3-scale-chromatic': 3.0.3
-      cytoscape: 3.27.0
-      cytoscape-cose-bilkent: 4.1.0(cytoscape@3.27.0)
-      cytoscape-fcose: 2.2.0(cytoscape@3.27.0)
+      cytoscape: 3.28.0
+      cytoscape-cose-bilkent: 4.1.0(cytoscape@3.28.0)
+      cytoscape-fcose: 2.2.0(cytoscape@3.28.0)
       d3: 7.8.5
       d3-sankey: 0.12.3
       dagre-d3-es: 7.0.10

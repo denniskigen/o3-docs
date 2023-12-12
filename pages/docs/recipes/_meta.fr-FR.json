@@ -7,5 +7,6 @@
   "retrieve-and-post-data": "Récupérer et publier des données",
   "share-state-between-frontend-modules": "Partage de l'état entre les modules frontaux",
   "set-up-translations-in-a-frontend-module": "Configurer les traductions dans les nouveaux modules frontend",
-  "format-dates": "Formatage des dates"
+  "format-dates": "Formatage des dates",
+  "store-values": "Stocker les valeurs"
 }

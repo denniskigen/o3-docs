@@ -11,9 +11,8 @@
   "recipes": "Recettes",
   "extension-system": "Système d'extension",
   "configuration-system": "Système de configuration",
-  "storing-values": "Stockage de valeurs",
   "breadcrumbs": "Miettes de pain",
-  "migration-guide": "Migration vers Core v5",
+  "migrate-to-core-v5": "Migrer vers Core v5",
   "changelog": "Journal des modifications",
   "technical-roadmap": "Feuille de route technique"
 }

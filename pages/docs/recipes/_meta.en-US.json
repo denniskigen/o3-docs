@@ -1,10 +1,11 @@
 {
-  "setting-up-an-o3-instance": "Setting up an instance of O3",
-  "creating-a-frontend-module": "Creating a frontend module",
-  "creating-a-distribution": "Creating a distribution",
-  "adding-a-left-panel": "Adding a left panel",
-  "adding-links-to-the-home-page-left-panel": "Adding links to the home page left panel",
-  "retrieving-and-posting-data": "Retrieving and posting data",
-  "sharing-state-between-frontend-modules": "Sharing state between frontend modules",
-  "formatting-dates": "Formatting dates"
+  "set-up-o3-instance": "Set up an instance of O3",
+  "create-a-frontend-module": "Create a frontend module",
+  "create-a-distribution": "Create a distribution",
+  "add-a-left-panel-to-o3": "Add a left panel to O3",
+  "add-links-to-the-home-page-left-panel": "Add links to the home page left panel",
+  "retrieve-and-post-data": "Retrieve and post data",
+  "share-state-between-frontend-modules": "Share state between frontend modules",
+  "set-up-translations-in-a-frontend-module": "Set up translations in a frontend module",
+  "format-dates": "Format dates"
 }

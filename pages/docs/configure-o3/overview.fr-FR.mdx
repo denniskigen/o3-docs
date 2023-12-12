@@ -1,0 +1,76 @@
+# Aperçu
+
+Il existe diverses approches que les implémenteurs peuvent utiliser pour configurer leurs instances O3. Celles-ci incluent:
+
+- La configuration des métadonnées
+- La configuration des modules frontend individuels
+- La configuration au niveau de la distribution
+
+## Configuration des métadonnées
+
+Les configurations de métadonnées sont chargées via le [module initializer](https://github.com/mekomsolutions/openmrs-module-initializer) dans O3. Le module initializer, ou Iniz en abrégé, est un module qui permet aux implémenteurs de charger des métadonnées dans leurs instances OpenMRS à travers des fichiers JSON. 
+
+Les différents fichiers de configuration fournis avec O3 se trouvent dans le répertoire `distro/configuration` du [dépôt de configuration de l'application de référence de la distribution](https://github.com/openmrs/openmrs-distro-referenceapplication/tree/main/distro/configuration).
+
+Le module initializer prend en charge le chargement d'une grande variété de types de données et de métadonnées, incluant mais sans s'y limiter:
+
+- Concepts
+- Lieux
+- Types d'attributs de personne
+- Propriétés globales
+- Types de rencontre
+- Types de visite
+- Programmes
+- Flux de travail de programme
+- États de flux de travail de programme
+
+Pour plus d'informations sur la façon de configurer votre instance O3 en utilisant le module initializer, lisez le [README](https://github.com/mekomsolutions/openmrs-module-initializer#openmrs-initializer-module) du dépôt Iniz.
+
+## Configuration des modules frontend individuels
+
+La configuration par application est disponible dans O3 via le [système de configuration](/docs/configuration-system) intégré. Chaque module frontend peut définir son propre schéma de configuration dans un fichier `config-schema.ts` à l'intérieur de son répertoire `src`. Les propriétés spécifiées dans le schéma de configuration permettent aux implémenteurs d'adapter le comportement du module à leurs besoins.
+
+Le système de configuration permet également aux implémenteurs de spécifier des valeurs par défaut pour les diverses propriétés de configuration.
+
+Les implémenteurs sont en mesure d'apporter des modifications aux configurations des modules frontend via le panneau intégré d'outils pour les implémenteurs. Une fois connecté à O3, un clic sur la flèche centrée en bas de l'écran affichera les outils de l'implémenteur. Vous pouvez également cliquer sur l'icône d'engrenage dans la barre de navigation. Une fois ouvert, vous pouvez rechercher des propriétés de configuration en les cherchant et les modifier à la volée. 
+
+Notez que toute modification apportée à la configuration via les outils de l'implémenteur sera perdue une fois que vous rafraîchirez la page. Pour apporter des modifications permanentes à la configuration, vous devrez valider ces changements dans la configuration de votre distribution. Les outils de l'implémenteur vous permettent de télécharger un fichier de configuration temporaire contenant vos modifications en cliquant sur le bouton `Télécharger la config`.
+
+Généralement, vous devrez apporter plusieurs substitutions de configuration à divers modules frontend différents. La façon canonique de faire cela est de créer un fichier de configuration JSON qui réside sur votre serveur. Vous pouvez alors pointer votre SPA vers ce fichier de configuration en spécifiant son URL dans le fichier de configuration de génération de la SPA. Un exemple d'un tel fichier de configuration est le [fichier de configuration Ozone Cambodia](https://github.com/openmrs/ozone-distro-cambodia/blob/main/configs/ozone_config/frontend/ozone-frontend-config.json). 
+
+Chaque clé dans le fichier de configuration correspond à un module frontend. La valeur de chaque clé est un objet contenant les propriétés de configuration que vous souhaitez substituer pour ce module. Ces propriétés correspondent aux propriétés définies dans le schéma de configuration du module.
+
+## Configuration au niveau de la distribution
+
+Les implémenteurs peuvent configurer leurs instances au niveau de la distribution à l'aide des approches suivantes:
+
+### distro.properties
+
+Le fichier `distro.properties` est un fichier de configuration qui décrit les modules backend qui constituent votre distribution. Le fichier distro.properties par défaut de l'application de référence se trouve [ici](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/distro/distro.properties). 
+
+Les éléments les plus importants à inclure dans le distro.properties sont:
+
+- `war.openmrs` - la version de Core utilisée.
+- Pour chaque module, nous aurons généralement une entrée stylisée comme `omod.[module-id] = [module-version]`. Par exemple, `omod.referenceapplication = 2.11.0`.
+
+Généralement, vous ne voudrez modifier le fichier `distro.properties` que si vous souhaitez spécifier des modules backend supplémentaires que vous souhaitez inclure dans votre distribution. Si vous souhaitez supprimer un module backend de votre distribution, vous pouvez le faire en supprimant son entrée du fichier `distro.properties`.
+
+### spa-build-config.json
+
+La configuration de génération de la SPA est un fichier JSON qui vous permet de spécifier diverses propriétés de configuration qui sont transmises aux modules frontend pendant le processus de génération. 
+
+Le fichier de configuration de génération de la SPA se trouve dans le répertoire `frontend` de votre distribution. Le fichier spa-build-config de référence de l'application se trouve [ici](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/spa-build-config.json).
+
+Le fichier de configuration de génération de la SPA est utilisé pour spécifier les propriétés suivantes:
+
+- `frontendModules` - décrit toutes les applications qui constituent votre distribution ainsi que leurs versions spécifiques (telles que publiées sur un registre NPM).
+- `spaPath` - le chemin d'URL où votre SPA sera servi.  
+- `apiURL` - l'URL du backend OpenMRS avec lequel votre SPA communiquera. La valeur par défaut est `/openmrs`.
+- `configUrls` - un tableau d'URLs pointant vers des fichiers de configuration JSON qui seront chargés dans votre SPA pendant le processus de génération.
+- `defaultLocale` - la locale par défaut dans laquelle votre SPA sera servi. La valeur par défaut est `en-GB`. 
+- `supportOffline` - valeur booléenne déterminant si votre SPA pourra fonctionner hors ligne ou non. La valeur par défaut est `false`.
+- `pageTitle` - le titre de page par défaut qui sera utilisé par votre SPA. La valeur par défaut est `OpenMRS`.
+
+Généralement, les éléments que vous voudrez personnaliser dans le fichier de configuration de génération de la SPA sont `frontendModules`, `configUrls` et `defaultLocale`. La plupart des autres éléments ont des valeurs par défaut sensées que vous n'aurez probablement pas besoin de changer.
+
+Si vous souhaitez ajouter un nouveau module à votre distribution, vous pouvez le faire en l'ajoutant au tableau `frontendModules`. De même, si vous souhaitez supprimer un module frontend de votre distribution, vous pouvez le faire en supprimant son entrée de l'objet `frontendModules`.

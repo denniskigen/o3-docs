@@ -46,10 +46,19 @@ What this means is that running `yarn start` invokes the `develop` command of th
 - Specifying an alternative API URL (defaults to `openmrs`).
 - Specifying a custom import map.
 
-## Using import map overrides
+## Running `esm-patient-common-lib` locally
 
+The `esm-patient-common-lib` is a library of common components and utilities used primarily by the patient chart in O3. You might to make changes to the library and test those changes against a local dev server. To achieve that, you can do the following:
 
- 
+- Launch the `package.json` file for the frontend module you want to work on. Look for the `esm-patient-common-lib` dependency in the `peerDependencies` section. Remove that entry and run `yarn` to install dependencies.
+- Run your local dev server using `yarn start`. For example, for the labs app, run:
+
+  ```sh
+  yarn start --sources 'packages/esm-patient-labs-app'
+  ```
+
+- Try making a change to library, e.g. adding a `console.log` to a file such as `DashboardExtension.tsx`. Your dev server should reload and you should see your `console.log` printed in the browser console once you navigate to the patient chart.
+- Once you're done making changes, you can revert the changes you made to the `package.json` file and run `yarn` to install dependencies again.
 
 ## Running the app shell locally
 

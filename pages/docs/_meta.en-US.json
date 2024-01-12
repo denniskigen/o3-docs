@@ -2,7 +2,7 @@
   "introduction": "Introduction",
   "prerequisite-knowledge": "Prerequisite knowledge",
   "key-repositories": "Key repositories",
-  "configuring-o3": "Configuring O3",
+  "configure-o3": "Configure O3",
   "forms-in-o3": "Forms in O3",
   "core-concepts": "Core concepts",
   "frontend-modules": "Frontend modules",
@@ -11,11 +11,9 @@
   "recipes": "Recipes",
   "extension-system": "Extension system",
   "configuration-system": "Configuration system",
-  "i18n": "i18n of New O3 Modules",
   "workspaces-in-o3": "Workspaces in O3",
-  "storing-values": "Storing values",
   "breadcrumbs": "Breadcrumbs",
-  "migration-guide": "Migrating to Core v5",
+  "migrate-to-core-v5": "Migrate to Core v5",
   "changelog": "Changelog",
   "technical-roadmap": "Technical roadmap"
 }

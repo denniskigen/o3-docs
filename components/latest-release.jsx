@@ -1,7 +1,7 @@
 import useSWRImmutable from "swr";
-import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import remarkGithub from "remark-github/lib";
+import remarkGithub from "remark-github";
+import ReactMarkdown from "react-markdown";
 
 export default function LatestRelease({ repo }) {
   const fetcher = (url) => fetch(url).then((r) => r.json());
@@ -17,25 +17,17 @@ export default function LatestRelease({ repo }) {
 
   return (
     <div className="py-4 space-y-2">
-      <h1 className="font-bold text-lg">{latestRelease?.name}</h1>
+      <h1 className="text-lg font-bold">{latestRelease?.name}</h1>
 
       <ReactMarkdown
         children={latestRelease?.body}
         className="markdown"
-        remarkPlugins={[
-          remarkGfm,
-          [remarkGithub, { repository: `https://github.com/openmrs/${repo}` }],
-        ]}
+        remarkPlugins={[remarkGfm, [remarkGithub, { repository: `https://github.com/openmrs/${repo}` }]]}
       />
 
       {data?.length > 1 ? (
         <h1 className="py-2">
-          <a
-            className="nx-text-primary-600 underline"
-            href={repoUrl}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
+          <a className="underline nx-text-primary-600" href={repoUrl} rel="noopener noreferrer" target="_blank">
             Older releases
           </a>
         </h1>

@@ -191,16 +191,16 @@ The content of config will be pulled from the config files, falling back to the 
 
 #### React support
 
-A React Hook is provided to hide the asynchronicity of config loading. The moduleName provided to the `openmrsComponentDecorator` in esm-react-utils is used to look up the configuration elsewhere in the application.
+A React Hook is provided to hide the asynchronicity of config loading. The `moduleName` provided in your app's root `index.ts` file (to the functions `getSyncLifecycle` or `getAsyncLifecycle`) is used to look up the configuration elsewhere in the application.
 
 ```ts
-export default openmrsRootDecorator({
-  featureName: "hologram doctor",
-  moduleName: "@openmrs/esm-hologram-doctor",
-})(Root);
+export const hologramDoctor = getSyncLifecycle(hologramDoctor, {
+  featureName: 'hologram doctor',
+  moduleName: '@openmrs/esm-hologram-doctor',
+});
 ```
 
-You can then get the config tree as an object using the useConfig React hook.
+You can then get the config tree as an object using the `useConfig` React hook.
 
 ```ts
 import { useConfig } from "@openmrs/esm-framework";
@@ -216,7 +216,7 @@ The content of config will be pulled from the config files, falling back to the 
 
 #### Support in other frameworks (Angular, Vue, Svelte, etc.)
 
-This hasn’t been implemented yet, but we would like to implement it! See Contributing.
+This hasn’t been implemented yet, but you are welcome to implement it! See Contributing.
 
 #### Typing
 
@@ -242,10 +242,10 @@ export interface HologramDoctorConfig {
 }
 ```
 
-You can then use this typing information using the `as` keyword.
+You can then use this typing information when calling the config functions:
 
 ```ts
-const config = useConfig() as HologramDoctorConfig;
+const config = useConfig<HologramDoctorConfig>();
 ```
 
 ## Schema Reference

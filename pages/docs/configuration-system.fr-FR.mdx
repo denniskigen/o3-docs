@@ -189,13 +189,13 @@ async function doctorGreeting() {
 
 #### Support React
 
-Un crochet React est fourni pour masquer l'asynchronisme du chargement de la configuration. Le nom du module fourni à `openmrsComponentDecorator` dans esm-react-utils est utilisé pour rechercher la configuration ailleurs dans l'application.
+Un React Hook est fourni pour masquer l'asynchronicité du chargement de la configuration. Le `moduleName` fourni dans le fichier racine `index.ts` de votre application (aux fonctions `getSyncLifecycle` ou `getAsyncLifecycle`) est utilisé pour rechercher la configuration ailleurs dans l'application.
 
 ```ts
-export default openmrsRootDecorator({
-  featureName: "hologram doctor",
-  moduleName: "@openmrs/esm-hologram-doctor",
-})(Root);
+export const hologramDoctor = getSyncLifecycle(hologramDoctor, {
+  featureName: 'hologram doctor',
+  moduleName: '@openmrs/esm-hologram-doctor',
+});
 ```
 
 Vous pouvez ensuite obtenir l'arbre de configuration en tant qu'objet en utilisant le crochet React useConfig
@@ -204,7 +204,7 @@ Vous pouvez ensuite obtenir l'arbre de configuration en tant qu'objet en utilisa
 import { getConfig } from "@openmrs/esm-framework";
 
 async function doctorGreeting() {
-  const config = await getConfig("@openmrs/esm-hologramme-docteur");
+  const config = await getConfig("@openmrs/esm-hologram-doctor");
   return "Bonjour, mon nom est Dr. " + config.virtualProvider.name.family;
 }
 ```
@@ -227,13 +227,13 @@ defineConfigSchema("@openmrs/esm-hologram-doctor", {
     color: {
       type: Type.Boolean,
       par défaut: false,
-      _description: "Si l'hologramme prend en charge l'affichage des couleurs",
+      _description: "Whether the hologram supports color display.",
     },
   },
 }) ;
 
 export interface HologramDoctorConfig {
-  hologramme: {
+  hologram: {
     color: boolean ;
   } ;
 }

@@ -1,22 +1,22 @@
-# Siderail and Bottom nav
+# Siderail and Bottom Nav
 
-The Siderail and Bottom nav are desktop and tablet versions of the same navigation functionality. They contain a series of links that take users to different tabs in the Workspace. Once open, the Workspace is persistent across pages (for example, all pages within a Patient Chart).
+The Siderail and Bottom Nav are desktop and tablet versions of the same navigation functionality. They contain buttons that open different tabs in the Workspace. Once open, the Workspace is persistent across dashboards within the Patient Chart. Designs for these elements are on [the OpenMRS Styleguide](https://zeroheight.com/23a080e38/p/948cf1-siderail-and-bottom-nav).
 
-The various styles for different nav button states can be found at https://zeroheight.com/23a080e38/p/948cf1-siderail-and-bottom-nav/b/86907e
+## Adding a New Navigation Button
 
-## Adding a new nav button
+The Siderail and Bottom Nav contain an extension slot, `action-menu-chart-items-slot`. New navigation buttons may be wrapped in extensions and attached to this slot.
 
-The siderail/ bottom nav buttons can be added to the patient chart simply via extensions.
+Continuing our example from [Registering Workspaces](./registering-workspaces), let's assume we have registered a workspace called `gastrodynamics-form`.
 
 ```json copy
 // routes.json
 {
   "extensions": [
     {
-      "name": "order-basket-action-menu",
-      "component": "orderBasketActionMenu",
+      "name": "gastrodynamics-form-button",
+      "component": "gastrodynamicsFormButton",
       "slot": "action-menu-chart-items-slot",
-      "order": 0
+      "order": 4
     }
   ]
 }
@@ -24,66 +24,42 @@ The siderail/ bottom nav buttons can be added to the patient chart simply via ex
 
 ```ts copy
 // index.ts
-  name: 'order-basket',
-  title: 'Order Basket',
-  load: getAsyncLifecycle(() => import('./order-basket/order-basket.workspace'), options),
-  type: 'order',
-  canHide: true,
-});
-
-export const orderBasketActionMenu = getAsyncLifecycle(
-  () => import('./order-basket-action-button/order-basket-action-button.extension'),
+export const gastrodynamicsFormButton = getAsyncLifecycle(
+  () => import('./gastrodynamics-form-button.extension'),
   options,
 );
 ```
 
 ```ts copy
-// order-basket-action-button.extension.tsx
+// gastrodynamics-form-button.extension.tsx
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Tag } from "@carbon/react";
-import { ShoppingCart } from "@carbon/react/icons";
+import { Intestines } from "@carbon/react/icons"; // this is not a real icon, unfortunately
 import {
   useLaunchWorkspaceRequiringVisit,
-  useOrderBasket,
   SiderailNavButton,
 } from "@openmrs/esm-patient-common-lib";
-import styles from "./order-basket-action-button.scss";
 
-const OrderBasketActionButton: React.FC = () => {
+export default function GastrodynamicsFormButton() {
   const { t } = useTranslation();
-  const { orders } = useOrderBasket();
-  const launchOrderBasket = useLaunchWorkspaceRequiringVisit("order-basket");
+  const launchGastrodynamicsForm = useLaunchWorkspaceRequiringVisit("gastrodynamics-form");
 
   return (
     <SiderailNavButton
-      name={"order-basket-action-menu"}
-      getIcon={(props) => <ShoppingCart {...props} />}
-      label={t("orderBasket", "Order basket")}
-      iconDescription={t("medications", "Medications")}
-      handler={launchOrderBasket}
-      type={"order"}
-      tagContent={orders?.length > 0 ? orders?.length : null}
+      name={"gastrodynamics-form-button"}
+      getIcon={(props) => <Intestines {...props} />}
+      label={t("gastrodynamics", "Gastrodynamics")}
+      iconDescription={t("gastrodynamics", "Gastrodynamics")}
+      handler={launchGastrodynamicsForm}
+      type={"form"}
     />
   );
 };
-
-export default OrderBasketActionButton;
 ```
 
-## Implementation
+## Siderail and Bottom Nav Behavior
 
-The siderail and bottom nav are implemented as a single component, with the siderail and bottom nav being rendered conditionally based on the screen layout (desktop/ layout).
+The Siderail and Bottom Nav are implemented as a single component. If the screen is desktop-width, the Siderail is rendered; if it is smaller then the Bottom Nav is rendered.
 
-If the workspace with the type passed into the `SiderailNavButton` is already open, the button's active/ interrupted state is set as per the following conditions:
-
-```ts copy
-const SiderailNavButton = ({type}) => {
-  const { workspaces, workspaceWindowState } = useWorkspaces();
-  const workspaceIndex = workspaces?.findIndex(({ type: workspaceType }) => workspaceType === type) ?? -1;
-  const isWorkspaceActive = workspaceWindowState !== 'hidden' && workspaceIndex === 0;
-  const formOpenInTheBackground = workspaceIndex > 0 || (workspaceIndex === 0 && workspaceWindowState === 'hidden');
-
-  return ...
-}
-```
+Each `SiderailNavButton` has a `type`, which should correspond to the workspace that it opens. Given a `SiderailNavButton`, if a workspace is visible on the screen that matches its type, then that button will be highlighted as "active." If a workspace with a matching type has been opened but is not presently visible on the screen (it is minimized, or behind another workspace), then the button will show a little red warning badge, signifying that the workspace is in the "interrupted" state.

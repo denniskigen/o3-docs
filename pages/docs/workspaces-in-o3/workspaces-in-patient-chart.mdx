@@ -1,40 +1,11 @@
 # Workspaces
 
-The workspace is the interactive layer of the Patient chart. It allows healthcare professionals to perform a variety of actions related to the patient, like order medications, record vitals and write visit notes.
+The Workspace is the interactive layer of the Patient Chart. It opens on the right side of the screen on a desktop computer, or in a drawer over the screen on smaller screens. It is where data entry, form filling, and ordering takes place. The design of the Workspace system is in [the OpenMRS Styleguide](https://zeroheight.com/23a080e38/p/483a22-workspace).
 
-For understanding how the workspaces are designed, please refer to the Zero-height docs at https://zeroheight.com/23a080e38/p/483a22-workspace
+The actual area of the screen in the Patient Chart where the Workspaces appear is called the Workspace Window. Things like forms and the order basket are each Workspaces, and those Workspaces open in the Workspace Window.
 
-## Workspace Window
+Any new Workspace should conform to one of the three variants described in the [the OpenMRS Styleguide](https://zeroheight.com/23a080e38/p/483a22-workspace). These variants provide guidelines about Workspace styling and behavior.
 
-Workspace window is rendered inside the patient chart app, which handles rendering and showcasing multiple workspaces opened by the user.
+A Workspace is essentially a component that has been [registered](./creating-workspaces) as a Workspace with a `name` and a `type`. The `name` should be unique to the Workspace, since it will be used to look up the component when launching. Different Workspaces may have the same `type`. The Workspace system will not allow multiple Workspaces of the same type to be open at the same time. Currently existing types are `form`, `clinical-form` (a special form), `order`, and `patient-lists`. If you add a new [Siderail Nav Button](./siderail-nav-buttons), it will correspond to a new Workspace type. Otherwise you may create your own type or use an existing one, according to the desired behavior.
 
-## Workspace Variants
-
-Workspaces in patient chart can be of 3 variations:
-
-### 1. Siderail
-
-Is used across OMRS interface for all actions and workflows that have a Siderail link. Currently, they are:
-
-1. order basket
-2. visit note
-
-The workspace width is fixed at 420px.
-
-In this variant, the Button pair is composed by two 2XL buttons in full-span aligment
-
-### 2. Independent actions
-
-Is used across OMRS interface for actions and workflows that don't have a Siderail link. Examples of such actions are:
-
-1. appointments
-2. record vitals
-3. start a visit
-
-The only visual difference between this variant and the Siderail is that instead of a collapse/expand button, it has a close button in the right corner. This indicates that the action performed in that context cannot be interrupted and restarted later. More details about this behaviour here.
-
-### 3. Clinical form
-
-This variant is used only on Clinical forms, and is 100px wider than the other variants, with a total width of 520px, as it contains the Form navigation menu on the left side.
-
-In this variant, the Button group is composed by two Small buttons, stacked.
+Once a workspaces is [registered](./creating-workspaces), it may be [launched](./launching-workspace) anywhere in the Patient Chart.

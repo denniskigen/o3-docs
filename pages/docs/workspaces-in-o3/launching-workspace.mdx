@@ -23,9 +23,9 @@ const MyComponent() {
 }
 ```
 
-To launch a patient workspace, requiring a visit, you can utilize the `useLaunchWorkspaceRequiringVisit`.
+To launch a patient workspace that requires a visit, use `useLaunchWorkspaceRequiringVisit`.
 
-If the visit is enabled on the system and the patient doesn't have an active visit, the user will be prompted to start a new visit before launching a workspace.
+If visits are enabled on the OpenMRS server and the patient doesn't have an active visit, the user will be prompted to start a new visit before launching a workspace.
 
 ```ts copy
 import React from "react";
@@ -50,4 +50,4 @@ export default OrderBasketActionButton;
 3. For the currently focused workspace, if it cannot hide (that is, if it was registered with `canHide: false`), launching a new workspace will prompt the user for confirmation before closing the opened workspace.
 4. If the new workspace launched has the same type as a workspace already opened, the previous workspace of that type will be brought to the front. A modal is then shown asking for confirmation to close the current workspace before opening the new one.
 
-As a more complex example, let's look at a situation involving both points 4 and 5. If a user opens workspace A with type 'clinical-form' and then opens another workspace B with type 'form' which cannot be collapsed (`canHide == false`), and subsequently tries to open workspace C with type 'clinical-form' (matching workspace A), then the user will first see a modal to confirm closing workspace B (which cannot be collapsed). Following this, a second modal will appear for workspace A, which has the same type 'clinical-form', since no two workspaces of the same type can be opened at the same time.
+As a more complex example, let's look at a situation involving both rules 3 and 4. If a user opens workspace A with type 'clinical-form' and then opens another workspace B with type 'form' which cannot be collapsed (`canHide == false`), and subsequently tries to open workspace C with type 'clinical-form' (matching workspace A), then the user will first see a modal to confirm closing workspace B (which cannot be collapsed). Following this, a second modal will appear for workspace A, which has the same type 'clinical-form', since no two workspaces of the same type can be opened at the same time.

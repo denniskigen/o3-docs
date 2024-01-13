@@ -11,6 +11,7 @@
   "recipes": "Recettes",
   "extension-system": "Système d'extension",
   "configuration-system": "Système de configuration",
+  "workspaces": "Workspaces",
   "breadcrumbs": "Miettes de pain",
   "migrate-to-core-v5": "Migrer vers Core v5",
   "changelog": "Journal des modifications",

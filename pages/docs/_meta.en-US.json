@@ -11,7 +11,7 @@
   "recipes": "Recipes",
   "extension-system": "Extension system",
   "configuration-system": "Configuration system",
-  "workspaces-in-o3": "Workspaces in O3",
+  "workspaces": "Workspaces in O3",
   "breadcrumbs": "Breadcrumbs",
   "migrate-to-core-v5": "Migrate to Core v5",
   "changelog": "Changelog",

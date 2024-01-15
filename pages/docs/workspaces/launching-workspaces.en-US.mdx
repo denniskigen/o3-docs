@@ -1,0 +1,53 @@
+# Launching workspaces
+
+To launch a workspace for a patient, use the `launchPatientWorkspace` function. If the workspace accepts props, they can be passed as `additionalProps` in the second argument. The `workspaceTitle` property is always accepted, and is used to override the workspace's title (which is defined in its registration).
+
+```ts copy
+import { launchPatientWorkspace } from "@openmrs/esm-patient-common-lib";
+
+const MyComponent() {
+  const openOrderBasket = () => {
+    launchPatientWorkspace(
+      'order-basket',
+      //Optional
+      {
+        workspaceTitle: "Order basket, courtesy of MyComponent"
+      }
+    )
+  }
+  return (
+    <button onClick={openOrderBasket}>
+      Open order basket
+    </button>
+  )
+}
+```
+
+To launch a patient workspace that requires a visit, use `useLaunchWorkspaceRequiringVisit`.
+
+If visits are enabled on the OpenMRS server and the patient doesn't have an active visit, the user will be prompted to start a new visit before launching a workspace.
+
+```ts copy
+import React from "react";
+import { useLaunchWorkspaceRequiringVisit } from "@openmrs/esm-patient-common-lib";
+
+const OrderBasketActionButton: React.FC = () => {
+  const { t } = useTranslation();
+  const launchOrderBasket = useLaunchWorkspaceRequiringVisit("order-basket");
+
+  return <Button onClick={launchOrderBasket}>Launch order basket</Button>;
+};
+
+export default OrderBasketActionButton;
+```
+
+## Behavior
+
+`launchPatientWorkspace` follows these rules when opening a workspace:
+
+1. If there are no previously opened workspaces, then launching a new workspace should open the new workspace.
+2. If the workspace with the same name is already open and is focused, then the `additionalProps` of that workspace are updated (if they have changed).
+3. For the currently focused workspace, if it cannot hide (that is, if it was registered with `canHide: false`), launching a new workspace will prompt the user for confirmation before closing the opened workspace.
+4. If the new workspace launched has the same type as a workspace already opened, the previous workspace of that type will be brought to the front. A modal is then shown asking for confirmation to close the current workspace before opening the new one.
+
+As a more complex example, let's look at a situation involving both rules 3 and 4. If a user opens workspace A with type 'clinical-form' and then opens another workspace B with type 'form' which cannot be collapsed (`canHide == false`), and subsequently tries to open workspace C with type 'clinical-form' (matching workspace A), then the user will first see a modal to confirm closing workspace B (which cannot be collapsed). Following this, a second modal will appear for workspace A, which has the same type 'clinical-form', since no two workspaces of the same type can be opened at the same time.

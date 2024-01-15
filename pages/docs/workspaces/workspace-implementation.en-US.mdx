@@ -1,0 +1,72 @@
+# Implementation: Under the hood
+
+> This is how things work under the hood with the Workspace system. You probably don't need to know about this!
+
+Workspaces are implemented using global store, which can be imported as:
+
+```ts
+import { getWorkspaceStore } from "@openmrs/esm-patient-common-lib";
+
+// Accessing the state of the workspace store
+const store = getWorkspaceStore();
+const state = store.getState();
+```
+
+## Workspace window's properties
+
+Workspace store has the following properties, defining the workspace window:
+
+1. `patientUuid: string` - Current patient's UUID
+2. `openWorkspaces: OpenWorkspaces[]` - The list of workspaces launched by the user
+3. `prompt: Prompt` - The prompt to be shown to the user, usually for confirming an action
+4. `workspaceWindowState: 'normal' | 'maximized' | 'hidden'` - The state of the workspace window
+
+The workspace properties can be accessed by either 2 ways:
+
+1. Using the `getWorkspaceStore` function, which returns the workspace store
+
+```ts copy
+import { getWorkspaceStore } from '@openmrs/esm-patient-common-lib';
+
+const store = getWorkspaceStore();
+const state = store.getState();
+
+// To update the state of the workspace store, use the `store.setState` function
+store.setState({ ... })
+// OR
+store.setState((state) => { ... })
+```
+
+2. For react components, you can access the workspace state from the `useWorkspaces` hook
+
+```ts copy
+import { useWorkspaces } from "@openmrs/esm-patient-common-lib";
+
+const MyComponent = () => {
+  const { workspaces, prompt, workspaceWindowState } = useWorkspaces();
+
+  // To update the state of the workspace store, use the `setState`
+  return <div></div>;
+};
+```
+
+Multiple workspaces can be opened at the same time but only one visible at a time, i.e. the workspace at the top. The workspace window is rendered on the right corner of the patient chart.
+
+## To know whether a workspace is active or not:
+
+```ts copy
+const MyComponent = () => {
+  const { workspaces, workspaceWindowState } = useWorkspaces();
+
+  const workspaceIndex = workspaces.findIndex(
+    (workspace) => workspace.name === "my-workspace-name"
+  );
+
+  const workspaceOpened = workspaceIndex >= 0;
+
+  const isWorkspaceActive =
+    workspaceWindowState !== "hidden" && workspaceIndex === 0;
+
+  return <div></div>;
+};
+```

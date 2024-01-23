@@ -1,0 +1,59 @@
+import Image from "next/image";
+
+# Feature Flags
+
+Work in progress can be hidden behind feature flags. This is useful for complex features that may take some time and multiple iterations to get fully working.
+
+A feature flag can be toggled from the "Feature Flags" tab of the Implementer Tools. The feature will be turned on or off for that user, in their browser. Feature flags are not persisted to the server and therefore cannot be used to partially roll out features, and cannot be accessed by non-administrators. For users without access to the Implementer Tools, elements hidden behind feature flags will simply not be available.
+
+The API for feature flags can be found in the [API Docs](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#feature-flags-functions).
+
+## Using Feature Flags
+
+Let's say you have built a page for your laser optometry clinic, and are working on adding functionality supporting a planned service where you give people laser eyes. This functionality is contained in the component `LaserEyeInstallation`. We're going to create a feature flag called `laser-eyes`, which will allow administrators to preview the component before it is rolled out to everyone.
+
+There are two steps: the feature flag must be registered using `registerFeatureFlag`, and then it can be used with `useFeatureFlag`. First we register the feature flag in the `startupApp` function of the frontend module we are working on.
+
+```ts
+import { registerFeatureFlag } from "@openmrs/esm-framework";
+
+export function startupApp() {
+  registerFeatureFlag(
+    "laser-eyes",
+    "Laser Eye Installation Service",
+    "Adds a form and relevant patient diagnostic information relating to the planned Laser Eye Installation Service to the laser optometry clinic management page."
+  );
+}
+```
+
+Now the feature flag will appear in the Implementer Tools.
+
+<Image
+  src="/feature-flag.png"
+  alt="Screenshot of the bed management app landing page showing the left panel"
+  width={1000}
+  height={746}
+/>
+
+Now that the feature flag is registered, we may use it to control the visibility of the `LaserEyeInstallation` component.
+
+```tsx
+import { useFeatureFlag } from "@openmrs/esm-framework";
+
+export default function LaserOptometryClinicManagement() {
+  const isLaserEyeInstallationEnabled = useFeatureFlag("laser-eyes");
+
+  return (
+    <div>
+      <h1>Laser Optometry Clinic</h1>
+      <AstygmatismTreatment />
+      <MyopiaTreatment />
+
+      {/* Work in progress */}
+      { isLaserEyeInstallationEnabled ? <LaserEyeInstallation /> : null }
+    </div>
+  );
+}
+```
+
+Now you can deploy changes to the laser optometry app which include this in-progress code, and users will not see the feature hidden behind the flag. Administrators, however, will be able to open the Implementer Tools and toggle the "Laser Eye Installation Service" feature flag in order to preview the feature.

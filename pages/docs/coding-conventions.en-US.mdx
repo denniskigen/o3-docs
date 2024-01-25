@@ -4,9 +4,7 @@ import { Callout } from "nextra-theme-docs";
 
 This is a compendium of the coding conventions we use in O3. The purpose of this document is to help us write code that is consistent and easy to maintain.
 
-## General
-
-### Naming
+## Naming
 
 - Follow the guidelines in this [naming cheatsheet](https://github.com/kettanaito/naming-cheatsheet).
 - Use `camelCase` for variables, functions, methods, and class names.
@@ -27,14 +25,14 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - State updater functions should be named after the state they update. For example, `setFirstName` is a good name for a state updater function that updates the `firstName` state.
 - What to name your branches is typically down to personal preference. However, when in doubt, name your branches using the [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/) type that your work conforms to, followed by a slash and a short dash-separated description of the work. Good examples include: `feat/debounced-order-basket-search`, `fix/missing-translation`, `chore/bump-dependencies` and `refactor/remove-unused-code`.
 
-### Project structure
+## Project structure
 
 - Monorepos should contain domain-specific packages that are related to each other. For example, patient management concerns such as registration and search live in the `openmrs-esm-patient-management` monorepo.
 - Configuration files should generally exist at the top level of the monorepo directory. Notable exceptions to this rule include the a file containing helpers for tests, the `i18next-parser` configuration, and `setupTests.ts`, which should all exist in the `tools` directory.
 - Colocate files that are related to each other. For example, a component and its corresponding test and stylesheet should live in the same directory. This way, when you make a change to a component, it's easy to extend that change to the test and stylesheet if necessary.
 - Avoid placing styles for multiple components in the same stylesheet. Instead, create a separate stylesheet for each component. This makes it easier to find the styles for a particular component.
 
-### Components
+## Components
 
 - Don't keep unused code in your components. Keeping dead code around can cause confusion and makes it harder to maintain the codebase.
 - Validate the props passed to your component using type aliases or interfaces. This helps to catch bugs early and makes it easier to understand how the component is used.
@@ -46,7 +44,7 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - Omit the value of a prop when it is explicitly `true`. For example, `<UserComponent isAdmin />` is preferred over `<UserComponent isAdmin={true} />`.
 - Follow consistent code formatting, naming conventions and folder structure. This makes the codebase more readable and easier to maintain.
 
-### Data fetching
+## Data fetching
 
 - Colocate your data fetching logic in a file suffixed with `.resource`. For example, `user.resource.ts` contains the data fetching logic for the user resource.
 - Wherever possible, prefer abstracting your data fetching into a custom hook rather than [fetching with effects](https://react.dev/reference/react/useEffect#fetching-data-with-effects). Fetching data with effects has many [downsides](https://react.dev/reference/react/useEffect#fetching-data-with-effects) and should be avoided. Instead, prefer using [SWR](https://swr.vercel.app/) hooks.
@@ -54,10 +52,10 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - Put the SWR hook in a separate file, and export it as a function. This allows us to reuse the same hook in multiple components.
 - Memoize the return value of your SWR hook using `useMemo` to prevent unnecessary rerenders. This is especially important if the hook is used in a component that is rendered many times, such as a table row.
 - Data fetching hooks should follow the naming convention `use<resource>`. For example, `useUser` is the hook for fetching user data.
-- Use `openmrsFetch` to fetch data from the backend. openmrsFetch is a wrapper around the `fetch` API that adds authentication and authorization headers and handles errors. Pass it to as the `fetcher` argument of your SWR hooks.
+- Use `openmrsFetch` to fetch data from the backend. openmrsFetch is a wrapper around the `fetch` API that adds authentication and authorization headers and handles errors. Pass it to `useSWR` as the `fetcher` argument of your SWR hooks.
 - Use `openmrsObservableFetch` only if you need to fetch data from the backend using an observable. This is useful for streaming data from the backend. Ensure you understand the difference between observables and promises before reaching for this function.
 
-### Internationalization
+## Internationalization
 
 - Use the [useTranslation](https://react.i18next.com/latest/usetranslation-hook) hook to translate strings in your components.
 - Use the [Trans](https://react.i18next.com/latest/trans-component) component to translate strings that contain HTML tags.
@@ -81,18 +79,18 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
   "flagCount_other": "{{ count }} risk flags"
   ```
 
-### State management
+## State management
 
 - Follow the guidelines outlined [here](https://kentcdodds.com/blog/application-state-management-with-react).
 - To share state between components, [lift the state up to the nearest common ancestor](https://react.dev/learn/sharing-state-between-components#) of the components that need to share the state and pass the state down to the components as props. This is the simplest way to share state between components.
 - Avoid creating state variables for things that can be [computed from existing state variables](https://react.dev/learn/you-might-not-need-an-effect#updating-state-based-on-props-or-state). For example, if you have a state variable called `firstName` and another called `lastName`, don't create a third state variable called `fullName`. Instead, derive the `fullName` from the `firstName` and `lastName` state variables.
 
-### Mutations and side effects
+## Mutations and side effects
 
 - Use SWR's global and bound [mutate](https://swr.vercel.app/docs/mutation#mutate) APIs to mutate data in the cache. This ensures that the cache is updated consistently across the application and omits the need to reload the page to see the changes.
 - Show a toast notification when a mutation succeeds. When a mutation fails, show a inline notification with an error message that communicates the reason for the failure.
 
-### Type annotations
+## Type annotations
 
 - Follow the guidelines outlined in [React TypeScript Cheatsheets](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/).
 - Always annotate your function parameters with types. This makes it easier to understand what the function does, and explicitly expresses the function's contracts.
@@ -110,8 +108,21 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
   ```
 
 - [Prefer union types over status enums](https://fettblog.eu/tidy-typescript-avoid-enums/). For example, prefer `type Status = "loading" | "error" | "success"` over `enum Status { Loading, Error, Success }`. This is because enums are not type safe, and can be assigned any value. For example, `Status.Loading = "error"` is a valid statement, but `Status = "error"` is not.
+- Use the `jest.mocked` utility to preserve type information when mocking functions in tests. For example:
 
-### Styling
+  Prefer:
+
+  ```ts
+  const mockedShowSnackbar = jest.mocked(showSnackbar); // All the type information is preserved
+  ```
+
+  Over:
+
+  ```ts
+  const mockedShowSnackbar = showSnackbar as jest.Mock;
+  ```
+
+## Styling
 
 - Be wary of using global styles. They can easily lead to unintended side effects and make it difficult to reason about the codebase. Nest global styles under a class name to prevent them from affecting other components.
 
@@ -233,7 +244,7 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
   return <div className={containerClasses}>// ... details omitted for brevity</div>;
   ```
 
-### Search inputs
+## Search inputs
 
 - Debounce search inputs to prevent unnecessary requests to the backend. Use the [useDebounce](https://github.com/openmrs/openmrs-esm-core/blob/2396ab96a37bc7202c853110969d82c17fe098a6/packages/framework/esm-react-utils/src/useDebounce.ts) hook to debounce search inputs. Here's a snippet (some bits are omitted for brevity) showing how you could use the hook:
 
@@ -286,7 +297,7 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 
   We're using the `debouncedSearchTerm` from the snippet above to filter the list of forms. We're also using the `extract` option to tell fuzzy how to extract the search term from the form. In this case, we're extracting the search term from the form's name and version. This is because we want to match forms that contain the search term in their name or version. Finally, we're sorting the results by score, which is a measure of how closely the search term matches the form.
 
-### Testing
+## Testing
 
 - [Avoid the test user](https://kentcdodds.com/blog/avoid-the-test-user).
 - Avoid testing implementation details. Instead, test the component's public API. This makes it easier to refactor the component without having to rewrite the tests.

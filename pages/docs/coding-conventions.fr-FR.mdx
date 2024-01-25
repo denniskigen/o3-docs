@@ -4,9 +4,7 @@ import { Callout } from "nextra-theme-docs";
 
 Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'objectif de ce document est de nous aider à écrire un code cohérent et facile à maintenir.
 
-## Général [#General]
-
-### Attribution d'un nom [#Naming]
+## Attribution d'un nom [#Naming]
 
 - Suivez les lignes directrices de cette [fiche d'information sur le nommage](https://github.com/kettanaito/naming-cheatsheet).
 - Utilisez `camelCase` pour les variables, les fonctions, les méthodes et les noms de classes.
@@ -26,14 +24,14 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
 - Les fonctions de mise à jour d'état doivent être nommées d'après l'état qu'elles mettent à jour. Par exemple, `setFirstName` est un bon nom pour une fonction de mise à jour d'état qui met à jour l'état `firstName`.
 - Le choix du nom de vos branches est typiquement une question de préférence personnelle. Cependant, en cas de doute, nommez vos branches en utilisant le type [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/) auquel votre travail se conforme, suivi d'une barre oblique et d'une courte description du travail séparée par des tirets. De bons exemples incluent: `feat/debounced-order-basket-search`, `fix/missing-translation`, `chore/bump-dependencies` et `refactor/remove-unused-code`.
 
-### Structure du projet [#Project structure]
+## Structure du projet [#Project structure]
 
 - Les monorepos doivent contenir des paquets spécifiques à un domaine qui sont liés les uns aux autres. Par exemple, les questions relatives à la gestion des patients telles que l'enregistrement et la recherche se trouvent dans la monorepo `openmrs-esm-patient-management`.
 - Les fichiers de configuration doivent généralement se trouver au premier niveau du répertoire monorepo. Les exceptions notables à cette règle incluent le fichier contenant les aides pour les tests, la configuration de `i18next-parser`, et `setupTests.ts`, qui devraient tous exister dans le répertoire `tools`.
 - Colocaliser les fichiers qui sont liés les uns aux autres. Par exemple, un composant, son test correspondant et sa feuille de style devraient se trouver dans le même répertoire. Ainsi, lorsque vous modifiez un composant, il est facile d'étendre cette modification au test et à la feuille de style si nécessaire.
 - Évitez de placer des styles pour plusieurs composants dans la même feuille de style. Créez plutôt une feuille de style distincte pour chaque composant. Il est ainsi plus facile de trouver les styles pour un composant particulier.
 
-### Composants [#Components]
+## Composants [#Components]
 
 - Ne gardez pas de code inutilisé dans vos composants. Le fait de conserver du code mort peut être source de confusion et rend la maintenance de la base de code plus difficile.
 - Validez les éléments transmis à votre composant en utilisant des alias de type ou des interfaces. Cela permet de détecter rapidement les bogues et de comprendre plus facilement comment le composant est utilisé.
@@ -45,7 +43,7 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
 - Omettre la valeur d'une propriété lorsqu'elle est explicitement `vraie`. Par exemple, `<UserComponent isAdmin />` est préféré à `<UserComponent isAdmin={true} />`.
 - Respectez un formatage de code, des conventions de dénomination et une structure de dossier cohérents. Cela rend la base de code plus lisible et plus facile à maintenir.
 
-### Récupération de données [#Data fetching]
+## Récupération de données [#Data fetching]
 
 - Placez votre logique de récupération des données dans un fichier suffixé par `.resource`. Par exemple, `user.resource.ts` contient la logique de récupération des données pour la ressource utilisateur.
 - Dans la mesure du possible, préférez abstraire votre récupération de données dans un hook personnalisé plutôt que dans [fetching with effects](https://react.dev/reference/react/useEffect#fetching-data-with-effects). La récupération de données avec des effets présente de nombreux [inconvénients](https://react.dev/reference/react/useEffect#fetching-data-with-effects) et doit être évitée. Préférez plutôt utiliser les crochets [SWR](https://swr.vercel.app/).
@@ -56,7 +54,7 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
 - Utilisez `openmrsFetch` pour récupérer les données du backend. openmrsFetch est un wrapper autour de l'API `fetch` qui ajoute les en-têtes d'authentification et d'autorisation et gère les erreurs. Passez-le en tant qu'argument `fetcher` de vos hooks SWR.
 - Utilisez `openmrsObservableFetch` seulement si vous avez besoin de récupérer des données depuis le backend en utilisant un observable. C'est utile pour le streaming de données depuis le backend. Assurez-vous de comprendre la différence entre les observables et les promesses avant d'utiliser cette fonction.
 
-### L'internationalisation [#Internationalization]
+## L'internationalisation [#Internationalization]
 
 - Utilisez le crochet [useTranslation](https://react.i18next.com/latest/usetranslation-hook) pour traduire les chaînes de caractères dans vos composants.
 - Utilisez le composant [Trans](https://react.i18next.com/latest/trans-component) pour traduire les chaînes contenant des balises HTML.
@@ -80,18 +78,18 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
   "flagCount_other": "{{ count }} drapeaux de risque"
   ```
 
-### Gestion de l'État [#State management]
+## Gestion de l'État [#State management]
 
 - Suivez les lignes directrices décrites [ici](https://kentcdodds.com/blog/application-state-management-with-react).
 - Pour partager l'état entre les composants, [remonter l'état jusqu'à l'ancêtre commun le plus proche](https://react.dev/learn/sharing-state-between-components#) des composants qui doivent partager l'état et transmettre l'état aux composants en tant qu'accessoires. C'est la manière la plus simple de partager l'état entre les composants.
 - Évitez de créer des variables d'état pour des choses qui peuvent être [calculées à partir de variables d'état existantes](https://react.dev/learn/you-might-not-need-an-effect#updating-state-based-on-props-or-state). Par exemple, si vous avez une variable d'état appelée `firstName` et une autre appelée `lastName`, ne créez pas une troisième variable d'état appelée `fullName`. Au lieu de cela, dérivez le `fullName` à partir des variables d'état `firstName` et `lastName`.
 
-### Mutations et effets secondaires [#Mutations and side effects]
+## Mutations et effets secondaires [#Mutations and side effects]
 
 - Utilisez les API [mutate](https://swr.vercel.app/docs/mutation#mutate) globales et liées de SWR pour modifier les données dans le cache. Cela garantit que le cache est mis à jour de manière cohérente dans l'application et évite d'avoir à recharger la page pour voir les changements.
 - Afficher une notification de toast lorsqu'une mutation réussit. Lorsqu'une mutation échoue, afficher une notification en ligne avec un message d'erreur qui communique la raison de l'échec.
 
-### Annotations de type [#Type annotations]
+## Annotations de type [#Type annotations]
 
 - Suivez les directives énoncées dans [React TypeScript Cheatsheets](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/).
 - Annotez toujours les paramètres de vos fonctions avec des types. Cela facilite la compréhension de ce que fait la fonction et exprime explicitement les contrats de la fonction.
@@ -110,7 +108,7 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
 
 - [Préférer les types d'union aux enums de statut](https://fettblog.eu/tidy-typescript-avoid-enums/). Par exemple, préférez `type Status = "loading" | "error" | "success" ` à `enum Status { Loading, Error, Success }`. En effet, les enums ne sont pas des types sûrs, et n'importe quelle valeur peut leur être attribuée. Par exemple, `Status.Loading = "error"` est une déclaration valide, mais `Status = "error"` ne l'est pas.
 
-### Stylisme [#Styling]
+## Stylisme [#Styling]
 
 - Méfiez-vous des styles globaux. Ils peuvent facilement entraîner des effets secondaires imprévus et compliquer le raisonnement sur la base de code. Placez les styles globaux sous le nom d'une classe pour éviter qu'ils n'affectent d'autres composants.
 
@@ -232,7 +230,7 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
   return <div className={containerClasses}>// ... détails omis pour plus de brièveté</div>;
   ```
 
-### Entrées de recherche
+## Entrées de recherche
 
 - Débouncez les entrées de recherche pour éviter des requêtes inutiles au backend. Utilisez le hook [useDebounce](https://github.com/openmrs/openmrs-esm-core/blob/2396ab96a37bc7202c853110969d82c17fe098a6/packages/framework/esm-react-utils/src/useDebounce.ts) pour débouncer les entrées de recherche. Voici un extrait (certains bits sont omis pour plus de brièveté) montrant comment vous pourriez utiliser le hook:
 
@@ -285,7 +283,7 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
 
   Nous utilisons le `debouncedSearchTerm` du snippet ci-dessus pour filtrer la liste des formulaires. Nous utilisons également l'option `extract` pour indiquer à fuzzy comment extraire le terme de recherche du formulaire. Dans ce cas, nous extrayons le terme de recherche du nom et de la version du formulaire. C'est parce que nous voulons faire correspondre les formulaires qui contiennent le terme de recherche dans leur nom ou version. Enfin, nous trions les résultats par score, qui est une mesure de la correspondance entre le terme de recherche et le formulaire.
 
-### Essais [#Testing]
+## Essais [#Testing]
 
 - [Éviter l'utilisateur de test](https://kentcdodds.com/blog/avoid-the-test-user).
 - Évitez de tester les détails de l'implémentation. Testez plutôt l'API publique du composant. Il est ainsi plus facile de remanier le composant sans avoir à réécrire les tests.

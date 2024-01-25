@@ -15,6 +15,5 @@
   "workspaces": "Workspaces",
   "breadcrumbs": "Miettes de pain",
   "migrate-to-core-v5": "Migrer vers Core v5",
-  "changelog": "Journal des modifications",
-  "technical-roadmap": "Feuille de route technique"
+  "changelog": "Journal des modifications"
 }

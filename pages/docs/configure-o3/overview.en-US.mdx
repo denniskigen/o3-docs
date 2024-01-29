@@ -8,7 +8,7 @@ There are various approaches implementers can use to configure their O3 instance
 
 ## Configuring metadata
 
-Metadata configurations get loaded through the [initializer module](https://github.com/mekomsolutions/openmrs-module-initializer) in O3. The initializer module, or Iniz for short, is a module that allows implementers to load metadata into their OpenMRS instances through JSON files. The various configuration files tht ship with O3 are located in the `distro/configuration` directory of the [distro reference application config](https://github.com/openmrs/openmrs-distro-referenceapplication/tree/main/distro/configuration) repository. The initializer module supports loading a wide variety of data and metadata types, including but not limited to:
+Metadata configurations get loaded through the [initializer module](https://github.com/mekomsolutions/openmrs-module-initializer) in O3. The initializer module, or Iniz for short, is a module that allows implementers to load metadata into their OpenMRS instances through JSON files. The various configuration files that ship with O3 are located in the `distro/configuration` directory of the [distro reference application config](https://github.com/openmrs/openmrs-distro-referenceapplication/tree/main/distro/configuration) repository. The initializer module supports loading a wide variety of data and metadata types, including but not limited to:
 
 - Concepts
 - Locations
@@ -24,24 +24,24 @@ For more information on how to configure your O3 instance using the initializer 
 
 ## Configuring individual frontend modules
 
-Per-app configuration is available in O3 via the built-in [configuration system](/docs/configuration-system). Each frontend module can define its own configuration schema in a `config-schema.ts` file inside it's `src` directory. The properties specified in the config schema allow implementers to tailor the behavior of the module to their needs. The configuration system also allows implementers to specify default values for the various configuration properties. 
+Per-app configuration is available in O3 via the built-in [configuration system](/docs/configuration-system). Each frontend module can define its own configuration schema in a `config-schema.ts` file inside its `src` directory. The properties specified in the config schema allow implementers to tailor the behavior of the module to their needs. The configuration system also allows implementers to specify default values for the various configuration properties. 
 
-Implementers are able to make changes to frontend module configurations through the built-in implementer tools panel. Once you log into O3, clicking the caret arrow centered at the bottom of the screen will pull up the implemeter tools. Alternatively, you can click on the cog icon in the navbar. Once open, you can look up configuration properties by searching through the configuration and modify them on the fly. Note that any tweaks made to the configuration through the implementer tools will be lost once you refresh the page. To make permanent changes to the configuration, you will need to commit those changes to your distro's configuration. The implementer tools allow you to download a temporary config file containing your changes by clicking the `Download config` button.
+Implementers can make changes to frontend module configurations through the built-in implementer tools panel. Once you log into O3, clicking the caret arrow centered at the bottom of the screen will pull up the implementer tools. Alternatively, you can click on the cog icon in the navbar. Once open, you can look up configuration properties by searching through the configuration and modify them on the fly. Note that any tweaks made to the configuration through the implementer tools will be lost once you refresh the page. To make permanent changes to the configuration, you will need to commit those changes to your distro's configuration. The implementer tools allow you to download a temporary config file containing your changes by clicking the `Download config` button.
 
-Typically, you're going to need to make multiple configuration overrides to various different frontend modules. The canonical way to do this is to create a JSON configuration file that lives on your server. You can then point your SPA to this configuration file by specifying it's URL in the SPA build configuration file. An example of such a config file is the [Ozone Cambodia config file](https://github.com/openmrs/ozone-distro-cambodia/blob/main/configs/openmrs/frontend_config/ozone-frontend-config.json). Each key in the config file corresponds to a frontend module. The value of each key is an object containing the configuration properties that you want to override for that module. These properties correspond to whatever properties are defined in the module's config schema.
+Typically, you're going to need to make multiple configuration overrides to various front-end modules. The canonical way to do this is to create a JSON configuration file that lives on your server. You can then point your SPA to this configuration file by specifying its URL in the SPA build configuration file. An example of such a config file is the [Ozone Cambodia config file](https://github.com/openmrs/ozone-distro-cambodia/blob/main/configs/openmrs/frontend_config/ozone-frontend-config.json). Each key in the config file corresponds to a frontend module. The value of each key is an object containing the configuration properties that you want to override for that module. These properties correspond to whatever properties are defined in the module's config schema.
 
 ## Distro-level configuration
 
-Implementers can configure their instances at the distro-level using the following approaches:
+Implementers can configure their instances at the distro level using the following approaches:
 
 ### distro.properties
 
 The `distro.properties` file is a configuration file that describes the backend modules that make up your distribution. The reference application's default distro.properties file lives [here](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/distro/distro.properties). The most important things to include in the distro.properties are:
 
 - `war.openmrs` - the version of Core being used.
-- For each module, we'll usually have an entry stylised as `omod.[module-id] = [module-version]`. For example, `omod.referenceapplication = 2.11.0`.
+- For each module, we'll usually have an entry stylized as `omod.[module-id] = [module-version]`. For example, `omod.referenceapplication = 2.11.0`.
 
-Typically, you'll only want to modify the `distro.properties` file if you want to specify additional backend modules that you want to include in your distro. If you want to remove a backend module from your distro, you can do so by removing it's entry from the `distro.properties` file.
+Typically, you'll only want to modify the `distro.properties` file if you want to specify additional backend modules that you want to include in your distro. If you want to remove a backend module from your distro, you can do so by removing its entry from the `distro.properties` file.
 
 ### spa-build-config.json
 
@@ -50,7 +50,7 @@ The SPA build configuration is a JSON file that allows you to specify various co
 The SPA build configuration file is used to specify the following properties:
 
 - `frontendModules` - describes all the apps that make up your distro as well as their specific versions (as published on a NPM registry).
-- `spaPath` - the URL path where your SPA will be served from. 
+- `spaPath` - the URL path which your SPA will be served from. 
 - `apiURL` - the URL of the OpenMRS backend that your SPA will be communicating with. Defaults to `/openmrs`.
 - `configUrls` - an array of URLs pointing to JSON configuration files that will be loaded into your SPA during the build process. 
 - `defaultLocale` - the default locale that your SPA will be served in. Defaults to `en-GB`.

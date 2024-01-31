@@ -20,11 +20,11 @@ The major pieces in the O3 frontend architecture are:
 In O3, the app shell is the base of the application. It is responsible for doing a whole host of things that are critical to the application's functioning. Introduced in [RFC-26](https://github.com/openmrs/openmrs-rfc-frontend/blob/e745ee9c37b2ca0ae6f4fc93259724e61bfac82e/text/0026-activation-distribution.md), the app shell is responsible for:
 
 - Setting up the index.html file that gets loaded on startup.
-- Setting up CSS breakpoints in the UI as well as subscriptions for modals, toasts and inline notifications.
-- Loading the import map and appending script tags for each frontend module to the index.html file .
+- Setting up CSS breakpoints in the UI and subscriptions for modals, toasts, and inline notifications.
+- Loading the import map and appending script tags for each frontend module to the index.html file.
 - Loading each frontend module's routes and activator function.
 - Initializing the application's global state store.
-- Setting up the service worker which provides caching capabilities that enables our rudimentary offline mode.
+- Setting up the service worker which provides caching capabilities that enable our rudimentary offline mode.
 - Sets up the `esm-api` library which exports API objects that get reused by multiple frontend modules.
 - Sets up the configuration system which provides various levels of configurability to the application.
 - Sets up the extension system.
@@ -88,7 +88,7 @@ The keys of this object are the individual module's `name`s, which are essential
 - The `esm-form-entry-app` frontend module, an Angular application that loads the AMPATH form engine into the patient chart, gets loaded via SystemJS.
 - All other frontend modules get loaded via Webpack module federation.
 
-Ideally, it is preferable to have one module loading strategy, and work is [in the pipeline](/docs/roadmap) to harmonise these approaches.
+Ideally, it is preferable to have one module loading strategy, and work is [in the pipeline](/docs/roadmap) to harmonize these approaches.
 
 ## Core framework
 
@@ -97,7 +97,7 @@ The O3 framework gets packaged as a JavaScript library in the [NPM registry](htt
 - Shared utilities
 - Global state management
 - Functions that enable offline mode
-- Global events, variables and utilities
+- Global events, variables, and utilities
 - Configuration system
 - API Documentation
 - OpenMRS API functions

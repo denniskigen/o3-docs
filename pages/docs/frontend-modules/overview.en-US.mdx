@@ -19,7 +19,7 @@ This frontend module could then be loaded into the app shell and displayed in th
 
 Frontend modules are typically organized into domain-specific [monorepos](https://monorepo.tools/#what-is-a-monorepo). For example, frontend modules concerning the management of patients exist in the [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management) monorepo.
 
-In this structure, you'll typically have a `packages` directory at the root of your monorepo. This packages directory will contain all of your frontend modules. For example, the patient management monorepo has the following structure:
+In this structure, you'll typically have a `packages` directory at the root of your monorepo. This package's directory will contain all of your front-end modules. For example, the patient management monorepo has the following structure:
 
 <FileTree>
   <FileTree.Folder name="packages" defaultOpen>
@@ -50,7 +50,7 @@ Frontend modules get loaded into the application based on a special JSON file ca
 <br />
 <Image src="/o3-execution.png" alt="O3 architecture" width={600} height={600} />
 
-This diagram walks through what happens when the application gets executed. The app shell loads configuration files, the import map specifies where frontend modules get fetched from, and [loads frontend modules](/docs/frontend-modules/module-loading).
+This diagram walks through what happens when the application is executed. The app shell loads configuration files, the import map specifies where frontend modules get fetched from, and [loads frontend modules](/docs/frontend-modules/module-loading).
 
 ## Anatomy of a frontend module
 

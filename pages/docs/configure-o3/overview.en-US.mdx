@@ -49,7 +49,7 @@ The SPA build configuration is a JSON file that allows you to specify various co
 
 The SPA build configuration file is used to specify the following properties:
 
-- `frontendModules` - describes all the apps that make up your distro as well as their specific versions (as published on a NPM registry).
+- `frontendModules` - describes all the apps that make up your distro and their specific versions (as published on an NPM registry).
 - `spaPath` - the URL path which your SPA will be served from. 
 - `apiURL` - the URL of the OpenMRS backend that your SPA will be communicating with. Defaults to `/openmrs`.
 - `configUrls` - an array of URLs pointing to JSON configuration files that will be loaded into your SPA during the build process. 
@@ -57,4 +57,4 @@ The SPA build configuration file is used to specify the following properties:
 - `supportOffline` - boolean value that determines whether or not your SPA will be able to function offline. Defaults to `false`.
 - `pageTitle` - the default page title that will be used by your SPA. Defaults to `OpenMRS`.
 
-Typically the things you'll want to customize in the SPA build configuration are the `frontendModules`, `configUrls`, and the `defaultLocale`. Most other things have sane defaults that you probably won't need to change. If you want to add a new module to your distro, you can do so by adding it to the `frontendModules` array. Similarly, if you want to remove a frontend module from your distro, you can do so by removing it's entry from the `frontendModules` object.
+Typically the things you'll want to customize in the SPA build configuration are the `frontendModules`, `configUrls`, and the `defaultLocale`. Most other things have the same defaults that you won't need to change. If you want to add a new module to your distro, you can do so by adding it to the `frontendModules` array. Similarly, if you want to remove a frontend module from your distro, you can do so by removing its entry from the `frontendModules` object.

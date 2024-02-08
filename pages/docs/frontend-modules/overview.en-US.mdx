@@ -152,11 +152,11 @@ This file is the entry point of the frontend module. It is the first file that g
 
 - It exports an `importTranslation` function which is used to load the module’s translations.
 - It also exports two named exports, `root` and `systemAdministrationFormBuilderCardLink`. These are named exports for a page and an extension, respectively. They are used to tell the app shell how to load the frontend module’s content.
-- It also exports a `startupApp` function which is used to set up the frontend module. In this case, the frontend module's configuration schema gets defined here, as well as the breadcrumbs for the module.
+- It also exports a `startupApp` function which is used to set up the frontend module. In this case, the frontend module's configuration schema is defined here, as well as the breadcrumbs for the module.
 
 #### The `startupApp` function
 
-Each frontend module defines a function named `startupApp`. This function performs any setup that should occur at the time the module gets loaded. It returns an object that communicates how the app shell should load the module. The startupApp function where we:
+Each frontend module defines a function named `startupApp`. This function performs any setup that should occur at the time the module gets loaded. It returns an object that communicates how the app shell should load the module. The startupApp function therefore is where we:
 
 - define the module's configuration schema
 - register breadcrumbs

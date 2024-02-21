@@ -156,13 +156,7 @@ If you notice your app suddenly stops working, it might be because a core librar
 
 ```sh
 # Upgrade core libraries
-yarn up openmrs @openmrs/esm-framework
-
-# Reset version specifiers to `next`. Don't commit actual version numbers.
-git checkout package.json
-
-# Run `yarn` to recreate the lockfile
-yarn
+yarn up openmrs@next @openmrs/esm-framework@next
 ```
 
 ### I'm getting a `ERR_OSSL_EVP_UNSUPPORTED` error when running `yarn run build`

@@ -57,6 +57,7 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 
 ## Internationalization
 
+- Do not manually edit any of the locale-speficic translation files in the `translations` directory. Run the `extract-translations` script instead to keep the `en.json` file in sync with the translation keys in the codebase.
 - Use the [useTranslation](https://react.i18next.com/latest/usetranslation-hook) hook to translate strings in your components.
 - Use the [Trans](https://react.i18next.com/latest/trans-component) component to translate strings that contain HTML tags.
 - To handle pluralization, use the following pattern:

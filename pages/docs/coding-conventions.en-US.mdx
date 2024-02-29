@@ -91,6 +91,40 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - Use SWR's global and bound [mutate](https://swr.vercel.app/docs/mutation#mutate) APIs to mutate data in the cache. This ensures that the cache is updated consistently across the application and omits the need to reload the page to see the changes.
 - Show a toast notification when a mutation succeeds. When a mutation fails, show a inline notification with an error message that communicates the reason for the failure.
 
+## Event handlers
+
+- Ensure that your event handlers properly define their cleanup logic. Event handlers in useEffect callbacks should always *return* a cleanup function to prevent unexpected behaviour. For example, do this:
+
+  ```tsx {7}
+  useEffect(() => {
+    const handleClick = () => {
+      // ... handle the click event
+    };
+
+    document.addEventListener("click", handleClick);
+
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  }, []);
+  ```
+  
+  Instead of this:  
+
+  ```tsx {7}
+  useEffect(() => {
+    const handleClick = () => {
+      // ... handle the click event
+    };
+
+    document.addEventListener("click", handleClick);
+
+    // Incorrect cleanup: Executes immediately, not when the component unmounts
+    document.removeEventListener("click", handleClick);
+  }, []);
+  ```
+
+
 ## Type annotations
 
 - Follow the guidelines outlined in [React TypeScript Cheatsheets](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/).

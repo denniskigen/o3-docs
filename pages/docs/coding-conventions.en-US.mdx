@@ -95,7 +95,7 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 
 - Ensure that your event handlers properly define their cleanup logic. Event handlers in useEffect callbacks should always *return* a cleanup function to prevent unexpected behaviour. For example, do this:
 
-  ```tsx {7}
+  ```tsx {8-10}
   useEffect(() => {
     const handleClick = () => {
       // ... handle the click event
@@ -111,7 +111,7 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
   
   Instead of this:  
 
-  ```tsx {7}
+  ```tsx {9}
   useEffect(() => {
     const handleClick = () => {
       // ... handle the click event

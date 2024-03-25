@@ -1,3 +1,5 @@
+import { Callout } from "nextra-theme-docs";
+
 # Aperçu
 
 Il existe diverses approches que les implémenteurs peuvent utiliser pour configurer leurs instances O3. Celles-ci incluent:
@@ -39,6 +41,12 @@ Notez que toute modification apportée à la configuration via les outils de l'i
 Généralement, vous devrez apporter plusieurs substitutions de configuration à divers modules frontend différents. La façon canonique de faire cela est de créer un fichier de configuration JSON qui réside sur votre serveur. Vous pouvez alors pointer votre SPA vers ce fichier de configuration en spécifiant son URL dans le fichier de configuration de génération de la SPA. Un exemple d'un tel fichier de configuration est le [fichier de configuration Ozone Cambodia](https://github.com/openmrs/ozone-distro-cambodia/blob/main/configs/openmrs/frontend_config/ozone-frontend-config.json). 
 
 Chaque clé dans le fichier de configuration correspond à un module frontend. La valeur de chaque clé est un objet contenant les propriétés de configuration que vous souhaitez substituer pour ce module. Ces propriétés correspondent aux propriétés définies dans le schéma de configuration du module.
+
+<Callout emoji="ℹ️" type="info">
+    O3 charge les modules frontend à la demande. Cela signifie que vous ne verrez les propriétés de configuration d'un module dans les outils de mise en œuvre que si le module lui-même a été chargé. Si vous ne voyez que des clés par défaut comme "Display conditions" et "Translation overrides" dans un schéma de configuration de module dans les outils de mise en œuvre, cela signifie que le module concerné n'a probablement pas encore été chargé.
+
+    Pour voir la configuration des modules liés à une fonctionnalité spécifique, comme le panier de commandes, naviguez vers cette section de l'application (par exemple, le Dossier Patient). Une fois le module chargé, vous verrez toutes ses propriétés configurables dans les outils de mise en œuvre.
+</Callout>
 
 ## Configuration au niveau de la distribution
 

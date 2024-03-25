@@ -23,3 +23,15 @@ const ActiveVisitsTable = () => {
   return <h4>{t("activeVisits", "Active Visits")}</h4>;
 };
 ```
+
+The framework provides a set of *core translations* that are used in many frontend modules. These can be used with the [`getCoreTranslation`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#getcoretranslation) function. This function takes two arguments: the first is the key of the core translation, and the second is the default value to return if the requested translation is not found.  A Typescript type error is shown if the provided key is not valid.
+
+The valid core translations are defined in the [CoreTranslationKey](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-translations/src/translations.ts#L15) type. These include common strings used in many apps, such as `Cancel`, `Confirm`, `Female`, and `Other`. The corresponding translation JSON files themselves live in the [esm-translations](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/framework/esm-translations/translations) app.
+
+```ts
+import { getCoreTranslation } from "@openmrs/esm-framework";
+
+const ErrorHeader = () => {
+  return <h4>{getCoreTranslation("error", "Error")}</h4>;
+};
+```

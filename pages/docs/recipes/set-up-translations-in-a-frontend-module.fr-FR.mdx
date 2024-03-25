@@ -21,6 +21,18 @@ import { useTranslation } from "react-i18next";
 const ActiveVisitsTable = () => {
   const { t } = useTranslation();
 
-  return <h4>{t("activeVisits", "Visites actives")}</h4>;
+  return <h4>{t("activeVisits", "Active Visits")}</h4>;
+};
+```
+
+Le framework fournit un ensemble de *core translations* qui sont utilisées dans de nombreux modules frontaux. Ceux-ci peuvent être utilisés avec la fonction [`getCoreTranslation`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#getcoretranslation). Cette fonction prend deux arguments : le premier est la clé de la traduction et le second est la valeur par défaut à renvoyer si la traduction demandée n'est pas trouvée. Une erreur de type Typescript s'affiche si la clé fournie n'est pas valide.
+
+Les *core translations* valides sont définies dans le type [CoreTranslationKey](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-translations/src/translations.ts#L15). Il s'agit notamment de chaînes courantes utilisées dans de nombreuses applications, telles que « Annuler », « Confirmer », « Femme » et « Autre ». Les fichiers JSON de traduction correspondants se trouvent eux-mêmes dans l'application [esm-translations](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/framework/esm-translations/translations).
+
+```ts
+import { getCoreTranslation } from "@openmrs/esm-framework";
+
+const ErrorHeader = () => {
+  return <h4>{getCoreTranslation("error", "Error")}</h4>;
 };
 ```

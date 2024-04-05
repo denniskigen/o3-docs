@@ -1,3 +1,5 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
 # Tester les modules frontaux
 
 D'une manière générale, lorsqu'il s'agit de tester des composants dans O3, il y a trois catégories de tests:
@@ -12,11 +14,12 @@ Lorsque l'on travaille avec un module frontal, les tests unitaires (et parfois l
 - Les tests unitaires testent généralement des fonctions pures et affirment qu'elles renvoient une sortie donnée lorsqu'elles reçoivent une entrée.
 - Les tests e2e exécutent typiquement l'application entière (frontend et backend) et votre test interagira avec l'application comme le ferait un utilisateur typique.
 
-## Philosophie de test
+<Callout emoji="ℹ️" type="info">
+  **Philosophie de test**: Plus vos tests ressemblent à la manière dont votre logiciel est utilisé, plus ils vous
+  donneront confiance.
+</Callout>
 
-Plus vos tests ressemblent à la manière dont votre logiciel est utilisé, plus ils vous donneront confiance.
-
-### Exemple
+## Tests unitaires
 
 Nous allons parcourir un exemple de suite de tests pour comprendre l'approche adoptée. Dans ce cas, nous utiliserons le module frontal [module-management](https://github.com/openmrs/openmrs-esm-module-management-app). Cette application reprend la page `Manage Module` de l'application de référence OpenMRS 2.x et la redessine pour qu'elle fonctionne dans O3. Elle fournit une interface permettant aux utilisateurs de gérer les modules backend. Elle liste tous les modules installés et permet aux administrateurs de contrôler l'exécution des modules via les actions exposées `Start`, `Stop` et `Unload`. Les utilisateurs peuvent également consulter des informations détaillées sur les modules listés.
 
@@ -218,15 +221,18 @@ En fin de compte, pour obtenir la bonne stratégie de test, vous aurez probablem
 Voici une vidéo intéressante de Brandon sur le test des modules frontend:
 
 <br />
-<iframe width="560" height="315" src="https://www.youtube.com/embed/cGfFufJZV1M?si=vbkxuhecp619GYS7" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/cGfFufJZV1M?si=vbkxuhecp619GYS7"
+  title="YouTube video player"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowFullScreen
+></iframe>
 
-## Test de bout en bout avec Playwright
+## Test de bout en bout avec Playwrightr
 
-[Playwright](https://playwright.dev) est un cadre de test qui vous permet d'écrire des tests fiables de bout en bout en JavaScript. Grâce à l'excellent travail de l'équipe QA d'OpenMRS, Playwright est désormais installé dans les dépôts suivants:
-
-- [Form builder](https://github.com/openmrs/openmrs-esm-form-builder/tree/main/e2e)
-- [Gestion des patients](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/e2e)
-- [Dossier du patient (WIP)](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1164)
+[Playwright](https://playwright.dev) est un cadre de test qui vous permet d'écrire des tests fiables de bout en bout en JavaScript. Le bon travail de l'équipe QA d'OpenMRS signifie que nous avons maintenant Playwright configuré sur la plupart de nos dépôts clés.
 
 Cela signifie que nous pouvons maintenant écrire des tests e2e pour les principaux parcours utilisateurs dans le frontend OpenMRS. Ces tests sont configurés pour s'exécuter à la fois sur le commit et le merge.
 Les développeurs sont encouragés à continuer à faire passer les tests et, dans la mesure du possible, à les étendre pour qu'ils correspondent à de nouveaux cas d'utilisation.
@@ -242,7 +248,7 @@ Nous vous recommandons d'installer le plugin officiel Playwright [VS Code plugin
 Vous pouvez également utiliser la commande `npx playwright test` pour exécuter vos tests. Nous vous recommandons également de suivre les [meilleures pratiques](https://playwright.dev/docs/best-practices) décrites dans la documentation de Playwright.
 Cela vous aidera à écrire des tests fiables et faciles à maintenir.
 
-### Écrire de nouveaux tests
+### Rédaction de tests
 
 En général, il est recommandé de lire la [documentation officielle de Playwright](https://playwright.dev/docs/intro)
 avant d'écrire de nouveaux cas de test. Le projet utilise l'exécuteur de test officiel Playwright et,
@@ -312,6 +318,57 @@ test("Search patient by patient identifier", async ({ page, api }) => {
   });
 });
 ```
+
+### Exécution des tests
+
+Pour exécuter les tests e2e localement, vous devez démarrer un serveur de développement exécutant le module frontend dont vous souhaitez exécuter les tests.
+
+<Steps>
+
+### Démarrer le serveur de développement
+
+```sh
+yarn start --sources "packages/esm-patient-conditions-app"
+```
+
+### Remplacer l'E2E_BASE_URL
+
+```sh
+# 8080 est le port par défaut pour le serveur de développement
+export E2E_BASE_URL=http://localhost:8080
+```
+
+### Exécuter les tests en modes [headed](https://playwright.dev/docs/ci#running-headed) et [UI](https://playwright.dev/docs/test-ui-mode) :
+
+```sh
+yarn test-e2e ---headed --ui
+```
+
+Pour exécuter un seul fichier de test, passez le nom du fichier de test que vous souhaitez exécuter :
+
+```sh
+yarn test-e2e conditions-form.spec.ts
+```
+
+Pour exécuter un ensemble de fichiers de test de différents répertoires, passez les noms des répertoires dans lesquels vous souhaitez exécuter les tests.
+
+```sh
+yarn test-e2e specs/conditions specs/programs
+```
+
+Pour exécuter des fichiers qui contiennent le texte `conditions` dans le nom de fichier, passez simplement ces mots-clés à l'interface de ligne de commande (CLI) :
+
+```sh
+yarn test-e2e conditions
+```
+
+Pour exécuter un test avec un titre spécifique, utilisez le drapeau -g suivi du titre du test :
+
+```sh
+yarn test-e2e conditions -g "Enregistrer et modifier une condition"
+```
+
+</Steps>
 
 ### Utilisation des données de démonstration
 

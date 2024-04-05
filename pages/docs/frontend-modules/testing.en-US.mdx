@@ -1,3 +1,5 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
 # Testing frontend modules
 
 Broadly speaking, when it comes to testing components in O3, there are three categories of tests:
@@ -12,11 +14,12 @@ When working with a frontend module, its accompanying unit (and, sometimes, inte
 - Unit tests typically test pure functions and assert that they return a given output when given some input.
 - e2e tests typically run the entire application (both frontend and backend) and your test will interact with the app just like a typical user would.
 
-## Testing Philosophy
+<Callout emoji="ℹ️" type="info">
+  **Testing philosophy**: The more your tests resemble the way your software is used, the more confidence they can give
+  you.
+</Callout>
 
-The more your tests resemble the way your software is used, the more confidence they can give you.
-
-### Example
+## Unit testing
 
 We’re going to walk through an example test suite to understand the approach taken. In this case, we’ll use the [module-management](https://github.com/openmrs/openmrs-esm-module-management-app) frontend module. This application takes the `Manage Module` page from the OpenMRS 2.x reference application and redesigns it to work within O3. It provides an interface for users to manage backend modules. It lists all the installed modules and allows admins to control the execution of modules via the exposed `Start`, `Stop` and `Unload` actions. Users can also view detailed information about the listed modules.
 
@@ -218,15 +221,18 @@ Ultimately, to get the right testing strategy, you’ll likely require a mix of 
 Here's a cool video by Brandon on testing frontend modules:
 
 <br />
-<iframe width="560" height="315" src="https://www.youtube.com/embed/cGfFufJZV1M?si=vbkxuhecp619GYS7" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/cGfFufJZV1M?si=vbkxuhecp619GYS7"
+  title="YouTube video player"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowFullScreen
+></iframe>
 
 ## End-to-end testing with Playwright
 
-[Playwright](https://playwright.dev) is a testing framework that allows you to write reliable end-to-end tests in JavaScript. Great work by the OpenMRS QA team means that we now have Playwright set up across the following repositories:
-
-- [Form builder](https://github.com/openmrs/openmrs-esm-form-builder/tree/main/e2e)
-- [Patient management](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/e2e)
-- [Patient chart (WIP)](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1164)
+[Playwright](https://playwright.dev) is a testing framework that allows you to write reliable end-to-end tests in JavaScript. Great work by the OpenMRS QA team means that we now have Playwright set up across most of our key repositories.
 
 This means that we can now write e2e tests for key user journeys in the OpenMRS frontend. These tests are setup to run both on commit and merge.
 Developers are encouraged to keep the tests passing, and wherever possible, consider extending them to fit any new use cases.
@@ -242,11 +248,9 @@ We recommend installing the official Playwright [VS Code plugin](https://playwri
 You can also use the `npx playwright test` command to run your tests. We also recommend following the [best practices](https://playwright.dev/docs/best-practices) outlined in the Playwright documentation.
 This will help you write tests that are reliable and easy to maintain.
 
-### Writing New Tests
+### Writing tests
 
-In general, it is recommended to read through the official [Playwright docs](https://playwright.dev/docs/intro)
-before writing new test cases. The project uses the official Playwright test runner and,
-generally, follows a very simple project structure:
+In general, it is recommended to read through the official [Playwright docs](https://playwright.dev/docs/intro) before writing new test cases. The project uses the official Playwright test runner and, generally, follows a very simple project structure:
 
 ```
 e2e
@@ -312,6 +316,57 @@ test("Search patient by patient identifier", async ({ page, api }) => {
   });
 });
 ```
+
+### Running tests
+
+To run e2e tests locally, you'd need to fire up a dev server running the frontend module whose tests you want to run.
+
+<Steps>
+
+### Start the dev server
+
+```sh
+yarn start --sources "packages/esm-patient-conditions-app"
+```
+
+### Override the E2E_BASE_URL
+
+```sh
+# 8080 is the default port for the dev server
+export E2E_BASE_URL=http://localhost:8080
+```
+
+### Run the tests in [headed](https://playwright.dev/docs/ci#running-headed) and [UI](https://playwright.dev/docs/test-ui-mode) modes:
+
+```sh
+yarn test-e2e ---headed --ui
+```
+
+To run a single test file, pass in the name of the test file that you want to run:
+
+```sh
+yarn test-e2e conditions-form.spec.ts
+```
+
+To run a set of test files from different directories, pass in the names of the directories that you want to run the tests in.
+
+```sh
+yarn test-e2e specs/conditions specs/programs
+```
+
+To run files that have the text `conditions` in the file name, simply pass in these keywords to the CLI:
+
+```sh
+yarn test-e2e conditions
+```
+
+To run a test with a specific title, use the -g flag followed by the title of the test:
+
+```sh
+yarn test-e2e conditions -g "Record and edit a condition"
+```
+
+</Steps>
 
 ### Demo data usage
 
@@ -393,3 +448,4 @@ through a dedicated bamboo stage within the [REFAPP-D3X](https://ci.openmrs.org/
 This stage involves a script that retrieves the latest versions of both the frontend and backend.
 It then runs and waits for data generation before building the `:nightly-with-data` docker images of the backend and database.
 These images are subsequently pushed to the Docker Hub. More details on this can be found [here](https://talk.openmrs.org/t/using-pre-filled-docker-images-for-running-e2e-tests/40003).
+import sharp from "sharp"

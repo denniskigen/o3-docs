@@ -34,6 +34,14 @@ These prerequisites are explained in detail in the [SDK wiki](https://wiki.openm
 
 ### Step 1
 
+Run the following command to install the latest version of the OpenMRS SDK. If you've already installed the SDK, you can skip this step.
+
+```sh
+mvn org.openmrs.maven.plugins:openmrs-sdk-maven-plugin:setup-sdk
+```
+
+### Step 2
+
 Run the following command to setup the SDK:
 
 ```sh
@@ -53,7 +61,7 @@ This command will run a prompt that walks you through choosing:
 - When asked to enter your database password, enter your database password.
 - Once you're connected to the database, select the JDK version you'd like to use to run the server (e.g. whatever `JAVA_HOME` points to).
 
-### Step 2
+### Step 3
 
 Run the following command to fire up the SDK:
 
@@ -61,7 +69,7 @@ Run the following command to fire up the SDK:
 mvn openmrs-sdk:run
 ```
 
-### Step 3
+### Step 4
 
 Navigate to `https://localhost:8080/openmrs` on your browser. You should expect the see the backend getting set up. Once that completes, you can navigate to `https://localhost:8080/openmrs/spa`.
 

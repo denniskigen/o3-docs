@@ -24,7 +24,7 @@ export default function ApiDocs() {
   const transformedMarkdown = transformMarkdown(data);
 
   return (
-    <div className="py-4 space-y-2 prose dark:prose-invert prose-table:border-neutral-950">
+    <div className="py-4 space-y-2 prose dark:prose-invert prose-table:border-neutral-950 prose-code:bg-slate-100 dark:prose-code:bg-slate-600">
       <Markdown
         children={transformedMarkdown}
         className="markdown"

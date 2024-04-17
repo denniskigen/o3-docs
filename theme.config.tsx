@@ -44,6 +44,7 @@ const config: DocsThemeConfig = {
     placeholder: () => useLocalesMap(searchPlaceholderMap),
   },
   toc: {
+    backToTop: true,
     float: true,
     title: () => useLocalesMap(tableOfContentsTitleMap),
   },

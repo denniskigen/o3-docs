@@ -15,5 +15,6 @@
   "workspaces": "Workspaces",
   "breadcrumbs": "Miettes de pain",
   "migrate-to-core-v5": "Migrer vers Core v5",
+  "framework-api-reference": "Référence de l'API du framework",
   "changelog": "Journal des modifications"
 }

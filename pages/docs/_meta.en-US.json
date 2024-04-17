@@ -15,5 +15,6 @@
   "workspaces": "Workspaces",
   "breadcrumbs": "Breadcrumbs",
   "migrate-to-core-v5": "Migrate to Core v5",
+  "framework-api-reference": "Framework API reference",
   "changelog": "Changelog"
 }

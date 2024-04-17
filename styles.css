@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 html {
-  font-feature-settings: 'rlig' 1, 'calt' 1, 'ss01' 1, 'ss06' 1 !important;
+  font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1, "ss06" 1 !important;
 }
 
 [data-reach-skip-link] {
@@ -11,7 +11,7 @@ html {
 }
 
 [data-reach-skip-link]:focus {
-  @apply not-sr-only fixed ml-6 top-0 bg-white text-lg px-6 py-2 mt-2 outline-none focus:ring z-50;
+  @apply fixed top-0 z-50 px-6 py-2 mt-2 ml-6 text-lg bg-white outline-none not-sr-only focus:ring;
 }
 
 .dark .invert-on-dark {
@@ -19,11 +19,7 @@ html {
 }
 
 body {
-  background: linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 1) 300px
-    ),
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 300px),
     fixed 0 0 / 20px 20px radial-gradient(#d1d1d1 1px, transparent 0),
     fixed 10px 10px / 20px 20px radial-gradient(#d1d1d1 1px, transparent 0);
 }
@@ -34,35 +30,19 @@ body {
     fixed 10px 10px / 20px 20px radial-gradient(#313131 1px, transparent 0);
 }
 
-.markdown h2 {
-  font-weight: 600;
-  font-size: 1.25rem;
-  text-decoration: underline;
-  margin: 0.5rem 0;
-}
-
-.markdown h3 {
-  font-weight: 600;
-  font-size: 1rem;
-  margin: 0.5rem 0;
-}
-
-.markdown p {
-  margin: 0.5rem 0;
-}
-
-.markdown p:last-of-type {
-  margin: 0.5rem 0;
-}
-
-.markdown li {
-  list-style-type: disc;
-  margin: 0.25rem 0;
-  margin-left: 2rem;
-}
-
 .markdown a {
   color: #006be6;
+}
+
+.markdown code {
+  color: #c7254e;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+
+.markdown td {
+  padding: 6px 13px;
+  border: 1px solid #d0d7de;
 }
 
 .text-balance {

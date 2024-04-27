@@ -37,7 +37,7 @@ Most of our code is written in TypeScript. We recommend going through the follow
 
 ## JavaScript tooling
 
-- [yarn](https://yarnpkg.com/) - we use yarn as our package manager. Generally, if the repository you're looking at has a `yarn.lock` file at its root, it uses yarn.
+- [yarn](https://yarnpkg.com/) - we use yarn as our package manager. Generally, if the repository you're looking at has a `yarn.lock` file at its root, it uses yarn. We leverage yarn's [workspaces](https://yarnpkg.com/features/workspaces) for versioning and publishing packages within our monorepos.
 - [lerna](https://lerna.js.org/) - we use `lerna` to manage our monorepos.
 - [turbo](https://turbo.build/repo) - we use `turbo` to run scripts during local development and our continuous integration processes.
 - [swc](https://swc.rs/) - we use SWC to compile our JavaScript and TypeScript code into a format all major browsers support.

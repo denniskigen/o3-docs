@@ -47,7 +47,7 @@ yarn workspaces foreach --worktree --topological --exclude [mono-reponame] versi
 For example, if you want to do a `major` release in esm-patient-management, you would run:
 
 ```sh
-yarn workspaces foreach --all --topological --exclude @openmrs/esm-patient-management version major
+yarn workspaces foreach --worktree --exclude @openmrs/esm-patient-management version major
 ```
 
 This command:

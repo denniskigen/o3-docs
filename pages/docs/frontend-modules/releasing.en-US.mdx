@@ -47,12 +47,12 @@ yarn workspaces foreach --worktree --topological --exclude [mono-reponame] versi
 For example, if you want to do a `major` release in esm-patient-management, you would run:
 
 ```sh
-yarn workspaces foreach --worktree --all --topological --exclude @openmrs/esm-patient-management version major
+yarn workspaces foreach --all --topological --exclude @openmrs/esm-patient-management version major
 ```
 
 This command:
 
-- Run version command against all the packages in the workspace of current worktree and bumps them to a major version.For example, if the current version is `1.0.0`, it would get bumped to `2.0.0`.first-letter.
+- Run version command against all the packages in the workspace and bumps them to a major version.For example, if the current version is `1.0.0`, it would get bumped to `2.0.0`.first-letter.
 - Tells yarn to sort the packages before running the commands so that they run on the packages in topological order (i.e., packages that depend on other packages get run later).
 - Tells yarn to exclude versioning for the selected monorepo so that the package.json in root directory is not affected.The root package.json does not require a version for any publishing purpose because it is never published.
 

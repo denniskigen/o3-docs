@@ -1,65 +1,64 @@
 # Connaissances préalables [#prerequisite-knowledge]
 
-Avant de développer sur O3, vous devez être familiarisé avec les technologies suivantes:
+Avant de commencer à construire avec O3, vous devez être familier avec au moins HTML, CSS et JavaScript. Si vous êtes totalement nouveau dans le développement frontend, il est particulièrement important que vous développiez une bonne compréhension des fondamentaux. Voici une liste des technologies que nous utilisons dans O3 et quelques ressources recommandées pour les apprendre.
 
 ## JavaScript [#javascript]
 
-La connaissance de JavaScript est une prérequis à tout le reste. Nous vous recommandons de consulter les ressources suivantes:
+Connaître JavaScript est une condition préalable à tout le reste. Nous recommandons de passer par les ressources suivantes:
 
 - [Introduction à JavaScript - Codecademy](https://www.codecademy.com/learn/introduction-to-javascript)
 - [JavaScript à connaître pour React - Kent C. Dodds](https://kentcdodds.com/blog/javascript-to-know-for-react)
 - [Le tutoriel JavaScript moderne](https://javascript.info/)
 - [JavaScript pour les programmeurs impatients](https://exploringjs.com/impatient-js/toc.html)
-- [Operator lookup de Josh Comeau](https://www.joshwcomeau.com/operator-lookup/)
+- [Recherche d'opérateurs de Josh Comeau](https://www.joshwcomeau.com/operator-lookup/)
 - [Guide visuel des références en JavaScript](https://daveceddia.com/javascript-references/)
 
 ## React [#react]
 
-Les [docs officielles](https://react.dev/) sont un excellent moyen de se familiariser avec React. **Ne négligez pas [les fondamentaux](https://react.dev/learn/thinking-in-react)**! Avoir une solide compréhension de ses concepts de base est impératif pour vous permettre d'apprendre à développer des modules frontend de haute qualité dans O3. Nous vous recommandons également de consulter les ressources suivantes:
+La [documentation officielle](https://react.dev/) est un excellent moyen de se familiariser avec React. **Ne survolez pas [les fondamentaux](https://react.dev/learn/thinking-in-react)**! Avoir une solide compréhension de ses concepts de base est très important pour vous aider à apprendre à développer des modules frontend de haute qualité dans O3. Nous recommandons également de passer par les ressources suivantes:
 
-- [Écriture de composants résilients - Dan Abramov (daté mais toujours très utile)](https://overreacted.io/writing-resilient-components/)
-- [Guide (Presque) Complet du Comportement de Rendu de React - Mark Erikson](https://blog.isquaredsoftware.com/2020/05/blogged-answers-a-mostly-complete-guide-to-react-rendering-behavior/)
-- [Pourquoi React Effectue des Rendus - Josh Comeau](https://www.joshwcomeau.com/react/why-react-re-renders/)
-- [Guide du Débutant pour React - Kent C. Dodds (daté mais toujours très utile)](https://egghead.io/courses/the-beginner-s-guide-to-react)
-- [Guide Visuel du Rendu React](https://alexsidorenko.com/blog/react-render-cheat-sheet/)
-- [Guide des Re-rendus React - Nadia Makarevich](https://www.developerway.com/posts/react-re-renders-guide)
-- [Quand React Rend-il Votre Composant - Zhenghao Hao](https://www.zhenghao.io/posts/react-rerender)
 - [Erreurs courantes avec React - Josh Comeau](https://www.joshwcomeau.com/react/common-beginner-mistakes/)
-- [Comprendre useMemo et useCallback - Josh Comeau](https://www.joshwcomeau.com/react/usememo-and-usecallback/)
+- [Comprendre useMemo et useCallback](https://www.joshwcomeau.com/react/usememo-and-usecallback/)
+- [Écrire des composants résilients - Dan Abramov (daté mais toujours très utile)](https://overreacted.io/writing-resilient-components/)
+- [Un guide (presque) complet du comportement de rendu de React - Mark Erikson](https://blog.isquaredsoftware.com/2020/05/blogged-answers-a-mostly-complete-guide-to-react-rendering-behavior/)
+- [Pourquoi React Re-renders - Josh Comeau](https://www.joshwcomeau.com/react/why-react-re-renders/)
+- [Guide du débutant à React - Kent C. Dodds (daté mais toujours très utile)](https://egghead.io/courses/the-beginner-s-guide-to-react)
+- [Un guide visuel du rendu de React](https://alexsidorenko.com/blog/react-render-cheat-sheet/)
+- [Guide des re-rendus de React - Nadia Makarevich](https://www.developerway.com/posts/react-re-renders-guide)
+- [Quand React rend-il votre composant - Zhenghao hao](https://www.zhenghao.io/posts/react-rerender)
 
-## TypeScript [#typescript]
+## TypeScript
 
-La plupart de notre code est écrit en TypeScript. Nous vous recommandons de consulter les ressources suivantes:
+La plupart de notre code est écrit en TypeScript. Nous recommandons de passer par les ressources suivantes:
 
 - [TypeScript en 5 minutes](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html)
-- [TypeScript Total](https://www.totaltypescript.com/tutorials)
-- [Cheat sheets React + TypeScript](https://github.com/typescript-cheatsheets/react)
+- [Total TypeScript](https://www.totaltypescript.com/tutorials)
+- [Feuilles de triche React + TypeScript](https://github.com/typescript-cheatsheets/react)
 
-## Outils JavaScript [#javascript-tooling]
+## Outils JavaScript
 
-- [yarn](https://yarnpkg.com/) - nous utilisons yarn comme gestionnaire de paquets. En général, si le référentiel que vous consultez possède un fichier `yarn.lock` à sa racine, alors il utilise yarn.
-- [lerna](https://lerna.js.org/) - nous utilisons `lerna` pour gérer nos monorepos.
-- [turbo](https://turbo.build/repo) - nous utilisons `turbo` pour exécuter des scripts tant en développement local que dans nos processus de CI/CD.
-- [swc](https://swc.rs/) - nous utilisons SWC pour compiler notre code JavaScript et TypeScript dans un format pris en charge par tous les navigateurs principaux.
+- [yarn](https://yarnpkg.com/) - nous utilisons yarn comme gestionnaire de paquets. En général, si le dépôt que vous regardez a un fichier `yarn.lock` à sa racine, il utilise yarn. Nous exploitons les [espaces de travail](https://yarnpkg.com/features/workspaces) de yarn pour la versioning et la publication de paquets dans nos monorepos.
+- [turbo](https://turbo.build/repo) - nous utilisons `turbo` pour exécuter des scripts pendant le développement local et nos processus d'intégration continue.
+- [swc](https://swc.rs/) - nous utilisons SWC pour compiler notre code JavaScript et TypeScript dans un format que tous les principaux navigateurs supportent.
 - [webpack](https://webpack.js.org) - nous utilisons webpack pour regrouper notre code pour la production. Nous utilisons [webpack 5](https://webpack.js.org/blog/2020-10-10-webpack-5-release/), qui est la dernière version de webpack au moment de l'écriture.
 
-## Git [#git]
+## Git
 
-Il est impératif de conserver votre code dans un système de contrôle de version. OpenMRS utilise [Git](https://git-scm.com/). Vous devez connaître les bases de l'utilisation de Git et GitHub. D'excellentes ressources d'apprentissage incluent:
+Il est impératif que vous gardiez votre code dans un système de contrôle de version. OpenMRS utilise [Git](https://git-scm.com/). Vous devriez connaître les bases de l'utilisation de Git et GitHub. D'excellentes ressources d'apprentissage incluent:
 
-- Apprenez [Git Branching](https://learngitbranching.js.org/)
-- [Git et GitHub pour les Débutants](https://www.youtube.com/watch?v=RGOj5yH7evk)
+- Apprendre [Git Branching](https://learngitbranching.js.org/)
+- [Git et GitHub pour les débutants](https://www.youtube.com/watch?v=RGOj5yH7evk)
 - [Dangit, Git](https://dangitgit.com/en)
 - [Guide OpenMRS pour utiliser Git](https://wiki.openmrs.org/display/docs/Using+Git)
 
 ## OpenMRS [#openmrs]
 
-OpenMRS fournit diverses APIs par le biais desquelles le frontend peut demander des données. Nous vous recommandons de vous familiariser avec la documentation de ces APIs ainsi qu'avec le modèle de données OpenMRS. Vous trouverez les liens pertinents ci-dessous:
+OpenMRS fournit diverses API par lesquelles le frontend peut demander des données. Nous vous recommandons de vous familiariser avec la documentation de ces API ainsi qu'avec le modèle de données OpenMRS. Trouvez les liens pertinents ci-dessous:
 
-- [Modèle de données OpenMRS](http://devmanual.openmrs.org/en/Technology/dataModel.html)
+- [Modèle de données OpenMRS](https://devmanual.openmrs.org/technology/datamodel/)
 - [API REST](https://rest.openmrs.org/)
 - [Wiki FHIR](https://om.rs/fhir)
 
-## Prochaines étapes
+## Prochaines étapes [#next-steps]
 
-Prêt à vous lancer? Il est temps de découvrir les dépôts clés de l'écosystème O3 et comment ils fonctionnent ensemble. Rendez-vous dans la section suivante pour en savoir plus.
+Prêt à sauter le pas ? Il est temps d'en savoir plus sur les principaux dépôts de l'écosystème O3 et comment ils fonctionnent ensemble. Rendez-vous à la section suivante pour en savoir plus.

@@ -1,4 +1,4 @@
-import { Callout } from "nextra-theme-docs";
+import { Callout, Steps } from "nextra-theme-docs";
 
 # Developing frontend modules
 
@@ -65,9 +65,69 @@ yarn start --sources 'packages/esm-patient-vitals-app' --port=7000
 - Specifying an alternative API URL (defaults to `openmrs`).
 - Specifying a custom import map.
 
-To learn more about the `develop` command, read through its implementation [here](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/tooling/openmrs/src/cli.ts#L93).
+To learn more about the `develop` command, read through its [implementation](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/tooling/openmrs/src/commands/develop.ts).
 
 </Callout>
+
+## Using import map overrides
+
+O3 determines which frontend modules to load based on the [import map](/docs/core-concepts#import-map) provided to the app shell. The import map is a JSON object that maps module specifiers to URLs. You can find the import map for your O3 distro by navigating to `/openmrs/spa/importmap.json` in your browser. The [Devtools](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-devtools-app) frotend modules provides an interface for overriding entries in your import map. You can leverage this when doing local development to load copies of your frontend modules from your local dev server. For example, if you fire up a [local development server running the app shell](docs/frontend-modules/development#running-the-app-shell-locally), it's possible to override import map entries for multiple frotend modules from multiple projects at the same time. This is useful when you're working on a feature that spans multiple frontend modules.
+
+### Example: Running the Implementer tools and Primary navigation frontend modules against the app shell
+
+<Steps>
+
+### Run the app shell
+
+```sh
+cd @openmrs/esm-core
+yarn run:shell
+```
+
+This should fire up a dev server on port 8080 (assuming you have no other dev server running).
+
+### Run the implementer tools app
+
+In a different terminal window, run:
+
+```sh
+cd openmrs/esm-core
+yarn start --sources packages/apps/esm-implementer-tools-app --port=7000
+```
+
+This should fire up a dev server on port 8081 (the next available port). To see the actual bundled JavaScript code for the app, navigate to http://localhost:8081/openmrs-esm-implementer-tools-app.js in your browser. This URL is the entry point for the app shell to load the implementer tools app. It's important that the URL points to the correct location of the bundled JavaScript code. Often, you might want to specify a different port number to ensure that the URL points to the correct location than the default port or whatever port the tooling assigns.
+
+<Callout type="info">
+**Port numbers**
+
+By default, the Webpack dev server runs on port 8080. If you're running multiple dev servers, the next available port is assigned to the next dev server. For example, if you're running a dev server on port 8080 and you start another dev server, it will run on port 8081. If you start another dev server, it will run on port 8082, and so on. This is also important to not when setting up import map overrides. If you're running a frontend module using `yarn start` on port 8080, the URL to the bundled JavaScript code will be http://localhost:8081/openmrs-esm-form-builder-app.js. The name of this URL corresponds to the name used in the [browser](https://github.com/openmrs/openmrs-esm-form-builder/blob/main/package.json#L6) entry in the `package.json` file of the frontend module you're running. If you're running a frontend module on a different port, you'll need to adjust the URL accordingly.
+
+</Callout>
+
+### Run the primary navigation app
+
+In a different terminal window, run:
+
+```sh
+cd openmrs/esm-core
+yarn start --sources packages/apps/esm-primary-navigation-app --port=9000
+```
+
+### Consolidate everything
+
+On the dev server running the app shell, login and navigate to the home page. We want to make sure that import map overrides are enabled. Type this command in the browser devtools console and press enter:
+
+```sh
+localStorage.setItem('openmrs:devtools', 'true')
+```
+
+Reload the page. You should see a new icon in the bottom right corner of the screen. Click on it to launch the import map overrides panel. You can now override import map entries for the frontend modules in your distribution with locally running copies. Add an import map override for the Implementer tools app by searching for the app in the `Search modules` input field. You should see the app in the search results. Type the URL to the bundled JavaScript code for the app in the `URL` input field.
+
+For the Implementer tools app on port 7000, the URL would be http://localhost:7001/openmrs-esm-implementer-tools-app.js. Click the `Apply` button to add the override. Next, do the same for the Primary navigation app. The URL for the Primary navigation app on port 9000 would be http://localhost:9001/openmrs-esm-primary-navigation-app.js. Click the `Apply` button to add the override. The changes should take effect immediately. If you reload the page, you should see the icon turn red to signify that there are import map overrides in place.
+
+You should now see your changes to the Implementer tools and Primary navigation apps propagate to the app shell. You can now test out your changes in the context of the app shell.
+
+</Steps>
 
 ## Running `esm-patient-common-lib` locally
 

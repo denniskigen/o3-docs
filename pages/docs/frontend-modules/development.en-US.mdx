@@ -1,10 +1,12 @@
+import { Callout } from "nextra-theme-docs";
+
 # Developing frontend modules
 
-After setting up your local environment, you'll typically want to work on a frontend module. Broadly speaking, the approach to follow to get a frontend module running locally involves the following steps:
+After [setting up](/docs/frontend-modules/setup) a frontend module locally, you'll want to start making changes to it. This guide will walk you through the steps you need to follow when doing local development on a frontend module. We'll cover how to install dependencies, run frontend modules locally, write tests, push your changes to GitHub, maintain dependencies and troubleshoot common issues.
 
 ## Installing dependencies
 
-We use `yarn` as our package manager. To install dependencies, you'll typically `cd` into the repo of the frontend module you want to work on and run `yarn`. For example, if you want to work on the `patient-chart` frontend module, you'd run:
+In most cases, we use the latest version of [yarn](https://yarnpkg.com/getting-started) as our package manager. To install dependencies, you'll typically `cd` into your local copy of the frontend module you want to work on and run `yarn` (which is short for `yarn install`). For example, if you want to work on the [patient-chart](https://github.com/openmrs/openmrs-esm-patient-chart) frontend module, you'd run:
 
 ```sh
 cd openmrs-esm-patient-chart
@@ -13,38 +15,59 @@ yarn
 
 ## Running frontend modules locally
 
-Typically, you’ll want to run a specific frontend module within a monorepo. For example, you might want to run only the `conditions` frontend module. To do that, run `yarn start --sources` and pass in the name of your package of interest as a string:
+### Non-monorepos
+
+Some of our projects are not monorepos. For example, the [Form Builder](https://github.com/openmrs/openmrs-esm-form-builder) is a standalone project. To run the Form Builder locally, you'd `cd` into the project directory and run `yarn start`. For example:
 
 ```sh
-yarn start --sources 'packages/esm-patient-conditions-app'
+cd openmrs-esm-form-builder
+yarn start
 ```
 
-Note that the argument following packages in the command has to be the frontend module’s full path. It is also possible to pass multiple arguments to `yarn start --sources`. Doing so allows you to run multiple frontend modules simultaneously. Imagine a situation where you need to make a change to both the vitals and biometrics widgets in the patient chart. To get them to run simultaneously, you’d run:
+You shouldn't need to scope commands by their target packages in non-monorepos.
+
+### Monorepos
+
+Most of our frontend modules are part of monorepos. For example, the [Patient Chart](https://github.com/openmrs/openmrs-esm-patient-chart) monorepo consists of several frontend modules that handle Patient-related concerns. You'll typically want to run a specific frontend module within a monorepo. To do that, run `yarn start --sources` and pass in the relative path to your target frontend module. For example, to run just the [Vitals](https://github.com/openmrs/openmrs-esm-patient-chart/tree/main/packages/esm-patient-vitals-app) frontend module, you'd run:
 
 ```sh
-yarn start --sources 'packages/esm-patient-biometrics-app' 'packages/esm-patient-vitals-app'
+yarn start --sources packages/esm-patient-vitals-app
 ```
 
-Running this command fires up a dev server in your default browser. By default, this server will run on port 8080. If you wish to run the server on a different you can specify that by passing a `--port` argument. For example, if you run the command above, you'd have biometrics and vitals getting served from http://localhost:8080/openmrs/spa. If you then want to run, say the patient search frontend module from the patient management monorepo, you could specify a different port number. You'd then run it like so:
+Where the argument following `--sources` is the relative path to the frontend module you want to run.
+
+It is possible to run multiple frontend module simultaneously. For example, if you're making changes to the [Order Basket](https://zeroheight.com/23a080e38/p/71ad91-order-basket), you'll likely want to test those changes against the Medications and Orders frontend modules. To do that, you'd run:
 
 ```sh
-yarn start --sources 'packages/esm-patient-chart-app' --port=7000
+yarn start --sources packages/esm-patient-medications packages/esm-patient-orders-app
 ```
 
-And that should fire up a local dev server at `http://localhost:7000/openmrs/spa`.
+This should fire up a Webpack dev server running local copies of the Medications and Orders frontend modules. Any local changes should propagate to the dev server in your browser.
 
-When you fire up a dev server in this way, several things happen under the hood. If you look at the `scripts` section of a manifest file (`package.json`) in a frontend module, you should see a `start` script that looks something like:
+By default, the dev server will run on port 8080. If you wish to run the server on a different port, you can pass a port number as the argument to the `--port` flag. For example, to run a dev server for the Vitals frontend module on port 7000, you'd run:
 
-```json
-“start”: "openmrs develop"
+```sh
+yarn start --sources 'packages/esm-patient-vitals-app' --port=7000
 ```
 
-What this means is that running `yarn start` invokes the `develop` command of the `openmrs` tooling. This command starts a new frontend development session using the OpenMRS app shell. The tooling sets up the import map, adds entries for core applications from the app shell and overrides the entries for the modules running locally. Ultimately, the corollary is that you can make changes to frontend modules in your local environment and have those changes propagate to the dev server in your browser. The tooling allows you to do various other cool things, such as:
+<Callout type="info">
+  **`openmrs` tooling deep dive**
 
-- Specifying an alternative backend server (other than the community dev3 server) and proxying requests to it.
+`yarn start` is a shorthand for running the [openmrs CLI](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/tooling/openmrs). More specifically, it's aliased to run `openmrs develop`, which creates a development build of the app shell and runs it against a given OpenMRS backend. It spins up a Webpack dev server on port 8080 and proxies requests to the default backend, which is hosted at https://dev3.openmrs.org. This dev server will by default run local copies of the frontend modules you specify and override their import map entries. All the other frontend modules run on that dev server should be the latest versions from the community dev3 server. With `openmrs develop`, you can also:
+
+- Specify an alternative backend server (other than the community dev3 server) and proxy requests to it. For example, to run the Vitals app and proxy requests to the O3 QA dev environment's backend, you can run:
+
+  ```sh
+  yarn start --sources packages/esm-patient-vitals-app --backend=https://test3.openmrs.org
+  ```
+
 - Specifying an alternative target server path (defaults to `/openmrs/spa`).
 - Specifying an alternative API URL (defaults to `openmrs`).
 - Specifying a custom import map.
+
+To learn more about the `develop` command, read through its implementation [here](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/tooling/openmrs/src/cli.ts#L93).
+
+</Callout>
 
 ## Running `esm-patient-common-lib` locally
 

@@ -73,6 +73,11 @@ To learn more about the `develop` command, read through its [implementation](htt
 
 O3 determines where to load the code for frontend modules from based on the [import map](/docs/core-concepts#import-map) provided to the app shell. The import map is a JSON object that maps module specifiers to URLs. You can find the import map for your O3 distro by navigating to `/openmrs/spa/importmap.json` in your browser. The [Devtools](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-devtools-app) frotend modules provides an interface for overriding entries in your import map. You can leverage this when doing local development to load copies of your frontend modules from your local dev server. For example, if you fire up a [local development server running the app shell](docs/frontend-modules/development#running-the-app-shell-locally), it's possible to override import map entries for multiple frotend modules from multiple projects at the same time. This is useful when you're working on a feature that spans multiple frontend modules.
 
+<Callout type="warning">
+  Import map overrides don't work on the dev3 server because of security restrictions. We'll work on loosening these
+  restrictions in the future. For now, you can only use import map overrides on a local dev server.
+</Callout>
+
 ### Example: Running the Implementer tools and Primary navigation frontend modules against the app shell
 
 <Steps>

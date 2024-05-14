@@ -235,14 +235,15 @@ git pull upstream main --rebase
 
 If you’re running Linux, you may see the following error the first time you run a dev server: `Error: ENOSPC: System limit for number of file watchers reached`. If that happens, you need to increase the system limit for the number of file watchers. See this [StackOverflow answer](https://stackoverflow.com/a/55763478/1464495).
 
-### I’m not seeing the latest @openmrs/esm-framework. How do I update the dependency?
+### I see errors about missing APIs when I run the app
 
-If you notice your app suddenly stops working, it might be because a core library has changed in the app shell on the server you are developing against. The main dependencies shared by all OpenMRS frontend modules are `openmrs` and `@openmrs/esm-framework`. They can be updated like this:
+If your dev server is throwing errors about missing APIs or functions, it's likely because you're running outdated versions of core tooling. This means that new functionality was likely added to [Core](https://github.com/openmrs/openmrs-esm-patient-chart) that your local dev server doesn't have. New pre-release versions of the [openmrs](https://npmjs.com/package/openmrs) CLI and [@openmrs/esm-framework](https://npmjs.com/package/@openmrs/esm-framework) get published each time a pull request is merged in Core. To ensure you have the latest versions of these packages, run:
 
 ```sh
-# Upgrade core libraries
 yarn up openmrs@next @openmrs/esm-framework@next
 ```
+
+This command might change the versions of the packages specified in your manifest file (`package.json`). If it does, you'll need to revert the versions back to `next` before you commit your changes. You might need to run `yarn` to install the new versions of the packages after effecting the changes. Once you've done that, you should be able to run the dev server without any issues. Be sure to only commit the updated `yarn.lock` file.
 
 ### I'm getting a `ERR_OSSL_EVP_UNSUPPORTED` error when running `yarn run build`
 

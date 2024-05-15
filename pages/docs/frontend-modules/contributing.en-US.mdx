@@ -2,41 +2,139 @@
 
 If you’re interested in contributing to O3, you’ll need to take the following steps.
 
-- Get access to [OpenMRS Jira](https://issues.openmrs.org/). If you don’t have access, raise a request at the [Help Desk](https://wiki.openmrs.org/display/~helpdesk). Wait at least 24 hours for the request to get approved; you will receive an email upon approval. Once approved, take a look at all the [frontend module-related issues](https://issues.openmrs.org/projects/MF/issues). Good first issues are filed under the [intro](https://issues.openmrs.org/browse/MF-508?jql=project%20%3D%20MF%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%22intro%22%20ORDER%20BY%20priority%20DESC%2C%20updated%20DESC) label.
-- Join our [Slack Channel](https://openmrs.slack.com/archives/CHP5QAE5R) and introduce yourself. You will first need to create an [OpenMRS Slack account](https://slack.openmrs.org/) if you don’t have one.
+- Get access to [OpenMRS Jira](https://issues.openmrs.org/). If you don’t have access, raise a request at the [Help Desk](https://wiki.openmrs.org/display/~helpdesk). Wait at least 24 hours for the request to get approved; you will receive an email upon approval. Once approved, take a look at all the [open O3 issues](https://openmrs.atlassian.net/issues/?jql=project+%3D+%22O3%22+ORDER+BY+created+DESC&atlOrigin=eyJpIjoiNjIyNDg5YjMyZDUxNGVjMGI4OTI2ZDczNjgxNjBlZTIiLCJwIjoiaiJ9). Good first issues are filed under the [intro](https://issues.openmrs.org/browse/MF-508?jql=project%20%3D%20MF%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%22intro%22%20ORDER%20BY%20priority%20DESC%2C%20updated%20DESC) label.
+- Join our [Slack Channel](https://openmrs.slack.com/archives/CHP5QAE5R) and introduce yourself. You will first need to create an [OpenMRS slack account](https://slack.openmrs.org/) if you don’t have one.
 
-### Contributing guidelines
+## Contributing guidelines
 
-- **Pull requests (PRs) of type "feature", "fix", "refactor", "perf", and "BREAKING" (see "type of change" section below) are required to correspond to a ticket** -  The ticket related to the PR should be clearly named and linked in the PR.
+### Issues
+
+We use Jira to track issues and work. If you’re planning to contribute to O3, you should be familiar with how we use Jira. Here are some guidelines to follow when creating and working on issues:
+
+- We typically recommend **filing a ticket** on our [issue board](https://openmrs.atlassian.net/jira/software/c/projects/O3/boards/37/backlog) before starting work on a feature or bug fix. This helps us ensure that the work is needed and that it’s not already being worked on by someone else. In many cases, the ticket helps us understand the context of the work and the problem it’s trying to solve. It's also very useful for posterity and for future contributors to understand the work that was done. Skim through the [existing issues](https://openmrs.atlassian.net/issues/?jql=project+%3D+%22O3%22+ORDER+BY+created+DESC&atlOrigin=eyJpIjoiNjIyNDg5YjMyZDUxNGVjMGI4OTI2ZDczNjgxNjBlZTIiLCJwIjoiaiJ9) to see if there’s already a ticket for the work you’re planning to do. If there isn’t, create one. If you’re not sure, ask in the `#openmrs3-helpme` Slack channel.
+- When creating a ticket, ensure that it has a clear title and description. The description should include the problem you’re trying to solve, the context, and any relevant information that will help someone understand the work you’re proposing. If there are any design files or mockups, attach them to the ticket. If the ticket relates to a bug, include steps to reproduce the bug. If possible, add screenshots or videos. The more information you provide, the easier it is for someone to understand the work you’re proposing. If in doubt, read through Jira's [best practices](https://community.atlassian.com/t5/Jira-Software-articles/How-to-write-a-useful-Jira-ticket/ba-p/2147004) for creating issues.
+- You don't have to assign the ticket to yourself when creating it. If you don't have the bandwidth to work on it, leave it unassigned. If you do have the bandwidth, assign it to yourself. Generally speaking, it’s better to leave it unassigned if you’re not sure you can work on it immediately. This way, someone else can pick it up. If you've assigned a ticket to yourself and you can't work on it, unassign it so someone else can pick it up.
+- Don't unassign a ticket from someone else unless you’ve discussed it with them first. If you think someone else should work on a ticket, ask them if they can take it on. If they can’t, they’ll unassign themselves. Good communication is key.
+
+### Pull requests
+
+The next step is to create a pull request (PR) with your changes. We use the PR process to review and merge code into the main branches of our repositories. Anyone can open a PR. The same process is followed for all contributors, whether you’re a first-time contributor or a core team member.
+
+Here are some guidelines to follow when creating a PR:
+
+- **Fork and clone the repository** - Before you can create a PR, you need to fork the repository you want to contribute to. Once you’ve forked the repository, clone it to your local machine. Read the setup instructions in the repository’s README file to get started.
+- **Create a branch** in Git to isolate your work from the main branch. The branch name should be descriptive of the work you’re doing. For example, if you’re fixing a bug, the branch name could be `fix/bug-description`. If you’re adding a feature, the branch name could be `feat/feature-description`. If you’re not sure what type of change you’re making, ask in the `#openmrs3-helpme` Slack channel.
+- Once you have working changes in Git that you want to push, add them and **create a commit**. The commit message should be terse and descriptive of the work you’ve doing. We include [conventional commit labels](https://www.conventionalcommits.org)) in our commmit messages. The most common labels are `feat`, `fix`, `chore`, `test` and `BREAKING`. The following are typical commit messages:
+
+  - `feat: Add search bar to medications widget`
+  - `fix: Console error when visiting allergies page`
+  - `chore: Update dependencies`
+  - `test: Add unit tests for medications widget`
+  - `BREAKING: New left nav system`
+
+If you can provide a more detailed commit message, that’s even better. The more information you provide, the easier it is for someone to understand the work you’re proposing.
+
+- Wherever possible, include tests with your code. We use Jest, React Testing Library, and Playwright for testing. Tests increase the quality of your code and help ensure that your changes don’t break existing functionality. If you’re not sure how to write tests, ask in the `#openmrs3-helpme` Slack channel.
+- Committing code will run the linter and formatter. If there are any linting errors, you’ll need to fix them before you can push your changes. In many cases, a tool for extracting translation keys and strings from your code will run. If any new keys are found, you'll need to amend your commit message to include the new keys. This is important for our i18n process. Be sure to commit any linting and i18n changes before pushing your code.
+- To open your changes as a PR, **push your branch** to your forked repository. Before your changes get pushed to GitHub, a script will run to ensure your code is formatted correctly and that there are no linting errors, and that tests pass and your code doesn't have any type errors. If there are any issues, you’ll need to fix them before you can push your changes. Re-integrate your changes and push them again. Once you’ve pushed your branch, you can create a PR from the [GitHub UI](https://help.github.com/en/articles/creating-a-pull-request). The PR should be created against the main branch of the repository you’re contributing to.
+- Most repositories will have a PR template that you need to fill out. The template will ask you for information about the work you’re doing, the context, and any other relevant information. **Read and fill out the PR template when filing a PR**. The PR template exists to help you give us all the information we need in a format we can quickly review. Filling it out correctly will make everyone’s work faster and easier.
+- Your pull request title should include a conventional commit label that indicates the type of change you’re making. The PR title should begin with the [conventional commit](https://www.conventionalcommits.org) label that relates to your PR, followed by a ticket number if applicable. Examples of good PR titles:
+
+  - `(chore) Remove orders widget feature flag`
+  - `(chore) Bump @openmrs/ngx-formentry`
+  - `(fix) O3-2657: Show inline errors when saving orders fails`
+  - `(feat) O3-2724: Move overlays into the framework`
+  - `(feat) O3:3063: Appointments dashboard UI tweaks`
+  - `(test) O3-3040: Add E2E test for adding a visit note`
+  - `(docs) Add steps for running E2E tests to README`
+  - `(refactor) Tidy the workspaces implementation`
+  - `BREAKING: Upgrade to Carbon v11`
+
+  We use these labels to determine version bumps when [releasing](/docs/frontend-modules/releasing) frontend modules. The [changelogs](https://o3-docs.openmrs.org/docs/changelog) we put out alongside each release are generated from the PR titles, so it’s important to follow this convention. _Don’t worry if you aren’t sure which one you should use!_ Your reviewer should make sure your PR has an appropriate one.
+
 - **Push additional commits** - Pull requests are allowed (and encouraged) to contain more than one commit. Those commits are squashed when your PR gets merged into `main`.
 - **Do not close a PR and recreate a new one with the same code** - If you have opened a PR for some work and a reviewer has requested some changes, do not open a new PR with the updates and close the old one. This makes things very hard for reviewers.
 - **Read and fill out the PR template when filing a PR** - The PR template exists to help you give us all the information we need in a format we can quickly review. Filling it out correctly will make everyone’s work faster and easier.
+- **Include screenshots or videos** - If your PR includes visual changes, include screenshots or videos in the PR description. This helps reviewers understand the changes you’re proposing. If you’re not sure how to take a screenshot or record a video, ask in the `#openmrs3-helpme` Slack channel.
+- **Include a link to the Jira ticket** - If your PR relates to a Jira ticket, include a link to the ticket in the `Related issue` section of the template. This helps us track the work you’re doing and understand the context of the changes you’re proposing.
+- **Provide as much context as possible** - The more context you can provide in your PR description, the easier it is for reviewers to understand the work you’re proposing. Here's some information you might want to include:
+
+  - The problem you’re trying to solve
+  - The context of the work
+  - The current behavior and the expected behavior
+  - Any relevant information that will help someone understand the changes you’re proposing
+  - Any design files or mockups
+  - Steps to reproduce the bug (if the PR relates to a bug fix)
+  - Screenshots or videos (if the PR includes visual changes)
+
+  [Here's](https://github.com/openmrs/openmrs-esm-core/pull/929) an example of a well-documented PR.
+
 - **Work incrementally** - Smaller PRs are easier to read and validate. Opening multiple PRs for the same ticket is excellent if those PRs represent different pieces or stages of work relating to that ticket.
 - **Do not increase the scope of a PR after it has been reviewed** - If your code has been reviewed, don’t push a bunch more code that isn’t related to the review. Fixups are fine, but new features should have their own PRs. Remember—small PRs are easier to review anyway!
 - **Your first PR to a codebase should be small** - Get a feel for what the reviewer expects before submitting a PR with a large amount of code in it.
-- **Your PR title should indicate the type of change it is** - We use PR titles to determine version bumps when [releasing](/docs/frontend-modules/releasing) frontend modules. PR titles should begin with the [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/) type that relates to your PR. Examples of good PR titles:
+- **Put the PR into Draft mode** if it’s still a work in progress - it's a good way to signal to reviewers that you’re not ready for a full review yet. Draft PRs can be useful for getting feedback on your work before it’s complete.
+- It's your responsibility as the PR author to **ensure that all the automated CI checks pass** before requesting a review. Most repositories have a GitHub action that runs these checks automatically when you push your code. If the checks fail, you’ll need to fix the issues before requesting a review. If you need help with this, ask in the `#openmrs3-helpme` Slack channel.
 
-  - “(docs) Add to contributing docs”
-  - “(fix) Console error when visiting allergies page”
-  - “(feat) Add search bar to medications widget”
-  - “(refactor) Tidy the dashboard implementation”
-  - “BREAKING: New left nav system”
+### Code review
 
-  Common prefixes include the above, and `chore`, `style`, `perf`, and `test`. Read more about conventional commit types [here](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13#types).
+Once you’ve opened a PR, the next step is to get it reviewed. Code reviews are an essential part of the development process. They help ensure that the code you’re proposing is of high quality and that it meets the standards of the project you’re contributing to. Code reviews done well help raise the quality bar of the project and help everyone learn from each other.
 
-  The changelogs we put out alongside each release are generated from the PR titles, so it’s important to follow this convention. _Don’t worry if you aren’t sure which one you should use!_ Your reviewer should make sure your PR has an appropriate one.
+In general, reviewers should favour approving a pull request once it is in a state where it definitely improves the overall code health of the system being worked on, even if the pull request is not perfect.
 
-### Guidelines for reviewing code
+### Motivation for code reviews
 
-- Encourage feedback as both an author and reviewer.
-- Encourage as many contributors to engage in deep and meaningful contribution.
-- Be sensitive to the varying experience levels of OpenMRS contributors.
-- Avoid gatekeeping, which includes over-emphasizing to contributors how they’re failing to follow the correct process.
-- Encourage code ownership, including reviewing changes to the code and projects you’ve contributed to.
-- Provide detailed and helpful feedback to contributors, including using GitHub’s [suggestion feature](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/incorporating-feedback-in-your-pull-request) to help the contributor know how to make the needed changes.
+- **Quality** - Code reviews help ensure that the code you’re proposing is of high quality. They help catch bugs, improve performance, and ensure that the code is maintainable and scalable.
+- **Learning** - Code reviews are a learning opportunity. They help you learn from other developers and improve your coding skills. They also help you understand the codebase better and learn best practices. Positive interaction between reviewers and authors also strengthens social bonds and helps build a sense of community.
+- **Consistency** - Code reviews help ensure that the code you’re proposing is consistent with the rest of the codebase. They help ensure that the code follows the project’s coding conventions and that it’s easy to read and understand.
+- **Legibility** - Legibility is hard to judge for yourself. Code reviews help ensure that the code you’re proposing is easy to read and understand. Legible code is easier to maintain and debug.
+- **Catching accidental errors, as well as structural errors** - Code reviews help catch accidental errors, such as typos, as well as structural errors, such as logic errors or performance issues.
 
-_The above guidelines were established in [RFC-20](https://github.com/openmrs/openmrs-rfc-frontend/blob/master/text/0020-contributing-guidelines.md)_.
+Here are some general guidelines to follow when participating in code reviews:
 
-### Coding conventions
+- **Review other people’s code** - Code reviews are a two-way street. If you want your code reviewed, you should be willing to review other people’s code. This helps ensure that everyone’s code is of high quality and that it meets the standards of the project.
+- **Be respectful** - Code reviews can be a sensitive process. It’s important to be respectful and constructive in your feedback. Remember that the goal is to help the author improve their code, not to criticize them. Code reviews are a learning opportunity for everyone involved and should be treated as such.
+- **Be specific** - When providing feedback, be specific about what you like and don’t like about the code. If you have suggestions for improvement, be clear about what those suggestions are and why you’re making them. The more specific you can be, the easier it is for the author to understand your feedback and make the necessary changes. Links to resources like documentation or examples are typically very useful.
+- **Provide tests and documentation wherever possible** - If you’re suggesting changes to the code, consider providing tests and documentation to support those changes. Tests help ensure that the code works as expected and that it doesn’t break existing functionality. Documentation helps ensure that the code is easy to understand and maintain. The more tests and documentation you can provide, the better. Future contributors will be grateful for your efforts.
+- **Use draft PRs for early feedback** - If you’re not sure about the changes you’re proposing, consider using a draft PR to get early feedback. Draft PRs are a great way to get feedback on your work before it’s complete. They can help you catch issues early and ensure that your code is of high quality.
 
-Read our [coding conventions](/docs/coding-conventions) guide to learn about the conventions we encourage in O3.
+### Guidelines for PR authors
+
+- **Test your changes locally** - Before having your code reviewed, test your changes locally to ensure that they work as expected. Code reviewers will appreciate it if you’ve done your due diligence before asking for their feedback.
+- **Document things** - Does your PR change a modules' configuration schema? Does it introduce a new API? Does it change the way a component works in some way that is not immediately obvious? Document these changes in the PR description. Testing changes to shared components or underlying frameworks might not always be possible, especially when tests don't cover the specific use case you're working on. In such cases, it's important to document the changes you've made and the reasoning behind them.
+- **Follow the PR template** - Follow the provided template and provide as much context in your PR description as possible. The more context you provide, the easier it is for reviewers to understand the work you’re proposing.
+- **Follow the coding conventions** - We've established [coding conventions](/docs/coding-conventions) for O3. When creating a PR, ensure that your code follows these conventions. If it doesn’t, make the necessary changes before requesting a review.
+- **Be open to feedback** - Code reviews are a learning opportunity. Be open to feedback and be willing to make changes to your code based on that feedback. Remember that the goal is to help you improve your code, not to criticize you.
+- **Follow up with reviews and suggestions** - Once you’ve received feedback on your code, follow up with reviews and suggestions. If you have questions about the feedback, ask for clarification. If you’re not sure how to make the necessary changes, ask for help. The more you engage with the feedback, the better your code will be. Add suggestions to a batch so they can be pushed in a single commit.
+- **Keep your PR branch up-to-date** - If your PR is open for a long time, you may need to rebase it on the main branch to ensure that it’s up-to-date. This helps ensure that your code is reviewed against the latest changes in the codebase.
+- **Subject your code to self-review** - Before opening a PR, review your code yourself. Look for typos, logic errors, formatting issues, and other potential problems. The more you can catch yourself, the less feedback you’ll receive from reviewers.
+- **Read through existing pull requests** - not strictly necessary, but it can be helpful to read through existing PRs to get a sense of what reviewers are looking for. This can help you understand what to expect during the review process and how to prepare for it.
+- **Be patient** - Code reviews can take time. Be patient and give your reviewers time to provide feedback. If you haven’t heard back from a reviewer in a while, you can politely ask for an update.
+
+### Guidelines for reviewers
+
+- **Ask questions** - If you don’t understand something in the code, ask questions. When the reason for a change is unclear, ask for clarification. When you’re not sure why a particular approach was taken, ask for an explanation. Asking questions helps ensure that you understand the code you’re reviewing and that you can provide helpful feedback.
+- **Provide feedback** - When providing feedback, be specific about what you like and don’t like about the code. If you have suggestions for improvement, be clear about what those suggestions are and why you’re making them. The more specific you can be, the easier it is for the author to understand your feedback and make the necessary changes.
+- **Assess whether the code accomplishes its goals** - Assess whether the submitted code actually accomplishes it's intended goals. Every change should have a speficic purpose, and the code should be evaluated based on whether it meets that purpose.
+- **Assess whether the code is maintainable** - Assess whether the code is maintainable. Is it easy to read and understand? Is it well-organized? Is it easy to modify and extend? Is it well-documented? Is it easy to test? These are all important considerations when reviewing code.
+- **Assess whether the code follows the project’s coding conventions** - We've established [coding conventions](/docs/coding-conventions) for O3. When reviewing code, assess whether the code follows these conventions. If it doesn’t, provide feedback to the author so they can make the necessary changes.
+- **Think about how you would have solved the problem** - Is your approach radically different from the author’s? If so, consider whether your approach is better. If it is, provide feedback to the author so they can consider your approach. If it’s not, consider whether the author’s approach is better and provide feedback accordingly.
+- **Consider whether the change introduces unwanted side effects** - Does the change break existing functionality? Does it introduce new bugs? Does it negatively impact performance? Does it introduce security vulnerabilities? These are all important considerations when reviewing code.
+- **Read the tests** - If the code includes tests, read them. Do they test the right things? Are they well-written? Do they cover all the edge cases? If the tests are lacking, provide feedback to the author so they can make the necessary changes.
+- **Request for updates to documentation** - If the code changes require updates to the documentation, request that the author make those updates. Documentation is an important part of the development process and should be kept up-to-date.
+- **Provide concise, impersonal feedback** - When providing feedback, be concise and impersonal. Focus on the code, not the author. Avoid using phrases like “you should” or “you need to” and instead use phrases like “the code should” or “the code needs to”. This helps ensure that the feedback is constructive and not personal.
+- **Give the author time to make changes** - Once you’ve provided feedback, give the author time to make the necessary changes. Don’t rush them.
+- **Give clear feedback on how the author should proceed** - If you'd like to re-review the PR once the author has made the necessary changes, let them know. If you’re happy with the changes and the code is ready to be merged, let them know. Be clear about how the author should proceed.
+- **Be respectful** - Code reviews can be a sensitive process. It’s important to be respectful and constructive in your feedback. Remember that the goal is to help the author improve their code, not to criticize them. Code reviews are a learning opportunity for everyone involved and should be treated as such.
+- **Be specific** - When providing feedback, be specific about what you like and don’t like about the code. If you have suggestions for improvement, be clear about what those suggestions are and why you’re making them. The more specific you can be, the easier it is for the author to understand your feedback and make the necessary changes. Links to resources like documentation or examples are typically very useful.
+- Encourage as many contributors to engage in **deep and meaningful contribution**.
+- **Be sensitive to the varying experience levels** of OpenMRS contributors.
+- **Avoid gatekeeping**, which includes over-emphasizing to contributors how they’re failing to follow the correct process.
+- **Encourage code ownership**, including reviewing changes to the code and projects you’ve contributed to.
+
+### Further reading
+
+- [The standard of code review](https://google.github.io/eng-practices/review/reviewer/standard.html)
+- [Palantir Code Review best practices](https://blog.palantir.com/code-review-best-practices-19e02780015f)
+- [O3 contributing guidelines introduced in RFC 20](https://github.com/openmrs/openmrs-rfc-frontend/blob/master/text/0020-contributing-guidelines.md)
+- [Stop paying the code-review productivity tax](https://app.campsite.co/campsite/p/notes/4zvq5fmqazmh)
+- [Git Kraken code review](https://www.gitkraken.com/blog/code-review)

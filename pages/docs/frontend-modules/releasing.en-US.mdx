@@ -1,17 +1,27 @@
+import { Callout } from "nextra-theme-docs";
+
 # Releasing frontend modules
 
-After meeting a reasonable threshold of commits, or after a set time, you will likely want to publish your software to the NPM registry so that consumers can get your latest stable versions.
+[Releasing](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases) frontend modules is a critical part of the development process. After meeting a reasonable threshold of commits, or after a set amount of time, you will likely want to publish your software to the NPM registry so that consumers can install it. This guide will walk you through the process of releasing frontend modules in the O3 ecosystem.
 
-We are working with a bi-weekly release cadence of O3, meaning we publish new versions of our frontend modules every two weeks. This cadence is subject to change as we get more experience with the process.
+<Callout type="info">
+  We're currently working with a bi-weekly release cadence for O3. This means we aim to publish new versions of our
+  frontend to our [QA environment](https://test3.openmrs.org/openmrs/spa) every fortnight. QA review and feedback
+  typically takes a week, after which we promote the release to our [demo Production
+  environment](https://o3.openmrs.org/openmrs/spa). This cadence is subject to change as we get more experience with the
+  process.
+</Callout>
 
-Publishing an O3 release involves two steps:
+## Cutting a release
+
+Cutting an O3 release involves two steps:
 
 1. Bumping your local package versions and pushing those changes to GitHub. This step will trigger the CI's `pre-release` job.
-2. Cutting a release using the Github releases UI. This step triggers the `release` CI job.
+2. Cutting a release using the Github releases UI. This step triggers the `release` CI job, which publishes the package(s) to the NPM registry.
 
 If you want to publish a release version of your module, you need to think about a few things first, including:
 
-- The release `type` - the [semantic versioning release type](https://docs.npmjs.com/about-semantic-versioning) your changes conform to. Our release versions use the semver spec, meaning we have three release types:
+- The release `type` - the [semantic versioning release type](https://docs.npmjs.com/about-semantic-versioning) your changes conform to. Our release versions use the SemVer spec, meaning we have three release types:
 
   - `patch` - when you make backwards-compatible bug fixes.
   - `minor` - when you add functionality in a backwards-compatible manner.
@@ -22,6 +32,8 @@ If you want to publish a release version of your module, you need to think about
   - A `patch` version would increment the version number to `1.0.1`.
   - A `minor` version would increment the version number to `1.1.0`.
   - A `major` version would increment the version number to `2.0.0`.
+
+### Drafting a changelog
 
 With that knowledge, you can draft a changelog. To do so:
 
@@ -38,16 +50,24 @@ We have established a convention within O3 where PR titles contain a conventiona
 - `(chore)` for housekeeping tasks, like managing dependencies, configuring things or updating CI workflows
 - `(BREAKING)` for backwards-incompatible API changes.
 
-Reviewing the generated changelog with these commit types in mind should give you a good idea of the semantic version bump your release should create. At this point, you can switch to your IDE to initiate the release process. Typically, we use yarn to version frontend modules. Run the following command at the root of your monorepo to trigger a version bump:
+Reviewing the generated changelog with these commit types in mind should give you a good idea of the semantic version bump your release should create.
 
-```sh
-yarn workspaces foreach --worktree --topological --exclude [monorepo-name] version [release-type]
+### Bumping versions
+
+At this point, you can switch to your IDE to initiate the release process. Typically, we use `yarn` to version frontend modules.
+
+#### Monorepos
+
+For monorepos, we use the `workspaces` command to bump versions across all packages in the monorepo. You'll typically find a `release` script in the root-level `package.json` file of the monorepo that looks like this:
+
+```json
+"release": "yarn workspaces foreach --all --topological version"
 ```
 
-For example, if you want to do a `major` release in esm-patient-management, you would run:
+This script runs the `version` command against all the packages in the workspace. You'll need to append the release type to this command to trigger a version bump. So, for a `major` release, you would run:
 
 ```sh
-yarn workspaces foreach --worktree --exclude @openmrs/esm-patient-management version major
+yarn release major
 ```
 
 This command:
@@ -56,9 +76,36 @@ This command:
 - Tells yarn to sort the packages before running the commands so that they run on the packages in topological order (i.e., packages that depend on other packages get run later).
 - Tells yarn to exclude versioning for the selected monorepo so that the package.json in the root directory is unaffected. The root `package.json` does not require a version for publishing purposes because it is never published.
 
-Once this process completes, you should see a diff in your editor that includes a version bump for all the packages in your monorepo. Run `yarn` or `yarn install` to update your `yarn.lock` file. Commit these changes with the title `(chore) Release vx.x.x` where x.x.x is a placeholder for the version number. See an example of [this commit](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1279) that bumps `Patient Chart` to `v5.0.0`.
+#### Non-monorepos
+
+For non-monorepos, you can use the `version` command directly. For example, if you want to bump the version of a package named `@openmrs/esm-patient-management` to a `major` release, you would run:
+
+```sh
+yarn version major --workspaces --scope @openmrs/esm-patient-management
+```
+
+<Callout type="info">
+**Libraries using legacy versions of yarn**
+
+Some of our projects use legacy versions of yarn (yarn v1). The [Angular form engine](https://github.com/openmrs/openmrs-ngx-formentry) is an example of such a project. To release the Angular form engine, you would run the following command:
+
+```sh
+yarn version --new-version <major|minor|patch> --no-git-tag-version
+```
+
+Be sure to follow the instructions listed in the [Cutting a release docs](https://github.com/openmrs/openmrs-ngx-formentry#cutting-a-new-release) to avoid getting caught out.
+
+</Callout>
+
+### Post-bump steps
+
+Once you're done versioning, you should see a diff in your editor that includes a version bump for all the packages in your repository. Run `yarn` or `yarn install` to update your `yarn.lock` file.
+
+Commit these changes with the title `(chore) Release vx.x.x` where x.x.x is a placeholder for the version number. See an example of [this commit](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1279) that bumps `Patient Chart` to `v5.0.0`.
 
 Once your release commit is merged, the CI workflow's `pre-release` job gets triggered and initiates a version bump for the corresponding version tagged `latest` on NPM. This version is what consumers get when they install your frontend module.
+
+### Releasing on GitHub
 
 You can then switch to your browser and head back to the releases page of the repo you are working with. Review the release notes generated by GitHub and then update the version number and tags appropriately. Once you are satisfied that everything looks ok, click the `Publish release` button. This step should trigger the CI workflow and, notably, the `release` job.
 

@@ -13,6 +13,11 @@ import { Callout } from "nextra-theme-docs";
 
 ## Cutting a release
 
+<Callout type="info">
+  Please read through the [Important notes](#important-notes) section at the end of this page for guidance on some
+  oft-overlooked steps in the release process.
+</Callout>
+
 Cutting an O3 release involves two steps:
 
 1. Bumping your local package versions and pushing those changes to GitHub. This step will trigger the CI's `pre-release` job.
@@ -129,3 +134,8 @@ This command publishes a new package tagged `next`. This is the version that con
 Broadly speaking, when a PR is merged, a `pre-release` job in our primary GitHub actions CI workflow gets triggered. This job publishes a version of the frontend module to its corresponding npm registry tagged `latest`. This is the version that consumers will get when they install your frontend module.
 
 To see what version the `latest` tag corresponds to for a frontend module, go to its NPM registry page and click on the `version` tag. Look out for the most recent version tagged `latest`.
+
+### Important notes
+
+- When versioning the [Angular form engine](https://github.com/openmrs/openmrs-ngx-formentry), ensure you bump both the version in the root-level `package.json` file and the version in the `package.json` file in the `projects/openmrs-esm-formentry` directory. The actual library is published from that directory, so it's important to bump the version there as well. More information can be found in [this section](https://github.com/openmrs/openmrs-ngx-formentry#cutting-a-new-release) of the README.
+- When versioning the [Patient Chart](https://github.com/openmrs/openmrs-esm-patient-chart), ensure you bump the Common Lib peer dependency in each of the packages that depend on it. Here's an example of a release commit that bumps both the package version and the peer dependency version: [chore: Release v7.0.0](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1639/files).

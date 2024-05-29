@@ -221,6 +221,20 @@ Run `docker compose up -d` and, assuming everything is filled out correctly, it 
 
 - If you're running into an issue on Windows about your WSL version being too low to support running the dockerized build, follow the directions in the error message to update your WSL version. Once done, make sure to restart Docker Desktop or the Docker daemon.
 
+- If you're running into permission errors after running `docker compose up`, you might be facing a situation that an earlier Docker compose run left orphaned volumes. This is a known issue with Docker volumes. Run this command to delete all orphaned volumes:
+
+  ```sh
+  docker compose down -v --remove-orphans
+  ```
+
+  This command:
+
+  - Stops the running containers defined in the Docker compose file.
+  - Removes the containers.
+  - Deletes the networks created by the Docker compose.
+  - Deletes the volumes associated with the containers.
+  - Removes any orphaned containers (containers that were not defined in the docker-compose.yml but are part of the Docker Compose project).
+
 ## Next steps
 
 Once you've set up your O3 instance, there are various things you might want to do, including:

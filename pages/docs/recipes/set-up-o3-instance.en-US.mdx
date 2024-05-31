@@ -9,10 +9,14 @@ This guide is intended for developers who want to set up an instance of O3. Broa
 
 ## Using the OpenMRS SDK
 
-You might want to use the SDK if:
+<Callout emoji="ℹ️" type="info">
+  You might want to use the SDK if: 
+  
+  - You already have the SDK, Maven and a Java environment set up on your machine and
+  are very familiar with these tools. 
+  - You're not familiar with Docker or don't want to use Docker.
 
-- You already have the SDK, Maven and a Java environment set up on your machine and are very familiar with these tools.
-- You're not familiar with Docker or don't want to use Docker.
+</Callout>
 
 ### Prerequisites
 
@@ -81,6 +85,7 @@ Navigate to `https://localhost:8080/openmrs` on your browser. You should expect 
 
 ## Using Docker
 
+<Callout emoji="ℹ️" type="info">
 You might want to use Docker if:
 
 - You are already familiar with Docker and OpenMRS Docker images.
@@ -89,9 +94,11 @@ You might want to use Docker if:
 - You want to set up a fresh instance of O3 (i.e. an instance with a brand new database and not one set up on top of your existing database).
 - You don't want to go through the hassle of setting up a Java environment and managing multiple dependencies.
 
+</Callout>
+
 ### Prerequisites
 
-- Ensure you have [Docker Desktop](https://docs.docker.com/desktop/) installed on your machine.
+- Ensure you have [Docker Desktop](https://docs.docker.com/desktop/) or [Docker Compose (v2)](https://docs.docker.com/compose/install/) installed on your machine.
 
 Use the following steps to set up a fresh instance of O3 on your machine using Docker:
 
@@ -99,27 +106,42 @@ Use the following steps to set up a fresh instance of O3 on your machine using D
 
 ### Step 1
 
-Clone the [distro-config](https://github.com/openmrs/openmrs-distro-referenceapplication) repository.
+Clone the [distro-referenceapplication](https://github.com/openmrs/openmrs-distro-referenceapplication) repository.
 
 ### Step 2
 
-Launch [Docker Desktop](https://docs.docker.com/desktop/) or the Docker daemon.
+Launch [Docker Desktop](https://docs.docker.com/desktop/) or [Docker Compose (v2)](https://docs.docker.com/compose/install/).
 
 ### Step 3
 
-Run `docker compose build` from the root of the repository (You might need to run `docker-compose build` instead if you're using `docker-compose`).
+Next we want to install the latest version of O3. To do that, we'll need to figure out what tag to use. Run `git tag --sort=-v:refname` to get a list of tags sorted by version number. At the time of writing, the latest tag is `3.0.0-beta.20`. To use this tag, run the following command:
+
+```sh
+TAG=3.0.0-beta.20 docker compose -f docker-compose.yml up -d
+```
+
+This command does the following:
+
+- `TAG=3.0.0-beta.20`: Sets an environment variable TAG to the value `3.0.0-beta.20`. We're using this variable to specify the latest stable release of O3.
+- `docker compose`: Runs the Docker Compose command.
+- `f docker-compose.yml`: Specifies the Compose file to use.
+- `up -d`: Starts the services defined in the Compose file in detached mode.
 
 ### Step 4
 
-Once the build completes, run `docker compose up` (or `docker-compose up` if you're using `docker-compose`).
+At this point, you should be able to launch O3 by visiting `http://localhost/openmrs` in your browser. If you're not using a browser, you can curl the URL to see if the server is running:
 
-### Step 5
+```sh
+curl -v http://localhost/openmrs
+```
 
-If you want to run the dockerized build on top of an existing O2 database, you'll need to use Docker volumes.
+You'll either see the legacy OpenMRS UI or the initial setup screen, depending on whether the backend has been set up.
 
-### Step 6
+To launch the SPA, visit `http://localhost/openmrs/spa`. That's it! You should now have a running instance of O3.
 
-You should be able to launch O3 by visiting `http://localhost/openmrs/spa` in your browser.
+### Step 5 (optional)
+
+If you want to run the dockerized build on top of an existing O2 database, you'll need to use Docker volumes. See this [section below](set-up-o3-instance#running-an-o3-docker-image-on-top-of-an-existing-database) for instructions on how to do that.
 
 </Steps>
 
@@ -238,6 +260,10 @@ Run `docker compose up -d` and, assuming everything is filled out correctly, it 
 ## Next steps
 
 Once you've set up your O3 instance, there are various things you might want to do, including:
+
+- Setting up a TLS certificate for your instance. This is important if you're planning to run your instance in production. You can use a service like [Let's Encrypt](https://letsencrypt.org/) to get a free TLS certificate.
+
+- Changing the default language of your instance. You can do this by navigating to the `Administration` section of the legacy OpenMRS UI and changing the default locale.
 
 - Customizing O3. You can tweak your branding, tweak your import map to add or remove widgets from your distribution, and more.
 

@@ -9,10 +9,13 @@ Ce guide est destiné aux développeurs qui souhaitent mettre en place une insta
 
 ## Utiliser le SDK OpenMRS
 
-Vous pouvez utiliser le SDK si:
+<Callout emoji="ℹ️" type="info">
+  Vous pouvez utiliser le SDK si:
 
-- Vous avez déjà le SDK, Maven et un environnement Java sur votre machine et vous êtes très familier avec ces outils.
-- Vous n'êtes pas familier avec Docker ou vous ne voulez pas utiliser Docker.
+    - Vous avez déjà le SDK, Maven et un environnement Java sur votre machine et vous êtes très familier avec ces outils.
+    - Vous n'êtes pas familier avec Docker ou vous ne voulez pas utiliser Docker.
+
+</Callout>
 
 ### Prérequis
 
@@ -79,47 +82,65 @@ Naviguez vers `https://localhost:8080/openmrs` sur votre navigateur. Vous devrie
 
 - Si vous rencontrez des problèmes, assurez-vous d'abord que vous utilisez les versions de dépendances prescrites, c'est-à-dire Java 8, MySQL 5.6 ou plus, Maven 3, et la dernière version du SDK.
 
-## Utiliser Docker
+## Utilisation de Docker
 
-Vous pouvez utiliser Docker si:
+<Callout emoji="ℹ️" type="info">
+Vous pourriez vouloir utiliser Docker si:
 
-- Vous êtes déjà familiarisé avec Docker et les images Docker d'OpenMRS.
-- Vous ne souhaitez pas utiliser le module SPA.
-- Vous travaillez sur un déploiement qui exécutera des conteneurs Docker en production (généralement des offres basées sur le cloud ou SaaS).
-- Vous souhaitez mettre en place une nouvelle instance d'O3 (c'est-à-dire une instance avec une toute nouvelle base de données et non pas une instance installée au-dessus de votre base de données existante).
-- Vous ne voulez pas vous embêter à configurer un environnement Java et à gérer de multiples dépendances.
+- Vous êtes déjà familier avec Docker et les images Docker d'OpenMRS.
+- Vous ne voulez pas utiliser le module SPA.
+- Vous travaillez sur un déploiement qui exécutera des conteneurs Docker en production (généralement des offres cloud ou SaaS).
+- Vous souhaitez configurer une nouvelle instance de O3 (c'est-à-dire une instance avec une toute nouvelle base de données et non pas une instance configurée sur votre base de données existante).
+- Vous ne voulez pas passer par les tracas de la configuration d'un environnement Java et de la gestion de multiples dépendances.
+
+</Callout>
 
 ### Prérequis
 
-- Assurez-vous que [Docker Desktop](https://docs.docker.com/desktop/) est installé sur votre machine.
+- Assurez-vous d'avoir installé [Docker Desktop](https://docs.docker.com/desktop/) ou [Docker Compose (v2)](https://docs.docker.com/compose/install/) sur votre machine.
 
-Suivez les étapes suivantes pour configurer une nouvelle instance d'O3 sur votre machine à l'aide de Docker:
+Utilisez les étapes suivantes pour configurer une nouvelle instance de O3 sur votre machine en utilisant Docker:
 
 <Steps>
 
 ### Étape 1
 
-Cloner le dépôt [distro-config](https://github.com/openmrs/openmrs-distro-referenceapplication).
+Clonez le dépôt [distro-referenceapplication](https://github.com/openmrs/openmrs-distro-referenceapplication).
 
 ### Étape 2
 
-Lancez [Docker Desktop](https://docs.docker.com/desktop/) ou le démon Docker.
+Lancez [Docker Desktop](https://docs.docker.com/desktop/) ou [Docker Compose (v2)](https://docs.docker.com/compose/install/).
 
 ### Étape 3
 
-Exécutez `docker compose build` depuis la racine du dépôt (Vous pourriez avoir besoin d'exécuter `docker-compose build` à la place si vous utilisez `docker-compose`).
+Ensuite, nous voulons installer la dernière version de O3. Pour ce faire, nous devons déterminer quel tag utiliser. Exécutez `git tag --sort=-v:refname` pour obtenir une liste des tags triés par numéro de version. Au moment de la rédaction, le dernier tag est `3.0.0-beta.20`. Pour utiliser ce tag, exécutez la commande suivante:
+
+```sh
+TAG=3.0.0-beta.20 docker compose -f docker-compose.yml up -d
+```
+
+Cette commande fait les actions suivantes:
+
+- `TAG=3.0.0-beta.20`: Définit une variable d'environnement TAG à la valeur `3.0.0-beta.20`. Nous utilisons cette variable pour spécifier la dernière version stable de O3.
+- `docker compose`: Exécute la commande Docker Compose.
+- `-f docker-compose.yml`: Spécifie le fichier Compose à utiliser.
+- `up -d`: Démarre les services définis dans le fichier Compose en mode détaché.
 
 ### Étape 4
 
-Une fois la compilation terminée, lancez `docker compose up` (ou `docker-compose up` si vous utilisez `docker-compose`).
+À ce stade, vous devriez pouvoir lancer O3 en visitant `http://localhost/openmrs` dans votre navigateur. Si vous n'utilisez pas de navigateur, vous pouvez utiliser curl pour voir si le serveur fonctionne:
 
-### Étape 5
+```sh
+curl -v http://localhost/openmrs
+```
 
-Si vous souhaitez exécuter le build dockerisé au-dessus d'une base de données O2 existante, vous devrez utiliser les volumes Docker.
+Vous verrez soit l'interface utilisateur héritée d'OpenMRS, soit l'écran de configuration initiale, selon que le backend a été configuré.
 
-### Étape 6
+Pour lancer le SPA, visitez `http://localhost/openmrs/spa`. C'est tout! Vous devriez maintenant avoir une instance de O3 en cours d'exécution.
 
-Vous devriez être en mesure de lancer O3 en visitant `http://localhost/openmrs/spa` dans votre navigateur.
+### Étape 5 (optionnelle)
+
+Si vous souhaitez exécuter la version dockerisée sur une base de données O2 existante, vous devrez utiliser les volumes Docker. Consultez cette [section ci-dessous](set-up-o3-instance#running-an-o3-docker-image-on-top-of-an-existing-database) pour des instructions sur comment procéder.
 
 </Steps>
 

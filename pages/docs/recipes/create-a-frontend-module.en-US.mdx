@@ -12,71 +12,93 @@ The [Template](https://github.com/openmrs/openmrs-esm-template-app) frontend mod
   a new frontend module in a monorepo, see the note about monorepos below.
 </Callout>
 
-Suppose you want to create a frontend module that provides a UI for managing referrals.
+Suppose you want to create a frontend module that provides a UI for displaying the active prescriptions. Our goal is to attempt to recreate the [`Active Prescriptions`](https://dev3.openmrs.org/openmrs/spa/dispensing) tab of the [`openmrs-esm-dispensing-app`](https://github.com/openmrs/openmrs-esm-dispensing-app).
 The process for doing that would be as follows:
 
 <Steps>
 
 ### Step 1
 
-Go to the Github repository for the [Template](https://github.com/openmrs/openmrs-esm-template-app) seed app and click the `Use this template` button. Click `Create a new repository` and follow the instructions to create a new repository. Clone the new repository to your local machine. In this case, we'll name the new repository `openmrs-esm-referrals-queue`. Click the `Create repository from template` button and then clone the new repository to your local machine.
+Go to the Github repository for the [Template](https://github.com/openmrs/openmrs-esm-template-app) seed app and click the `Use this template` button. Click `Create a new repository` and follow the instructions to create a new repository. Clone the new repository to your local machine. In this case, we'll name the new repository `openmrs-esm-active-prescriptions`. Click the `Create repository from template` button and then clone the new repository to your local machine.
+<Callout emoji="ℹ️" type="info">
+  Why the `esm` prefix?
+  Frontend modules have a convention of being prefixed with `esm`. See the note about [frontend modules](/docs/frontend-modules/overview).
+</Callout>
 
 ### Step 2
 
-Next, we'll follow the steps in the README to adapt the code to our needs. That'll include the following steps:
+You'll want to `cd` into your project directory and run `yarn up openmrs@next @openmrs/esm-framework@next` to update the OpenMRS core libraries. Then run `yarn` to install the project dependencies.
 
-- Replace all instances of `template` with `referrals-queue`.
-- Rename the files with `hello` in their name to `root`. For example, `src/hello/hello.component.tsx` should be renamed to `src/root/root.component.tsx`.
-- Update the app entry point at `src/index.ts` as appropriate, including the following:
+Run `yarn start` to get the app running. To run the app in a specific port you can add the suffix `--port portNumber` to the start command.
 
-  - Change the `moduleName` to `@openmrs/esm-referrals-queue`.
-  - Change the featureName from `hello-world` to a blank string. You'll change this to a more useful value later on.
-  - Rename the `hello` export to `root`.
-  - Remove the `redBox`, `blueBox` and `brandBox` named exports.
+The app should automatically open up in your browser, and you can use the below credentials to log in.
+Username: `admin` 
+Password: `Admin123`
 
-- Next, in the `routes.json` file, replace the value of the `extensions` with an empty array and then replace the contents of the `pages` array with the following:
+Once logged in, you should be redirected to the home page of the dashboard. But, wait a second, what's the fancy home page with the side bar and all the data, and where did the login page come from?
+You'll notice that the code for the home page and the login page is not actually in your project directory. The [home](https://github.com/openmrs/openmrs-esm-home) and [login](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-login-app) are apps of their own. 
 
-  ```json
-  {
-    // ...
-    "extensions": [],
-    "pages": [
-      {
-        "component": "root",
-        "route": "root"
-      }
-    ]
-  }
-  ```
+The data is fetched from the hosted dev server, if you want to connect it to a different backend, you can append the suffix `--backend https://your-backend-url` to the `yarn start` command.
 
-  This configuration makes it so that navigating to the `root` route loads the component exported by the `root` named export.
-
-- Next, delete the `boxes`, `greeter` and `patient-greeter` directories.
-- Next, replace the contents of your app's configuration schema (in `config-schema.ts`) with the following:
-
-  ```ts
-  import { Type, validator } from "@openmrs/esm-framework";
-
-  export const configSchema = {};
-
-  export type Config = {};
-  ```
-
-  You can tweak this file later on to add your own configuration options.
-
-- Delete the translation keys and strings in `translations/en.json`.
-- Replace all instances of `hello` with `root`, and `Hello` with `Root`.
-- Amend the contents of the test file at `root.test.tsx` to use an empty configuration schema.
-- Amend `root.component.tsx` as follows:
-  - Rename the default exports from `Hello` to `Root`.
-  - Remove the `Boxes`, `Greeter`, and `PatientGetter` imports.
-  - Replace the contents of the `<div>` with `<p>Referrals Queue goes here</p>`.
+TLDR; the `yarn start` command actually runs `openmrs develop` which according to some configuration sets it all up (read more about [configuration](/docs/configuration-system)).
+<Callout emoji="" type="info">
+  To learn more about how `openmrs develop` works, check out how [`runDevelop`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/tooling/openmrs/src/commands/develop.ts).
+</Callout>
 
 ### Step 3
+
+Next, we'll follow the steps in the README to adapt the code to our needs. That'll include the following steps:
+
+- Replace all instances of `template` with `active-prescriptions`.
+- Update the app entry point at `src/index.ts` as appropriate, including the following:
+
+  - Change the `moduleName` to `@openmrs/esm-active-prescriptions-app`.
+  - Change the featureName from `root-world` to a blank string. You'll change this to a more useful value later on.
+
+- Update the route to the frontend module.
+
+  - We need a route url to access the frontend module. This is specified in `routes.json` in the `pages` property. You would see that a component `root` has the route `root`, this is our `root.component.tsx`.
+  ```json
+  "$schema": "https://json.openmrs.org/routes.schema.json",
+  "backendDependencies": {
+    "fhir2": ">=1.2",
+    "webservices.rest": "^2.24.0"
+  },
+  "extensions": [
+    {
+      "name": "Red box",
+      "component": "redBox",
+      "slot": "Boxes"
+    },
+    {
+      "name": "Blue box",
+      "component": "blueBox",
+      "slot": "Boxes"
+    },
+        {
+      "name": "Brand box",
+      "component": "blueBox",
+      "slot": "Boxes"
+    }
+  ],
+  "pages": [
+    {
+      "component": "root",
+      "route": "active-prescriptions"
+    }
+  ]
+  ```
+
+Now that the route is setup, it can be accessed via `http://localhost:8080/openmrs/spa/active-prescriptions`, which would show the boilerplate for the template app. 
+The boilerplate has useful resources about key features of the O3 framework that will likely help you in the development of your frontend module. To start changing the template code, you can follow the instructions in the `README.md` of the [template repository](https://github.com/openmrs/openmrs-esm-template-app/blob/main/README.md). 
+
+### Step 4
 
 Profit! You should now have a custom frontend module that you can use in your OpenMRS application.
 
 </Steps>
+
+### Creating a frontend module in a monorepo
 
 The process for creating a new frontend module in a monorepo is nearly identical to the one for creating one in a polyrepo with a few tweaks:
 

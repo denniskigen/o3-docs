@@ -10,6 +10,7 @@
   "coding-conventions": "Coding conventions",
   "recipes": "Recipes",
   "extension-system": "Extension system",
+  "modal-system": "Modal system",
   "configuration-system": "Configuration system",
   "feature-flags": "Feature flags",
   "workspaces": "Workspaces",

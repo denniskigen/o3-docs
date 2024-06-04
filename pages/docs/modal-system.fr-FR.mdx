@@ -2,20 +2,14 @@ import { Callout } from "nextra-theme-docs";
 
 # Le système de modal
 
-Une façon plus facile de déclencher une modal sans avoir à utiliser un état conditionnel pour la rendre dans le DOM.
+Le système modal fait partie du framework qui gère le rendu des boîtes de dialogue modales, des avertissements et d'autres affichages similaires. Son objectif principal est de coordonner les modaux entre différentes applications afin qu'un seul modal soit rendu à l'utilisateur à la fois sans qu'aucun autre modal ne soit supprimé.
 
-Cela est géré par la fonction [`showModal`](https://o3-docs.openmrs.org/docs/framework-api-reference#showmodal) définie dans `esm-core` qui se charge du rendu de la modal.
-
-<Callout emoji="ℹ️" type="info">
-  Pour plus d'informations sur le fonctionnement de `showModal`, consultez son [implémentation](https://github.com/openmrs/openmrs-esm-core/blob/01c32c2090a47a881d5f9fa39650ec4a9037aa36/packages/framework/esm-styleguide/src/modals/index.tsx).
-  La référence de l'API peut être trouvée [ici](/docs/framework-api-reference#showmodal).
-</Callout>
+Pour utiliser le système modal, votre application doit d'abord enregistrer le modal, comme décrit ci-dessous. Une fois le modal enregistré, appelez [`showModal`](https://o3-docs.openmrs.org/docs/framework-api-reference#showmodal) avec le nom du modal et le framework affichera le modal pour vous.
 
 ## Utilisation
 
 ### Implémentation de la modal
-Créez un composant séparé pour la modal, comme vous le feriez normalement, mais au lieu que le composant le plus haut soit le `ComposedModal`, il devrait être un `React.Fragment`.
-Ainsi, dans l'ensemble, la structure de votre modal devrait ressembler à quelque chose comme ceci :
+Les `ModalHeader` et `ModalBody` doivent être au niveau supérieur du composant modal et enveloppés dans un `React.Fragment`.
 
 ```tsx
 const ModalComponent = ({ onClose, props }) => {

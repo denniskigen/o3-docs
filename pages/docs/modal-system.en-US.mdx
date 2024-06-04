@@ -6,16 +6,10 @@ The modal system is a part of the framework that handles rendering modal dialogs
 
 To use the modal system, first your application must register the modal, as described below. Once the modal is registered, call [`showModal`](https://o3-docs.openmrs.org/docs/framework-api-reference#showmodal) with the modal name and the framework will render the modal for you.
 
-<Callout emoji="ℹ️" type="info">
-  For more information about how `showModal` works, check out its [implementation](https://github.com/openmrs/openmrs-esm-core/blob/01c32c2090a47a881d5f9fa39650ec4a9037aa36/packages/framework/esm-styleguide/src/modals/index.tsx).
-  The API reference can be found [here](/docs/framework-api-reference#showmodal).
-</Callout>
-
 ## Usage
 
 ### Implementation of the modal
-Make a seperate component for the modal, as you normally would, but instead of the top most wrapper component being the `ComposedModal`, it should be a `React.Fragment`.
-So, overall your modal structure should look something like:
+The `ModalHeader` and `ModalBody` should be at the top level of the modal component and wrapped in a `React.Fragment`.
 
 ```tsx
 const ModalComponent = ({ onClose, props }) => {

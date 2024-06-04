@@ -128,15 +128,27 @@ Cette commande fait les actions suivantes:
 
 ### Étape 4
 
-À ce stade, vous devriez pouvoir lancer O3 en visitant `http://localhost/openmrs` dans votre navigateur. Si vous n'utilisez pas de navigateur, vous pouvez utiliser curl pour voir si le serveur fonctionne:
+À ce stade, le script de configuration du backend devrait être en cours d'exécution. Si vous utilisez un navigateur, accéder à localhost/openmrs devrait vous rediriger vers la page de configuration initiale à localhost/openmrs/initialsetup. Cette configuration prendra quelques minutes. Une fois terminée, vous devriez pouvoir lancer O3 en visitant http://localhost/openmrs dans votre navigateur. Si vous n'utilisez pas de navigateur, vous pouvez utiliser curl pour vérifier si la configuration est terminée. Exécutez la commande suivante dans votre terminal pour ce faire:
 
 ```sh
 curl -v http://localhost/openmrs
 ```
 
-Vous verrez soit l'interface utilisateur héritée d'OpenMRS, soit l'écran de configuration initiale, selon que le backend a été configuré.
+Si vous voyez `200 OK` dans la réponse, la configuration devrait être terminée. Vous pouvez également utiliser curl pour vérifier si le point de contrôle de santé d'OpenMRS est opérationnel en utilisant:
 
-Pour lancer le SPA, visitez `http://localhost/openmrs/spa`. C'est tout! Vous devriez maintenant avoir une instance de O3 en cours d'exécution.
+```sh
+curl -v http://localhost/openmrs/health/started
+```
+
+Vous pouvez également exécuter ce script dans votre terminal pour vérifier si O3 est opérationnel.
+
+```sh
+ while [[ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost/openmrs/login.htm)" != "200" ]]; do sleep 10; done
+```
+
+Ce script vérifiera le statut du serveur toutes les 10 secondes jusqu'à ce que le serveur soit opérationnel.
+
+Une fois le serveur opérationnel, visitez http://localhost/openmrs/spa et vous serez redirigé vers la page de connexion. Voilà! Vous devriez maintenant avoir une instance de O3 en cours d'exécution.
 
 ### Étape 5 (optionnelle)
 

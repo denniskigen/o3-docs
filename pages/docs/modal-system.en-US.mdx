@@ -4,7 +4,7 @@ import { Callout } from "nextra-theme-docs";
 
 The modal system is a part of the framework that handles rendering modal dialogs, warnings, and other similar displays. Its main goal is to coordinate modals across different applications so that only a single modal is rendered for the user at a time without any other modals being removed.
 
-This is handled by the function [`showModal`](https://o3-docs.openmrs.org/docs/framework-api-reference#showmodal) defined in `esm-core` that takes care of the rendering of the modal.
+To use the modal system, first your application must register the modal, as described below. Once the modal is registered, call [`showModal`](https://o3-docs.openmrs.org/docs/framework-api-reference#showmodal) with the modal name and the framework will render the modal for you.
 
 <Callout emoji="ℹ️" type="info">
   For more information about how `showModal` works, check out its [implementation](https://github.com/openmrs/openmrs-esm-core/blob/01c32c2090a47a881d5f9fa39650ec4a9037aa36/packages/framework/esm-styleguide/src/modals/index.tsx).

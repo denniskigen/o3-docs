@@ -167,22 +167,21 @@ Let’s explore these four things in depth.
 
 ### Behind the Scenes
 
-For (1) the parcel mechanism of single-spa is used.
+For (1), extensions are implemented using single-spa [parcels](https://single-spa.js.org/docs/parcels-overview).
 
-For (2) you can use the registerExtensionSlot function together with renderExtension. For frameworks such as React helper components may exist (e.g., ExtensionSlot).
+For (2) you can use the `registerExtensionSlot()` function together with `renderExtension()`. For frameworks such as React, helper components may exist (e.g., `ExtensionSlot`).
 
-For (3) you can define an extension in the return value from the setupOpenMRS function. An example for this:
+For (3) you can define an extension in your application's `routes.json` file. An example for this:
 
-```ts
-function setupOpenMRS() {
-  return {
-    extensions: [
-      {
-        id: "foo",
-        load: getAsyncLifecycle(() => import("./foo.component")),
-      },
-    ],
-  };
+```json
+{
+  extensions: [
+    {
+      id: "foo",
+      // fooComponent is the name of the export defined in `index.ts`
+      component: "fooComponent"
+    },
+  ]
 }
 ```
 

@@ -1,0 +1,68 @@
+import { Callout } from "nextra-theme-docs";
+
+# The modal system
+
+The modal system is a part of the framework that handles rendering modal dialogs, warnings, and other similar displays. Its main goal is to coordinate modals across different applications so that only a single modal is rendered for the user at a time without any other modals being removed.
+
+To use the modal system, first your application must register the modal as described below. Once the modal is registered, call [`showModal`](/docs/framework-api-reference#showmodal) with the modal name and the framework will render the modal for you.
+
+## Usage
+
+### Implementation of the modal
+
+The `ModalHeader` and `ModalBody` should be at the top level of the modal component and wrapped in a `React.Fragment`.
+
+```tsx
+const ModalComponent = ({ onClose, props }) => {
+	return (
+		<React.Fragment>
+			<ModalHeader closeModal={onClose} >
+				{header content goes here}
+			</ModalHeader>
+ 			<ModalBody>
+				{modal body goes here}
+			</ModalBody>
+			<ModalFooter>
+				{modal footer goes here}
+			</ModalFooter>
+		</React.Fragment>
+	)
+}
+```
+
+<Callout>
+	Failing to wrap your modal in a React Fragment would cause the 	modal body to not vertical-scroll properly.
+</Callout>
+
+### Registering the modal
+
+Register the modal by name in the `modals` property in `routes.json` and export it in the `index.ts` file of the app that defines the modal. The `name` should be suffixed with `-modal`. For example, if the modal name is `delete-condition`, the `name` should be `delete-condition-modal`. The `component` should be the name of the component that renders the modal.
+
+```json filename="routes.json"
+"modals": [
+	{
+	  "name": "your-modal-name",
+	  "component": "modalComponentName"
+	}
+]
+```
+
+```ts filename="index.ts"
+import { getAsyncLifecycle } from '@openmrs/esm-framework';
+
+export const modalComponentName = getAsyncLifecycle(
+  () => import('/path-to-the-modal-component/modal-component.tsx'),
+  options,
+);
+```
+
+### Triggering the modal
+
+Finally, you can trigger your modal by calling `showModal` along with all the props you need to pass into the modal. In the example below, we've passed in `onClose` as a prop to the modal component. The dispose function that is returned by `showModal` can be called to "dispose" or force close the modal.
+
+```ts 
+const dispose = showModal('your-modal-name', {
+	onClose: () => dispose(),
+	//props to pass in to the modal component
+});
+```

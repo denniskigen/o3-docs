@@ -1,0 +1,68 @@
+import { Callout } from "nextra-theme-docs";
+
+# Le système de modale
+
+Le système de modale fait partie du framework qui gère l'affichage des boîtes de dialogue modales, des avertissements et d'autres affichages similaires. Son principal objectif est de coordonner les modales entre différentes applications afin qu'une seule modale soit affichée pour l'utilisateur à la fois, sans que les autres modales ne soient supprimées.
+
+Pour utiliser le système de modale, votre application doit d'abord enregistrer la modale comme décrit ci-dessous. Une fois la modale enregistrée, appelez [`showModal`](/docs/framework-api-reference#showmodal) avec le nom de la modale et le framework l'affichera pour vous.
+
+## Utilisation
+
+### Implémentation de la modale
+
+`ModalHeader` et `ModalBody` doivent être au niveau supérieur du composant modale et enveloppés dans un `React.Fragment`.
+
+```tsx
+const ModalComponent = ({ onClose, props }) => {
+	return (
+		<React.Fragment>
+			<ModalHeader closeModal={onClose} >
+				{contenu de l'en-tête ici}
+			</ModalHeader>
+ 			<ModalBody>
+				{corps de la modale ici}
+			</ModalBody>
+			<ModalFooter>
+				{pied de la modale ici}
+			</ModalFooter>
+		</React.Fragment>
+	)
+}
+```
+
+<Callout>
+	Ne pas envelopper votre modale dans un React Fragment entraînera un défilement vertical incorrect du corps de la modale.
+</Callout>
+
+### Enregistrement de la modale
+
+Enregistrez la modale par son nom dans la propriété `modals` du fichier `routes.json` et exportez-la dans le fichier `index.ts` de l'application qui définit la modale. Le `nom` doit être suffixé par `-modal`. Par exemple, si le nom de la modale est `delete-condition`, le `nom` doit être `delete-condition-modal`. Le `composant` doit être le nom du composant qui affiche la modale.
+
+```json filename="routes.json"
+"modals": [
+	{
+	  "name": "nom-de-votre-modale",
+	  "component": "nomDuComposantModale"
+	}
+]
+```
+
+```ts filename="index.ts"
+import { getAsyncLifecycle } from '@openmrs/esm-framework';
+
+export const nomDuComposantModale = getAsyncLifecycle(
+  () => import('/chemin-vers-le-composant-modale/composant-modale.tsx'),
+  options,
+);
+```
+
+### Déclenchement de la modale
+
+Enfin, vous pouvez déclencher votre modale en appelant `showModal` avec tous les props que vous devez passer dans le composant modale. Dans l'exemple ci-dessous, nous avons passé `onClose` comme prop au composant modale. La fonction dispose qui est retournée par `showModal` peut être appelée pour "disposer" ou forcer la fermeture de la modale.
+
+```ts 
+const dispose = showModal('nom-de-votre-modale', {
+	onClose: () => dispose(),
+	//props à passer dans le composant modale
+});
+```

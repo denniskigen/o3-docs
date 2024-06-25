@@ -448,4 +448,13 @@ through a dedicated bamboo stage within the [REFAPP-D3X](https://ci.openmrs.org/
 This stage involves a script that retrieves the latest versions of both the frontend and backend.
 It then runs and waits for data generation before building the `:nightly-with-data` docker images of the backend and database.
 These images are subsequently pushed to the Docker Hub. More details on this can be found [here](https://talk.openmrs.org/t/using-pre-filled-docker-images-for-running-e2e-tests/40003).
-import sharp from "sharp"
+
+### Troubleshooting
+
+If you can't debug tests in [UI mode](https://playwright.dev/docs/test-ui-mode) because your local web server reloads due to static file changes, use the [Playwright Inspector](https://playwright.dev/docs/running-tests#debug-tests-with-the-playwright-inspector) instead. Run the following command:
+
+```sh
+yarn test-e2e --headed --debug
+```
+
+This approach should avoid issues caused by Webpack and static file changes.

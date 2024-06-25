@@ -450,3 +450,13 @@ sont combinées dans la même pile docker-compose et utilisées pour configurer 
 Cette étape implique un script qui récupère les dernières versions du frontend et du backend.
 Il s'exécute ensuite et attend la génération des données avant de construire les images docker `:nightly-with-data` du backend et de la base de données.
 Ces images sont ensuite poussées vers le Docker Hub. Plus de détails à ce sujet peuvent être trouvés [ici](https://talk.openmrs.org/t/using-pre-filled-docker-images-for-running-e2e-tests/40003).
+
+### Dépannage
+
+Si vous ne pouvez pas déboguer les tests en [mode UI](https://playwright.dev/docs/test-ui-mode) parce que votre serveur web local se recharge en raison de modifications de fichiers statiques, utilisez le [Playwright Inspector](https://playwright.dev/docs/running-tests#debug-tests-with-the-playwright-inspector) à la place. Exécutez la commande suivante:
+
+```sh
+yarn test-e2e --headed --debug
+```
+
+Cette approche devrait éviter les problèmes causés par Webpack et les modifications de fichiers statiques.

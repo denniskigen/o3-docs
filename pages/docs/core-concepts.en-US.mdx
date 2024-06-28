@@ -33,9 +33,14 @@ In O3, the app shell is the base of the application. It is responsible for doing
 
 [Frontend modules](/docs/frontend-modules/introduction) are the basic building blocks of O3. They are also referred to as `microfrontends` in the O3 architecture (the origins being the similarly named concept in [single-spa](https://single-spa.js.org)). Frontend modules get organized into domain-specific monorepos. They get loaded into the application via the import map and export their own default activator and lifecycle functions. These exports conform to a specific microfrontend interface that was introduced in [RFC-26](https://github.com/openmrs/openmrs-rfc-frontend/blob/e745ee9c37b2ca0ae6f4fc93259724e61bfac82e/text/0026-activation-distribution.md).
 
-Presently, frontend modules are loaded synchronously, which means that the application will not render until all frontend modules have been loaded. This is a known performance bottleneck.
+Before 2023, frontend modules were loaded synchronously, which meant that the application would not render until all frontend modules had been loaded. This was a known performance bottleneck. In 2023 significant work allowed frontend modules to be loaded *on-demand*, which significantly improved the performance of the application. You can follow the progress [here](https://github.com/openmrs/openmrs-esm-core/pull/671).
 
-Significant work is ongoing that will allow frontend modules to be loaded on-demand, which will significantly improve the performance of the application. You can follow the progress [here](https://github.com/openmrs/openmrs-esm-core/pull/671).
+## Versions of frontend modules explained
+
+Each frontend module is an NPM package with a name ending in -app. OpenMRS ESMs are released with three different tags: "next", "latest", and a version number.  
+ * :red_circle::warning::construction: **"next" = Pre-release, in development.** Newest, cutting edge, still under construction. "next" always refers to the most recent but not-yet-released version of an ESM (e.g., 3.2.1-pre.1067). *Versions labelled "next" are not recommended for production use* as they are considered unstable works-in-progress and have often not undergone integration testing.
+ * :yellow_circle: **"latest" = Most Recent Release.** "latest" always refers to the most recent released version of an ESM (e.g., 3.2.0). While you are free to go with the "latest" version of any ESM, you can have more control by specifying the exact version number of each ESM you use. 
+ * :green_circle: :white_check_mark: **v X.X.X = A specific version.** A version number always refers to a specific build of each ESM. For example, 3.2.0 or 3.2.1-pre.1067 are both specific versions of the @openmrs/esm-api ESM, though the latter is a pre-release version.
 
 ## Import map
 

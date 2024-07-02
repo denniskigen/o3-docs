@@ -7,6 +7,7 @@ Repositories you should know in O3 include:
 - [Template](#template) - a seed app that is usually most developers' first introduction to O3.
 - [Patient chart](#patient-chart) - the patient dashboard, including widgets for concerns such as vitals and biometrics, test results, forms, and allergies. This is where you'll find your run-of-the-mill EMR features.
 - [Patient management](#patient-management) - contains frontend modules that handle patient-related concerns such as search, patient lists, registration, service queues, and appointments.
+- [laboratory app](#laboratory-app) - A frontend module for managing laboratory requests and queues built on OpenMRS 3.x
 - [Angular form engine](#angular-form-engine) - a form engine tool, originally built by AMPATH. Leverages Angular's powerful support for forms to build a fully-fledged form engine with capabilities such as field validation, injection of custom data sources, conditional rendering, historical expressions, and more.
 - [React form engine](#react-form-engine) (WIP) - originally built by the UCSF-IGHS team, this new form engine is built in React and leverages the powerful formik library to provide a robust solution. Work is ongoing to get this engine to a stable version that has feature parity with the Angular form engine.
 - [Form builder](#form-builder) - form builder tool baked into O3. Enables users to build OpenMRS form schemas interactively using an embedded JSON schema editor or an interactive builder UI. It also provides a render tab that renders your form schema using the React form engine. Users can publish their schemas to their backend server, enabling them to access their forms and collect data in the patient chart via the forms widget.
@@ -89,6 +90,15 @@ This monorepo includes the following frontend modules:
 - [Patient search](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-search-app) - provides the ability to search for existing patients using simple and advanced search.
 - [Patient registration](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-registration-app) - provides the ability to register new patients and verify them through configurable external patient registries.
 - [Patient list](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-list-app) - provides a UI to create and manage patient lists.
+
+### Laboratory app
+
+This frontend module utilizes the following widgets to manage laboratory requests and queues in a user-friendly manner:
+
+- [Laboratory header](https://github.com/openmrs/openmrs-esm-laboratory-app/tree/main/src/header) - Displays the page header details, including the page name, icon, and other relevant information.
+- [Laboratory summary tiles](https://github.com/openmrs/openmrs-esm-laboratory-app/tree/main/src/lab-tiles) - Provide numerical summaries of the laboratory tests, indicating the number of tests ordered, in progress, and completed.
+- [Laboratory orders tabs](https://github.com/openmrs/openmrs-esm-laboratory-app/blob/main/src/lab-tabs/laboratory-tabs.component.tsx) - Widgets (buttons) that allow toggling between the ordered, in-progress, and completed test results. These results are displayed in a tabular format within the overlay.
+- [Overlay](https://github.com/openmrs/openmrs-esm-laboratory-app/blob/main/src/components/overlay/overlay.component.tsx) - Displays test orders in a tabular view. The content can be toggled using the Laboratory Orders Tabs.
 
 ### Angular form engine
 

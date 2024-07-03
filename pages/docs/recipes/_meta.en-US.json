@@ -8,5 +8,6 @@
   "share-state-between-frontend-modules": "Share state between frontend modules",
   "set-up-translations-in-a-frontend-module": "Set up translations in a frontend module",
   "format-dates": "Format dates",
-  "store-values": "Store values"
+  "store-values": "Store values",
+  "validate-forms-using-rhf-and-zod": "Validate forms using React Hook Form and Zod"
 }

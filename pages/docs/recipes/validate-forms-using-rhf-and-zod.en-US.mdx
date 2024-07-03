@@ -1,0 +1,204 @@
+import { Steps } from "nextra-theme-docs";
+
+# Validate Forms Using React Hook Form and Zod
+
+This guide will walk you through validating forms using [React Hook Form](https://react-hook-form.com/) and [Zod](https://zod.dev/).
+
+## What is React Hook Form?
+
+React Hook Form (RHF) is a library designed to manage and validate forms in React applications. By leveraging React hooks, RHF provides a simple and efficient way to handle form state, validation, and submission. Here are some key benefits of using RHF:
+
+- **Minimal Re-renders**: Enhances performance by reducing unnecessary re-renders.
+- **Easy Integration**: Works seamlessly with various UI libraries like Carbon and Material-UI.
+- **Improved Performance**: Utilizes uncontrolled components to boost form performance.
+
+## What is Zod?
+
+Zod is a TypeScript-first schema declaration and validation library. It offers an intuitive way to define data schemas and validate data against these schemas. Key features of Zod include:
+
+- **Type-Safety**: Ensures type safety, making it a perfect fit for TypeScript projects.
+- **Ease of Use**: Provides a straightforward API for defining and validating schemas.
+- **Performance**: Designed to be fast and efficient.
+
+## Why Use Them Together?
+
+Combining RHF and Zod allows you to leverage the strengths of both libraries, creating a robust form validation system. RHF manages the form state and handles the submission process, while Zod validates the form data against predefined schemas, ensuring data integrity and type safety.
+
+## Example
+
+Below is an example that demonstrates how to use React Hook Form with Zod:
+
+```tsx
+<Form>
+  <ModalHeader closeModal={close} title={t("changePassword", "Change password")} />
+  <ModalBody>
+    <Stack gap={5}>
+      <PasswordInput
+        id="oldPassword"
+        labelText={t("oldPassword", "Old password")}
+        onChange={handleOldPasswordChange}
+        value={oldPassword}
+      />
+      <PasswordInput
+        id="newPassword"
+        labelText={t("newPassword", "New password")}
+        onChange={handleNewPasswordChange}
+        value={newPassword}
+      />
+      <PasswordInput
+        id="passwordConfirmation"
+        labelText={t("confirmPassword", "Confirm new password")}
+        onChange={handlePasswordConfirmationChange}
+        value={passwordConfirmation}
+      />
+    </Stack>
+  </ModalBody>
+  <ModalFooter>
+    <Button kind="secondary" onClick={close}>
+      {t("cancel", "Cancel")}
+    </Button>
+    <Button className={styles.submitButton} onClick={handleSubmit} disabled={isChangingPassword} type="submit">
+      {isChangingPassword ? (
+        <InlineLoading description={t("changingLanguage", "Changing password") + "..."} />
+      ) : (
+        <span>{t("change", "Change")}</span>
+      )}
+    </Button>
+  </ModalFooter>
+</Form>
+```
+
+This is a snippet from a form that allows users to change their password. The form consists of three password input fields: `oldPassword`, `newPassword`, and `passwordConfirmation`. We want to validate these fields using Zod so that:
+
+- All fields are required.
+- The value of the `newPassword` field must match the value of the `passwordConfirmation` field.
+
+<Steps>
+
+### Step 1
+
+Install the required packages:
+
+```bash
+yarn add react-hook-form zod @hookform/resolvers
+```
+
+### Step 2
+
+Define the Zod schema for the form data:
+
+```tsx
+import { z } from 'zod';
+
+const schema = z.object({
+  oldPassword: z.string({
+    required_error: t('oldPasswordRequired', 'Old password is required'),
+  });,
+  newPassword: z.string({
+    required_error: t('newPasswordRequired', 'New password is required'),
+  }),
+  passwordConfirmation: z.string({
+    required_error: t('passwordConfirmationRequired', 'Password confirmation is required'),
+  })
+  .refine((data) => data.newPassword === data.passwordConfirmation, {
+    message: t('passwordsDoNotMatch', 'Passwords do not match'),
+    path: ['passwordConfirmation'],
+  });
+```
+
+This schema defines the validation rules for the form fields. Each field is defined as a string that must not be empty. If the field is empty, a custom error message is provided using the translation function `t()`. Additionally, a refinement rule is added to check if the `newPassword` matches the `passwordConfirmation`. If they don't match, an error message is displayed.
+
+### Step 3
+
+Create a custom resolver for React Hook Form that uses Zod for validation:
+
+```tsx
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
+const {
+  handleSubmit,
+  control,
+  formState: { errors },
+} = useForm({
+  resolver: zodResolver(schema),
+});
+```
+
+This code snippet creates a custom resolver using `zodResolver` from `@hookform/resolvers`. The resolver uses the Zod schema defined in Step 2 to validate the form data.
+
+### Step 4
+
+Add the `handleSubmit` function to your form:
+
+```tsx
+const onSubmit = (data) => {
+  const { oldPassword, newPassword, passwordConfirmation } = data;
+
+  // Handle form submission
+};
+```
+
+### Step 5
+
+Add the `Form` and `Controller` components to your form:
+
+```tsx
+import { Controller } from "react-hook-form";
+
+<Form onSubmit={handleSubmit(onSubmit)}>
+  <Controller
+    name="oldPassword"
+    control={control}
+    render={({ field: { onChange, value } }) => (
+      <PasswordInput
+        id="oldPassword"
+        invalid={!!errors?.oldPassword}
+        invalidText={errors?.oldPassword?.message}
+        labelText={t("oldPassword", "Old password")}
+        onChange={onChange}
+        value={value}
+      />
+    )}
+  />
+  <Controller
+    name="newPassword"
+    control={control}
+    render={({ field: { onChange, value } }) => (
+      <PasswordInput
+        id="newPassword"
+        invalid={!!errors?.newPassword}
+        invalidText={errors?.newPassword?.message}
+        labelText={t("newPassword", "New password")}
+        onChange={onChange}
+        value={value}
+      />
+    )}
+  />
+  <Controller
+    name="passwordConfirmation"
+    control={control}
+    render={({ field: { onChange, value } }) => (
+      <PasswordInput
+        id="passwordConfirmation"
+        invalid={!!errors?.passwordConfirmation}
+        invalidText={errors?.passwordConfirmation?.message}
+        labelText={t("confirmPassword", "Confirm new password")}
+        onChange={onChange}
+        value={value}
+      />
+    )}
+  />
+  <Button type="submit">{t("submit", "Submit")}</Button>
+</Form>;
+```
+
+In this code snippet, the `Controller` component is used to connect the form fields to the React Hook Form. The `name` prop specifies the field name, the `control` prop specifies the form control, and the `render` prop specifies the input component to render. The `invalid` and `invalidText` props are used to display validation errors for each field.
+
+### Step 6
+
+That's it! You have successfully integrated React Hook Form with Zod to validate your form. Now, when the user submits the form, the data will be validated against the Zod schema, and any validation errors will be displayed to the user.
+
+</Steps>
+
+By combining React Hook Form and Zod, you can create a powerful form validation system that ensures data integrity and type safety in your React applications. Read more about [React Hook Form](https://react-hook-form.com/) and [Zod](https://zod.dev/) to explore their full capabilities and features.

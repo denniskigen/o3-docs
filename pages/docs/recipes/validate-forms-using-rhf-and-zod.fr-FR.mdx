@@ -1,0 +1,204 @@
+import { Steps } from "nextra-theme-docs";
+
+# Valider des formulaires avec React Hook Form et Zod
+
+Ce guide vous explique comment valider des formulaires en utilisant [React Hook Form](https://react-hook-form.com/) et [Zod](https://zod.dev/).
+
+## Qu'est-ce que React Hook Form?
+
+React Hook Form (RHF) est une bibliothèque conçue pour gérer et valider des formulaires dans les applications React. En utilisant les hooks de React, RHF offre une méthode simple et efficace pour gérer l'état du formulaire, la validation et la soumission. Voici quelques avantages clés de l'utilisation de RHF:
+
+- **Re-rendu minimal**: Améliore les performances en réduisant les re-rendus inutiles.
+- **Intégration facile**: Fonctionne parfaitement avec diverses bibliothèques d'UI comme Carbon et Material-UI.
+- **Amélioration des performances**: Utilise des composants non contrôlés pour booster les performances des formulaires.
+
+## Qu'est-ce que Zod?
+
+Zod est une bibliothèque de déclaration et de validation de schéma orientée TypeScript. Elle offre un moyen intuitif de définir des schémas de données et de valider ces données par rapport à ces schémas. Les caractéristiques clés de Zod incluent:
+
+- **Sécurité de type**: Assure la sécurité des types, ce qui en fait un choix parfait pour les projets TypeScript.
+- **Facilité d'utilisation**: Fournit une API simple pour définir et valider des schémas.
+- **Performances**: Conçu pour être rapide et efficace.
+
+## Pourquoi les utiliser ensemble ?
+
+Combiner RHF et Zod vous permet de tirer parti des forces des deux bibliothèques, créant ainsi un système de validation de formulaire robuste. RHF gère l'état du formulaire et le processus de soumission, tandis que Zod valide les données du formulaire par rapport aux schémas prédéfinis, garantissant l'intégrité des données et la sécurité des types.
+
+## Exemple
+
+Voici un exemple qui démontre comment utiliser React Hook Form avec Zod:
+
+```tsx
+<Form>
+  <ModalHeader closeModal={close} title={t("changePassword", "Changer le mot de passe")} />
+  <ModalBody>
+    <Stack gap={5}>
+      <PasswordInput
+        id="oldPassword"
+        labelText={t("oldPassword", "Ancien mot de passe")}
+        onChange={handleOldPasswordChange}
+        value={oldPassword}
+      />
+      <PasswordInput
+        id="newPassword"
+        labelText={t("newPassword", "Nouveau mot de passe")}
+        onChange={handleNewPasswordChange}
+        value={newPassword}
+      />
+      <PasswordInput
+        id="passwordConfirmation"
+        labelText={t("confirmPassword", "Confirmer le nouveau mot de passe")}
+        onChange={handlePasswordConfirmationChange}
+        value={passwordConfirmation}
+      />
+    </Stack>
+  </ModalBody>
+  <ModalFooter>
+    <Button kind="secondary" onClick={close}>
+      {t("cancel", "Annuler")}
+    </Button>
+    <Button className={styles.submitButton} onClick={handleSubmit} disabled={isChangingPassword} type="submit">
+      {isChangingPassword ? (
+        <InlineLoading description={t("changingLanguage", "Changement du mot de passe") + "..."} />
+      ) : (
+        <span>{t("change", "Changer")}</span>
+      )}
+    </Button>
+  </ModalFooter>
+</Form>
+```
+
+Ceci est un extrait d'un formulaire permettant aux utilisateurs de changer leur mot de passe. Le formulaire se compose de trois champs de saisie de mot de passe: `oldPassword`, `newPassword` et `passwordConfirmation`. Nous voulons valider ces champs en utilisant Zod afin que:
+
+- Tous les champs soient obligatoires.
+- La valeur du champ `newPassword` doit correspondre à la valeur du champ `passwordConfirmation`.
+
+<Steps>
+
+### Étape 1
+
+Installer les packages requis:
+
+```bash
+yarn add react-hook-form zod @hookform/resolvers
+```
+
+### Étape 2
+
+Définir le schéma Zod pour les données du formulaire:
+
+```tsx
+import { z } from "zod";
+
+const schema = z.object({
+  oldPassword: z.string({
+    required_error: t('oldPasswordRequired', 'Old password is required'),
+  });,
+  newPassword: z.string({
+    required_error: t('newPasswordRequired', 'New password is required'),
+  }),
+  passwordConfirmation: z.string({
+    required_error: t('passwordConfirmationRequired', 'Password confirmation is required'),
+  })
+  .refine((data) => data.newPassword === data.passwordConfirmation, {
+    message: t('passwordsDoNotMatch', 'Passwords do not match'),
+    path: ['passwordConfirmation'],
+  });
+```
+
+Ce schéma définit les règles de validation pour les champs du formulaire. Chaque champ est défini comme une chaîne de caractères qui ne doit pas être vide. Si le champ est vide, un message d'erreur personnalisé est fourni en utilisant la fonction de traduction `t()`. De plus, une règle de raffinement est ajoutée pour vérifier si le `newPassword` correspond à la `passwordConfirmation`. Si elles ne correspondent pas, un message d'erreur est affiché.
+
+### Étape 3
+
+Créer un résolveur personnalisé pour React Hook Form qui utilise Zod pour la validation:
+
+```tsx
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
+const {
+  handleSubmit,
+  control,
+  formState: { errors },
+} = useForm({
+  resolver: zodResolver(schema),
+});
+```
+
+Ce code crée un résolveur personnalisé en utilisant `zodResolver` de `@hookform/resolvers`. Le résolveur utilise le schéma Zod défini à l'étape 2 pour valider les données du formulaire.
+
+### Étape 4
+
+Ajouter la fonction `handleSubmit` à votre formulaire:
+
+```tsx
+const onSubmit = (data) => {
+  const { oldPassword, newPassword, passwordConfirmation } = data;
+
+  // Handle form submission
+};
+```
+
+### Étape 5
+
+Ajouter les composants `Form` et `Controller` à votre formulaire:
+
+```tsx
+import { Controller } from "react-hook-form";
+
+<Form onSubmit={handleSubmit(onSubmit)}>
+  <Controller
+    name="oldPassword"
+    control={control}
+    render={({ field: { onChange, value } }) => (
+      <PasswordInput
+        id="oldPassword"
+        invalid={!!errors?.oldPassword}
+        invalidText={errors?.oldPassword?.message}
+        labelText={t("oldPassword", "Ancien mot de passe")}
+        onChange={onChange}
+        value={value}
+      />
+    )}
+  />
+  <Controller
+    name="newPassword"
+    control={control}
+    render={({ field: { onChange, value } }) => (
+      <PasswordInput
+        id="newPassword"
+        invalid={!!errors?.newPassword}
+        invalidText={errors?.newPassword?.message}
+        labelText={t("newPassword", "Nouveau mot de passe")}
+        onChange={onChange}
+        value={value}
+      />
+    )}
+  />
+  <Controller
+    name="passwordConfirmation"
+    control={control}
+    render={({ field: { onChange, value } }) => (
+      <PasswordInput
+        id="passwordConfirmation"
+        invalid={!!errors?.passwordConfirmation}
+        invalidText={errors?.passwordConfirmation?.message}
+        labelText={t("confirmPassword", "Confirmer le nouveau mot de passe")}
+        onChange={onChange}
+        value={value}
+      />
+    )}
+  />
+  <Button type="submit">{t("submit", "Soumettre")}</Button>
+</Form>;
+```
+
+Dans cet extrait de code, le composant `Controller` est utilisé pour connecter les champs du formulaire à React Hook Form. La prop `name` spécifie le nom du champ, la prop `control` spécifie le contrôle du formulaire, et la prop `render` spécifie le composant de saisie à rendre. Les props `invalid` et `invalidText` sont utilisées pour afficher les erreurs de validation pour chaque champ.
+
+### Étape 6
+
+C'est tout! Vous avez intégré avec succès React Hook Form avec Zod pour valider votre formulaire. Désormais, lorsque l'utilisateur soumet le formulaire, les données seront validées par rapport au schéma Zod, et toutes les erreurs de validation seront affichées à l'utilisateur.
+
+</Steps>
+
+En combinant React Hook Form et Zod, vous pouvez créer un puissant système de validation de formulaires qui garantit l'intégrité des données et la sécurité des types dans vos applications React. Lisez-en plus sur [React Hook Form](https://react-hook-form.com/) et [Zod](https://zod.dev/) pour explorer toutes leurs capacités et fonctionnalités.

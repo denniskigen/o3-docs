@@ -27,13 +27,19 @@ Dans O3, l'app shell est la base de l'application. Il est chargé d'effectuer to
 - Mise en place du système de configuration qui fournit différents niveaux de configurabilité à l'application.
 - Met en place le système d'extension.
 
-## Modules frontaux [#frontend-modules]
+### Modules frontaux [#frontend-modules]
 
-Les [modules frontaux](/docs/frontend-modules/introduction) sont les éléments de base d'O3. Ils sont également appelés "microfrontends" dans l'architecture O3 (l'origine étant le concept nommé de la même manière dans [single-spa](https://single-spa.js.org)). Les modules frontaux sont organisés en monorepos spécifiques à un domaine. Ils sont chargés dans l'application via la carte d'importation et exportent leurs propres fonctions d'activation et de cycle de vie par défaut. Ces exportations sont conformes à une interface microfrontend spécifique qui a été introduite dans [RFC-26](https://github.com/openmrs/openmrs-rfc-frontend/blob/e745ee9c37b2ca0ae6f4fc93259724e61bfac82e/text/0026-activation-distribution.md).
+Les [modules frontaux](/docs/frontend-modules/introduction) sont les éléments de base d'O3. Ils sont également appelés `microfrontends` dans l'architecture O3 (l'origine étant le concept similaire dans [single-spa](https://single-spa.js.org)). Les modules frontaux sont organisés en monorepos spécifiques à un domaine. Ils sont chargés dans l'application via la carte d'importation et exportent leurs propres fonctions d'activation et de cycle de vie par défaut. Ces exportations se conforment à une interface microfrontend spécifique introduite dans [RFC-26](https://github.com/openmrs/openmrs-rfc-frontend/blob/e745ee9c37b2ca0ae6f4fc93259724e61bfac82e/text/0026-activation-distribution.md).
 
-Actuellement, les modules frontaux sont chargés de manière synchrone, ce qui signifie que l'application ne sera pas rendue tant que tous les modules frontaux n'auront pas été chargés. Il s'agit d'un goulot d'étranglement connu au niveau des performances.
+Avant 2023, les modules frontaux étaient chargés de manière synchrone, ce qui signifiait que l'application ne se rendait pas tant que tous les modules frontaux n'avaient pas été chargés. C'était un goulot d'étranglement de performance connu. En 2023, un travail significatif a permis aux modules frontaux d'être chargés _à la demande_, ce qui a considérablement amélioré les performances de l'application. Vous pouvez suivre les progrès [ici](https://github.com/openmrs/openmrs-esm-core/pull/671).
 
-Des travaux importants sont en cours pour permettre aux modules frontaux d'être chargés à la demande, ce qui améliorera considérablement les performances de l'application. Vous pouvez suivre les progrès [ici](https://github.com/openmrs/openmrs-esm-core/pull/671).
+### Versions des modules frontaux expliquées
+
+Chaque module frontend est un package NPM avec un nom se terminant par `-app`. Les ESM d'OpenMRS sont publiés avec trois étiquettes différentes : "next", "latest" et un numéro de version. Voici ce que chaque étiquette signifie :
+
+- 🔴⚠️🚧 **"next" = Pré-version, en développement.** La plus récente, à la pointe, encore en construction. "next" se réfère toujours à la version la plus récente mais pas encore publiée d'un ESM (par exemple, 3.2.1-pre.1067). _Les versions étiquetées "next" ne sont pas recommandées pour une utilisation en production_ car elles sont considérées comme des travaux en cours instables et n'ont souvent pas subi de tests d'intégration.
+- 🟡 **"latest" = Dernière version publiée.** "latest" se réfère toujours à la version la plus récente publiée d'un ESM (par exemple, 3.2.0). Bien que vous puissiez utiliser la version "latest" de n'importe quel ESM, vous avez plus de contrôle en spécifiant le numéro de version exact de chaque ESM que vous utilisez.
+- 🟢✅ **vX.X.X = Une version spécifique.** Un numéro de version se réfère toujours à une version spécifique de chaque ESM. Par exemple, 3.2.0 ou 3.2.1-pre.1067 sont des versions spécifiques de l'ESM @openmrs/esm-api, bien que cette dernière soit une pré-version.
 
 ## Carte d'importation [#import-map]
 

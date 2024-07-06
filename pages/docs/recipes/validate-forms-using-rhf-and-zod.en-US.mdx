@@ -88,21 +88,29 @@ yarn add react-hook-form zod @hookform/resolvers
 Define the Zod schema for the form data:
 
 ```tsx
-import { z } from 'zod';
+import { z } from "zod";
 
-const schema = z.object({
-  oldPassword: z.string({
-    required_error: t('oldPasswordRequired', 'Old password is required'),
-  });,
-  newPassword: z.string({
-    required_error: t('newPasswordRequired', 'New password is required'),
-  }),
-  passwordConfirmation: z.string({
-    required_error: t('passwordConfirmationRequired', 'Password confirmation is required'),
+const oldPasswordValidation = z.string().min(1, {
+  message: t("oldPasswordRequired", "Old password is required"),
+});
+
+const newPasswordValidation = z.string().min(1, {
+  message: t("newPasswordRequired", "New password is required"),
+});
+
+const passwordConfirmationValidation = z.string().min(1, {
+  message: t("passwordConfirmationRequired", "Password confirmation is required"),
+});
+
+const schema = z
+  .object({
+    oldPassword: oldPasswordValidation,
+    newPassword: newPasswordValidation,
+    passwordConfirmation: passwordConfirmationValidation,
   })
   .refine((data) => data.newPassword === data.passwordConfirmation, {
-    message: t('passwordsDoNotMatch', 'Passwords do not match'),
-    path: ['passwordConfirmation'],
+    message: t("passwordsDoNotMatch", "Passwords do not match"),
+    path: ["passwordConfirmation"],
   });
 ```
 
@@ -122,6 +130,11 @@ const {
   formState: { errors },
 } = useForm({
   resolver: zodResolver(schema),
+  defaultValues: {
+    oldPassword: "",
+    newPassword: "",
+    passwordConfirmation: "",
+  },
 });
 ```
 
@@ -133,6 +146,8 @@ Add the `handleSubmit` function to your form:
 
 ```tsx
 const onSubmit = (data) => {
+  setIsChangingPassword(true);
+
   const { oldPassword, newPassword, passwordConfirmation } = data;
 
   // Handle form submission

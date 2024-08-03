@@ -5,6 +5,7 @@ import { Callout, Steps } from "nextra-theme-docs";
 O3 est livré avec un constructeur de formulaires intégré que vous pouvez utiliser pour construire vos schémas de formulaires. Pour y accéder, cliquez sur l'icône du sélecteur d'applications dans la barre de navigation et cliquez sur le lien `Administration du Système`. Vous serez dirigé vers la page d'administration du système où vous verrez une liste de cartes pour les applications. Cliquez sur la carte `Constructeur de Formulaires` et vous serez dirigé vers l'interface utilisateur du constructeur de formulaires.
 
 ## Fonctionnalités du constructeur de formulaires O3
+
 Les principales pages du constructeur de formulaires O3 sont:
 
 - Le `Tableau de bord des formulaires` - où vous verrez une liste tabulaire des schémas de formulaires enregistrés sur votre serveur. Vous pouvez rechercher parmi les formulaires disponibles et les filtrer par statut de publication. Vous pouvez également cliquer sur l'icône d'édition à côté de chaque formulaire pour le lancer dans l'éditeur de formulaires, où vous pouvez y apporter des modifications.
@@ -17,15 +18,19 @@ Les principales pages du constructeur de formulaires O3 sont:
 
 Une fois que vous avez construit votre schéma de formulaire pour répondre à vos exigences, vous pouvez choisir de:
 
-  - `Valider les champs` - le Constructeur de Formulaires O3 a de riches capacités de validation. Pour en savoir plus sur ce qui est possible, lisez le [guide Validation](https://ampath-forms.vercel.app/docs/validation/date-based-validation).
-  - Enregistrer votre formulaire sur le `serveur` - sauvegarder votre schéma sur votre propre base de données est le meilleur moyen de garantir la persistance. Le serveur O3 est éphémère au mieux et ne doit pas être utilisé pour persister vos schémas. Nous recommandons de maintenir une sauvegarde locale de vos schémas pour éviter de les perdre lors de l'utilisation du serveur O3.
-  - `Publier` ou `dépublier` votre formulaire - Une fois que vous avez enregistré votre formulaire, vous pouvez choisir de le publier. Seuls les formulaires publiés sont accessibles à l'espace de travail des formulaires dans le dossier du patient. Nous recommandons de maintenir un certain type de système de versionnement afin de pouvoir contrôler quels formulaires sont accessibles aux utilisateurs et lesquels ne le sont pas. En plus de publier des formulaires, vous pouvez également dépublier des formulaires déjà publiés. Cela peut être utile si, par exemple, vous souhaitez déprécier une ancienne version d'un formulaire et la remplacer par une nouvelle version, mais souhaitez conserver une certaine historique des versions.
+- `Valider les champs` - le Constructeur de Formulaires O3 a de riches capacités de validation. Pour en savoir plus sur ce qui est possible, lisez le [guide Validation](https://ampath-forms.vercel.app/docs/validation/date-based-validation).
+- Enregistrer votre formulaire sur le `serveur` - sauvegarder votre schéma sur votre propre base de données est le meilleur moyen de garantir la persistance. Le serveur O3 est éphémère au mieux et ne doit pas être utilisé pour persister vos schémas. Nous recommandons de maintenir une sauvegarde locale de vos schémas pour éviter de les perdre lors de l'utilisation du serveur O3.
+- `Publier` ou `dépublier` votre formulaire - Une fois que vous avez enregistré votre formulaire, vous pouvez choisir de le publier. Seuls les formulaires publiés sont accessibles à l'espace de travail des formulaires dans le dossier du patient. Nous recommandons de maintenir un certain type de système de versionnement afin de pouvoir contrôler quels formulaires sont accessibles aux utilisateurs et lesquels ne le sont pas. En plus de publier des formulaires, vous pouvez également dépublier des formulaires déjà publiés. Cela peut être utile si, par exemple, vous souhaitez déprécier une ancienne version d'un formulaire et la remplacer par une nouvelle version, mais souhaitez conserver une certaine historique des versions.
 
 ## Utilisation du constructeur de formulaires
 
-  <Callout emoji="ℹ️" type="info">
-    Si vous partez d'un point où vous avez des formulaires construits en utilisant le module HTML Form Entry qui ne correspondent pas au [schéma de formulaire O3 standard](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json), vous voudrez peut-être commencer par lire le guide de [conversion](/docs/forms/convert-existing-hfe-forms).
-  </Callout>
+{" "}
+<Callout emoji="ℹ️" type="info">
+  Si vous partez d'un point où vous avez des formulaires construits en utilisant le module HTML Form Entry qui ne
+  correspondent pas au [schéma de formulaire O3
+  standard](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json), vous voudrez peut-être
+  commencer par lire le guide de [conversion](/docs/forms/convert-existing-hfe-forms).
+</Callout>
 
 ### Créer un nouveau formulaire
 
@@ -152,20 +157,17 @@ Finalement, lorsque vous avez terminé de modifier votre formulaire, vous voudre
 - [Dépôt de l'application Form Builder](https://github.com/openmrs/openmrs-esm-form-builder)
 - Tutoriel vidéo: Démonstration de Form Builder (ancienne version)
 
-  <br />
-  <iframe
-    width="560"
-    height="315"
-    src="https://www.youtube.com/embed/PS15rtHut9A"
-    title="Lecteur vidéo YouTube"
+<br />
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/PS15rtHut9A"
+  title="YouTube video player"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowFullScreen
+/>
 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowFullScreen
-  ></iframe>
-
-  <Callout emoji="ℹ️" type="info">
-    Remarque: Pour l'ID, veuillez utiliser un ID unique (par exemple, en générer un
-    [ici](https://www.uuidgenerator.net/)) plutôt que de réutiliser l'ID de concept
-    comme il est montré dans la vidéo.
-  </Callout>
-
+<Callout emoji="ℹ️" type="info">
+  Remarque: Pour l'ID, veuillez utiliser un ID unique (par exemple, en générer un [ici](https://www.uuidgenerator.net/))
+  plutôt que de réutiliser l'ID de concept comme il est montré dans la vidéo.
+</Callout>

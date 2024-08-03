@@ -1,236 +1,11 @@
 import { Callout, Steps } from "nextra-theme-docs";
 
-# Tester les modules frontaux
-
-D'une manière générale, lorsqu'il s'agit de tester des composants dans O3, il y a trois catégories de tests:
-
-1. **Tests unitaires** - vérifient que les éléments individuels et isolés de la fonctionnalité fonctionnent ensemble comme prévu.
-2. **Tests d'intégration** - vérifient que plusieurs unités fonctionnent ensemble de manière harmonieuse.
-3. **Tests de bout en bout (e2e)** - un robot d'assistance qui se comporte comme un utilisateur pour cliquer sur l'application et vérifier qu'elle fonctionne correctement.
-
-Lorsque l'on travaille avec un module frontal, les tests unitaires (et parfois les tests d'intégration) qui l'accompagnent sont généralement regroupés dans un fichier nommé **\*.test.tsx**. Ces tests suivent généralement le schéma suivant:
-
-- Les tests d'intégration rendent généralement l'application complète tout en simulant quelques éléments tels que les requêtes réseau ou l'accès à la base de données.
-- Les tests unitaires testent généralement des fonctions pures et affirment qu'elles renvoient une sortie donnée lorsqu'elles reçoivent une entrée.
-- Les tests e2e exécutent typiquement l'application entière (frontend et backend) et votre test interagira avec l'application comme le ferait un utilisateur typique.
-
-<Callout emoji="ℹ️" type="info">
-  **Philosophie de test**: Plus vos tests ressemblent à la manière dont votre logiciel est utilisé, plus ils vous
-  donneront confiance.
+<Callout emoji="⚠️" type="warning">
+  Ceci n'est plus la source de vérité activement maintenue pour les documents de développement O3. Cet effort a été
+  déplacé vers le Wiki OpenMRS à l'adresse suivante https://openmrs.atlassian.net/wiki/x/K4L-C
 </Callout>
 
-## Tests unitaires
-
-Nous allons parcourir un exemple de suite de tests pour comprendre l'approche adoptée. Dans ce cas, nous utiliserons le module frontal [module-management](https://github.com/openmrs/openmrs-esm-module-management-app). Cette application reprend la page `Manage Module` de l'application de référence OpenMRS 2.x et la redessine pour qu'elle fonctionne dans O3. Elle fournit une interface permettant aux utilisateurs de gérer les modules backend. Elle liste tous les modules installés et permet aux administrateurs de contrôler l'exécution des modules via les actions exposées `Start`, `Stop` et `Unload`. Les utilisateurs peuvent également consulter des informations détaillées sur les modules listés.
-
-Voyons comment nous pouvons tester le composant `ModuleManagement`. En regardant son code, nous pouvons voir qu'il fait plusieurs choses:
-
-- Il récupère les données du module depuis le backend en utilisant un crochet SWR personnalisé.
-- Lorsque les données sont chargées, un état de chargement est affiché.
-- Lorsque les données sont chargées mais vides, un état vide est affiché.
-- Lorsqu'un problème survient lors de la récupération des données, un état d'erreur est affiché.
-- Lorsque les données sont récupérées, une table de données Carbon contenant des informations sur les modules existants est affichée.
-- Si l'utilisateur qui consulte la liste des modules dispose de privilèges suffisants, des boutons d'action sont affichés sur la page.
-
-Nous pourrions écrire une suite de tests qui testerait chacun de ces chemins.
-
-### Écrire le test
-
-Créez un nouveau fichier à côté de `module-management.component.tsx` nommé `module-management.test.tsx`.
-
-Configurez une fonction qui rend le composant:
-
-```ts
-function renderModuleManagement() {
-  renderWithSwr(<ModuleManagement />);
-}
-```
-
-Note: Cette fonction d'aide `renderWithSwr` enveloppe un composant dans un contexte SWR qui fournit une configuration globale pour tous les crochets SWR.
-
-#### Tester qu'un état de chargement est rendu
-
-Nous ne voulons pas toucher directement la base de données avec notre test et pour éviter cela, nous pouvons simuler la logique de récupération des données comme suit:
-
-```ts
-mockedOpenmrsFetch.mockReturnValueOnce({ data: { results: [] } });
-```
-
-Ce code simule la fonction `openmrsFetch`, en supprimant son implémentation et en la remplaçant par une simulation qui retourne un objet avec une propriété `results` qui est un tableau vide.
-
-Ensuite, nous voulons rendre le composant:
-
-```ts
-await waitForElementToBeRemoved(() => [...screen.queryAllByRole(/progressbar/i)], {
-  timeout: 4000,
-});
-```
-
-Ce code demande à Jest d'attendre que le chargeur soit retiré de l'interface utilisateur. Cela imite l'attente de la résolution d'une requête du backend. Ensuite, nous voulons commencer à écrire nos assertions:
-
-```ts
-expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
-expect(screen.queryByRole("table")).not.toBeInTheDocument();
-expect(screen.getByText(/there are no modules to display/i)).toBeInTheDocument();
-```
-
-Ces affirmations:
-
-1. Affirme qu'un élément DOM avec le rôle `progressbar` ne devrait pas être dans le document.
-2. Affirme que le DOM ne contient pas d'élément de rôle `table` .
-3. Assurer que le texte `Il n'y a pas de modules à afficher` est rendu dans le document.
-
-A tout moment, vous pouvez lancer des tests en appelant `yarn test` ou `yarn turbo test` (si `turbo` est configuré).
-
-Pour évaluer l'état d'erreur, vous pouvez écrire:
-
-```ts
-it("renders an error state view if there was a problem fetching module data", async () => {
-  const error = {
-    message: "Internal Server Error",
-    response: {
-      status: 500,
-      statusText: "Internal Server Error",
-    },
-  };
-
-  // Syntactic sugar for `mockedOpenmrsFetch.mockReturnValue(Promise.resolve(error))`
-  mockedOpenmrsFetch.mockRejectedValueOnce(error);
-
-  renderModuleManagement();
-
-  // Wait for the loading state to disappear from the screen
-  await waitForLoadingToFinish();
-
-  expect(screen.getByText(/sorry, there was a problem fetching modules/i)).toBeInTheDocument();
-});
-```
-
-Pour tester le chemin heureux, nous pourrions écrire le test suivant:
-
-```ts
-it("renders detailed information about the module", async () => {
-  const user = userEvent.setup();
-
-  const testModules = [
-    {
-      uuid: "initializer",
-      display: "Initializer",
-      name: "Initializer",
-      description:
-        "The OpenMRS Initializer module is an API-only module that processes the content of the configuration folder when it is found inside OpenMRS' application data directory.",
-      packageName: "org.openmrs.module.initializer",
-      author: "Mekom Solutions",
-      version: "2.3.0",
-      started: true,
-      startupErrorMessage: null,
-      requireOpenmrsVersion: "2.1.1",
-      awareOfModules: [
-        "org.openmrs.module.metadatamapping",
-        "org.bahmni.module.bahmni.ie.apps",
-        "org.openmrs.module.datafilter",
-        "org.openmrs.module.htmlformentry",
-        "org.bahmni.module.appointments",
-        "org.openmrs.module.metadatasharing",
-        "org.openmrs.module.openconceptlab",
-        "org.bahmni.module.bahmnicore",
-        "org.openmrs.module.idgen",
-        "org.openmrs.module.legacyui",
-      ],
-      requiredModules: [],
-      resourceVersion: "1.8",
-    },
-    {
-      uuid: "serialization.xstream",
-      display: "Serialization Xstream",
-      name: "Serialization Xstream",
-      description: "Core (de)serialize API and services supported by xstream library",
-      packageName: "org.openmrs.module.serialization.xstream",
-      author: "luzhuangwei",
-      version: "0.2.15",
-      started: true,
-      startupErrorMessage: null,
-      requireOpenmrsVersion: "1.9.9",
-      awareOfModules: [],
-      requiredModules: [],
-      resourceVersion: "1.8",
-    },
-  ];
-
-  // Return the `testModules` object defined above in the API response. The nested `data` property below corresponds to the the `data` property returned from calling the `useSWR` hook
-  mockedOpenmrsFetch.mockReturnValueOnce({
-    data: { results: testModules },
-  });
-
-  renderModuleManagement();
-
-  // Wait for the loading state to disappear from the screen
-  await waitForLoadingToFinish();
-
-  expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
-  expect(screen.getByRole("button", { name: /add \/ upgrade modules/i })).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: /search from addons/i })).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: /check for updates/i })).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: /start all/i })).toBeInTheDocument();
-  expect(screen.getByRole("table")).toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: /manage modules/i })).toBeInTheDocument();
-  expect(screen.getByRole("searchbox", { name: /filter table/i })).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: /clear search input/i })).toBeInTheDocument();
-
-  const modules = testModules.map((module) => module);
-
-  modules.forEach((module) => {
-    expect(screen.getByText(module.name)).toBeInTheDocument();
-    expect(screen.getByText(module.description)).toBeInTheDocument();
-  });
-
-  const expectedColumnHeaders = [/status/, /name/, /author/, /version/, /Description/];
-
-  expectedColumnHeaders.forEach((row) => {
-    expect(screen.getByRole("columnheader", { name: new RegExp(row, "i") })).toBeInTheDocument();
-  });
-
-  const searchbox = screen.getByRole("searchbox", { name: /filter table/i });
-
-  // search for the Serializer module
-  await user.type(searchbox, "Seri");
-
-  expect(screen.getByText(/Serialization Xstream/i)).toBeInTheDocument();
-  expect(screen.queryByText(/Initializer/i)).not.toBeInTheDocument();
-
-  await user.clear(searchbox);
-
-  // search for something that doesn't exist in the module list
-  await user.type(searchbox, "super-duper-unreleased-module");
-
-  expect(screen.queryByText(/Serialization Xstream/i)).not.toBeInTheDocument();
-  expect(screen.queryByText(/Initializer/i)).not.toBeInTheDocument();
-  expect(screen.getByText(/no matching modules found/i)).toBeInTheDocument();
-});
-```
-
-Il y a beaucoup de choses qui se passent ici, alors essayons de les décomposer. Pour commencer, nous invoquons la configuration de `userEvent` avant que le composant ne soit rendu. Ensuite, nous mettons en place un objet appelé `testModules` qui imite les données que nous nous attendons à recevoir du backend. Nous configurons ensuite la fonction `mockedOpenmrsFetch` pour retourner les données simulées. Après cela, nous pouvons enfin effectuer le rendu du composant. Parce que nous simulons un délai, nous attendrons que l'état de chargement soit terminé avant de lancer nos assertions. Une fois que c'est fait, nous allons exécuter des assertions contre la table de données de gestion du module, en comparant les en-têtes de table et les données de ligne avec les données attendues. Nous simulerons ensuite une recherche dans la liste, en explorant à la fois le chemin heureux et l'état vide.
-
-Bien que ce test soit réussi et qu'il nous donne une certaine assurance que ce composant fonctionne comme prévu, cette approche présente encore quelques faiblesses. Par exemple:
-
-- Comme nous n'examinons pas le point de terminaison de l'API ni les paramètres de la demande, nous ne pouvons pas savoir si l'utilisateur fait la bonne demande.
-- Comme nous simulons le backend, nous ne pouvons pas prédire avec certitude ce qui se passera si le serveur réel est en panne ou s'il renvoie un résultat inattendu.
-
-En fin de compte, pour obtenir la bonne stratégie de test, vous aurez probablement besoin d'un mélange de tests unitaires, de tests d'intégration et de tests e2e. Vous devrez également déterminer le bon niveau de simulation à appliquer. Si vous ne le faites pas assez, vous testerez probablement trop de détails d'implémentation. Si vous le faites trop, vous risquez de sacrifier une grande partie de la confiance.
-
-Voici une vidéo intéressante de Brandon sur le test des modules frontend:
-
-<br />
-<iframe
-  width="560"
-  height="315"
-  src="https://www.youtube.com/embed/cGfFufJZV1M?si=vbkxuhecp619GYS7"
-  title="YouTube video player"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-  allowFullScreen
-></iframe>
-
-## Test de bout en bout avec Playwrightr
+# Test de bout en bout avec Playwright
 
 [Playwright](https://playwright.dev) est un cadre de test qui vous permet d'écrire des tests fiables de bout en bout en JavaScript. Le bon travail de l'équipe QA d'OpenMRS signifie que nous avons maintenant Playwright configuré sur la plupart de nos dépôts clés.
 
@@ -248,7 +23,7 @@ Nous vous recommandons d'installer le plugin officiel Playwright [VS Code plugin
 Vous pouvez également utiliser la commande `npx playwright test` pour exécuter vos tests. Nous vous recommandons également de suivre les [meilleures pratiques](https://playwright.dev/docs/best-practices) décrites dans la documentation de Playwright.
 Cela vous aidera à écrire des tests fiables et faciles à maintenir.
 
-### Rédaction de tests
+## Rédaction de tests
 
 En général, il est recommandé de lire la [documentation officielle de Playwright](https://playwright.dev/docs/intro)
 avant d'écrire de nouveaux cas de test. Le projet utilise l'exécuteur de test officiel Playwright et,
@@ -319,26 +94,26 @@ test("Search patient by patient identifier", async ({ page, api }) => {
 });
 ```
 
-### Exécution des tests
+## Exécution des tests
 
 Pour exécuter les tests e2e localement, vous devez démarrer un serveur de développement exécutant le module frontend dont vous souhaitez exécuter les tests.
 
 <Steps>
 
-### Démarrer le serveur de développement
+## Démarrer le serveur de développement
 
 ```sh
 yarn start --sources "packages/esm-patient-conditions-app"
 ```
 
-### Remplacer l'E2E_BASE_URL
+## Remplacer l'E2E_BASE_URL
 
 ```sh
 # 8080 est le port par défaut pour le serveur de développement
 export E2E_BASE_URL=http://localhost:8080
 ```
 
-### Exécuter les tests en modes [headed](https://playwright.dev/docs/ci#running-headed) et [UI](https://playwright.dev/docs/test-ui-mode) :
+## Exécuter les tests en modes [headed](https://playwright.dev/docs/ci#running-headed) et [UI](https://playwright.dev/docs/test-ui-mode) :
 
 ```sh
 yarn test-e2e ---headed --ui
@@ -370,7 +145,7 @@ yarn test-e2e conditions -g "Enregistrer et modifier une condition"
 
 </Steps>
 
-### Utilisation des données de démonstration
+## Utilisation des données de démonstration
 
 Pour vous assurer que le test contient les métadonnées nécessaires, vous pouvez suivre les procédures décrites ci-dessous:
 
@@ -378,11 +153,11 @@ Pour vous assurer que le test contient les métadonnées nécessaires, vous pouv
 2. Exploiter les données de démonstration - Si le scénario de test ne nécessite que la visualisation de données, les données de démonstration disponibles dans la RefApp peuvent suffire. Consultez le module de données de démonstration pour en savoir plus.
 3. Générer les données nécessaires - Si les solutions ci-dessus sont inadéquates, vous pouvez utiliser l'API pour créer les données nécessaires avant le test.
 
-### Débogage des tests
+## Débogage des tests
 
 Reportez-vous à [cette documentation](https://playwright.dev/docs/debug) pour savoir comment déboguer un test.
 
-### Afficher les rapports de test à partir de GitHub Actions / Bamboo
+## Afficher les rapports de test à partir de GitHub Actions / Bamboo
 
 Pour télécharger le rapport à partir d'une action GitHub ou d'un plan Bamboo, procédez comme suit:
 
@@ -392,7 +167,7 @@ Pour télécharger le rapport à partir d'une action GitHub ou d'un plan Bamboo,
 
 Le rapport vous présentera un résumé complet de vos tests, y compris des informations sur les tests qui ont réussi, échoué, ont été ignorés ou étaient défectueux. Vous pouvez explorer les détails de chaque test, y compris les erreurs ou les échecs, les enregistrements vidéo, les traces et les étapes de chaque test. Il vous suffit de cliquer sur un test pour en afficher les détails.
 
-### Ce qu'il faut faire et ce qu'il ne faut pas faire
+## Ce qu'il faut faire et ce qu'il ne faut pas faire
 
 - Veillez à ce que tous les cas de test soient rédigés de manière claire et concise, avec des instructions étape par étape facilement compréhensibles.
 - Utiliser une variété de cas de test pour couvrir tous les scénarios possibles, y compris les scénarios les plus favorables, les plus défavorables et les cas limites.
@@ -401,7 +176,7 @@ Le rapport vous présentera un résumé complet de vos tests, y compris des info
 - N'ignorez pas les erreurs ou les problèmes qui surviennent pendant les tests, même s'ils semblent mineurs. Signalez-les à l'équipe de développement afin qu'ils soient traités rapidement.
 - Ne sautez aucun chemin ou scénario critique. Veillez à ce que tous les scénarios soient testés de manière approfondie afin d'identifier tout problème ou défaut potentiel.
 
-### Meilleures pratiques
+## Meilleures pratiques
 
 - Commencer les tests dès le début du processus de développement afin d'identifier et de résoudre les problèmes avant qu'ils ne deviennent plus difficiles et plus coûteux à résoudre.
 - Utiliser des tests automatisés chaque fois que possible pour gagner du temps et de l'efficacité.
@@ -410,11 +185,11 @@ Le rapport vous présentera un résumé complet de vos tests, y compris des info
 - Réviser et mettre à jour en permanence le plan de test pour s'assurer qu'il couvre toutes les fonctionnalités et tous les scénarios pertinents.
 - Travailler en collaboration avec l'équipe O3 pour s'assurer que tout problème ou défaut est identifié et résolu rapidement.
 
-### Automatiser les tests E2E avec les actions GitHub
+## Automatiser les tests E2E avec les actions GitHub
 
 L'automatisation des tests de bout en bout (E2E) à l'aide des actions GitHub constitue un moyen efficace de garantir la fiabilité des modifications logicielles.
 
-#### Environnement de test Dockerisé
+### Environnement de test Dockerisé
 
 Nos tests E2E sont exécutés dans un environnement dockerisé pour chaque pull request et commit dans les dépôts O3.
 Cette approche offre plusieurs avantages par rapport aux méthodes traditionnelles:
@@ -428,7 +203,7 @@ Cette approche offre plusieurs avantages par rapport aux méthodes traditionnell
 - **Impact minimisé des échecs:** Les échecs des tests E2E n'ont pas d'impact sur l'état ou la stabilité du serveur dev3.
   Cette séparation garantit que l'environnement de développement principal n'est pas affecté par les défaillances des tests.
 
-#### Optimisation du processus de test
+### Optimisation du processus de test
 
 Pour améliorer l'efficacité du processus de test E2E, nous avons mis en œuvre plusieurs méthodes d'optimisation:
 
@@ -443,7 +218,7 @@ Pour améliorer l'efficacité du processus de test E2E, nous avons mis en œuvre
 Les images docker pré-remplies du backend et de la base de données, ainsi que l'image frontale légère construite dynamiquement,
 sont combinées dans la même pile docker-compose et utilisées pour configurer l'environnement de test E2E.
 
-##### Détails supplémentaires de la mise en œuvre
+#### Détails supplémentaires de la mise en œuvre
 
 **Génération d'images Docker:** Les images Docker pré-remplies sont créées et poussées vers le Docker Hub
 à travers une étape bambou dédiée dans le job bambou [REFAPP-D3X](https://ci.openmrs.org/browse/REFAPP-D3X).
@@ -451,7 +226,7 @@ Cette étape implique un script qui récupère les dernières versions du fronte
 Il s'exécute ensuite et attend la génération des données avant de construire les images docker `:nightly-with-data` du backend et de la base de données.
 Ces images sont ensuite poussées vers le Docker Hub. Plus de détails à ce sujet peuvent être trouvés [ici](https://talk.openmrs.org/t/using-pre-filled-docker-images-for-running-e2e-tests/40003).
 
-### Dépannage
+## Dépannage
 
 Si vous ne pouvez pas déboguer les tests en [mode UI](https://playwright.dev/docs/test-ui-mode) parce que votre serveur web local se recharge en raison de modifications de fichiers statiques, utilisez le [Playwright Inspector](https://playwright.dev/docs/running-tests#debug-tests-with-the-playwright-inspector) à la place. Exécutez la commande suivante:
 

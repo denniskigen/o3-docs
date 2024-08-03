@@ -1,0 +1,342 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+<Callout emoji="⚠️" type="warning">
+  THIS IS NO LONGER THE ACTIVELY MAINTAINED SOURCE OF TRUTH FOR O3 DEV DOCS. This effort has been moved to the OpenMRS
+  Wiki at https://openmrs.atlassian.net/wiki/x/K4L-C
+</Callout>
+
+# Unit and integration testing
+
+Broadly speaking, when it comes to testing components in O3, there are three categories of tests:
+
+1. **Unit tests** - verify that pieces individual, isolated pieces of functionality work together as expected.
+2. **Integration tests** - verify that several units work together in harmony.
+3. **End to End (e2e) tests** - a helper robot that behaves like a user to click around the app and verify that it functions correctly.
+
+When working with a frontend module, its accompanying unit (and, sometimes, integration) tests will typically be colocated in a file named **\*.test.tsx**. These tests typically follow the following pattern:
+
+- Integration tests typically render the full app while mocking out a few bits like network requests or database access.
+- Unit tests typically test pure functions and assert that they return a given output when given some input.
+- e2e tests typically run the entire application (both frontend and backend) and your test will interact with the app just like a typical user would.
+
+<Callout emoji="ℹ️" type="info">
+  **Testing philosophy**: The more your tests resemble the way your software is used, the more confidence they can give
+  you.
+</Callout>
+
+## Example: Testing a frontend module
+
+We’re going to walk through an example test suite to understand the approach taken. In this case, we’ll use the [module-management](https://github.com/openmrs/openmrs-esm-module-management-app) frontend module. This application takes the `Manage Module` page from the OpenMRS 2.x reference application and redesigns it to work within O3. It provides an interface for users to manage backend modules. It lists all the installed modules and allows admins to control the execution of modules via the exposed `Start`, `Stop` and `Unload` actions. Users can also view detailed information about the listed modules.
+
+Let’s look at how we could test the `ModuleManagement` component. Looking at its code, we can see that it does several things:
+
+- It fetches module data from the backend using a custom SWR hook.
+- When data is loading, a loading state gets displayed.
+- When data is loaded but empty, an empty state is displayed.
+- When a problem occurs while fetching data, an error state is displayed.
+- When data gets fetched, a Carbon datatable containing information about existing modules is rendered.
+- If the user viewing the module list has sufficient privileges, action buttons get shown on the page.
+
+We could write a test suite that tests each of these pathways.
+
+### Write the test
+
+Create a new file next to `module-management.component.tsx` named `module-management.test.tsx`.
+
+Setup a function that renders the component:
+
+```ts
+function renderModuleManagement() {
+  renderWithSwr(<ModuleManagement />);
+}
+```
+
+Note: This `renderWithSwr` helper function wraps a component in an SWR context which provides a global configuration for all SWR hooks.
+
+#### Test that a loading state gets rendered
+
+We don’t want to directly hit the database with our test and to avoid that, we could mock the data fetching logic as follows:
+
+```ts
+mockedOpenmrsFetch.mockReturnValueOnce({ data: { results: [] } });
+```
+
+This code mocks out the `openmrsFetch` function, stubbing out its implementation and replacing it with a mock that returns an object with a `results` property that's an empty array.
+
+Next, we want to render the component:
+
+```ts
+await waitForElementToBeRemoved(() => [...screen.queryAllByRole(/progressbar/i)], {
+  timeout: 4000,
+});
+```
+
+This code asks Jest to wait until the loader gets removed from the UI. This mimics waiting for a backend request to resolve. Next, we want to start writing our assertions:
+
+```ts
+expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+expect(screen.queryByRole("table")).not.toBeInTheDocument();
+expect(screen.getByText(/there are no modules to display/i)).toBeInTheDocument();
+```
+
+These assertions:
+
+1. Assert that a DOM element with the role `progressbar` should not be in the document.
+2. Assert that the DOM doesn’t contain an element of the role `table` .
+3. Assert that the text `There are no modules to display` gets rendered in the document.
+
+At any point, you can run tests by calling `yarn test` or `yarn turbo test` (if `turbo` is configured).
+
+To evaluate the error state, you could write:
+
+```ts
+it("renders an error state view if there was a problem fetching module data", async () => {
+  const error = {
+    message: "Internal Server Error",
+    response: {
+      status: 500,
+      statusText: "Internal Server Error",
+    },
+  };
+
+  // Syntactic sugar for `mockedOpenmrsFetch.mockReturnValue(Promise.resolve(error))`
+  mockedOpenmrsFetch.mockRejectedValueOnce(error);
+
+  renderModuleManagement();
+
+  // Wait for the loading state to disappear from the screen
+  await waitForLoadingToFinish();
+
+  expect(screen.getByText(/sorry, there was a problem fetching modules/i)).toBeInTheDocument();
+});
+```
+
+To test the happy path, we could write the following test:
+
+```ts
+it("renders detailed information about the module", async () => {
+  const user = userEvent.setup();
+
+  const testModules = [
+    {
+      uuid: "initializer",
+      display: "Initializer",
+      name: "Initializer",
+      description:
+        "The OpenMRS Initializer module is an API-only module that processes the content of the configuration folder when it is found inside OpenMRS' application data directory.",
+      packageName: "org.openmrs.module.initializer",
+      author: "Mekom Solutions",
+      version: "2.3.0",
+      started: true,
+      startupErrorMessage: null,
+      requireOpenmrsVersion: "2.1.1",
+      awareOfModules: [
+        "org.openmrs.module.metadatamapping",
+        "org.bahmni.module.bahmni.ie.apps",
+        "org.openmrs.module.datafilter",
+        "org.openmrs.module.htmlformentry",
+        "org.bahmni.module.appointments",
+        "org.openmrs.module.metadatasharing",
+        "org.openmrs.module.openconceptlab",
+        "org.bahmni.module.bahmnicore",
+        "org.openmrs.module.idgen",
+        "org.openmrs.module.legacyui",
+      ],
+      requiredModules: [],
+      resourceVersion: "1.8",
+    },
+    {
+      uuid: "serialization.xstream",
+      display: "Serialization Xstream",
+      name: "Serialization Xstream",
+      description: "Core (de)serialize API and services supported by xstream library",
+      packageName: "org.openmrs.module.serialization.xstream",
+      author: "luzhuangwei",
+      version: "0.2.15",
+      started: true,
+      startupErrorMessage: null,
+      requireOpenmrsVersion: "1.9.9",
+      awareOfModules: [],
+      requiredModules: [],
+      resourceVersion: "1.8",
+    },
+  ];
+
+  // Return the `testModules` object defined above in the API response. The nested `data` property below corresponds to the the `data` property returned from calling the `useSWR` hook
+  mockedOpenmrsFetch.mockReturnValueOnce({
+    data: { results: testModules },
+  });
+
+  renderModuleManagement();
+
+  // Wait for the loading state to disappear from the screen
+  await waitForLoadingToFinish();
+
+  expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /add \/ upgrade modules/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /search from addons/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /check for updates/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /start all/i })).toBeInTheDocument();
+  expect(screen.getByRole("table")).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: /manage modules/i })).toBeInTheDocument();
+  expect(screen.getByRole("searchbox", { name: /filter table/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /clear search input/i })).toBeInTheDocument();
+
+  const modules = testModules.map((module) => module);
+
+  modules.forEach((module) => {
+    expect(screen.getByText(module.name)).toBeInTheDocument();
+    expect(screen.getByText(module.description)).toBeInTheDocument();
+  });
+
+  const expectedColumnHeaders = [/status/, /name/, /author/, /version/, /Description/];
+
+  expectedColumnHeaders.forEach((row) => {
+    expect(screen.getByRole("columnheader", { name: new RegExp(row, "i") })).toBeInTheDocument();
+  });
+
+  const searchbox = screen.getByRole("searchbox", { name: /filter table/i });
+
+  // search for the Serializer module
+  await user.type(searchbox, "Seri");
+
+  expect(screen.getByText(/Serialization Xstream/i)).toBeInTheDocument();
+  expect(screen.queryByText(/Initializer/i)).not.toBeInTheDocument();
+
+  await user.clear(searchbox);
+
+  // search for something that doesn't exist in the module list
+  await user.type(searchbox, "super-duper-unreleased-module");
+
+  expect(screen.queryByText(/Serialization Xstream/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Initializer/i)).not.toBeInTheDocument();
+  expect(screen.getByText(/no matching modules found/i)).toBeInTheDocument();
+});
+```
+
+There’s a lot going on here, so let’s attempt to break it down. To start off, we’re invoking the `userEvent` setup before the component gets rendered. Next, we’re setting up an object called `testModules` which mimics the data we’d typically expect to get back from the backend. We’re then setting up the `mockedOpenmrsFetch` function to return the mock data. After that, we can now finally render the component. Because we’re simulating a delay, we’ll wait for the loading state to complete before running our assertions. Once that’s done, we’ll run assertions against the module management datatable, comparing table headers and row data against our expected data. We’ll then simulate searching through the list, exploring both the happy path and the empty state.
+
+Whereas this test passes and can give us some amount of confidence that this component is working as expected, there are still a few weaknesses with this approach. For example:
+
+- Because we’re not looking at the API endpoint and the request parameters, we can’t tell if the user is making the correct request.
+- Because we’re mocking the backend, we can’t confidently predict what will happen if the real server is down, or if it returns an unexpected result.
+
+### Mocking patterns
+
+When writing tests, you’ll often need to mock out dependencies. Here are a few patterns you can use to write more effective, maintainable and type-safe tests for your frontend modules:
+
+Core exports a module mock that can be used to test functionality in `@openmrs/esm-framework`. You'll typically have a Jest configuration file that sets up the mock for you like so:
+
+```js filename="jest.config.js"
+module.exports = {
+  "@openmrs/esm-framework": "@openmrs/esm-framework/mock",
+};
+```
+
+This line tells Jest to use the mock module for all imports of `@openmrs/esm-framework`. This is useful because it allows you to test your module in isolation without having to worry about the framework.
+
+The framework mock aggregates stubs for all the framework APIs that your module might use. If functionality is missing, you should first add it to the mock. You can do this by extending any of the existing stubs or adding new ones.
+
+#### You should not need to use partial mocks
+
+The framework mock should be sufficient for testing your module. If you find yourself needing to mock individual functions or classes, it's likely that the framework mock is missing functionality. You may have seen a pattern like this in the past:
+
+```tsx
+import { useConfig } from "@openmrs/esm-framework";
+
+jest.mock("@openmrs/esm-framework", () => ({
+  ...jest.requireActual("@openmrs/esm-framework"),
+  useConfig: jest.fn(() => ({ config: { someConfig: "value" } })),
+}));
+```
+
+This is an anti-pattern. The right way to extend the framework mock is to add the missing functionality to the mock itself. Here's an example of how you can do this:
+
+```tsx
+import { useConfig } from "@openmrs/esm-framework";
+
+const mockUseConfig = jest.mocked(useConfig);
+
+beforeEach(() => {
+  mockUseConfig.mockReturnValue({ config: { someConfig: "value" } });
+});
+
+// Your tests go here...
+```
+
+#### Annotating mocks with type information
+
+Wherever possible, prefer using the `jest.mocked` function to get type information for your mocks. This will help you catch type errors early and make your tests more robust. You may have seen this pattern in the past:
+
+```tsx
+import { useLayoutType } from "@openmrs/esm-framework";
+
+const mockUseLayoutType = useLayoutType as jest.Mock;
+```
+
+The `jest.mocked` function is a better alternative:
+
+```tsx
+import { useLayoutType } from "@openmrs/esm-framework";
+
+const mockUseLayoutType = jest.mocked(useLayoutType);
+```
+
+The `jest.mocked` function will infer the type of the mock from the source function. You can take this a level further by explicitly annotating the mock with the type of the source function:
+
+```tsx
+import { useConfig } from "@openmrs/esm-framework";
+import type { PatientRegistrationConfig } from "../config-schema";
+
+const mockUseConfig = jest.mocked(useConfig<PatientRegistrationConfig>);
+```
+
+#### Annotating useConfig mocks with type information
+
+The `useConfig` hook is a special case because it takes a generic parameter that specifies the shape of the configuration object. In addition to annotating the mock with the type of the configuration object, you should also provide a default configuration object that your tests can use. Here's an example:
+
+```tsx
+import { getDefaultsFromConfigSchema, useConfig } from "@openmrs/esm-framework";
+import type { PatientRegistrationConfig } from "../config-schema";
+
+const mockUseConfig = jest.mocked(useConfig<PatientRegistrationConfig>);
+
+beforeEach(() => {
+  mockUseConfig.mockReturnValue({
+    ...getDefaultsFromConfigSchema(configSchema),
+    // Add you custom configuration here...
+  });
+});
+```
+
+This pattern ensures that your tests have access to a default configuration object that is consistent with the configuration schema. It also provides type information for the mock as well as seeding the mock with default configuration values from the schema. If you need to provide only a subset of the configuration values, you might need to cast the return value to the configuration type to keep TypeScript happy:
+
+```tsx
+beforeEach(() => {
+  mockUseConfig.mockReturnValue({
+    ...getDefaultsFromConfigSchema(configSchema),
+    // Add you custom configuration here...
+  } as RegistrationConfig);
+});
+```
+
+#### Key takeaways
+
+- Use the framework mock to test your module in isolation.
+- Extend the framework mock by adding stubs for missing functionality. Do not use partial mocks to add missing functionality.
+- Use the `jest.mocked` function to infer the type of your mocks from the source function.
+- Annotate your mocks with type information to catch type errors early and make your tests more robust.
+
+Ultimately, to get the right testing strategy, you’ll likely require a mix of unit, integration, and e2e tests. You’ll also need to figure out the right level of mocking to apply. Mock too little, and you’re likely testing too many implementation details. Mock too much, and you’re likely sacrificing a lot of confidence.
+
+Here's a cool video by Brandon on testing frontend modules:
+
+<br />
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/cGfFufJZV1M?si=vbkxuhecp619GYS7"
+  title="YouTube video player"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowFullScreen
+/>

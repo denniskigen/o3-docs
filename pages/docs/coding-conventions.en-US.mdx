@@ -344,14 +344,4 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - [Write fewer, longer tests](https://kentcdodds.com/blog/write-fewer-longer-tests).
 - Structure large test suites using [object page models](https://playwright.dev/docs/pom) when writing e2e tests using Playwright.
 - Follow the e2e testing [best practices](https://playwright.dev/docs/test-best-practices) outlined in the Playwright docs.
-- Functions from `@openmrs/esm-framework` get [mocked](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/mock.tsx) automatically when running tests. To override the default mock, use the `jest.mock` API. For example:
-
-  ```ts
-  // Override the default mock for usePatient
-  jest.mock("@openmrs/esm-framework", () => ({
-    ...jest.requireActual("@openmrs/esm-framework"),
-    usePatient: jest.fn(() => ({ uuid: "some-uuid" })),
-  }));
-  ```
-
-  Remember to update the mock when you modify or add a new function to `@openmrs/esm-framework`.
+- When stubbing out functionality from `@openmrs/esm-framework`, follow the mocking patterns described [here](/docs/frontend-modules/unit-and-integration-testing#mocking-patterns).

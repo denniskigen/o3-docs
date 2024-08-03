@@ -296,14 +296,4 @@ Il s'agit d'un recueil des conventions de codage que nous utilisons dans O3. L'o
 - [Écrivez des tests moins nombreux et plus longs](https://kentcdodds.com/blog/write-fewer-longer-tests).
 - Structurer les grandes suites de tests à l'aide de [modèles objet-page](https://playwright.dev/docs/pom) lors de l'écriture de tests e2e à l'aide de Playwright.
 - Suivre les [meilleures pratiques](https://playwright.dev/docs/test-best-practices) de test e2e décrites dans la documentation de Playwright.
-- Les fonctions de `@openmrs/esm-framework` sont [mocked](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/mock.tsx) automatiquement lors de l'exécution des tests. Pour surcharger le mock par défaut, utilisez l'API `jest.mock`. Par exemple:
-
-  ```ts
-  // Remplacer le simulacre par défaut pour usePatient
-  jest.mock("@openmrs/esm-framework", () => ({
-    ...jest.requireActual("@openmrs/esm-framework"),
-    usePatient: jest.fn(() => ({ uuid: "some-uuid" })),
-  }));
-  ```
-
-  N'oubliez pas de mettre à jour le mock lorsque vous modifiez ou ajoutez une nouvelle fonction à `@openmrs/esm-framework`.
+- Lors de la simulation de fonctionnalités de `@openmrs/esm-framework`, suivez les modèles de simulation décrits [ici](/docs/frontend-modules/unit-and-integration-testing#mocking-patterns).

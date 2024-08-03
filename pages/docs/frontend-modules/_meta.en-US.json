@@ -3,7 +3,8 @@
   "setup": "Setup",
   "contributing": "Contributing",
   "development": "Development",
-  "testing": "Testing",
+  "unit-and-integration-testing": "Unit and integration testing",
+  "end-to-end-testing": "End-to-end testing",
   "releasing": "Releasing",
   "loading-modules": "Loading modules",
   "using-webpack": "Using Webpack"

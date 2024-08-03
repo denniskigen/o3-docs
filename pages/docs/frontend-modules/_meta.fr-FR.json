@@ -3,7 +3,8 @@
   "setup": "Mise en place",
   "contributing": "Contribuer",
   "development": "Développement",
-  "testing": "Essais",
+  "unit-and-integration-testing": "Tests unitaires et d'intégration",
+  "end-to-end-testing": "Tests de bout en bout",
   "releasing": "Libération",
   "loading-modules": "Chargement des modules",
   "using-webpack": "Utilisation de Webpack"

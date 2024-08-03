@@ -1,0 +1,342 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+<Callout emoji="⚠️" type="warning">
+  CECI N'EST PLUS LA SOURCE DE VÉRITÉ ACTIVEMENT MAINTENUE POUR LA DOCUMENTATION DE DÉVELOPPEMENT O3. Cet effort a été
+  déplacé vers le Wiki OpenMRS à https://openmrs.atlassian.net/wiki/x/K4L-C
+</Callout>
+
+# Tests unitaires et d'intégration
+
+De manière générale, en ce qui concerne les tests des composants dans O3, il existe trois catégories de tests:
+
+1. **Tests unitaires** - vérifient que des éléments individuels et isolés de fonctionnalité fonctionnent ensemble comme prévu.
+2. **Tests d'intégration** - vérifient que plusieurs unités fonctionnent ensemble en harmonie.
+3. **Tests de bout en bout (e2e)** - un robot assistant qui se comporte comme un utilisateur pour cliquer dans l'application et vérifier qu'elle fonctionne correctement.
+
+Lors du travail avec un module frontend, ses tests unitaires (et parfois d'intégration) accompagnants seront généralement colocalisés dans un fichier nommé **\*.test.tsx**. Ces tests suivent généralement le modèle suivant:
+
+- Les tests d'intégration rendent généralement l'application complète tout en simulant quelques éléments comme les requêtes réseau ou l'accès à la base de données.
+- Les tests unitaires testent généralement des fonctions pures et vérifient qu'elles renvoient une sortie donnée lorsqu'elles reçoivent une entrée.
+- Les tests e2e exécutent généralement l'application entière (frontend et backend) et votre test interagira avec l'application comme le ferait un utilisateur typique.
+
+<Callout emoji="ℹ️" type="info">
+  **Philosophie de test**: Plus vos tests ressemblent à la façon dont votre logiciel est utilisé, plus ils peuvent vous
+  donner confiance.
+</Callout>
+
+## Exemple: Tester un module frontend
+
+Nous allons parcourir un exemple de suite de tests pour comprendre l'approche adoptée. Dans ce cas, nous utiliserons le module frontend [module-management](https://github.com/openmrs/openmrs-esm-module-management-app). Cette application prend la page `Gérer le module` de l'application de référence OpenMRS 2.x et la repense pour fonctionner dans O3. Elle fournit une interface permettant aux utilisateurs de gérer les modules backend. Elle liste tous les modules installés et permet aux administrateurs de contrôler l'exécution des modules via les actions exposées `Démarrer`, `Arrêter` et `Décharger`. Les utilisateurs peuvent également consulter des informations détaillées sur les modules listés.
+
+Examinons comment nous pourrions tester le composant `ModuleManagement`. En regardant son code, nous pouvons voir qu'il fait plusieurs choses:
+
+- Il récupère les données des modules depuis le backend en utilisant un hook SWR personnalisé.
+- Lorsque les données sont en cours de chargement, un état de chargement est affiché.
+- Lorsque les données sont chargées mais vides, un état vide est affiché.
+- Lorsqu'un problème survient lors de la récupération des données, un état d'erreur est affiché.
+- Lorsque les données sont récupérées, un datatable Carbon contenant des informations sur les modules existants est rendu.
+- Si l'utilisateur qui consulte la liste des modules a des privilèges suffisants, des boutons d'action sont affichés sur la page.
+
+Nous pourrions écrire une suite de tests qui teste chacun de ces chemins.
+
+### Écrire le test
+
+Créez un nouveau fichier à côté de `module-management.component.tsx` nommé `module-management.test.tsx`.
+
+Configurez une fonction qui rend le composant:
+
+```ts
+function renderModuleManagement() {
+  renderWithSwr(<ModuleManagement />);
+}
+```
+
+Note: Cette fonction d'aide `renderWithSwr` enveloppe un composant dans un contexte SWR qui fournit une configuration globale pour tous les hooks SWR.
+
+#### Tester qu'un état de chargement est rendu
+
+Nous ne voulons pas directement atteindre la base de données avec notre test et pour éviter cela, nous pourrions simuler la logique de récupération des données comme suit:
+
+```ts
+mockedOpenmrsFetch.mockReturnValueOnce({ data: { results: [] } });
+```
+
+Ce code simule la fonction `openmrsFetch`, en remplaçant son implémentation par une simulation qui renvoie un objet avec une propriété `results` qui est un tableau vide.
+
+Ensuite, nous voulons rendre le composant:
+
+```ts
+await waitForElementToBeRemoved(() => [...screen.queryAllByRole(/progressbar/i)], {
+  timeout: 4000,
+});
+```
+
+Ce code demande à Jest d'attendre jusqu'à ce que le chargeur soit retiré de l'interface utilisateur. Cela imite l'attente de la résolution d'une requête backend. Ensuite, nous voulons commencer à écrire nos assertions:
+
+```ts
+expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+expect(screen.queryByRole("table")).not.toBeInTheDocument();
+expect(screen.getByText(/il n'y a aucun module à afficher/i)).toBeInTheDocument();
+```
+
+Ces assertions:
+
+1. Affirment qu'un élément DOM avec le rôle `progressbar` ne devrait pas être dans le document.
+2. Affirment que le DOM ne contient pas d'élément avec le rôle `table`.
+3. Affirment que le texte `Il n'y a aucun module à afficher` est rendu dans le document.
+
+À tout moment, vous pouvez exécuter des tests en appelant `yarn test` ou `yarn turbo test` (si `turbo` est configuré).
+
+Pour évaluer l'état d'erreur, vous pourriez écrire:
+
+```ts
+it("rend une vue d'état d'erreur s'il y a eu un problème lors de la récupération des données du module", async () => {
+  const error = {
+    message: "Erreur Interne du Serveur",
+    response: {
+      status: 500,
+      statusText: "Erreur Interne du Serveur",
+    },
+  };
+
+  // Sucre syntaxique pour `mockedOpenmrsFetch.mockReturnValue(Promise.resolve(error))`
+  mockedOpenmrsFetch.mockRejectedValueOnce(error);
+
+  renderModuleManagement();
+
+  // Attendre que l'état de chargement disparaisse de l'écran
+  await waitForLoadingToFinish();
+
+  expect(screen.getByText(/désolé, il y a eu un problème lors de la récupération des modules/i)).toBeInTheDocument();
+});
+```
+
+Pour tester le chemin heureux, nous pourrions écrire le test suivant:
+
+```ts
+it("rend des informations détaillées sur le module", async () => {
+  const user = userEvent.setup();
+
+  const testModules = [
+    {
+      uuid: "initializer",
+      display: "Initializer",
+      name: "Initializer",
+      description:
+        "Le module OpenMRS Initializer est un module uniquement API qui traite le contenu du dossier de configuration lorsqu'il est trouvé dans le répertoire de données d'application d'OpenMRS.",
+      packageName: "org.openmrs.module.initializer",
+      author: "Mekom Solutions",
+      version: "2.3.0",
+      started: true,
+      startupErrorMessage: null,
+      requireOpenmrsVersion: "2.1.1",
+      awareOfModules: [
+        "org.openmrs.module.metadatamapping",
+        "org.bahmni.module.bahmni.ie.apps",
+        "org.openmrs.module.datafilter",
+        "org.openmrs.module.htmlformentry",
+        "org.bahmni.module.appointments",
+        "org.openmrs.module.metadatasharing",
+        "org.openmrs.module.openconceptlab",
+        "org.bahmni.module.bahmnicore",
+        "org.openmrs.module.idgen",
+        "org.openmrs.module.legacyui",
+      ],
+      requiredModules: [],
+      resourceVersion: "1.8",
+    },
+    {
+      uuid: "serialization.xstream",
+      display: "Serialization Xstream",
+      name: "Serialization Xstream",
+      description: "API et services de (dé)sérialisation principaux pris en charge par la bibliothèque xstream",
+      packageName: "org.openmrs.module.serialization.xstream",
+      author: "luzhuangwei",
+      version: "0.2.15",
+      started: true,
+      startupErrorMessage: null,
+      requireOpenmrsVersion: "1.9.9",
+      awareOfModules: [],
+      requiredModules: [],
+      resourceVersion: "1.8",
+    },
+  ];
+
+  // Renvoie l'objet `testModules` défini ci-dessus dans la réponse API. La propriété `data` imbriquée ci-dessous correspond à la propriété `data` renvoyée par l'appel du hook `useSWR`
+  mockedOpenmrsFetch.mockReturnValueOnce({
+    data: { results: testModules },
+  });
+
+  renderModuleManagement();
+
+  // Attendre que l'état de chargement disparaisse de l'écran
+  await waitForLoadingToFinish();
+
+  expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /ajouter \/ mettre à niveau les modules/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /rechercher dans les extensions/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /vérifier les mises à jour/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /tout démarrer/i })).toBeInTheDocument();
+  expect(screen.getByRole("table")).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: /gérer les modules/i })).toBeInTheDocument();
+  expect(screen.getByRole("searchbox", { name: /filtrer le tableau/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /effacer la recherche/i })).toBeInTheDocument();
+
+  const modules = testModules.map((module) => module);
+
+  modules.forEach((module) => {
+    expect(screen.getByText(module.name)).toBeInTheDocument();
+    expect(screen.getByText(module.description)).toBeInTheDocument();
+  });
+
+  const expectedColumnHeaders = [/statut/, /nom/, /auteur/, /version/, /Description/];
+
+  expectedColumnHeaders.forEach((row) => {
+    expect(screen.getByRole("columnheader", { name: new RegExp(row, "i") })).toBeInTheDocument();
+  });
+
+  const searchbox = screen.getByRole("searchbox", { name: /filtrer le tableau/i });
+
+  // rechercher le module Serializer
+  await user.type(searchbox, "Seri");
+
+  expect(screen.getByText(/Serialization Xstream/i)).toBeInTheDocument();
+  expect(screen.queryByText(/Initializer/i)).not.toBeInTheDocument();
+
+  await user.clear(searchbox);
+
+  // rechercher quelque chose qui n'existe pas dans la liste des modules
+  await user.type(searchbox, "module-super-inédit");
+
+  expect(screen.queryByText(/Serialization Xstream/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Initializer/i)).not.toBeInTheDocument();
+  expect(screen.getByText(/aucun module correspondant trouvé/i)).toBeInTheDocument();
+});
+```
+
+Il se passe beaucoup de choses ici, alors essayons de le décomposer. Pour commencer, nous invoquons la configuration `userEvent` avant que le composant ne soit rendu. Ensuite, nous mettons en place un objet appelé `testModules` qui imite les données que nous nous attendrions typiquement à obtenir du backend. Nous configurons ensuite la fonction `mockedOpenmrsFetch` pour qu'elle renvoie les données simulées. Après cela, nous pouvons enfin rendre le composant. Parce que nous simulons un délai, nous attendrons que l'état de chargement soit terminé avant d'exécuter nos assertions. Une fois cela fait, nous exécuterons des assertions sur le datatable de gestion des modules, comparant les en-têtes de tableau et les données de ligne à nos données attendues. Nous simulerons ensuite une recherche dans la liste, explorant à la fois le chemin heureux et l'état vide.
+
+Bien que ce test passe et puisse nous donner une certaine confiance que ce composant fonctionne comme prévu, il y a encore quelques faiblesses dans cette approche. Par exemple:
+
+- Parce que nous ne regardons pas le point de terminaison de l'API et les paramètres de la requête, nous ne pouvons pas dire si l'utilisateur fait la bonne requête.
+- Parce que nous simulons le backend, nous ne pouvons pas prédire avec confiance ce qui se passera si le vrai serveur est en panne, ou s'il renvoie un résultat inattendu.
+
+### Modèles de simulation
+
+Lors de l'écriture de tests, vous aurez souvent besoin de simuler des dépendances. Voici quelques modèles que vous pouvez utiliser pour écrire des tests plus efficaces, maintenables et sûrs au niveau du type pour vos modules frontend:
+
+Core exporte un mock de module qui peut être utilisé pour tester les fonctionnalités dans `@openmrs/esm-framework`. Vous aurez généralement un fichier de configuration Jest qui configure le mock pour vous comme ceci:
+
+```js filename="jest.config.js"
+module.exports = {
+  "@openmrs/esm-framework": "@openmrs/esm-framework/mock",
+};
+```
+
+Cette ligne indique à Jest d'utiliser le module mock pour toutes les importations de `@openmrs/esm-framework`. C'est utile car cela vous permet de tester votre module de manière isolée sans avoir à vous soucier du framework.
+
+Le mock du framework agrège des stubs pour toutes les APIs du framework que votre module pourrait utiliser. Si une fonctionnalité est manquante, vous devriez d'abord l'ajouter au mock. Vous pouvez le faire en étendant l'un des stubs existants ou en en ajoutant de nouveaux.
+
+#### Vous ne devriez pas avoir besoin d'utiliser des mocks partiels
+
+Le mock du framework devrait être suffisant pour tester votre module. Si vous vous retrouvez à devoir simuler des fonctions ou des classes individuelles, il est probable que le mock du framework manque de fonctionnalités. Vous avez peut-être vu un modèle comme celui-ci dans le passé:
+
+```tsx
+import { useConfig } from "@openmrs/esm-framework";
+
+jest.mock("@openmrs/esm-framework", () => ({
+  ...jest.requireActual("@openmrs/esm-framework"),
+  useConfig: jest.fn(() => ({ config: { someConfig: "valeur" } })),
+}));
+```
+
+C'est un anti-modèle. La bonne façon d'étendre le mock du framework est d'ajouter la fonctionnalité manquante au mock lui-même. Voici un exemple de comment vous pouvez faire cela:
+
+```tsx
+import { useConfig } from "@openmrs/esm-framework";
+
+const mockUseConfig = jest.mocked(useConfig);
+
+beforeEach(() => {
+  mockUseConfig.mockReturnValue({ config: { someConfig: "valeur" } });
+});
+
+// Vos tests vont ici...
+```
+
+#### Annoter les mocks avec des informations de type
+
+Dans la mesure du possible, préférez utiliser la fonction `jest.mocked` pour obtenir des informations de type pour vos mocks. Cela vous aidera à détecter les erreurs de type tôt et rendra vos tests plus robustes. Vous avez peut-être vu ce modèle dans le passé:
+
+```tsx
+import { useLayoutType } from "@openmrs/esm-framework";
+
+const mockUseLayoutType = useLayoutType as jest.Mock;
+```
+
+La fonction `jest.mocked` est une meilleure alternative:
+
+```tsx
+import { useLayoutType } from "@openmrs/esm-framework";
+
+const mockUseLayoutType = jest.mocked(useLayoutType);
+```
+
+La fonction `jest.mocked` déduira le type du mock à partir de la fonction source. Vous pouvez aller plus loin en annotant explicitement le mock avec le type de la fonction source:
+
+```tsx
+import { useConfig } from "@openmrs/esm-framework";
+import type { PatientRegistrationConfig } from "../config-schema";
+
+const mockUseConfig = jest.mocked(useConfig<PatientRegistrationConfig>);
+```
+
+#### Annoter les mocks useConfig avec des informations de type
+
+Le hook `useConfig` est un cas particulier car il prend un paramètre générique qui spécifie la forme de l'objet de configuration. En plus d'annoter le mock avec le type de l'objet de configuration, vous devriez également fournir un objet de configuration par défaut que vos tests peuvent utiliser. Voici un exemple:
+
+```tsx
+import { getDefaultsFromConfigSchema, useConfig } from "@openmrs/esm-framework";
+import type { PatientRegistrationConfig } from "../config-schema";
+
+const mockUseConfig = jest.mocked(useConfig<PatientRegistrationConfig>);
+
+beforeEach(() => {
+  mockUseConfig.mockReturnValue({
+    ...getDefaultsFromConfigSchema(configSchema),
+    // Ajoutez votre configuration personnalisée ici...
+  });
+});
+```
+
+Ce modèle garantit que vos tests ont accès à un objet de configuration par défaut qui est cohérent avec le schéma de configuration. Il fournit également des informations de type pour le mock ainsi que l'initialisation du mock avec des valeurs de configuration par défaut du schéma. Si vous devez fournir seulement un sous-ensemble des valeurs de configuration, vous devrez peut-être convertir la valeur de retour au type de configuration pour satisfaire TypeScript:
+
+```tsx
+beforeEach(() => {
+  mockUseConfig.mockReturnValue({
+    ...getDefaultsFromConfigSchema(configSchema),
+    // Ajoutez votre configuration personnalisée ici...
+  } as RegistrationConfig);
+});
+```
+
+#### Points clés à retenir
+
+- Utilisez le mock du framework pour tester votre module de manière isolée.
+- Étendez le mock du framework en ajoutant des stubs pour les fonctionnalités manquantes. N'utilisez pas de mocks partiels pour ajouter des fonctionnalités manquantes.
+- Utilisez la fonction `jest.mocked` pour déduire le type de vos mocks à partir de la fonction source.
+- Annotez vos mocks avec des informations de type pour détecter les erreurs de type tôt et rendre vos tests plus robustes.
+
+En fin de compte, pour obtenir la bonne stratégie de test, vous aurez probablement besoin d'un mélange de tests unitaires, d'intégration et de bout en bout. Vous devrez également déterminer le bon niveau de simulation à appliquer. Si vous simulez trop peu, vous risquez de tester trop de détails d'implémentation. Si vous simulez trop, vous risquez de sacrifier beaucoup de confiance.
+
+Voici une vidéo intéressante de Brandon sur les tests des modules frontend:
+
+<br />
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/cGfFufJZV1M?si=vbkxuhecp619GYS7"
+  title="Lecteur vidéo YouTube"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowFullScreen
+/>

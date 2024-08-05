@@ -5,7 +5,7 @@
   "development": "Développement",
   "unit-and-integration-testing": "Tests unitaires et d'intégration",
   "end-to-end-testing": "Tests de bout en bout",
-  "releasing": "Libération",
+  "releasing-modules": "Publication des modules frontend",
   "loading-modules": "Chargement des modules",
   "using-webpack": "Utilisation de Webpack"
 }

@@ -5,7 +5,7 @@
   "development": "Development",
   "unit-and-integration-testing": "Unit and integration testing",
   "end-to-end-testing": "End-to-end testing",
-  "releasing": "Releasing",
+  "releasing-modules": "Releasing modules",
   "loading-modules": "Loading modules",
   "using-webpack": "Using Webpack"
 }

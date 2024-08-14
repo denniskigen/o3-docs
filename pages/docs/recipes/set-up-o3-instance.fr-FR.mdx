@@ -273,6 +273,77 @@ Une fois que vous avez configuré votre instance O3, il y a plusieurs choses que
     savoir ce qui est possible.
   </Callout>
 
+### Mise à Jour des Métadonnées
+
+Pour mettre à jour les métadonnées dans le dossier `distro/configuration` (par exemple, ajouter de nouveaux formulaires, concepts, etc.), suivez ces étapes :
+
+#### Étape 1 : Arrêter l'Instance en Cours d'Exécution
+
+Si votre instance est actuellement en cours d'exécution, commencez par l'arrêter :
+
+```sh
+docker compose down -v --remove-orphans
+```
+
+Cette commande arrête et supprime les conteneurs en cours, assurant un démarrage propre pour vos métadonnées mises à jour.
+
+#### Étape 2 : Construire l'Image Docker Locale
+
+Pour refléter les métadonnées mises à jour dans votre instance, vous devrez construire une image Docker locale. Assurez-vous que vos fichiers de configuration respectent les [conventions acceptées pour chaque configuration](https://github.com/mekomsolutions/openmrs-module-initializer?tab=readme-ov-file#supported-domains-and-default-loading-order), car des formats incorrects pourraient empêcher l'apparition des métadonnées dans l'instance comme prévu.
+
+```sh
+TAG=your-custom-tag docker compose build
+```
+
+Remplacez `your-custom-tag` par un tag unique de votre choix. Il est conseillé d'utiliser un tag qui n'est pas présent sur Docker Hub (par exemple, `qa` ou des versions spécifiques) pour éviter les conflits.
+
+#### Étape 3 : Exécuter l'Instance avec l'Image Mise à Jour
+
+Ensuite, démarrez votre instance en utilisant l'image construite localement :
+
+```sh
+TAG=your-custom-tag docker compose -f docker-compose.yml up -d
+```
+
+Assurez-vous que la variable `TAG` correspond à celle que vous avez utilisée à l'étape précédente. Cette commande lance l'instance en utilisant votre image locale plutôt que d'en tirer une de Docker Hub.
+
+#### Étape 4 : Attendre le Démarrage de l'Instance
+
+Enfin, suivez [l'étape 4](https://docs/recipes/set-up-o3-instance#step-4-1) du guide de configuration et attendez que votre instance se lance complètement avec les métadonnées mises à jour.
+
+### Préparation pour la Production
+
+Par défaut, RefApp est configurée pour utiliser les versions `next` des [modules frontend](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/spa-assemble-config.json) et de la [coquille applicative](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/Dockerfile). Cela signifie qu'elle utilisera les dernières versions *préliminaires* disponibles.
+
+**Pour un environnement de production, il est fortement recommandé d'utiliser les dernières versions stables.**
+
+#### Étape 1 : Mettre à Jour les Versions des Modules Frontend
+
+Dans le fichier `frontend/spa-assemble-config.json`, mettez à jour les versions des modules frontend de `next` à `latest` :
+
+```json
+{
+  "frontendModules": {
+    "@openmrs/esm-active-visits-app": "latest",
+    ...
+  }
+}
+```
+
+Cela garantit que l'application utilisera les versions stables les plus récentes de ces modules.
+
+#### Étape 2 : Mettre à Jour la Version de la Coquille Applicative
+
+Dans le `frontend/Dockerfile`, mettez à jour la version de la coquille applicative en changeant l'argument `APP_SHELL_VERSION` à `latest` :
+
+```Dockerfile
+  ...
+  ARG APP_SHELL_VERSION=latest
+  ...
+```
+
+Ce changement garantit que la coquille applicative utilise également la version stable la plus récente.
+
 ## Liens utiles
 
 - OpenMRS [documentation SDK](https://wiki.openmrs.org/display/docs/OpenMRS+SDK)

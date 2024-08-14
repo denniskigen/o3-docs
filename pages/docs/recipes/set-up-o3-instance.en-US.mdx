@@ -292,6 +292,77 @@ Once you've set up your O3 instance, there are various things you might want to 
     Go through the repo's README to learn what's possible.
   </Callout>
 
+### Updating Metadata
+
+To update the metadata in the `distro/configuration` folder (e.g., adding new forms, concepts, etc.), follow these steps:
+
+#### Step 1: Stop the Running Instance
+
+If your instance is currently running, first bring it down:
+
+```sh
+docker compose down -v --remove-orphans
+```
+
+This command stops and removes the current containers, ensuring a clean start for your updated metadata.
+
+#### Step 2: Build the Local Docker Image
+
+To reflect the updated metadata in your instance, you'll need to build a local Docker image. Ensure your configuration files follow the [accepted conventions for each configuration](https://github.com/mekomsolutions/openmrs-module-initializer?tab=readme-ov-file#supported-domains-and-default-loading-order), as incorrect formats might prevent the metadata from appearing in the instance as expected.
+
+```sh
+TAG=your-custom-tag docker compose build
+```
+
+Replace `your-custom-tag` with any unique tag of your choice. It’s advisable to use a tag not found on Docker Hub (e.g., `qa` or specific release versions) to avoid conflicts.
+
+#### Step 3: Run the Instance with the Updated Image
+
+Next, start your instance using the locally built image:
+
+```sh
+TAG=your-custom-tag docker compose -f docker-compose.yml up -d
+```
+
+Ensure that the `TAG` variable matches the one you used in the previous step. This command launches the instance using your locally built image instead of pulling one from Docker Hub.
+
+#### Step 4: Wait for the Instance to Start
+
+Finally, follow [Step 4](https://docs/recipes/set-up-o3-instance#step-4-1) of the setup guide and wait for your instance to fully spin up with the updated metadata.
+
+### Preparing for Production
+
+By default, the RefApp is configured to use the `next` versions of the [frontend modules](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/spa-assemble-config.json) and the [app shell](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/Dockerfile). This means it will use the latest *pre-release* versions available.
+
+**For a production environment, it is strongly recommended to use the latest stable versions.**
+
+#### Step 1: Update Frontend Module Versions
+
+In the `frontend/spa-assemble-config.json` file, update the versions of the frontend modules from `next` to `latest`:
+
+```json
+{
+  "frontendModules": {
+    "@openmrs/esm-active-visits-app": "latest",
+    ...
+  }
+}
+```
+
+This ensures that the application will use the most recent stable versions of these modules.
+
+#### Step 2: Update the App Shell Version
+
+In the `frontend/Dockerfile`, update the version of the app shell by changing the `APP_SHELL_VERSION` argument to `latest`:
+
+```Dockerfile
+  ...
+  ARG APP_SHELL_VERSION=latest
+  ...
+```
+
+This change ensures that the app shell is also using the latest stable version.
+
 ## Useful links
 
 - OpenMRS [SDK documentation](https://wiki.openmrs.org/display/docs/OpenMRS+SDK)

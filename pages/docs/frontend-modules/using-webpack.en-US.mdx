@@ -58,7 +58,7 @@ idea here is that, by not passing the code in `node_modules` through a loader, t
 libraries published to the NPM registry are normally packaged as Javascript already, there's really no reason to re-process those files. However, there are
 some situations where we do need to process the libraries in `node_modules`. The most obvious one in the general ecosystem is `esm-patient-common-lib`, a shared
 library for apps that are part of the patient chart. `esm-patient-common-lib` does not have a build step and so the published version is just the raw Typescript
-source. Since Webpack cannot load Typescript without a loader of some sort, builds will fail is we do not modify the Webpack configuration of the apps consuming
+source. Since Webpack cannot load Typescript without a loader of some sort, builds will fail if we do not modify the Webpack configuration of the apps consuming
 that library to also process those Typescript files. Note that this does not apply to the packages in the openmrs-esm-patient-chart monorepo because they load
 `esm-patient-common-lib` via the Yarn workspace rather than via `node_modules` so inside the patient chart monorepo, `esm-patient-common-lib` is processed
 properly.

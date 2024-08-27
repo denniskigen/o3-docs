@@ -1,123 +1,147 @@
-import { Callout } from "nextra-theme-docs";
+import { Callout, Steps } from "nextra-theme-docs";
 
 # Configuration de la marque
 
-Les responsables de la mise en œuvre peuvent configurer divers aspects de l'interface utilisateur pour qu'elle corresponde à leur image de marque. Il s'agit notamment de:
+Les implémenteurs peuvent configurer divers aspects de l'interface utilisateur pour correspondre à leur marque. Cela inclut:
 
 - Changer le logo sur l'écran de connexion
 - Changer le logo sur la barre de navigation
 - Changer les couleurs de la marque
+- Changer le favicon
 
-## Modifier les logos
+## Changement des logos
 
-Les logos sont utilisés à deux endroits dans O3:
+Les logos sont utilisés à plusieurs endroits dans O3:
 
-- La page de connexion 
+- La page de connexion
 - La barre de navigation
+- Optionnellement dans les impressions lorsque configuré
 
-### Changer le logo utilisé sur la page de connexion
-
-Le logo par défaut utilisé dans la page du logo O3 est le sprite SVG OpenMRS défini [ici](https://github.com/openmrs/openmrs-esm-core/blob/0def92114577a10bd81e78c25de0edd4ced3a84d/packages/apps/esm-login-app/src/login/login.component.tsx#L160). 
-
-Vous pouvez remplacer le logo en fournissant une image valide `src` URL comme valeur de la propriété `src` dans le schéma de configuration du module frontend login. Ce qui suit est un extrait de ce à quoi cela ressemblerait:
+Le logo par défaut utilisé dans la page de connexion O3 est le sprite SVG OpenMRS défini [ici](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/apps/esm-login-app/src/login/login.component.tsx#L160). Vous pouvez le remplacer en fournissant une URL `src` d'image valide comme valeur de la propriété `src` dans le schéma de configuration du module frontend de connexion. Voici un exemple de à quoi cela pourrait ressembler:
 
 ```json
 {
   "@openmrs/esm-login-app": {
     "logo": {
       "src": "https://data.kenyahmis.org/openmrs/images/logos/kenyaemr-logo.svg",
-      "alt": "KenyaEMR logo"
+      "alt": "Logo KenyaEMR"
     }
   }
 }
 ```
 
-Dans ce cas, le logo spécifié à cette URL sera appliqué comme logo par défaut de la page de connexion. Pour persister dans ce changement, vous devrez ajouter la configuration à la configuration de votre instance.
+Dans cet exemple, le logo SVG spécifié à cette URL sera appliqué comme logo par défaut de la page de connexion. Pour persister ce changement, vous devrez valider cette configuration dans la configuration frontend de votre instance. Pour faire cela dans l'application de référence de la distribution, vous devrez:
 
-1. **Ajoutez votre ressource dans un dossier de l'instance, par exemple un `logo.png` dans le dossier `frontend/resources`.**
+<Steps>
 
-2. **Ajoutez la ligne suivante au `Dockerfile` dans le dossier `frontend` :**
+### Étape 1
+
+Ajouter votre ressource à un répertoire dans la distribution. Par exemple, un fichier `logo.png` peut être ajouté au répertoire `frontend/resources`.
+
+### Étape 2
+
+Ajouter cette ligne au `Dockerfile` dans le répertoire `frontend`:
 
 ```sh
 COPY ./resources/logo.png /usr/share/nginx/html
 ```
 
-3. **Modifiez le fichier `config-core_demo.json` dans le dossier `frontend` et ajoutez l'extrait de code suivant :**
+Cela copiera le logo à la racine de l'application.
 
-```json
-{
-  "@openmrs/esm-login-app": {
-    "logo": {
-      "src": "${openmrsSpaBase}/logo.png",
-      "alt": "Logo"
+### Étape 3
+
+Ajouter le snippet suivant au fichier `config-core_demo.json` dans le répertoire `frontend`:
+
+  <Callout emoji="ℹ️" type="info">
+    Notez que les chemins vers vos fichiers de configuration peuvent être différents. Ajustez les chemins pour correspondre à la structure de votre application.
+  </Callout>
+
+  ```json
+  {
+    "@openmrs/esm-login-app": {
+      "logo": {
+        "src": "${openmrsSpaBase}/logo.png",
+        "alt": "Logo"
+      }
     }
   }
-}
-```
+  ```
 
-### Modifier le logo utilisé dans la barre de navigation
+Cela limite le logo à l'application de connexion uniquement.
 
-De même, le logo par défaut utilisé dans la barre de navigation est configuré [ici](https://github.com/openmrs/openmrs-esm-core/blob/0def92114577a10bd81e78c25de0edd4ced3a84d/packages/apps/esm-primary-navigation-app/src/components/logo/logo.component.tsx#L10). Vous pouvez utiliser une chaîne de caractères ou une image SVG comme logo de la barre de navigation. Pour remplacer le logo de la barre de navigation, utilisez une configuration similaire à l'extrait ci-dessous:
+</Steps>
+
+### Changement du logo utilisé dans la barre de navigation
+
+Le logo par défaut utilisé sur la barre de navigation est configuré [ici](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/apps/esm-primary-navigation-app/src/components/logo/logo.component.tsx#L10). Vous pouvez optionnellement utiliser une chaîne de caractères ou une image SVG comme logo de la barre de navigation. Pour remplacer le logo de la barre de navigation, utilisez une configuration similaire au snippet ci-dessous:
 
 ```json
 {
   "@openmrs/esm-primary-navigation-app": {
     "logo": {
-      // Utilisation d'une image SVG URL
+      // Utilisation d'une URL d'image SVG
       "src": "https://data.kenyahmis.org/openmrs/images/logos/kenyaemr-logo-nav.svg"
-      // Ou en utilisant une chaîne de caractères
+      // Ou, utilisation d'une chaîne de caractères
       "name": "KenyaEMR",
     }
   }
 }
 ```
 
-Pour rendre les modifications persistantes, suivez les étapes similaires à celles de la persistance du logo, à l'exception de l'extrait de code dans le fichier `config-core_demo.json`, où l'extrait doit être modifié comme suit :
+Pour persister vos changements dans votre distribution, suivez les mêmes étapes que dans la [section précédente](#changement-des-logos) avec le snippet de fichier de configuration suivant dans le fichier `config-core_demo.json`:
+
 ```json
 {
   "@openmrs/esm-primary-navigation-app": {
     "src": "${openmrsSpaBase}/logo.png",
-      "alt": "Logo"
+    "alt": "Logo"
   }
 }
 ```
+
+Cela limite le logo à l'application de navigation primaire uniquement.
+
 <Callout emoji="ℹ️" type="info">
-  Ajouter une URL à une image hébergée à l'extérieur (que ce soit pour la page de connexion ou la page de navigation principale) pourrait échouer à cause de la politique de sécurité du contenu. Pour l'activer, vous devez modifier le fichier `default.conf.template` dans le dossier `template` pour inclure `img-src *`.
+  Si l'image que vous utilisez pour le logo est hébergée en dehors de la distribution OpenMRS, vous devrez peut-être modifier la Politique de Sécurité du Contenu pour permettre le chargement de l'image. Pour ce faire, vous devriez ajuster le bloc map qui définit les en-têtes CSP dans le [fichier de configuration nginx](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/gateway/default.conf.template#L4) dans le répertoire `gateway`. Vous voudrez peut-être ajouter une directive `img-src *` qui permet le chargement de toutes les images. `img-src *` permet le chargement d'images depuis n'importe quelle origine, y compris votre domaine, tous les domaines externes et les URI de données.
 </Callout>
 
-### Changer le favicon
+## Changement du favicon
 
-Ajoutez le favicon dans le dossier du dépôt de l'application de référence. Modifiez le Dockerfile dans le dossier `frontend` pour ajouter la ligne suivante :
+Pour changer le favicon, vous devrez ajouter le fichier favicon à votre distribution. Vous ajouteriez ensuite la ligne suivante au [Dockerfile frontend](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/Dockerfile):
+
 ```sh
-COPY ./path-to-the-favicon /usr/share/nginx/html
+COPY ./chemin-vers-le-favicon /usr/share/nginx/html
 ```
+
+Cela copiera le favicon à la racine de l'application.
+
 <Callout emoji="ℹ️" type="info">
-Note : Vous devrez reconstruire l'application pour que ce changement prenne effet.
+  Note: Vous devrez reconstruire l'application pour que ce changement prenne effet.
 </Callout>
 
-## Changer les couleurs de la marque
+## Changement des couleurs de la marque
 
-Les implémenteurs peuvent changer les couleurs de marque par défaut spécifiées dans le guide de style, en les remplaçant par des valeurs hexadécimales qui correspondent à leurs propres couleurs de marque. Les couleurs de marque par défaut qui déterminent l'apparence de l'interface utilisateur sont définies dans le schéma de configuration du `guide de style`. Pour les remplacer, utilisez une configuration similaire à l'extrait ci-dessous:
+Les implémenteurs peuvent changer les couleurs de marque par défaut spécifiées dans le guide de style, les remplaçant par des valeurs hexadécimales conformes à leurs propres couleurs de marque. Les couleurs de marque par défaut qui déterminent l'apparence de l'interface utilisateur sont définies dans le schéma de configuration `styleguide`. Pour les remplacer, utilisez une configuration similaire au snippet ci-dessous:
 
 ```json
 {
   "@openmrs/esm-styleguide": {
-    "Couleur de la marque #1": "#00473F", // La couleur 'principale'
-    "Couleur de la marque #2": "#363463", // La couleur 'secondaire'
-    "Couleur de la marque #3": "#51A351" // La couleur 'tertiaire'
+    "Couleur de marque #1": "#00473F", // La couleur 'primaire'
+    "Couleur de marque #2": "#363463", // La couleur 'secondaire'
+    "Couleur de marque #3": "#51A351" // La couleur 'tertiaire'
   }
 }
 ```
 
-Ces couleurs ont un impact sur les éléments d'interface utilisateur suivants:
+Ces couleurs impactent les éléments UI suivants:
 
-### Couleur principale
+### Couleur primaire
 
-La couleur principale affecte:
+La couleur primaire affecte:
 
 - La couleur de la barre de navigation
   <br />
-  ![navbar](/navbar.png)
+  ![barre de navigation](/navbar.png)
   <br />
 
 - La couleur de survol des éléments du menu de l'application
@@ -125,9 +149,9 @@ La couleur principale affecte:
   ![couleur de survol des éléments du menu de l'application](/app-menu-items-hover.png)
   <br />
 
-- La couleur de l'application sélectionnée dans la barre latérale
+- La couleur de l'application sélectionnée dans le rail latéral
   <br />
-  ![icône de la barre latérale sélectionnée](/siderail-icon.png)
+  ![icône du rail latéral sélectionnée](/siderail-icon.png)
   <br />
 
 ### Couleur secondaire
@@ -145,7 +169,7 @@ La couleur tertiaire affecte:
 
 - La couleur des boutons
   <br />
-  ![couleur du bouton](/button.png)
+  ![couleur des boutons](/button.png)
   <br />
 
 - La couleur de soulignement du titre du widget
@@ -153,17 +177,16 @@ La couleur tertiaire affecte:
   ![couleur de soulignement du titre du widget](/widget-title-underline-color.png)
   <br />
 
-## Démonstration vidéo
+## Démo vidéo
 
-Regardez la vidéo pour voir une démo de comment configurer la marque:
+Regardez la vidéo pour voir une démo de la configuration de la marque:
 
   <br />
   <iframe
     width="560"
     height="315"
     src="https://www.youtube.com/embed/u5TmUFBrm_s"
-    title="Thématique et étiquetage blanc avec OpenMRS 3"
-    allow="accelerometer ; autoplay ; clipboard-write ; encrypted-media ; gyroscope ; picture-in-picture ; web-share"
+    title="Thématisation et Personnalisation avec OpenMRS 3"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowFullScreen
   />
-```

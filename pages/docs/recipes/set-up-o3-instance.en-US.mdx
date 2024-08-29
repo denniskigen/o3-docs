@@ -287,12 +287,10 @@ Once you've set up your O3 instance, there are various things you might want to 
 
 - Testing various features - try registering a patient and launching their chart. Look out for any console errors or any errors in the UI, You might also want to look out for errors in the browser's devtools network tab. If you don't have the `fhir` module running, you should expect to see problems with rendering the patient banner and most other widgets in the chart because things in the chart depend on a valid `patient UUID` being available, and the patient object gets fetched via a FHIR endpoint,
 
-- Thinking about how to set up your forms in O3. Forms in O3 are built using JSON and conform to this standard schema, If your existing forms were built using HTML Form Entry, you'll need to convert them into JSON schemas. Check out the embedded form builder in O3 for an idea of what this format looks like. The schema editor can allow you to build a new form using a dummy schema scaffold. To learn more about forms in O3, read the `Building forms in O3` recipe.
+- Thinking about how to set up your forms in O3. Forms in O3 are built using JSON and conform to this [standard schema](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). If your existing forms were built using HTML Form Entry, you'll need to convert them into JSON schemas. Check out the embedded form builder in O3 for an idea of what this format looks like. The schema editor can allow you to build a new form using a dummy schema scaffold. To learn more about forms in O3, read the `Building forms in O3` recipe.
 
   <Callout emoji="ℹ️" type="info">
-    An OpenMRS module exists for converting HTML Form Entry schemas into JSON schemas compatible with the O3 standard
-    schema at https://github.com/openmrs/hfe-o3-form-schema-converter. Currently, work is ongoing to improve the tool.
-    Go through the repo's README to learn what's possible.
+    An OpenMRS module exists for converting HTML Form Entry schemas into JSON schemas compatible with the O3 standard schema at https://github.com/openmrs/hfe-o3-form-schema-converter. Currently, work is ongoing to improve the tool. Go through the repo's README to learn what's possible.
   </Callout>
 
 ## Updating metadata

@@ -242,13 +242,19 @@ If you’re running Linux, you may see the following error the first time you ru
 
 ### I see errors about missing APIs when I run the app
 
-If your dev server is throwing errors about missing APIs or functions, it's likely because you're running outdated versions of core tooling. This means that new functionality was likely added to [Core](https://github.com/openmrs/openmrs-esm-patient-chart) that your local dev server doesn't have. New pre-release versions of the [openmrs](https://npmjs.com/package/openmrs) CLI and [@openmrs/esm-framework](https://npmjs.com/package/@openmrs/esm-framework) get published each time a pull request is merged in Core. To ensure you have the latest versions of these packages, run:
+If your dev server is throwing errors about missing APIs or functions, it's likely because you're running outdated versions of the framework or core tooling. This means that new functionality was likely added to [Core](https://github.com/openmrs/openmrs-esm-patient-chart) that your local dev server doesn't have. New pre-release versions of the [openmrs](https://npmjs.com/package/openmrs) CLI and [@openmrs/esm-framework](https://npmjs.com/package/@openmrs/esm-framework) get published each time a pull request is merged in Core. To ensure you have the latest versions of these packages, run:
 
 ```sh
 yarn up openmrs@next @openmrs/esm-framework@next
 ```
 
-This command might change the versions of the packages specified in your manifest file (`package.json`). If it does, you'll need to revert the versions back to `next` before you commit your changes. You might need to run `yarn` to install the new versions of the packages after effecting the changes. Once you've done that, you should be able to run the dev server without any issues. Be sure to only commit the updated `yarn.lock` file.
+This command might change the versions of the packages specified in your manifest file (`package.json`). If it does, you'll need to revert the versions back to `next` before you commit your changes. You might need to run `yarn` to install the new versions of the packages after effecting the changes. Once you've done that, you should be able to run the dev server without any issues. Be sure to only commit the updated `yarn.lock` file. You'll run this command frequently enough when working on O3 that it might make sense to add an alias for it in your `.zshrc` or `.bashrc` file. Something similar to the following:
+
+```sh
+alias bump-core-tooling="yarn up openmrs@next @openmrs/esm-framework@next && git checkout package.json && yarn"
+```
+
+This command will update the versions of the packages specified in your manifest file (`package.json`) to the latest versions and revert the versions back to `next` after the command runs. It will then install the new versions of the packages. Be sure to review the changes to the `package.json` file and revert the versions back to `next` before committing your changes.
 
 ### I'm getting a `ERR_OSSL_EVP_UNSUPPORTED` error when running `yarn run build`
 

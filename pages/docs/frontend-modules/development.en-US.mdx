@@ -328,3 +328,27 @@ If you're getting this error, you most likely need to add `@openmrs/esm-patient-
 ### I'm getting an `Oops! An unhandled promise rejection occurred` error when loading my dev server
 
 If you see an `Unhandled promise rejection` error when running a dev server or a production instance of O3, it likely means that you have a module that is not getting loaded correctly. The devtools console in your browser will likely contain an error message about the module that is not getting loaded. Typically, you'll want to start by checking that you don't have any stale overrides set up in the import map overrides panel. To fix the error, you will likely need to open the implementer tools panel and click the `Reset all overrides` button. Once you've done that, reload the page. The error should go away. Alternatively, you could also look through your browser's local storage and delete any overrides that you find there. Remember to reload the page after doing so.
+
+### I'm running into memory issues when building Core
+
+When testing changes to Core by running `yarn run:shell` from the `esm-core` directory, you'll typically want to run `yarn turbo build` to ensure that you are running the latest changes. You might run into errors like the following when running the Webpack build:
+
+```sh
+error:0308010C:digital envelope routines::unsupported
+```
+
+To do so, run the following command:
+
+```sh
+export NODE_OPTIONS=--max-old-space-size=8192
+```
+
+This command increases the memory limit for the Node.js process to 8GB. Note that increasing the memory limit can impact system performance. You should only increase the memory limit when necessary.
+
+Alternatively, you could also run
+
+```sh
+git clean -fdx
+```
+
+This command removes untracked files and directories from your working directory and resets the git index. This can help resolve issues with the build process by cleaning up build artifacts, `node_modules` directories, and other temporary files that can sometimes cause issues with the build process. It might be a good idea to do this before running `yarn turbo build` to ensure that you're starting with a clean slate. Note that this command will irreversibly delete files in your working directory. Make sure you don't have any important files in your working directory that you don't want to lose.

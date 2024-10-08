@@ -1,21 +1,23 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
 # Configuring branding
 
-Implementers can configure various aspects of the user interface to match their branding. This includes:
+Implementers can configure various aspects of the user interface to match their branding. This includes: 
 
 - Changing the logo on the login screen
 - Changing the logo on the navbar
 - Changing brand colors
+- Changing the favicon
 
 ## Changing logos
 
-Logos are used in two places in O3:
+Logos are used in several places in O3:
 
-- The login page 
+- The login page
 - The navbar
+- Optionally in printouts when configured
 
-### Changing the logo used on the login page
-
-The default logo used in the O3 logo page is the OpenMRS SVG sprite defined [here](https://github.com/openmrs/openmrs-esm-core/blob/0def92114577a10bd81e78c25de0edd4ced3a84d/packages/apps/esm-login-app/src/login/login.component.tsx#L160). You can override the logo by providing a valid image `src` URL as the value of `src` property in the login frontend module's configuration schema. The following is a snippet of how this would look like:
+The default logo used in the O3 login page is the OpenMRS SVG sprite defined [here](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/apps/esm-login-app/src/login/login.component.tsx#L160). You can override it by providing a valid image `src` URL as the value of `src` property in the login frontend module's configuration schema. Below is a snippet of how this could look like:
 
 ```json
 {
@@ -28,11 +30,51 @@ The default logo used in the O3 logo page is the OpenMRS SVG sprite defined [her
 }
 ```
 
-In this case, the logo specified at that URL will be applied as the default login page logo. To persist this change, you will need to add the configuration to your instance's configuration.
+In this example, the logo SVG specified at that URL will be applied as the default login page logo. To persist this change, you will need to commit this configuration to your instance's frontend configuration. To do this in the distro reference application, you'll need to:
 
-### Changing the logo used on the navbar
+<Steps>
 
-Similarly, the default logo used on the navbar is configured [here](https://github.com/openmrs/openmrs-esm-core/blob/0def92114577a10bd81e78c25de0edd4ced3a84d/packages/apps/esm-primary-navigation-app/src/components/logo/logo.component.tsx#L10). You can optionally use a string or an SVG image as the navbar logo. To override the navbar logo, use a configuration similar to the snippet below:
+### Step 1
+
+Add your resource to a directory in the distro. For example, a `logo.png` file can be added to the `frontend/resources` directory.
+
+### Step 2
+
+Add this line to the `Dockerfile` in the `frontend` directory:
+
+```sh
+COPY ./resources/logo.png /usr/share/nginx/html
+```
+
+This will copy the logo to the root of the application.
+
+### Step 3
+
+Add the following snippet to the `config-core_demo.json` file in the `frontend` directory:
+
+  <Callout emoji="ℹ️" type="info">
+    Note that the paths to your configuration files might be different. Adjust the paths to match your application's structure.
+  </Callout>
+
+  ```json
+  {
+    "@openmrs/esm-login-app": {
+      "logo": {
+        "src": "${openmrsSpaBase}/logo.png",
+        "alt": "Logo"
+      }
+    }
+  }
+  ```
+
+This scopes the logo to the login app only.
+
+</Steps>
+
+
+### Changing the logo used in the navbar
+
+The default logo used on the navbar is configured [here](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/apps/esm-primary-navigation-app/src/components/logo/logo.component.tsx#L10). You can optionally use a string or an SVG image as the navbar logo. To override the navbar logo, use a configuration similar to the snippet below:
 
 ```json
 {
@@ -46,6 +88,37 @@ Similarly, the default logo used on the navbar is configured [here](https://gith
   }
 }
 ```
+
+To persist your changes to your distro, follow the same steps in the [section above](#changing-logos) with the following config file snippet in the `config-core_demo.json` file:
+
+```json
+{
+  "@openmrs/esm-primary-navigation-app": {
+    "src": "${openmrsSpaBase}/logo.png",
+    "alt": "Logo"
+  }
+}
+```
+
+This scopes the logo to the primary navigation app only.
+
+<Callout emoji="ℹ️" type="info">
+  If the image you're using for the logo is hosted outside the OpenMRS distribution, you might need to modify the Content Security Policy to allow the image to be loaded. To do so, you would need to tweak the map block that defines CSP headers in the [nginx configuration file](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/gateway/default.conf.template#L4) in the `gateway` directory. You might want to add a `img-src *` directive that allows all images to be loaded. `img-src *` allows loading images from any origin, including your domain, any external domains and data URIs.
+</Callout>
+
+## Changing the favicon
+
+To change the favicon, you'd need to add the favicon file to your distro. You'd then add the following line to the [frontend Dockerfile](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/Dockerfile):
+
+```sh
+COPY ./path-to-the-favicon /usr/share/nginx/html
+```
+
+This will copy the favicon to the root of the application.
+
+<Callout emoji="ℹ️" type="info">
+  Note: You would need to rebuild the application for this change to come into effect.
+</Callout>
 
 ## Changing brand colors
 

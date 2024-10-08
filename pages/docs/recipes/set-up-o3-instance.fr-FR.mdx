@@ -1,7 +1,9 @@
 import { Callout, Steps } from "nextra-theme-docs";
 
 <Callout emoji="⚠️" type="warning">
-  CECI N'EST PLUS LA SOURCE DE VÉRITÉ ACTIVEMENT MAINTENUE POUR LA DOCUMENTATION DES DÉVELOPPEURS O3. Cet effort a été déplacé vers le Wiki OpenMRS à l'adresse suivante: https://openmrs.atlassian.net/wiki/x/4QABCQ
+  CECI N'EST PLUS LA SOURCE DE VÉRITÉ ACTIVEMENT MAINTENUE POUR LA DOCUMENTATION
+  DES DÉVELOPPEURS O3. Cet effort a été déplacé vers le Wiki OpenMRS à l'adresse
+  suivante: https://openmrs.atlassian.net/wiki/x/4QABCQ
 </Callout>
 
 # Configuration d'une instance de O3
@@ -90,11 +92,12 @@ Naviguez à `https://localhost:8080/openmrs` dans votre navigateur. Vous devriez
 <Callout emoji="ℹ️" type="info">
   Vous pourriez vouloir utiliser Docker si:
 
-  - Vous êtes déjà familier avec Docker et les images Docker OpenMRS.
-  - Vous ne souhaitez pas utiliser le module SPA.
-  - Vous travaillez sur un déploiement qui exécutera des conteneurs Docker en production (généralement basé sur le cloud ou une offre SaaS).
-  - Vous souhaitez configurer une nouvelle instance de O3 (c'est-à-dire une instance avec une base de données toute neuve et non une configurée sur votre base de données existante).
-  - Vous ne souhaitez pas passer par la configuration d'un environnement Java et la gestion de multiples dépendances.
+- Vous êtes déjà familier avec Docker et les images Docker OpenMRS.
+- Vous ne souhaitez pas utiliser le module SPA.
+- Vous travaillez sur un déploiement qui exécutera des conteneurs Docker en production (généralement basé sur le cloud ou une offre SaaS).
+- Vous souhaitez configurer une nouvelle instance de O3 (c'est-à-dire une instance avec une base de données toute neuve et non une configurée sur votre base de données existante).
+- Vous ne souhaitez pas passer par la configuration d'un environnement Java et la gestion de multiples dépendances.
+
 </Callout>
 
 ### Prérequis
@@ -271,29 +274,9 @@ Exécutez `docker compose up -d` et, si tout est correctement configuré, cela d
   - Supprime les volumes associés aux conteneurs.
   - Supprime tous les conteneurs orphelins (conteneurs qui n'étaient pas définis dans le docker-compose.yml mais font partie du projet Docker Compose).
 
-## Prochaines étapes
-
-Une fois que vous avez configuré votre instance O3, il y a plusieurs choses que vous pourriez vouloir faire, y compris:
-
-- Configurer un certificat TLS pour votre instance. Cela est important si vous envisagez d'exécuter votre instance en production. Vous pouvez utiliser un service comme [Let's Encrypt](https://letsencrypt.org/) pour obtenir un certificat TLS gratuit.
-
-- Changer la langue par défaut de votre instance. Vous pouvez le faire en naviguant dans la section `Administration` de l'interface utilisateur OpenMRS héritée et en modifiant la langue par défaut.
-
-- Personnaliser O3. Vous pouvez ajuster votre branding, ajuster votre import map pour ajouter ou supprimer des widgets de votre distribution, et plus encore.
-
-- Assurer le bon fonctionnement de vos modules (cela est pertinent uniquement si vous configurez O3 sur une base de données existante). Vous pouvez utiliser la page `Gérer les modules` dans l'interface d'administration héritée pour vérifier si les modules fonctionnent correctement.
-
-- Tester diverses fonctionnalités - essayez d'enregistrer un patient et de lancer son dossier médical. Recherchez des erreurs dans la console ou des erreurs dans l'interface utilisateur. Vous pourriez également vouloir vérifier les erreurs dans l'onglet réseau des outils de développement de votre navigateur. Si vous n'avez pas le module `fhir` en cours d'exécution, vous devriez vous attendre à rencontrer des problèmes lors du rendu de la bannière du patient et de la plupart des autres widgets dans le dossier médical, car les éléments du dossier médical dépendent d'un `UUID patient` valide, et l'objet patient est récupéré via un point de terminaison FHIR.
-
-- Réfléchir à la façon de configurer vos formulaires dans O3. Les formulaires dans O3 sont construits à l'aide de JSON et sont conformes à ce [schéma standard](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). Si vos formulaires existants ont été créés à l'aide de l'entrée de formulaire HTML, vous devrez les convertir en schémas JSON. Consultez le générateur de formulaires intégré dans O3 pour avoir une idée de l'apparence de ce format. L'éditeur de schémas vous permet de créer un nouveau formulaire en utilisant une ébauche de schéma factice. Pour en savoir plus sur les formulaires dans O3, lisez la recette `Construire des formulaires dans O3`.
-
-  <Callout emoji="ℹ️" type="info">
-    Un module OpenMRS existe pour convertir des schémas d'entrée de formulaire HTML en schémas JSON compatibles avec le schéma standard O3 à l'adresse suivante: https://github.com/openmrs/hfe-o3-form-schema-converter. Actuellement, des travaux sont en cours pour améliorer l'outil. Consultez le README du dépôt pour savoir ce qui est possible.
-  </Callout>
-
 ## Mise à jour des métadonnées
 
-Suivez les étapes ci-dessous pour mettre à jour les métadonnées dans votre instance O3:
+En fonction de vos besoins, vous souhaiterez peut-être personnaliser les configurations et les métadonnées telles que les concepts, les types de visites, les types de rencontres, les emplacements, etc. qui sont chargées par le module d'initialisation. Lors de la personnalisation de ces métadonnées, vous devez créer l'image Docker localement et utiliser l'image construite localement pour que les modifications soient affichées dans l'instance.
 
 ### Étape 1: Arrêter votre instance
 
@@ -313,10 +296,15 @@ Pour refléter les métadonnées mises à jour dans votre instance, vous devrez 
 TAG=your-custom-tag docker compose build
 ```
 
-Remplacez `your-custom-tag` par un tag unique de votre choix. 
+Remplacez `your-custom-tag` par un tag unique de votre choix.
 
 <Callout emoji="ℹ️" type="info">
-  Il est conseillé d'utiliser un tag qui ne correspond à aucun tag existant sur [Docker Hub](https://hub.docker.com/r/openmrs/openmrs-reference-application-3-frontend/tags) (comme `qa` ou des versions spécifiques) pour éviter les conflits.
+  Il est conseillé d'utiliser une balise qui ne correspond à aucune balise
+  existante sur [Docker
+  Hub](https://hub.docker.com/r/openmrs/openmrs-reference-application-3-frontend/tags)
+  (comme « qa » ou des versions spécifiques) pour éviter les conflits. Tu
+  pourrais sinon, exécutez simplement `docker compose down && docker compose
+  build && docker compose -f docker-compose.yml up -d`.
 </Callout>
 
 ### Étape 3: Exécuter l'instance avec l'image mise à jour
@@ -335,10 +323,12 @@ Enfin, suivez [l'Étape 4](https://docs/recipes/set-up-o3-instance#step-4-1) du 
 
 ## Préparation pour la production
 
-Par défaut, la RefApp est configurée pour utiliser les versions taguées `next` des [modules frontend](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/spa-assemble-config.json) et de l'[app shell](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/Dockerfile). Cela signifie qu'elle utilisera les dernières versions *pré-release* disponibles. Les versions pré-release sont publiées sur NPM chaque fois qu'un commit est fusionné dans la branche `main`. Les versions pré-release sont généralement considérées comme instables et ne sont pas recommandées pour une utilisation en production.
+Par défaut, la RefApp est configurée pour utiliser les versions taguées `next` des [modules frontend](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/spa-assemble-config.json) et de l'[app shell](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/Dockerfile). Cela signifie qu'elle utilisera les dernières versions _pré-release_ disponibles. Les versions pré-release sont publiées sur NPM chaque fois qu'un commit est fusionné dans la branche `main`. Les versions pré-release sont généralement considérées comme instables et ne sont pas recommandées pour une utilisation en production.
 
 <Callout emoji="⚠️" type="warning">
-  Il est fortement recommandé d'utiliser les dernières versions stables dans les environnements de production. Ces versions sont taguées avec le tag `latest` sur NPM.
+  Il est fortement recommandé d'utiliser les dernières versions stables dans les
+  environnements de production. Ces versions sont taguées avec le tag `latest`
+  sur NPM.
 </Callout>
 
 <Steps>
@@ -351,7 +341,7 @@ Mettez à jour les versions des modules frontend dans votre instance de `next` �
 {
   "frontendModules": {
     "@openmrs/esm-active-visits-app": "latest",
-    "@openmrs/esm-appointments-app": "latest",
+    "@openmrs/esm-appointments-app": "latest"
     // ... autres modules frontend
   }
 }
@@ -369,9 +359,33 @@ Mettez à jour la version de l'app shell dans le Dockerfile frontend en changean
   ...
 ```
 
+Ce changement garantit que l'app shell utilise également la dernière version stable.
+
 </Steps>
 
-Ce changement garantit que l'app shell utilise également la dernière version stable.
+## Prochaines étapes
+
+Une fois que vous avez configuré votre instance O3, il y a plusieurs choses que vous pourriez vouloir faire, y compris:
+
+- Configurer un certificat TLS pour votre instance. Cela est important si vous envisagez d'exécuter votre instance en production. Vous pouvez utiliser un service comme [Let's Encrypt](https://letsencrypt.org/) pour obtenir un certificat TLS gratuit.
+
+- Changer la langue par défaut de votre instance. Vous pouvez le faire en naviguant dans la section `Administration` de l'interface utilisateur OpenMRS héritée et en modifiant la langue par défaut.
+
+- Personnaliser O3. Vous pouvez ajuster votre branding, ajuster votre import map pour ajouter ou supprimer des widgets de votre distribution, et plus encore.
+
+- Assurer le bon fonctionnement de vos modules (cela est pertinent uniquement si vous configurez O3 sur une base de données existante). Vous pouvez utiliser la page `Gérer les modules` dans l'interface d'administration héritée pour vérifier si les modules fonctionnent correctement.
+
+- Tester diverses fonctionnalités - essayez d'enregistrer un patient et de lancer son dossier médical. Recherchez des erreurs dans la console ou des erreurs dans l'interface utilisateur. Vous pourriez également vouloir vérifier les erreurs dans l'onglet réseau des outils de développement de votre navigateur. Si vous n'avez pas le module `fhir` en cours d'exécution, vous devriez vous attendre à rencontrer des problèmes lors du rendu de la bannière du patient et de la plupart des autres widgets dans le dossier médical, car les éléments du dossier médical dépendent d'un `UUID patient` valide, et l'objet patient est récupéré via un point de terminaison FHIR.
+
+- Réfléchir à la façon de configurer vos formulaires dans O3. Les formulaires dans O3 sont construits à l'aide de JSON et sont conformes à ce [schéma standard](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). Si vos formulaires existants ont été créés à l'aide de l'entrée de formulaire HTML, vous devrez les convertir en schémas JSON. Consultez le générateur de formulaires intégré dans O3 pour avoir une idée de l'apparence de ce format. L'éditeur de schémas vous permet de créer un nouveau formulaire en utilisant une ébauche de schéma factice. Pour en savoir plus sur les formulaires dans O3, lisez la recette `Construire des formulaires dans O3`.
+
+  <Callout emoji="ℹ️" type="info">
+    Un module OpenMRS existe pour convertir des schémas d'entrée de formulaire
+    HTML en schémas JSON compatibles avec le schéma standard O3 à l'adresse
+    suivante: https://github.com/openmrs/hfe-o3-form-schema-converter.
+    Actuellement, des travaux sont en cours pour améliorer l'outil. Consultez le
+    README du dépôt pour savoir ce qui est possible.
+  </Callout>
 
 ## Liens utiles
 

@@ -1,7 +1,9 @@
 import { Callout, Steps } from "nextra-theme-docs";
 
 <Callout emoji="⚠️" type="warning">
-  THIS IS NO LONGER THE ACTIVELY MAINTAINED SOURCE OF TRUTH FOR O3 DEV DOCS. This effort has been moved to the OpenMRS Wiki at https://openmrs.atlassian.net/wiki/x/4QABCQ
+  THIS IS NO LONGER THE ACTIVELY MAINTAINED SOURCE OF TRUTH FOR O3 DEV DOCS.
+  This effort has been moved to the OpenMRS Wiki at
+  https://openmrs.atlassian.net/wiki/x/4QABCQ
 </Callout>
 
 # Setting up an instance of O3
@@ -92,11 +94,12 @@ Navigate to `https://localhost:8080/openmrs` on your browser. You should expect 
 <Callout emoji="ℹ️" type="info">
   You might want to use Docker if:
 
-  - You are already familiar with Docker and OpenMRS Docker images.
-  - You don't want to use the SPA module.
-  - You're working on a deployment that will run Docker containers in production (generally cloud-based or SaaS offerings).
-  - You want to set up a fresh instance of O3 (i.e. an instance with a brand new database and not one set up on top of your existing database).
-  - You don't want to go through the hassle of setting up a Java environment and managing multiple dependencies.
+- You are already familiar with Docker and OpenMRS Docker images.
+- You don't want to use the SPA module.
+- You're working on a deployment that will run Docker containers in production (generally cloud-based or SaaS offerings).
+- You want to set up a fresh instance of O3 (i.e. an instance with a brand new database and not one set up on top of your existing database).
+- You don't want to go through the hassle of setting up a Java environment and managing multiple dependencies.
+
 </Callout>
 
 ### Prerequisites
@@ -273,29 +276,9 @@ Run `docker compose up -d` and, assuming everything is filled out correctly, it 
   - Deletes the volumes associated with the containers.
   - Removes any orphaned containers (containers that were not defined in the docker-compose.yml but are part of the Docker Compose project).
 
-## Next steps
-
-Once you've set up your O3 instance, there are various things you might want to do, including:
-
-- Setting up a TLS certificate for your instance. This is important if you're planning to run your instance in production. You can use a service like [Let's Encrypt](https://letsencrypt.org/) to get a free TLS certificate.
-
-- Changing the default language of your instance. You can do this by navigating to the `Administration` section of the legacy OpenMRS UI and changing the default locale.
-
-- Customizing O3. You can tweak your branding, tweak your import map to add or remove widgets from your distribution, and more.
-
-- Ensuring that your modules are working correctly (this is relevant only if you're setting up O3 on top of an existing database). You can use the `Manage modules` page in the legacy admin interface to see whether modules are running correctly.
-
-- Testing various features - try registering a patient and launching their chart. Look out for any console errors or any errors in the UI, You might also want to look out for errors in the browser's devtools network tab. If you don't have the `fhir` module running, you should expect to see problems with rendering the patient banner and most other widgets in the chart because things in the chart depend on a valid `patient UUID` being available, and the patient object gets fetched via a FHIR endpoint,
-
-- Thinking about how to set up your forms in O3. Forms in O3 are built using JSON and conform to this [standard schema](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). If your existing forms were built using HTML Form Entry, you'll need to convert them into JSON schemas. Check out the embedded form builder in O3 for an idea of what this format looks like. The schema editor can allow you to build a new form using a dummy schema scaffold. To learn more about forms in O3, read the `Building forms in O3` recipe.
-
-  <Callout emoji="ℹ️" type="info">
-    An OpenMRS module exists for converting HTML Form Entry schemas into JSON schemas compatible with the O3 standard schema at https://github.com/openmrs/hfe-o3-form-schema-converter. Currently, work is ongoing to improve the tool. Go through the repo's README to learn what's possible.
-  </Callout>
-
 ## Updating metadata
 
-Follow the steps below to update metadata in your O3 instance:
+Based on your requirements, you might want to customize configurations and metadata like concepts, visit types, encounter types, locations, etc. that gets loaded by the initializer module. When customizing such metadata, you have to build the docker image locally and use the locally built image for the changes to be shown in the instance.
 
 ### Step 1: Stop your instance
 
@@ -315,10 +298,14 @@ To reflect the updated metadata in your instance, you'll need to build a local D
 TAG=your-custom-tag docker compose build
 ```
 
-Replace `your-custom-tag` with any unique tag of your choice. 
+Replace `your-custom-tag` with any unique tag of your choice.
 
 <Callout emoji="ℹ️" type="info">
-  It's advisable to use a tag that does not match any existing tag on [Docker Hub](https://hub.docker.com/r/openmrs/openmrs-reference-application-3-frontend/tags) (such as `qa` or specific release versions) to avoid conflicts.
+  It's advisable to use a tag that does not match any existing tag on [Docker
+  Hub](https://hub.docker.com/r/openmrs/openmrs-reference-application-3-frontend/tags)
+  (such as `qa` or specific release versions) to avoid conflicts. You could
+  alternatively just run `docker compose down && docker compose build && docker
+  compose -f docker-compose.yml up -d`.
 </Callout>
 
 ### Step 3: Run the instance with the updated image
@@ -337,10 +324,11 @@ Finally, follow [Step 4](https://docs/recipes/set-up-o3-instance#step-4-1) of th
 
 ## Preparing for production
 
-By default, the RefApp is configured to use the `next` tagged versions of [frontend modules](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/spa-assemble-config.json) and the [app shell](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/Dockerfile). This means it will use the latest *pre-release* versions available. Pre-release versions get published to NPM each time a commit is merged into the `main` branch. Pre-release versions are generally considered unstable and are not recommended for production use.
+By default, the RefApp is configured to use the `next` tagged versions of [frontend modules](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/spa-assemble-config.json) and the [app shell](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/Dockerfile). This means it will use the latest _pre-release_ versions available. Pre-release versions get published to NPM each time a commit is merged into the `main` branch. Pre-release versions are generally considered unstable and are not recommended for production use.
 
 <Callout emoji="⚠️" type="warning">
-  It is strongly recommended to use the latest stable versions in production environments. These versions are tagged with the `latest` tag on NPM.
+  It is strongly recommended to use the latest stable versions in production
+  environments. These versions are tagged with the `latest` tag on NPM.
 </Callout>
 
 <Steps>
@@ -353,7 +341,7 @@ Update the versions of the frontend modules in your instance from `next` to `lat
 {
   "frontendModules": {
     "@openmrs/esm-active-visits-app": "latest",
-    "@openmrs/esm-appointments-app": "latest",
+    "@openmrs/esm-appointments-app": "latest"
     // ... other frontend modules
   }
 }
@@ -371,9 +359,33 @@ Update the the app shell version in the frontend Dockerfile by changing the valu
   ...
 ```
 
+This change ensures that the app shell is also using the latest stable version.
+
 </Steps>
 
-This change ensures that the app shell is also using the latest stable version.
+## Next steps
+
+Once you've set up your O3 instance, there are various things you might want to do, including:
+
+- Setting up a TLS certificate for your instance. This is important if you're planning to run your instance in production. You can use a service like [Let's Encrypt](https://letsencrypt.org/) to get a free TLS certificate.
+
+- Changing the default language of your instance. You can do this by navigating to the `Administration` section of the legacy OpenMRS UI and changing the default locale.
+
+- Customizing O3. You can tweak your branding, tweak your import map to add or remove widgets from your distribution, and more.
+
+- Ensuring that your modules are working correctly (this is relevant only if you're setting up O3 on top of an existing database). You can use the `Manage modules` page in the legacy admin interface to see whether modules are running correctly.
+
+- Testing various features - try registering a patient and launching their chart. Look out for any console errors or any errors in the UI, You might also want to look out for errors in the browser's devtools network tab. If you don't have the `fhir` module running, you should expect to see problems with rendering the patient banner and most other widgets in the chart because things in the chart depend on a valid `patient UUID` being available, and the patient object gets fetched via a FHIR endpoint,
+
+- Thinking about how to set up your forms in O3. Forms in O3 are built using JSON and conform to this [standard schema](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). If your existing forms were built using HTML Form Entry, you'll need to convert them into JSON schemas. Check out the embedded form builder in O3 for an idea of what this format looks like. The schema editor can allow you to build a new form using a dummy schema scaffold. To learn more about forms in O3, read the `Building forms in O3` recipe.
+
+  <Callout emoji="ℹ️" type="info">
+    An OpenMRS module exists for converting HTML Form Entry schemas into JSON
+    schemas compatible with the O3 standard schema at
+    https://github.com/openmrs/hfe-o3-form-schema-converter. Currently, work is
+    ongoing to improve the tool. Go through the repo's README to learn what's
+    possible.
+  </Callout>
 
 ## Useful links
 

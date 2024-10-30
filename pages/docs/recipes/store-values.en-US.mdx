@@ -88,14 +88,14 @@ Updating the store using `set()` will update all variables subscribed to the sto
 
 #### App context
 
-Provided by `@openmrs/esm-framework` it's another way to store data in O3. If you are familiar with [React's context](https://react.dev/reference/react/useContext#reference), it works similarly. Unlike React's Context, App Context works
-across React subtrees, and thus can work in extensions and workspaces. All you need is to create a global context in
-some higher level component and access it somewhere in any of its children. The `useDefineAppContext` hook takes in
-the name of your context and its initial values.
+[App Context](https://github.com/openmrs/openmrs-esm-core/pull/976) is an application-wide context that can be used to store data that is shared across different parts of the application. To leverage it, you need to define a context with a name and initial values, and then access it somewhere in any of its children. The framework provides two hooks to make it easier:
 
-#### Definition
+- [useDefineAppContext](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-react-utils/src/useDefineAppContext.ts) for defining the context.
+- [useAppContext](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-react-utils/src/useAppContext.ts) for accessing the context.
 
-```ts
+##### Defining a context
+
+```tsx
 const [dateRange, setDateRange] = useState<Date[]>([
   dayjs().startOf("day").toDate(),
   new Date(),
@@ -104,21 +104,16 @@ useDefineAppContext<DateFilterContext>("laboratory-date-filter", {
   dateRange,
   setDateRange,
 });
-```
+##### Accessing the context
 
-#### Usage
-
-```ts
+```tsx
 const { dateRange, setDateRange } = useAppContext<DateFilterContext>(
   "laboratory-date-filter"
 ) ?? {
+  // Fallback values used when the app context is undefined
   dateRange: "fallback-date-range",
   setDateRange: "fallback setter function",
 };
-```
-
-the fallback object after the `nullish coalescing` check is for providing a fallback value when the app context is undefined.
-
 ### Persistent Storage
 
 Persistent storage refers to any storage mechanism that persists beyond a render of the single-page.

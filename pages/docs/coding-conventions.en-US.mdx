@@ -6,7 +6,7 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 
 These conventions represent our collective experience and best practices for building maintainable, performant, and user-friendly frontend applications in the OpenMRS 3.x ecosystem. They cover everything from naming and project structure to state management and performance optimization.
 
-## Who is this for?
+## Who is this guide for?
 
 - **New contributors** looking to understand our coding standards
 - **Existing developers** seeking guidance on specific implementation patterns
@@ -21,20 +21,109 @@ If you find cases where deviating from these conventions would result in better 
 
 ## Table of contents
 
-- [Naming](#naming)
 - [Project structure](#project-structure)
+- [Naming](#naming)
 - [Components](#components)
-- [Data fetching](#data-fetching)
-- [Internationalization](#internationalization)
+- [Type annotations](#type-annotations)
 - [State management](#state-management)
+- [Data fetching](#data-fetching)
 - [Mutations and side effects](#mutations-and-side-effects)
 - [Event handlers](#event-handlers)
-- [Type annotations](#type-annotations)
 - [Styling](#styling)
 - [Search inputs](#search-inputs)
-- [Testing](#testing)
+- [Internationalization](#internationalization)
 - [Error handling](#error-handling)
+- [Testing](#testing)
 - [Performance](#performance)
+
+## Project structure
+
+O3 consists of both monorepos and standalone repositories. Monorepos are used to group domain-specific packages that are related to each other. For example, patient management concerns such as registration and search live in the [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management) monorepo. Standalone repositories are used for single-purpose packages that are not related to other packages. For example, the [Form Builder](https://github.com/openmrs/openmrs-esm-form-builder) package is a standalone repository that contains functionality for building and managing form schemas.
+
+- Monorepos should contain domain-specific packages that are related to each other. For example, patient management concerns such as registration and search live in the `openmrs-esm-patient-management` monorepo.
+- Shared configuration files should generally exist at the root of the monorepo directory. These include:
+  - `.eslintignore` - ESLint ignore file
+  - `.eslintrc` - ESLint configuration file
+  - `.prettier.config.js` - Prettier configuration file
+  - `.prettierignore` - Prettier ignore file
+  - `.yarnrc.yml` - Yarn configuration file
+  - `tsconfig.json` - Root TypeScript configuration file
+  - `turbo.json` - Turbo configuration file
+
+  A typical convention is to place configuration files for the i18next parser, test utilities, and the Jest test setup file in a `tools` directory at the root of the monorepo:
+
+  - `tools/i18next-parser.config.js` - i18next parser configuration file
+  - `tools/setupTests.ts` - Jest test setup file
+  - `tools/test-utils.tsx` - Test utilities
+
+  Configuration files you'd expect to find at the root of each package in the monorepo include:
+
+  - `package.json` - Manifest file for the package. This is where you should put scripts for the package.
+  - `tsconfig.json` - TypeScript configuration file that extends the root TypeScript configuration file
+  - `jest.config.ts` - Jest configuration file that extends the root Jest configuration file
+  - `webpack.config.js` - Webpack configuration file that extends the root Webpack configuration file
+
+- Colocate related files in the same directory. Each component should have its own directory containing all its associated files. This includes:
+  - Component file (e.g., `patient-banner.component.tsx`)
+  - Test file (e.g., `patient-banner.test.tsx`)
+  - Stylesheet (e.g., `patient-banner.scss`)
+  - Resource file (e.g., `patient-banner.resource.ts`)
+  - Any other related files (e.g., constants, types, utilities)
+
+  Example directory structure:
+  ```
+  src/
+  └── patient-banner/
+      ├── patient-banner.component.tsx
+      ├── patient-banner.test.tsx
+      ├── patient-banner.scss
+      └── patient-banner.resource.ts
+  ```
+
+  This organization:
+  - Makes it easier to find and modify related files
+  - Simplifies refactoring and maintenance
+  - Keeps the codebase modular and well-organized
+  - Makes it clear which files belong to which component
+
+- Avoid placing styles for multiple components in the same stylesheet. Instead, create a separate stylesheet for each component. This makes it easier to find the styles for a particular component.
+- Use the [template app](https://github.com/openmrs/openmrs-esm-template-app) to quickly seed new O3 frontend modules:
+  1. Visit the [template repository](https://github.com/openmrs/openmrs-esm-template-app)
+  2. Click the green `Use this template` button
+  3. Choose `Create a new repository`
+  4. Follow the setup instructions in the template's README
+
+  The template provides:
+  - Correct TypeScript configuration
+  - Pre-configured testing setup with Jest
+  - ESLint and Prettier configurations
+  - GitHub Actions workflows
+  - Basic project structure following O3 conventions
+  - Example components and tests
+
+- Place e2e tests in the `e2e/specs` directory at the root of your repository.
+- Place test mocks in the top level `__mocks__` directory at the root of your repository. Mocks should be named after the module they are mocking. For example, if you have a mock with data for the `@openmrs/esm-patient-allergies` module, your mock should be named `allergies.mock.ts`. The root-level Typescript configuration file will automatically pick up any mocks in the `__mocks__` directory courtesy of the `paths` configuration in the root `tsconfig.json` file:
+
+  ```json
+  "paths": {
+    "__mocks__": ["./__mocks__"],
+    "tools": ["./tools"]
+  },
+  ```
+
+  This means you can import the mock in your tests using a path alias:
+
+  ```tsx
+  // TypeScript will automatically resolve the path to the mock
+  import { mockAllergy } from '__mocks__';
+  ```
+
+  TypeScript automatically resolves the path to the top-level `tools` directory using the same mechanism. This means you can also import test utilities from the `tools` directory using a path alias:
+
+  ```tsx
+  // TypeScript will automatically resolve the path to the tools directory
+  import { waitForLoadingToFinish } from 'tools';
+  ```
 
 ## Naming
 
@@ -60,13 +149,6 @@ If you find cases where deviating from these conventions would result in better 
 - Event handler props should be named after they event they handle `e.g. onClick` for a click handler. By convention, event handler props should start with the `on` prefix, followed by a capital letter.
 - State updater functions should be named after the state they update. For example, `setFirstName` is a good name for a state updater function that updates the `firstName` state.
 - What to name your branches is typically down to personal preference. However, when in doubt, name your branches using the [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/) type that your work conforms to, followed by a slash and a short dash-separated description of the work. Good examples include: `feat/debounced-order-basket-search`, `fix/missing-translation`, `chore/bump-dependencies` and `refactor/remove-unused-code`.
-
-## Project structure
-
-- Monorepos should contain domain-specific packages that are related to each other. For example, patient management concerns such as registration and search live in the `openmrs-esm-patient-management` monorepo.
-- Configuration files should generally exist at the top level of the monorepo directory. Notable exceptions to this rule include the a file containing helpers for tests, the `i18next-parser` configuration, and `setupTests.ts`, which should all exist in the `tools` directory.
-- Colocate files that are related to each other. For example, a component and its corresponding test and stylesheet should live in the same directory. This way, when you make a change to a component, it's easy to extend that change to the test and stylesheet if necessary.
-- Avoid placing styles for multiple components in the same stylesheet. Instead, create a separate stylesheet for each component. This makes it easier to find the styles for a particular component.
 
 ## Components
 
@@ -167,6 +249,44 @@ If you find cases where deviating from these conventions would result in better 
 
 - Follow consistent code formatting, naming conventions and folder structure. This makes the codebase more readable and easier to maintain.
 
+## Type annotations
+
+- Follow the guidelines outlined in [React TypeScript Cheatsheets](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/).
+- Always annotate your function parameters with types. This makes it easier to understand what the function does, and explicitly expresses the function's contracts.
+- Rely on TypeScript's type inference for things like variable and array initialization, and in some cases, function return types. The goal of the type system is not to annotate every single variable with a type, but rather to make sure that the important parts of your code are type-safe. Read more about type inference [here](https://www.typescriptlang.org/docs/handbook/type-inference.html).
+- TypeScript `interfaces` enable declaration merging and can be extended by other interfaces. This makes them more flexible than `type` aliases, which cannot be extended. If you don't need these features, prefer using `type` aliases instead.
+- Don't use `any` unless you absolutely have to. Instead, use `unknown` or `never` to express the fact that you don't know the type of a variable or that a function never returns.
+- Wherever possible, use the `import type` syntax when importing types. This prevents the type from being imported at runtime, which reduces the bundle size. For example:
+
+  ```tsx
+  // Prefer
+  import type { User } from "@openmrs/esm-user-management";
+
+  // Instead of
+  import { User } from "@openmrs/esm-user-management";
+  ```
+
+- [Prefer union types over status enums](https://fettblog.eu/tidy-typescript-avoid-enums/). For example, prefer `type Status = "loading" | "error" | "success"` over `enum Status { Loading, Error, Success }`. This is because enums are not type safe, and can be assigned any value. For example, `Status.Loading = "error"` is a valid statement, but `Status = "error"` is not.
+- Use the `jest.mocked` utility to preserve type information when mocking functions in tests. For example:
+
+  Prefer:
+
+  ```tsx
+  const mockedShowSnackbar = jest.mocked(showSnackbar); // All the type information is preserved
+  ```
+
+  Over:
+
+  ```tsx
+  const mockedShowSnackbar = showSnackbar as jest.Mock;
+  ```
+
+## State management
+
+- Follow the guidelines outlined [here](https://kentcdodds.com/blog/application-state-management-with-react).
+- To share state between components, [lift the state up to the nearest common ancestor](https://react.dev/learn/sharing-state-between-components#) of the components that need to share the state and pass the state down to the components as props. This is the simplest way to share state between components.
+- Avoid creating state variables for things that can be [computed from existing state variables](https://react.dev/learn/you-might-not-need-an-effect#updating-state-based-on-props-or-state). For example, if you have a state variable called `firstName` and another called `lastName`, don't create a third state variable called `fullName`. Instead, derive the `fullName` from the `firstName` and `lastName` state variables.
+
 ## Data fetching
 
 - Colocate your data fetching logic in a file suffixed with `.resource`. For example, `user.resource.ts` contains the data fetching logic for the user resource.
@@ -177,37 +297,6 @@ If you find cases where deviating from these conventions would result in better 
 - Data fetching hooks should follow the naming convention `use<resource>`. For example, `useUser` is the hook for fetching user data.
 - Use `openmrsFetch` to fetch data from the backend. openmrsFetch is a wrapper around the `fetch` API that adds authentication and authorization headers and handles errors. Pass it to `useSWR` as the `fetcher` argument of your SWR hooks.
 - Use `openmrsObservableFetch` only if you need to fetch data from the backend using an observable. This is useful for streaming data from the backend. Ensure you understand the difference between observables and promises before reaching for this function.
-
-## Internationalization
-
-- Do not manually edit any of the locale-specific translation files in the `translations` directory. Run the `extract-translations` script instead to keep the `en.json` file in sync with the translation keys in the codebase.
-- Use the [useTranslation](https://react.i18next.com/latest/usetranslation-hook) hook to translate strings in your components.
-- Use the [Trans](https://react.i18next.com/latest/trans-component) component to translate strings that contain HTML tags.
-- To handle pluralization, use the following pattern:
-
-  ```tsx
-  // If there's only one risk flag, the string "1 risk flag" is displayed.
-  // If there are multiple risk flags, the string "{count} risk flags" is displayed
-  // e.g. "3 risk flags".
-  <span className={styles.flagText}>
-    {t("flagCount", {
-      count: riskFlags.length,
-    })}
-  </span>
-  ```
-
-  The corresponding keys and strings for the code above should look like this:
-
-  ```json
-  "flagCount_one": "{{ count }} risk flag",
-  "flagCount_other": "{{ count }} risk flags"
-  ```
-
-## State management
-
-- Follow the guidelines outlined [here](https://kentcdodds.com/blog/application-state-management-with-react).
-- To share state between components, [lift the state up to the nearest common ancestor](https://react.dev/learn/sharing-state-between-components#) of the components that need to share the state and pass the state down to the components as props. This is the simplest way to share state between components.
-- Avoid creating state variables for things that can be [computed from existing state variables](https://react.dev/learn/you-might-not-need-an-effect#updating-state-based-on-props-or-state). For example, if you have a state variable called `firstName` and another called `lastName`, don't create a third state variable called `fullName`. Instead, derive the `fullName` from the `firstName` and `lastName` state variables.
 
 ## Mutations and side effects
 
@@ -247,37 +336,7 @@ If you find cases where deviating from these conventions would result in better 
   }, []);
   ```
 
-## Type annotations
 
-- Follow the guidelines outlined in [React TypeScript Cheatsheets](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/).
-- Always annotate your function parameters with types. This makes it easier to understand what the function does, and explicitly expresses the function's contracts.
-- Rely on TypeScript's type inference for things like variable and array initialization, and in some cases, function return types. The goal of the type system is not to annotate every single variable with a type, but rather to make sure that the important parts of your code are type-safe. Read more about type inference [here](https://www.typescriptlang.org/docs/handbook/type-inference.html).
-- TypeScript `interfaces` enable declaration merging and can be extended by other interfaces. This makes them more flexible than `type` aliases, which cannot be extended. If you don't need these features, prefer using `type` aliases instead.
-- Don't use `any` unless you absolutely have to. Instead, use `unknown` or `never` to express the fact that you don't know the type of a variable or that a function never returns.
-- Wherever possible, use the `import type` syntax when importing types. This prevents the type from being imported at runtime, which reduces the bundle size. For example:
-
-  ```tsx
-  // Prefer
-  import type { User } from "@openmrs/esm-user-management";
-
-  // Instead of
-  import { User } from "@openmrs/esm-user-management";
-  ```
-
-- [Prefer union types over status enums](https://fettblog.eu/tidy-typescript-avoid-enums/). For example, prefer `type Status = "loading" | "error" | "success"` over `enum Status { Loading, Error, Success }`. This is because enums are not type safe, and can be assigned any value. For example, `Status.Loading = "error"` is a valid statement, but `Status = "error"` is not.
-- Use the `jest.mocked` utility to preserve type information when mocking functions in tests. For example:
-
-  Prefer:
-
-  ```tsx
-  const mockedShowSnackbar = jest.mocked(showSnackbar); // All the type information is preserved
-  ```
-
-  Over:
-
-  ```tsx
-  const mockedShowSnackbar = showSnackbar as jest.Mock;
-  ```
 
 ## Styling
 
@@ -454,16 +513,30 @@ If you find cases where deviating from these conventions would result in better 
 
   We're using the `debouncedSearchTerm` from the snippet above to filter the list of forms. We're also using the `extract` option to tell fuzzy how to extract the search term from the form. In this case, we're extracting the search term from the form's name and version. This is because we want to match forms that contain the search term in their name or version. Finally, we're sorting the results by score, which is a measure of how closely the search term matches the form.
 
-## Testing
+## Internationalization
 
-- [Avoid the test user](https://kentcdodds.com/blog/avoid-the-test-user).
-- Avoid testing implementation details. Instead, test the component's public API. This makes it easier to refactor the component without having to rewrite the tests.
-- Follow the guidelines outlined [here](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library).
-- Don't make these common testing [mistakes](https://kentcdodds.com/blog/common-testing-mistakes).
-- [Write fewer, longer tests](https://kentcdodds.com/blog/write-fewer-longer-tests).
-- Structure large test suites using [object page models](https://playwright.dev/docs/pom) when writing e2e tests using Playwright.
-- Follow the e2e testing [best practices](https://playwright.dev/docs/test-best-practices) outlined in the Playwright docs.
-- When stubbing out functionality from `@openmrs/esm-framework`, follow the mocking patterns described [here](/docs/frontend-modules/unit-and-integration-testing#mocking-patterns).
+- Do not manually edit any of the locale-specific translation files in the `translations` directory. Run the `extract-translations` script instead to keep the `en.json` file in sync with the translation keys in the codebase.
+- Use the [useTranslation](https://react.i18next.com/latest/usetranslation-hook) hook to translate strings in your components.
+- Use the [Trans](https://react.i18next.com/latest/trans-component) component to translate strings that contain HTML tags.
+- To handle pluralization, use the following pattern:
+
+  ```tsx
+  // If there's only one risk flag, the string "1 risk flag" is displayed.
+  // If there are multiple risk flags, the string "{count} risk flags" is displayed
+  // e.g. "3 risk flags".
+  <span className={styles.flagText}>
+    {t("flagCount", {
+      count: riskFlags.length,
+    })}
+  </span>
+  ```
+
+  The corresponding keys and strings for the code above should look like this:
+
+  ```json
+  "flagCount_one": "{{ count }} risk flag",
+  "flagCount_other": "{{ count }} risk flags"
+  ```
 
 ## Error handling
 
@@ -568,6 +641,17 @@ If you find cases where deviating from these conventions would result in better 
     }
   }
   ```
+
+## Testing
+
+- [Avoid the test user](https://kentcdodds.com/blog/avoid-the-test-user).
+- Avoid testing implementation details. Instead, test the component's public API. This makes it easier to refactor the component without having to rewrite the tests.
+- Follow the guidelines outlined [here](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library).
+- Don't make these common testing [mistakes](https://kentcdodds.com/blog/common-testing-mistakes).
+- [Write fewer, longer tests](https://kentcdodds.com/blog/write-fewer-longer-tests).
+- Structure large test suites using [object page models](https://playwright.dev/docs/pom) when writing e2e tests using Playwright.
+- Follow the e2e testing [best practices](https://playwright.dev/docs/test-best-practices) outlined in the Playwright docs.
+- When stubbing out functionality from `@openmrs/esm-framework`, follow the mocking patterns described [here](/docs/frontend-modules/unit-and-integration-testing#mocking-patterns).
 
 ## Performance
 

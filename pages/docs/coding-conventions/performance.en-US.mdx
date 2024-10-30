@@ -1,0 +1,148 @@
+# Performance
+
+- Use React's built-in performance optimization hooks judiciously:
+  - `useMemo` for expensive computations.
+  - `useCallback` for stable function references.
+  - `memo` for preventing unnecessary re-renders of complex components.
+
+  ```tsx
+    // Good - memoizing an expensive computation
+    const sortedItems = useMemo(() => {
+      return items
+        .slice()
+        .sort((a, b) => b.timestamp - a.timestamp);
+    }, [items]);
+
+    // Good - stable callback for child components
+    const handleSubmit = useCallback((data: FormData) => {
+      mutate(data);
+    }, [mutate]);
+    ```
+
+- Use [element optimization](https://kentcdodds.com/blog/optimize-react-re-renders) to avoid unnecessary re-renders. If you give React the same element reference, it will skip rendering the component.
+- Use the appropriate lifecycle registration method based your component's loading requirements:
+  - Use `getAsyncLifecycle` to register modals, workspaces and other components that can be loaded on-demand. 
+
+  ```tsx
+  // Good - modal loaded only when needed
+  export const markPatientAliveModal = getAsyncLifecycle(() => import('./mark-patient-alive.modal'), options);
+  ```
+
+  - Use `getSyncLifecycle` for components that need to be available immediately on page load:
+
+  ```tsx
+  // Good - component included in the main bundle
+  export const startVisitForm = getSyncLifecycle(startVisitFormComponent, {
+    featureName: 'start-visit-form',
+    moduleName,
+  });
+  ```
+
+  The key difference between the two is that `getAsyncLifecycle` creates a separate chunk for the component in your app's code split. This chunk gets loaded on-demand, which can improve the initial load time of your application. On the other hand, `getSyncLifecycle` includes the component in the main bundle, ensuring that it's available immediately on page load. Use each approach when appropriate to optimize the performance of your application. Read more about the difference between static and dynamic metadata [here](/docs/migrate-to-core-v5).
+
+- Prefer using [icons](https://zeroheight.com/23a080e38/p/993dce-iconography) and [pictograms](https://zeroheight.com/23a080e38/p/396ba7-pictograms) from the CarbonMRS icon library over the `@carbon/react/icons` package. The CarbonMRS library is optimized for our use case and avoids potential tree-shaking issues that can occur with the Carbon icons package.
+
+- Consider using prefetching to improve the responsiveness of your application. Prefetching can be particularly useful in these cases:
+  - Prefetching data for items that are likely to be accessed next:
+
+   ```tsx
+  // Prefetch the next page of results
+  const prefetchNextPage = () => {
+    void mutate(`/ws/rest/v1/patient?startIndex=${currentPage + 1}`);
+  };
+  ```
+
+  - Preloading data using SWR's [preload API](https://swr.vercel.app/docs/prefetching) when hovering over links or buttons:
+
+  ```tsx
+  // Preload form schemas when hovering over links in the form builder
+  <ConfigurableLink
+    className={styles.link}
+    to={editSchemaUrl}
+    templateParams={{ formUuid: form?.uuid }}
+    onMouseEnter={() => void preload(`/ws/rest/v1/form/${form?.uuid}?v=full`, openmrsFetch)}
+  >
+    {form.name}
+  </ConfigurableLink>
+  ```
+
+  Remember that while prefetching can improve the user experience, it should be used judiciously to avoid unnecessary network requests and data usage.
+
+- Tweak your SWR configuration appropriately to optimize performance. O3 uses a [global SWR configuration](https://github.com/openmrs/openmrs-esm-core/pull/1157) that disables most automatic revalidations. Because the [SWRConfig component](https://swr.vercel.app/docs/global-configuration.en-US) merges configurations from the parent context, you can override options in the global configuration on a per-component basis. Alternatively, you can specify a custom configuration at a per-hook level. Each SWR hook accepts an options object as an argument, which you can use to customize the behavior of the hook.
+
+  ```tsx
+  // Global configuration in the OpenMRS component decorator
+  const defaultSwrConfig = {
+    // max number of retries after requests have failed
+    errorRetryCount: 3,
+    // default fetcher function
+    fetcher: openmrsFetch,
+    // only revalidate once every 30 minutes
+    focusThrottleInterval: 1800000,
+    revalidateIfStale: true,
+    // disable automatic revalidations by default
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    refreshInterval: 0,
+  };
+
+  <SWRConfig value={defaultSwrConfig}>
+    <ComponentContext.Provider value={this.state.config}>
+      {opts.disableTranslations ? (
+        <Comp {...this.props} />
+      ) : (
+        <I18nextProvider
+          // props omitted for brevity
+        >
+          <Comp {...this.props} />
+        </I18nextProvider>
+      )}
+    </ComponentContext.Provider>
+  </SWRConfig>
+  ```
+
+  ```tsx
+  // Component-level configuration using the SWRConfig component
+  <SWRConfig value={{ revalidateOnFocus: true, revalidateOnReconnect: true }}>
+    <Component />
+  </SWRConfig>
+  ```
+
+  ```tsx
+  // Custom configuration at a per-hook level
+  const { data } = useSWR('/ws/rest/v1/patient?v=full', openmrsFetch, {
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+  });
+  ```
+  
+- Avoid common performance pitfalls:
+  - Don't create new objects or arrays in render
+  - Avoid inline function definitions in JSX
+  - Don't use index as key in lists
+  - Prevent unnecessary re-renders by proper state management
+
+  ```tsx
+  // Bad - new object created every render
+  <Component style={{ margin: '10px' }} />
+
+  // Good - stable object reference
+  const styles = { margin: '10px' };
+  <Component style={styles} />
+
+  // Bad - new function created every render
+  <Button onClick={() => handleClick(id)} />
+
+  // Good - stable function reference
+  const handleButtonClick = useCallback(() => {
+    handleClick(id);
+  }, [id, handleClick]);
+  
+  <Button onClick={handleButtonClick} />
+  ```
+
+- Monitor your application's performance using the [React DevTools Profiler](https://react.dev/learn/react-developer-tools). To profile your app, you could run both your app and the O3 app shell locally and then use the [import map overrides mechanism](/docs/frontend-modules/development#import-map-overrides) to load your app in the O3 app shell. You could then open the React DevTools Profiler in your browser and start a profiling session. Things to watch out for include:
+  - Components with frequent re-renders
+  - Components that are slow to render
+  - Long task in the main thread
+  - Components that could be memoized

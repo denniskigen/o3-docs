@@ -1,0 +1,18 @@
+{
+  "introduction": "Introduction",
+  "project-structure": "Project structure",
+  "code-organization": "Code organization",
+  "naming": "Naming",
+  "components": "Components",
+  "type-annotations": "Type annotations",
+  "state-management": "State management",
+  "data-fetching": "Data fetching",
+  "mutations-and-side-effects": "Mutations and side effects",
+  "event-handlers": "Event handlers",
+  "styling": "Styling",
+  "search-inputs": "Search inputs",
+  "internationalization": "Internationalization",
+  "error-handling": "Error handling",
+  "testing": "Testing",
+  "performance": "Performance"
+}

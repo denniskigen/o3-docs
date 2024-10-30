@@ -1,0 +1,55 @@
+# Project structure
+
+O3 consists of both monorepos and standalone repositories. Monorepos are used to group domain-specific packages that are related to each other. For example, patient management concerns such as registration and search live in the [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management) monorepo. Standalone repositories are used for single-purpose packages that are not related to other packages. For example, the [Form Builder](https://github.com/openmrs/openmrs-esm-form-builder) package is a standalone repository that contains functionality for building and managing form schemas.
+
+- Monorepos should contain domain-specific packages that are related to each other. For example, patient management concerns such as registration and search live in the `openmrs-esm-patient-management` monorepo.
+- Shared configuration files should generally exist at the root of the monorepo directory. These include:
+  - `.eslintignore` - ESLint ignore file
+  - `.eslintrc` - ESLint configuration file
+  - `.prettier.config.js` - Prettier configuration file
+  - `.prettierignore` - Prettier ignore file
+  - `.yarnrc.yml` - Yarn configuration file
+  - `tsconfig.json` - Root TypeScript configuration file
+  - `turbo.json` - Turbo configuration file
+  - `package.json` - Root package manifest file. This:
+    - Defines workspace-level scripts for the monorepo
+    - Sets the `private: true` property which prevents the monorepo from accidentally being published to the npm registry.
+    - Declares shared dependencies for the monorepo in the `peerDependencies` and `dependencies` properties.
+    - Defines the `workspaces` property which tells Yarn how to find the workspaces in the monorepo.
+
+  A typical convention is to place configuration files for the i18next parser, test utilities, and the Jest test setup file in a `tools` directory at the root of the monorepo:
+
+  - `tools/i18next-parser.config.js` - i18next parser configuration file
+  - `tools/setupTests.ts` - Jest test setup file
+  - `tools/test-utils.tsx` - Test utilities
+
+  Configuration files you'd expect to find at the root of each package in the monorepo include:
+
+  - `package.json` - Manifest file for the package. This is where you should put scripts for the package. Importantly, this file doesn't have the `private` property, meaning the package can be published to the npm registry.
+  - `tsconfig.json` - TypeScript configuration file that extends the root TypeScript configuration file.
+  - `jest.config.ts` - Jest configuration file that extends the root Jest configuration file.
+  - `webpack.config.js` - Webpack configuration file that extends the root Webpack configuration file.
+
+- Place e2e tests in the `e2e/specs` directory at the root of your repository.
+- Place test mocks in the top level `__mocks__` directory at the root of your repository. Mocks should be named after the module they are mocking. For example, if you have a mock with data for the `@openmrs/esm-patient-allergies` module, your mock should be named `allergies.mock.ts`. The root-level Typescript configuration file will automatically pick up any mocks in the `__mocks__` directory courtesy of the `paths` configuration in the root `tsconfig.json` file:
+
+  ```json
+  "paths": {
+    "__mocks__": ["./__mocks__"],
+    "tools": ["./tools"]
+  },
+  ```
+
+  This means you can import the mock in your tests using a path alias:
+
+  ```tsx
+  // TypeScript will automatically resolve the path to the mock
+  import { mockAllergy } from '__mocks__';
+  ```
+
+  TypeScript automatically resolves the path to the top-level `tools` directory using the same mechanism. This means you can also import test utilities from the `tools` directory using a path alias:
+
+  ```tsx
+  // TypeScript will automatically resolve the path to the tools directory
+  import { waitForLoadingToFinish } from 'tools';
+  ```

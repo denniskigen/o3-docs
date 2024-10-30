@@ -1,0 +1,102 @@
+# Mutations and side effects
+
+- Use SWR's global and bound [mutate](https://swr.vercel.app/docs/mutation#mutate) APIs to mutate data in the cache when the user performs an action that changes the backend state. This ensures that the cache is updated consistently across the application and omits the need to reload the page to see the changes.
+
+  There are two main approaches to mutation with SWR:
+
+  1. Using the [bound mutate](https://swr.vercel.app/docs/mutation.en-US#bound-mutate) function from `useSWR`:
+  
+  ```tsx
+  // Using bound mutate to update a specific resource
+  const { data, mutate } = useSWR<Patient>(`/ws/rest/v1/patient/${patientUuid}`);
+
+  const handleSave = async (updates) => {
+    try {
+      await savePatient(updates);
+      mutate(result);
+      showSnackbar({ title: t('patientSaved', 'Patient saved successfully') });
+      closeWorkspace();
+    } catch (error) {
+      showSnackbar({ 
+        kind: 'error',
+        title: t('errorSavingPatient', 'Error saving patient') 
+      });
+    }
+  };
+  ```
+
+  2. Using the [global mutate](https://swr.vercel.app/docs/mutation.en-US#global-mutate) function for broader cache updates:
+
+  ```tsx
+  import { mutate } from 'swr';
+
+  // Using global mutate to update all instances of a resource
+  const handleDeleteVisit = async (visitUuid: string) => {
+    try {
+      await deleteVisit(visitUuid);
+      
+      // Update all cached visit lists
+      mutate('/ws/rest/v1/visit');
+      
+      // Update the specific visit's data
+      mutate(`/ws/rest/v1/visit/${visitUuid}`);
+      
+      showSnackbar({ title: t('visitDeleted', 'Visit deleted successfully') });
+    } catch (error) {
+      showSnackbar({ 
+        kind: 'error',
+        title: t('errorDeletingVisit', 'Error deleting visit'),
+        subtitle: error?.message
+      });
+    }
+  };
+  ```
+
+- When mutating data that appears in multiple places in your application, make sure to update all relevant cache entries. You can use the `mutate` function with a key matcher to target specific cache entries. Here's an example of updating cohort membership data:
+
+  ```tsx
+  const getCohortMembershipUrl = (patientUuid: string) => 
+    `${restBaseUrl}/cohortm/cohortmember?patient=${patientUuid}&v=custom:(uuid,patient:ref,cohort:(uuid,name,startDate,endDate))`;
+
+  // Memoized function to update cohort membership cache
+  const useMutateCohortMembers = (patientUuid: string) => {
+    return useCallback(() => {
+      const key = getCohortMembershipUrl(patientUuid);
+      return mutate(
+        // Only mutate cache entries that exactly match this key
+        (cacheKey) => typeof cacheKey === 'string' && cacheKey === key
+      );
+    }, [patientUuid]);
+  };
+  ```
+
+  ```tsx
+  const handleSubmit = useCallback(() => {
+    Promise.all(
+      selected.map((selectedId) => {
+        const patientList = data.find((list) => list.id === selectedId);
+        if (!patientList) return Promise.resolve();
+
+        return patientList
+          .addPatient()
+          .then(async () => {
+            // Update the cohort membership data
+            await mutateCohortMembers();
+            showSnackbar({
+              title: t('successfullyAdded', 'Successfully added'),
+              kind: 'success',
+              isLowContrast: true,
+              subtitle: `${t('successAddPatientToList', 'Patient added to list')}: ${patientList.displayName}`,
+            });
+          })
+          .catch(() => {
+            showSnackbar({
+              title: t('error', 'Error'),
+              kind: 'error',
+              subtitle: `${t('errorAddPatientToList', 'Patient not added to list')}: ${patientList.displayName}`,
+            });
+          });
+      }),
+    ).finally(closeModal);
+  }, [data, selected, closeModal, t, patientUuid]);
+  ```

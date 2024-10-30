@@ -1,0 +1,140 @@
+## Code organization
+
+- Colocate related files in the same directory. Each component should have its own directory containing all its associated files. This includes:
+  - Component file (e.g., `patient-banner.component.tsx`) - This is a React component.
+  - Test file (e.g., `patient-banner.test.tsx`) - This is a Jest test file.
+  - Stylesheet (e.g., `patient-banner.scss`) - This is a CSS stylesheet.
+  - Resource file (e.g., `patient-banner.resource.ts`) - This is a file that contains data fetching logic.
+  - Any other related files (e.g., constants, types, utilities)
+
+  Example directory structure:
+
+  ```
+  src/
+  └── patient-banner/
+      ├── patient-banner.component.tsx
+      ├── patient-banner.test.tsx
+      ├── patient-banner.scss
+      └── patient-banner.resource.ts
+  ```
+
+  This organization:
+  - Makes it easier to find and modify related files
+  - Simplifies refactoring and maintenance
+  - Keeps the codebase modular and well-organized
+  - Makes it clear which files belong to which component
+
+- Avoid placing styles for multiple components in the same stylesheet. Instead, create a separate stylesheet for each component. This makes it easier to find the styles for a particular component.
+- Use the [template app](https://github.com/openmrs/openmrs-esm-template-app) to quickly seed new O3 frontend modules:
+  1. Visit the [template repository](https://github.com/openmrs/openmrs-esm-template-app)
+  2. Click the green `Use this template` button
+  3. Choose `Create a new repository`
+  4. Follow the setup instructions in the template's README
+
+  The template provides:
+  - Correct TypeScript configuration
+  - Pre-configured testing setup with Jest
+  - ESLint and Prettier configurations
+  - GitHub Actions workflows
+  - Basic project structure following O3 conventions
+  - Example components and tests
+
+- Group imports alphabetically based on their type. The recommended order is:
+  - React and framework imports (e.g., `React`, `useState`, `useEffect`)
+  - External modules (e.g., `lodash`, `dayjs`, `react-i8next`)
+  - Carbon component imports (e.g., `Button`, `InlineLoading`)
+  - OpenMRS imports (e.g., `@openmrs/esm-framework`, `@openmrs/esm-patient-common-lib`)
+  - Local imports (components, hooks, utilities, etc.)
+  - Asset imports (e.g `import styles from './user.scss'`)
+
+  In the near future, we'll be able to use ESLint import order sorting to enforce this convention. Following this convention makes it easier to maintain consistency across the codebase.
+
+- Consolidate library imports into a single import statement. This makes it easier to see which modules are being used and makes the code more readable. For example, prefer:
+
+  ```tsx
+  // Good
+  import { Button, InlineLoading } from '@carbon/react';
+  ```
+
+  Over:
+
+  ```tsx
+  // Bad
+  import { Button } from '@carbon/react';
+  import { InlineLoading } from '@carbon/react';
+  ```
+
+  Note that you should still keep imports from different modules separate:
+
+  ```tsx
+  // Good - separate imports for different modules
+  import { useState, useEffect } from 'react';
+  import { useTranslation } from 'react-i18next';
+  import { Button, DataTable } from '@carbon/react';
+  import { useConfig, showSnackbar } from '@openmrs/esm-framework';
+  ```
+
+  Type imports should be marked with the `type` keyword. An ESLint plugin will automatically flag any type imports that are not marked with the `type` keyword.
+
+  ```tsx
+  // Good
+  import { showModal, type Visit } from '@openmrs/esm-framework';
+  ```
+
+- Place type annotations and interfaces at the top of the file, after the imports and above any component code. Since TypeScript types and interfaces are development-time constructs that get removed during compilation, they don't affect the runtime behavior of your code.
+
+   ```tsx
+  import React from 'react';
+  import { useTranslation } from 'react-i18next';
+  import { Button } from '@carbon/react';
+  import { showSnackbar } from '@openmrs/esm-framework';
+
+  // Type definitions come after imports, before component code
+  interface UserData {
+    id: string;
+    name: string;
+    email: string;
+    role: 'admin' | 'user';
+  }
+
+  type UserComponentProps = {
+    userData: UserData;
+    onSave: (data: UserData) => void;
+    isEditable?: boolean;
+  };
+
+  // Component code follows type definitions
+  export const UserComponent: React.FC<UserComponentProps> = ({ 
+    userData,
+    onSave,
+    isEditable = false 
+  }) => {
+    // ... component implementation
+  };
+  ```
+
+  Some key points about type placement:
+  - Keep related types and interfaces grouped together
+  - Place more generic types before more specific ones that might depend on them
+  - Consider extracting commonly used types into a separate `types.ts` file if they're used across multiple components
+
+  On whether to use `type` aliases or `interface` declarations:
+  - Use `interface` when you need declaration merging or inheritance.
+  - Use `type` for unions, intersections, primitives, tuples, and utility types.
+  - Be consistent within your codebase - if your team has standardized on one approach, follow that convention.
+
+  ```ts
+  // Use interface for object shapes
+  interface UserProps {
+    name: string;
+    age: number;
+    onSave: (data: User) => void;
+  }
+  ```
+
+  ```ts
+  // Use type for unions and more complex types
+  type Status = 'loading' | 'success' | 'error';
+  type ButtonKind = 'primary' | 'secondary' | 'ghost';
+  type Nullable<T> = T | null;
+  ```

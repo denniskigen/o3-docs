@@ -104,6 +104,8 @@ useDefineAppContext<DateFilterContext>("laboratory-date-filter", {
   dateRange,
   setDateRange,
 });
+```
+
 ##### Accessing the context
 
 ```tsx
@@ -114,6 +116,8 @@ const { dateRange, setDateRange } = useAppContext<DateFilterContext>(
   dateRange: "fallback-date-range",
   setDateRange: "fallback setter function",
 };
+```
+
 ### Persistent Storage
 
 Persistent storage refers to any storage mechanism that persists beyond a render of the single-page.

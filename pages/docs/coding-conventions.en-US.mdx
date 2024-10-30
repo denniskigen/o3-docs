@@ -50,6 +50,11 @@ O3 consists of both monorepos and standalone repositories. Monorepos are used to
   - `.yarnrc.yml` - Yarn configuration file
   - `tsconfig.json` - Root TypeScript configuration file
   - `turbo.json` - Turbo configuration file
+  - `package.json` - Root package manifest file. This:
+    - Defines workspace-level scripts for the monorepo
+    - Sets the `private: true` property which prevents the monorepo from accidentally being published to the npm registry.
+    - Declares shared dependencies for the monorepo in the `peerDependencies` and `dependencies` properties.
+    - Defines the `workspaces` property which tells Yarn how to find the workspaces in the monorepo.
 
   A typical convention is to place configuration files for the i18next parser, test utilities, and the Jest test setup file in a `tools` directory at the root of the monorepo:
 
@@ -59,7 +64,7 @@ O3 consists of both monorepos and standalone repositories. Monorepos are used to
 
   Configuration files you'd expect to find at the root of each package in the monorepo include:
 
-  - `package.json` - Manifest file for the package. This is where you should put scripts for the package.
+  - `package.json` - Manifest file for the package. This is where you should put scripts for the package. Importantly, this file doesn't have the `private` property, meaning the package can be published to the npm registry.
   - `tsconfig.json` - TypeScript configuration file that extends the root TypeScript configuration file.
   - `jest.config.ts` - Jest configuration file that extends the root Jest configuration file.
   - `webpack.config.js` - Webpack configuration file that extends the root Webpack configuration file.
@@ -91,13 +96,14 @@ O3 consists of both monorepos and standalone repositories. Monorepos are used to
 ## Code organization
 
 - Colocate related files in the same directory. Each component should have its own directory containing all its associated files. This includes:
-  - Component file (e.g., `patient-banner.component.tsx`)
-  - Test file (e.g., `patient-banner.test.tsx`)
-  - Stylesheet (e.g., `patient-banner.scss`)
-  - Resource file (e.g., `patient-banner.resource.ts`)
+  - Component file (e.g., `patient-banner.component.tsx`) - This is a React component.
+  - Test file (e.g., `patient-banner.test.tsx`) - This is a Jest test file.
+  - Stylesheet (e.g., `patient-banner.scss`) - This is a CSS stylesheet.
+  - Resource file (e.g., `patient-banner.resource.ts`) - This is a file that contains data fetching logic.
   - Any other related files (e.g., constants, types, utilities)
 
   Example directory structure:
+
   ```
   src/
   └── patient-banner/
@@ -132,7 +138,7 @@ O3 consists of both monorepos and standalone repositories. Monorepos are used to
   - React and framework imports (e.g., `React`, `useState`, `useEffect`)
   - External modules (e.g., `lodash`, `dayjs`, `react-i8next`)
   - Carbon component imports (e.g., `Button`, `InlineLoading`)
-  - OpenMRS imports (e.g., `@openmrs/esm-framework`, `@openmrs/esm-error-handling`)
+  - OpenMRS imports (e.g., `@openmrs/esm-framework`, `@openmrs/esm-patient-common-lib`)
   - Local imports (components, hooks, utilities, etc.)
   - Asset imports (e.g `import styles from './user.scss'`)
 
@@ -161,6 +167,13 @@ O3 consists of both monorepos and standalone repositories. Monorepos are used to
   import { useTranslation } from 'react-i18next';
   import { Button, DataTable } from '@carbon/react';
   import { useConfig, showSnackbar } from '@openmrs/esm-framework';
+  ```
+
+  Type imports should be marked with the `type` keyword. An ESLint plugin will automatically flag any type imports that are not marked with the `type` keyword.
+
+  ```tsx
+  // Good
+  import { showModal, type Visit } from '@openmrs/esm-framework';
   ```
 
 - Place type annotations and interfaces at the top of the file, after the imports and above any component code. Since TypeScript types and interfaces are development-time constructs that get removed during compilation, they don't affect the runtime behavior of your code.

@@ -60,9 +60,10 @@ O3 consists of both monorepos and standalone repositories. Monorepos are used to
   Configuration files you'd expect to find at the root of each package in the monorepo include:
 
   - `package.json` - Manifest file for the package. This is where you should put scripts for the package.
-  - `tsconfig.json` - TypeScript configuration file that extends the root TypeScript configuration file
-  - `jest.config.ts` - Jest configuration file that extends the root Jest configuration file
-  - `webpack.config.js` - Webpack configuration file that extends the root Webpack configuration file
+  - `tsconfig.json` - TypeScript configuration file that extends the root TypeScript configuration file.
+  - `jest.config.ts` - Jest configuration file that extends the root Jest configuration file.
+  - `webpack.config.js` - Webpack configuration file that extends the root Webpack configuration file.
+
 - Place e2e tests in the `e2e/specs` directory at the root of your repository.
 - Place test mocks in the top level `__mocks__` directory at the root of your repository. Mocks should be named after the module they are mocking. For example, if you have a mock with data for the `@openmrs/esm-patient-allergies` module, your mock should be named `allergies.mock.ts`. The root-level Typescript configuration file will automatically pick up any mocks in the `__mocks__` directory courtesy of the `paths` configuration in the root `tsconfig.json` file:
 
@@ -160,6 +161,7 @@ O3 consists of both monorepos and standalone repositories. Monorepos are used to
   import { useTranslation } from 'react-i18next';
   import { Button, DataTable } from '@carbon/react';
   import { useConfig, showSnackbar } from '@openmrs/esm-framework';
+  ```
 
 - Place type annotations and interfaces at the top of the file, after the imports and above any component code. Since TypeScript types and interfaces are development-time constructs that get removed during compilation, they don't affect the runtime behavior of your code.
 
@@ -447,8 +449,6 @@ O3 consists of both monorepos and standalone repositories. Monorepos are used to
     document.removeEventListener("click", handleClick);
   }, []);
   ```
-
-
 
 ## Styling
 

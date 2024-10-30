@@ -201,9 +201,9 @@ O3 consists of both monorepos and standalone repositories. Monorepos are used to
   - Consider extracting commonly used types into a separate `types.ts` file if they're used across multiple components
 
   On whether to use `type` aliases or `interface` declarations:
-  - Use `interface` when you need declaration merging or inheritance
-  - Use `type` for unions, intersections, primitives, tuples, and utility types
-  - Be consistent within your codebase - if your team has standardized on one approach, follow that convention
+  - Use `interface` when you need declaration merging or inheritance.
+  - Use `type` for unions, intersections, primitives, tuples, and utility types.
+  - Be consistent within your codebase - if your team has standardized on one approach, follow that convention.
 
   ```ts
   // Use interface for object shapes
@@ -212,7 +212,9 @@ O3 consists of both monorepos and standalone repositories. Monorepos are used to
     age: number;
     onSave: (data: User) => void;
   }
+  ```
 
+  ```ts
   // Use type for unions and more complex types
   type Status = 'loading' | 'success' | 'error';
   type ButtonKind = 'primary' | 'secondary' | 'ghost';

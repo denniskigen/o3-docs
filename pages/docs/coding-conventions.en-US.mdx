@@ -4,6 +4,38 @@ import { Callout } from "nextra-theme-docs";
 
 This is a compendium of the coding conventions we use in O3. The purpose of this document is to help us write code that is consistent and easy to maintain.
 
+These conventions represent our collective experience and best practices for building maintainable, performant, and user-friendly frontend applications in the OpenMRS 3.x ecosystem. They cover everything from naming and project structure to state management and performance optimization.
+
+## Who is this for?
+
+- **New contributors** looking to understand our coding standards
+- **Existing developers** seeking guidance on specific implementation patterns
+- **Reviewers** referencing standards during code reviews
+- **Technical leads** making architectural decisions
+
+## How to use this guide
+
+This document serves as both a reference and a learning resource. While you should aim to follow these conventions in your code, understand that they are guidelines rather than strict rules. The goal is to maintain consistency while writing high-quality, maintainable code.
+
+If you find cases where deviating from these conventions would result in better code, feel free to discuss it with the team. Our conventions evolve as we learn and as best practices in the frontend ecosystem change.
+
+## Table of contents
+
+- [Naming](#naming)
+- [Project structure](#project-structure)
+- [Components](#components)
+- [Data fetching](#data-fetching)
+- [Internationalization](#internationalization)
+- [State management](#state-management)
+- [Mutations and side effects](#mutations-and-side-effects)
+- [Event handlers](#event-handlers)
+- [Type annotations](#type-annotations)
+- [Styling](#styling)
+- [Search inputs](#search-inputs)
+- [Testing](#testing)
+- [Error handling](#error-handling)
+- [Performance](#performance)
+
 ## Naming
 
 - Follow the guidelines in this [naming cheatsheet](https://github.com/kettanaito/naming-cheatsheet).
@@ -38,14 +70,101 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 
 ## Components
 
-- Don't keep unused code in your components. Keeping dead code around can cause confusion and makes it harder to maintain the codebase.
-- Validate the props passed to your component using type aliases or interfaces. This helps to catch bugs early and makes it easier to understand how the component is used.
+- Don't keep unused code in your components. Keeping dead code around can cause confusion and makes it harder to maintain the codebase. This includes:
+  - Commented out code blocks
+  - Unused imports
+  - Unused props
+  - Unused variables and functions
+  - Dead code paths
+
+- Validate the props passed to your component using type aliases or interfaces. This helps to catch bugs early and makes it easier to understand how the component is used. For example:
+
+  ```tsx
+  // Good - using TypeScript interfaces
+  interface UserComponentProps {
+    name: string;
+    age: number;
+    isAdmin?: boolean;
+  }
+
+  const UserComponent: React.FC<UserComponentProps> = ({ name, age, isAdmin = false }) => {
+    // ...
+  };
+  ```
+
 - Make sure you read through the Component API for a particular Carbon component before using it. This helps you to understand the component's props and how to use them. It also helps you to understand the component's behavior and can obviate the need for writing custom code. For example, here's the [Component API for the Button component](https://react.carbondesignsystem.com/?path=/docs/components-button--default).
 - [Use keys in lists](https://react.dev/learn/rendering-lists). This helps React to identify which items have changed, been added, or been removed. This is especially important if you are rendering a list of components that contain state.
 - [Generate keys from the data itself](https://react.dev/learn/rendering-lists#where-to-get-your-key) if possible. For example, if you are rendering a list of patients from the database, use the patient's ID as the key. This ensures that the key is unique and stable across renders.
-- [Avoid using effects](https://react.dev/learn/you-might-not-need-an-effect) for things that don't involve synchronizing with external systems. The distinction is nuanced and can be difficult to understand. Please read and internalize the linked article before reaching for effects.
-- Don't reach for performance optimizations like memo, useMemo and useCallback before you need them. These optimizations come at a cost, and can make your code harder to understand. Read [this article](https://kentcdodds.com/blog/usememo-and-usecallback) and [this article](https://overreacted.io/before-you-memo/#solution-2-lift-content-up) to understand when to use these hooks.
-- Omit the value of a prop when it is explicitly `true`. For example, `<UserComponent isAdmin />` is preferred over `<UserComponent isAdmin={true} />`.
+- [Avoid using effects](https://react.dev/learn/you-might-not-need-an-effect) for things that don't involve synchronizing with external systems. The distinction is nuanced and can be difficult to understand. Please read and internalize the linked article before reaching for effects. Common cases where you **don't** need to use effects include:
+  - Transforming data for rendering
+  - Handling user events
+  - Updating the UI based on some state
+  - Updating the UI based on a prop change
+
+  Scenarios where you **do** need to use effects include:
+  - Managing subscriptions or WebSocket connections
+  - Controlling non-React widgets that need to be initialized with a DOM element
+  - Managing browser APIs that React doesn't handle for you (e.g. notifications, microphone access, etc.)
+  - Setting up event listeners or other callbacks on window or document objects
+
+  When in doubt, ask yourself: "*Is this code synchronizing with something outside of React's control?*" 
+  If not, you probably don't need an effect.
+
+- Consider using performance optimizations like `useMemo` and `useCallback` in these specific situations:
+  - When memoizing expensive computations.
+  - When passing callbacks to optimized child components that rely on referential equality to prevent unnecessary renders.
+  - When creating referentially stable objects or arrays that are used as dependencies in other hooks.
+  - When working with context providers where value changes can trigger widespread re-renders.
+
+  Don't treat these hooks as premature optimizations, but rather as tools for specific performance and stability needs. Read [the React docs on useMemo](https://react.dev/reference/react/useMemo#when-to-use-usememo) and [useCallback](https://react.dev/reference/react/useCallback#when-to-use-usecallback) for detailed guidance.
+
+- Omit the value of a prop when it is explicitly `true`. For example:
+
+  ```tsx
+  // These are equivalent
+  <Button disabled /> // Preferred
+  <Button disabled={true} /> // More verbose, same result
+  ```
+
+  ```tsx
+  // Be explicit when you need to mark a prop falsy
+  <Button disabled={false} />
+  ```
+
+  ```tsx
+  // This pattern applies to custom components too
+  <UserComponent isAdmin /> // Preferred
+  <UserComponent isAdmin={true} /> // More verbose, same result
+  <UserComponent isAdmin={false} /> // Must be explicit when false
+  ```
+
+  This keeps the code cleaner and more maintainable while maintaining full functionality.
+
+- [Keys can be used to reset the state of a component](https://react.dev/learn/preserving-and-resetting-state#resetting-a-form-with-a-key). This pattern is particularly useful when dealing with forms. When React encounters a component with a different key, it will unmount the old instance and mount a new one, effectively resetting all internal state. Examples of this include:
+
+  - Forcing a re-render of the UserProfile component when the user switches between profiles:
+
+  ```tsx
+  // Re-render when userId changes
+  <UserProfile key={userId} userId={userId} />
+  ```
+
+  - Resetting form state when switching between edit modes:
+
+  ```tsx
+  // Can be used to clear all form inputs and validation states
+  <Form key={`${itemId}-${isEditMode}`} item={item} />
+  ```
+
+  - Resetting an animation instead of transitioning from a previous state:
+  
+  ```tsx
+  // Restart animation when count changes
+  <AnimatedNumber key={count} value={count} />
+  ```
+
+  The key principle is: when the key changes, React treats it as a completely different component instance, discarding all previous state. This is cleaner than manually resetting multiple state variables.
+
 - Follow consistent code formatting, naming conventions and folder structure. This makes the codebase more readable and easier to maintain.
 
 ## Data fetching
@@ -61,7 +180,7 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 
 ## Internationalization
 
-- Do not manually edit any of the locale-speficic translation files in the `translations` directory. Run the `extract-translations` script instead to keep the `en.json` file in sync with the translation keys in the codebase.
+- Do not manually edit any of the locale-specific translation files in the `translations` directory. Run the `extract-translations` script instead to keep the `en.json` file in sync with the translation keys in the codebase.
 - Use the [useTranslation](https://react.i18next.com/latest/usetranslation-hook) hook to translate strings in your components.
 - Use the [Trans](https://react.i18next.com/latest/trans-component) component to translate strings that contain HTML tags.
 - To handle pluralization, use the following pattern:
@@ -137,7 +256,7 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - Don't use `any` unless you absolutely have to. Instead, use `unknown` or `never` to express the fact that you don't know the type of a variable or that a function never returns.
 - Wherever possible, use the `import type` syntax when importing types. This prevents the type from being imported at runtime, which reduces the bundle size. For example:
 
-  ```ts
+  ```tsx
   // Prefer
   import type { User } from "@openmrs/esm-user-management";
 
@@ -150,13 +269,13 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 
   Prefer:
 
-  ```ts
+  ```tsx
   const mockedShowSnackbar = jest.mocked(showSnackbar); // All the type information is preserved
   ```
 
   Over:
 
-  ```ts
+  ```tsx
   const mockedShowSnackbar = showSnackbar as jest.Mock;
   ```
 
@@ -345,3 +464,255 @@ This is a compendium of the coding conventions we use in O3. The purpose of this
 - Structure large test suites using [object page models](https://playwright.dev/docs/pom) when writing e2e tests using Playwright.
 - Follow the e2e testing [best practices](https://playwright.dev/docs/test-best-practices) outlined in the Playwright docs.
 - When stubbing out functionality from `@openmrs/esm-framework`, follow the mocking patterns described [here](/docs/frontend-modules/unit-and-integration-testing#mocking-patterns).
+
+## Error handling
+
+- Use `try/catch` blocks to handle errors that could occur during runtime. Render an error snackbar to the user with a descriptive error message when an error occurs.
+
+  ```tsx
+  try {
+    await savePatientData(patient);
+    showSnackbar({ message: t('patientSaved', 'Patient data saved successfully') });
+  } catch (error) {
+    showSnackbar({
+      title: t('errorSavingPatient', 'Error saving patient'),
+      kind: 'error',
+      description: error?.message ?? t('unknownError', 'An unknown error occurred'),
+    });
+  }
+  ```
+
+- Don't check the response status of a request to determine whether to show a success snackbar. Instead, always show a success snackbar after a request is successful. `openmrsFetch` will throw an error if the request fails, so you don't need to check the response status to determine whether to show a success or error snackbar.
+
+  ```tsx
+  // Don't do this
+  saveVisit(visitPayload).then((response) => {
+    if (response.status === 201) {
+      // Handle the success case
+    } else {
+      // Handle the error case
+    }
+  });
+  ```
+
+  ```tsx
+  // Instead, do this:
+  saveVisit(visitPayload).then(() => {
+    // Handle the success case
+  }).catch((error) => {
+    // Handle the error case
+  });
+  ```
+
+  Alternatively, you can use `async/await` syntax to handle the success and error cases:
+
+  ```tsx
+  try {
+    await saveVisit(visitPayload);
+    // Handle the success case
+  } catch (error) {
+    // Handle the error case
+  }
+  ```
+
+- When handling errors in async functions, prefer `async/await` over promise chains for better readability and error handling clarity. For example:
+
+  ```tsx
+  // Avoid promise chains
+  savePatientData(patient)
+    .then((response) => {
+      showSnackbar({ kind: 'success', title: t('patientSaved', 'Patient data saved successfully') });
+      return response;
+    })
+    .then(processPatientData)
+    .catch((error) => {
+      showSnackbar({
+        title: t('errorSavingPatient', 'Error saving patient'),
+        kind: 'error',
+        description: error?.message
+      });
+    });
+
+  // Prefer async/await
+  async function handleSavePatient(patient) {
+    try {
+      await savePatientData(patient);
+      showSnackbar({ kind: 'success', title: t('patientSaved', 'Patient data saved successfully') });
+    } catch (error) {
+      showSnackbar({
+        title: t('errorSavingPatient', 'Error saving patient'),
+        kind: 'error',
+        description: error?.message
+      });
+    }
+  }
+  ```
+
+  The `async/await` approach:
+  - Makes the code flow more readable and sequential.
+  - Simplifies error handling with a single try/catch block.
+  - Makes it easier to debug since stack traces are more meaningful.
+  - Allows easier handling of multiple async operations.
+
+  Use a `finally` block to execute cleanup code that should run regardless of whether the operation succeeded or failed:
+
+  ```tsx
+  async function handleSavePatient(patient) {
+    try {
+      // ...
+    } catch (error) {
+      // Handle the error case
+    } finally {
+      // Do any additional cleanup work
+      closeModal();
+    }
+  }
+  ```
+
+## Performance
+
+- Use React's built-in performance optimization hooks judiciously:
+  - `useMemo` for expensive computations.
+  - `useCallback` for stable function references.
+  - `memo` for preventing unnecessary re-renders of complex components.
+
+  ```tsx
+    // Good - memoizing an expensive computation
+    const sortedItems = useMemo(() => {
+      return items
+        .slice()
+        .sort((a, b) => b.timestamp - a.timestamp);
+    }, [items]);
+
+    // Good - stable callback for child components
+    const handleSubmit = useCallback((data: FormData) => {
+      mutate(data);
+    }, [mutate]);
+    ```
+
+- Use [element optimization](https://kentcdodds.com/blog/optimize-react-re-renders) to avoid unnecessary re-renders. If you give React the same element reference, it will skip rendering the component.
+- Use the appropriate lifecycle registration method based your component's loading requirements:
+  - Use `getAsyncLifecycle` to register modals, workspaces and other components that can be loaded on-demand. 
+
+  ```tsx
+  // Good - modal loaded only when needed
+  export const markPatientAliveModal = getAsyncLifecycle(() => import('./mark-patient-alive.modal'), options);
+  ```
+
+  - Use `getSyncLifecycle` for components that need to be available immediately on page load:
+
+  ```tsx
+  // Good - component included in the main bundle
+  export const startVisitForm = getSyncLifecycle(startVisitFormComponent, {
+    featureName: 'start-visit-form',
+    moduleName,
+  });
+  ```
+
+  The key difference between the two is that `getAsyncLifecycle` creates a separate chunk for the component in your app's code split. This chunk gets loaded on-demand, which can improve the initial load time of your application. On the other hand, `getSyncLifecycle` includes the component in the main bundle, ensuring that it's available immediately on page load. Use each approach when appropriate to optimize the performance of your application. Read more about the difference between static and dynamic metadata [here](/docs/migrate-to-core-v5).
+
+- Prefer using [icons](https://zeroheight.com/23a080e38/p/993dce-iconography) and [pictograms](https://zeroheight.com/23a080e38/p/396ba7-pictograms) from the CarbonMRS icon library over the `@carbon/react/icons` package. The CarbonMRS library is optimized for our use case and avoids potential tree-shaking issues that can occur with the Carbon icons package.
+
+- Consider using prefetching to improve the responsiveness of your application. Prefetching can be particularly useful in these cases:
+  - Prefetching data for items that are likely to be accessed next:
+
+   ```tsx
+  // Prefetch the next page of results
+  const prefetchNextPage = () => {
+    void mutate(`/ws/rest/v1/patient?startIndex=${currentPage + 1}`);
+  };
+  ```
+
+  - Preloading data using SWR's [preload API](https://swr.vercel.app/docs/prefetching) when hovering over links or buttons:
+
+  ```tsx
+  // Preload form schemas when hovering over links in the form builder
+  <ConfigurableLink
+    className={styles.link}
+    to={editSchemaUrl}
+    templateParams={{ formUuid: form?.uuid }}
+    onMouseEnter={() => void preload(`/ws/rest/v1/form/${form?.uuid}?v=full`, openmrsFetch)}
+  >
+    {form.name}
+  </ConfigurableLink>
+  ```
+
+  Remember that while prefetching can improve the user experience, it should be used judiciously to avoid unnecessary network requests and data usage.
+
+- Tweak your SWR configuration appropriately to optimize performance. O3 uses a [global SWR configuration](https://github.com/openmrs/openmrs-esm-core/pull/1157) that disables most automatic revalidations. Because the [SWRConfig component](https://swr.vercel.app/docs/global-configuration.en-US) merges configurations from the parent context, you can override options in the global configuration on a per-component basis. Alternatively, you can specify a custom configuration at a per-hook level. Each SWR hook accepts an options object as an argument, which you can use to customize the behavior of the hook.
+
+  ```tsx
+  // Global configuration in the OpenMRS component decorator
+  const defaultSwrConfig = {
+    // max number of retries after requests have failed
+    errorRetryCount: 3,
+    // default fetcher function
+    fetcher: openmrsFetch,
+    // only revalidate once every 30 minutes
+    focusThrottleInterval: 1800000,
+    revalidateIfStale: true,
+    // disable automatic revalidations by default
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    refreshInterval: 0,
+  };
+
+  <SWRConfig value={defaultSwrConfig}>
+    <ComponentContext.Provider value={this.state.config}>
+      {opts.disableTranslations ? (
+        <Comp {...this.props} />
+      ) : (
+        <I18nextProvider
+          // props omitted for brevity
+        >
+          <Comp {...this.props} />
+        </I18nextProvider>
+      )}
+    </ComponentContext.Provider>
+  </SWRConfig>
+  ```
+
+  ```tsx
+  // Component-level configuration using the SWRConfig component
+  <SWRConfig value={{ revalidateOnFocus: true, revalidateOnReconnect: true }}>
+    <Component />
+  </SWRConfig>
+  ```
+
+  ```tsx
+  // Custom configuration at a per-hook level
+  const { data } = useSWR('/ws/rest/v1/patient?v=full', openmrsFetch, {
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+  });
+  ```
+  
+- Avoid common performance pitfalls:
+  - Don't create new objects or arrays in render
+  - Avoid inline function definitions in JSX
+  - Don't use index as key in lists
+  - Prevent unnecessary re-renders by proper state management
+
+  ```tsx
+  // Bad - new object created every render
+  <Component style={{ margin: '10px' }} />
+
+  // Good - stable object reference
+  const styles = { margin: '10px' };
+  <Component style={styles} />
+
+  // Bad - new function created every render
+  <Button onClick={() => handleClick(id)} />
+
+  // Good - stable function reference
+  const handleButtonClick = useCallback(() => {
+    handleClick(id);
+  }, [id, handleClick]);
+  <Button onClick={handleButtonClick} />
+  ```
+
+- Monitor your application's performance using the [React DevTools Profiler](https://react.dev/learn/react-developer-tools). To profile your app, you could run both your app and the O3 app shell locally and then use the [import map overrides mechanism](/docs/frontend-modules/development#import-map-overrides) to load your app in the O3 app shell. You could then open the React DevTools Profiler in your browser and start a profiling session. Things to watch out for include:
+  - Components with frequent re-renders
+  - Components that are slow to render
+  - Long task in the main thread
+  - Components that could be memoized

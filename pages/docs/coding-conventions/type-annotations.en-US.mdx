@@ -1,0 +1,200 @@
+# Type annotations
+
+- Follow the guidelines outlined in [React TypeScript Cheatsheets](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/).
+- Always annotate your function parameters with types. This makes it easier to understand what the function does, and explicitly expresses the function's contracts.
+
+  ```tsx
+  // Prefer
+  const myFunction = (a: number, b: number) => { ... }
+
+  // Over
+  const myFunction = (a, b) => { ... }
+  ```
+
+- Rely on TypeScript's type inference for things like variable and array initialization, and in some cases, function return types. The goal of the type system is not to annotate every single variable with a type, but rather to make sure that the important parts of your code are type-safe. Read more about type inference [here](https://www.typescriptlang.org/docs/handbook/type-inference.html).
+
+  ```tsx
+  // Good examples of letting TypeScript infer types
+  const numbers = [1, 2, 3];  // TypeScript infers number[]
+  const user = {
+    name: "John",
+    age: 30
+  };  // TypeScript infers { name: string; age: number }
+
+  // Function return type can often be inferred
+  const addNumbers = (a: number, b: number) => a + b;  // Return type number is inferred
+
+  // However, explicitly type the parameters and return type for public APIs
+  function calculateTotal(items: number[]): number {
+    return items.reduce((sum, item) => sum + item, 0);
+  }
+  ```
+
+- Both TypeScript `interface` and `type` aliases can be extended, but they have different characteristics:
+  - `interface` supports declaration merging, allowing you to add new fields to an existing interface
+  - `type` aliases are more flexible for complex types and unions
+  - Both can be extended, but with different syntax:
+
+  ```ts
+  // Interface extension
+  interface Animal {
+    name: string;
+  }
+  interface Dog extends Animal {
+    bark(): void;
+  }
+
+  // Type extension
+  type Animal = {
+    name: string;
+  }
+  type Dog = Animal & {
+    bark(): void;
+  }
+
+  // Interface declaration merging (only possible with interfaces)
+  interface User {
+    name: string;
+  }
+  interface User {
+    age: number;
+  }
+  // Results in User having both name and age
+
+  // Complex types are often clearer with type aliases
+  type Status = "loading" | "error" | "success";
+  type NumberOrString = number | string;
+  ```
+
+- Choose between them based on your needs:
+  - Use `interface` when:
+    - You're defining object shapes that might need declaration merging
+    - You're creating public APIs that others might need to extend
+  - Use `type` when:
+    - You need to create union or intersection types
+    - You're working with complex types that combine multiple types
+    - You want to ensure no one can add fields through declaration merging
+
+
+- Don't use `any` unless you absolutely have to. Using `any` completely bails out of the TypeScript type system, and is the source of many bugs. Instead, use `unknown` or `never` to express the fact that you don't know the type of a variable or that a function never returns.
+
+  ```ts
+  // Bad - using 'any' loses all type safety
+  function processData(data: any) {
+    data.nonExistentMethod(); // No TypeScript errors, but will fail at runtime
+  }
+
+  // Better - using 'unknown' requires type checking
+  function processData(data: unknown) {
+    if (typeof data === 'string') {
+      return data.toUpperCase(); // OK - we've verified it's a string
+    }
+    if (Array.isArray(data)) {
+      return data.length; // OK - we've verified it's an array
+    }
+    throw new Error('Unsupported data type');
+  }
+
+  // Use 'never' for functions that never return
+  function throwError(message: string): never {
+    throw new Error(message);
+  }
+
+  // Use 'never' for impossible cases in exhaustive checks
+  type Shape = Circle | Square;
+
+  function getArea(shape: Shape) {
+    if ('radius' in shape) {
+      return Math.PI * shape.radius ** 2;
+    }
+    if ('width' in shape) {
+      return shape.width ** 2;
+    }
+    // TypeScript will ensure we've handled all cases
+    const exhaustiveCheck: never = shape;
+  }
+
+  // If you must use 'any', consider using 'unknown' with type assertions
+  function legacyCode(data: unknown) {
+    // Better than 'any' because it's explicit about the type assertion
+    const userInput = data as string;
+    return userInput.toLowerCase();
+  }
+  ```
+
+- Wherever possible, use the `import type` syntax when importing types. This prevents the type from being imported at runtime, which reduces the bundle size. For example:
+
+  ```tsx
+  // Prefer
+  import type { User } from "@openmrs/esm-user-management";
+
+  // Instead of
+  import { User } from "@openmrs/esm-user-management";
+  ```
+
+- [Prefer union types over status enums](https://fettblog.eu/tidy-typescript-avoid-enums/). Union types provide better type safety, don't generate runtime code, and are more idiomatic in TypeScript. They also make it impossible to assign invalid values, whereas enums can sometimes lead to unexpected behavior with numeric values or when used with JavaScript's type coercion.
+
+  ```ts
+  // Prefer this
+  type Status = "loading" | "error" | "success";
+  let status: Status = "loading"; // Only these three strings are allowed
+  
+  // Over this
+  enum Status { Loading, Error, Success }
+  let status = Status.Loading; // Compiles to a number (0) at runtime
+  ```
+
+- Use the `jest.mocked` utility to preserve type information when mocking functions in tests. For example:
+
+  Prefer:
+
+  ```tsx
+  const mockedShowSnackbar = jest.mocked(showSnackbar); // All the type information is preserved
+  ```
+
+  Over:
+
+  ```tsx
+  const mockedShowSnackbar = showSnackbar as jest.Mock;
+  ```
+
+- Use TypeScript's built-in utility types when possible. Common examples include:
+
+  ```tsx
+  // Make all properties optional
+  type PartialUser = Partial<User>;
+
+  // Make all properties required
+  type RequiredUser = Required<User>;
+
+  // Pick specific properties
+  type UserName = Pick<User, 'firstName' | 'lastName'>;
+
+  // Omit specific properties
+  type UserWithoutPassword = Omit<User, 'password'>;
+
+  // Extract return type from a function
+  type ReturnValue = ReturnType<typeof myFunction>;
+  ```
+
+- Prefer using `const assertions` for literal types:
+
+  ```tsx
+  // This array has type readonly ["error", "success", "loading"]
+  const statusLiterals = ["error", "success", "loading"] as const;
+  type Status = typeof statusLiterals[number]; // "error" | "success" | "loading"
+  ```
+
+- Prefer explicit prop types for React components:
+
+  ```tsx
+  // Prefer
+  interface ButtonProps {
+    variant: 'primary' | 'secondary';
+    onClick: () => void;
+    children: React.ReactNode;
+  }
+
+  // Over
+  const Button = (props: any) => { ... }
+  ```

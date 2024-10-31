@@ -1,0 +1,17 @@
+# Data fetching
+
+- Colocate your data fetching logic in a file suffixed with `.resource`. For example, `user.resource.ts` contains the data fetching logic for the User component.
+- Wherever possible, prefer abstracting your data fetching into a custom hook rather than [fetching with effects](https://react.dev/reference/react/useEffect#fetching-data-with-effects). Fetching data with effects has many [downsides](https://react.dev/reference/react/useEffect#fetching-data-with-effects) and should be avoided. Instead, prefer using [SWR](https://swr.vercel.app/) hooks.
+- Use [SWR](https://swr.vercel.app/) hooks to fetch data from the backend. Use [useSWRImmutable](https://swr.vercel.app/docs/revalidation.en-US#disable-automatic-revalidations) for resources that are not expected to change often, such as concepts or backend configurations.
+- Put the SWR hook in a resource file, and export it as a function. This allows us to reuse the same hook in multiple components.
+- Memoize the return value of your SWR hook using `useMemo` to prevent unnecessary rerenders. This is especially important if the hook is used in a component that is rendered many times, such as a table row.
+- Data fetching hooks should follow the naming convention `use<resource>`. For example, `useUser` is the hook for fetching user data.
+- Use [openmrsFetch](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-api/src/openmrs-fetch.ts) to fetch data from the backend. `openmrsFetch` is a wrapper around the `fetch` API that adds authentication and authorization headers and handles errors. Pass it to SWR hooks as the `fetcher` argument.
+- Use the `error`, `isLoading`, `isValidating` and `mutate` properties of the SWR hook to handle errors, loading states and mutations. Don't recreate these properties manually.
+- Use SWR's [conditional data fetching](https://swr.vercel.app/docs/conditional-fetching) pattern when the request depends on some condition. For example, if the request depends on a prop, only make the request if the prop is true.
+
+  ```tsx
+  // Only fetch user data if userId is provided
+  const url = userId ? `/ws/rest/v1/user/${userId}` : null;
+  const { data, error, isLoading, isValidating, mutate } = useSWR<User>(url, openmrsFetch);
+  ```

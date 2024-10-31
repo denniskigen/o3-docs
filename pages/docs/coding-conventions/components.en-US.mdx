@@ -1,0 +1,98 @@
+# Components
+
+- Don't keep unused code in your components. Keeping dead code around can cause confusion and makes it harder to maintain the codebase. This includes:
+  - Commented out code blocks
+  - Unused imports
+  - Unused props
+  - Unused variables and functions
+  - Dead code paths
+
+- Validate the props passed to your component using type aliases or interfaces. This helps to catch bugs early and makes it easier to understand how the component is used. For example:
+
+  ```tsx
+  // Good - using TypeScript interfaces
+  interface UserComponentProps {
+    name: string;
+    age: number;
+    isAdmin?: boolean;
+  }
+
+  const UserComponent: React.FC<UserComponentProps> = ({ name, age, isAdmin = false }) => {
+    // ...
+  };
+  ```
+
+- Make sure you read through a [Carbon component's](https://react.carbondesignsystem.com/) documentation before using it. This helps you to understand the component's props and how to use them. It also helps you to understand the component's behavior and can obviate the need for writing custom code. For example, here's the [Button component documentation](https://react.carbondesignsystem.com/?path=/docs/components-button--default).
+- [Use keys in lists](https://react.dev/learn/rendering-lists). This helps React to identify which items have changed, been added, or been removed. This is especially important if you are rendering a list of components that contain state.
+- [Generate keys from the data itself](https://react.dev/learn/rendering-lists#where-to-get-your-key) if possible. For example, if you are rendering a list of patients from the database, use the patient's ID as the key. This ensures that the key is unique and stable across renders.
+- [Avoid using effects](https://react.dev/learn/you-might-not-need-an-effect) for things that don't involve synchronizing with external systems. The distinction is nuanced and can be difficult to understand. Please read and internalize the linked article before reaching for effects. Common cases where you **don't** need to use effects include:
+  - Transforming data for rendering
+  - Handling user events
+  - Updating the UI based on some state
+  - Updating the UI based on a prop change
+
+  Scenarios where you **do** need to use effects include:
+  - Managing subscriptions or WebSocket connections
+  - Controlling non-React widgets that need to be initialized with a DOM element
+  - Managing browser APIs that React doesn't handle for you (e.g. notifications, microphone access, etc.)
+  - Setting up event listeners or other callbacks on window or document objects
+
+  When in doubt, ask yourself: "*Is this code synchronizing with something outside of React's control?*" 
+  If not, you probably don't need an effect.
+
+- Consider using performance optimizations like `useMemo` and `useCallback` in these specific situations:
+  - When memoizing expensive computations.
+  - When passing callbacks to optimized child components that rely on referential equality to prevent unnecessary renders.
+  - When creating referentially stable objects or arrays that are used as dependencies in other hooks.
+  - When working with context providers where value changes can trigger widespread re-renders.
+
+  Don't treat these hooks as premature optimizations, but rather as tools for specific performance and stability needs. Read [the React docs on useMemo](https://react.dev/reference/react/useMemo#when-to-use-usememo) and [useCallback](https://react.dev/reference/react/useCallback#when-to-use-usecallback) for detailed guidance.
+
+- Omit the value of a prop when it is explicitly `true`. For example:
+
+  ```tsx
+  // These are equivalent
+  <Button disabled /> // Preferred
+  <Button disabled={true} /> // More verbose, same result
+  ```
+
+  ```tsx
+  // Be explicit when you need to mark a prop falsy
+  <Button disabled={false} />
+  ```
+
+  ```tsx
+  // This pattern applies to custom components too
+  <UserComponent isAdmin /> // Preferred
+  <UserComponent isAdmin={true} /> // More verbose, same result
+  <UserComponent isAdmin={false} /> // Must be explicit when false
+  ```
+
+  This keeps the code cleaner and more maintainable while maintaining full functionality.
+
+- [Keys can be used to reset the state of a component](https://react.dev/learn/preserving-and-resetting-state#resetting-a-form-with-a-key). This pattern is particularly useful when dealing with forms. When React encounters a component with a different key, it will unmount the old instance and mount a new one, effectively resetting all internal state. Examples of this include:
+
+  - Forcing a re-render of the UserProfile component when the user switches between profiles:
+
+  ```tsx
+  // Re-render when userId changes
+  <UserProfile key={userId} userId={userId} />
+  ```
+
+  - Resetting form state when switching between edit modes:
+
+  ```tsx
+  // Can be used to clear all form inputs and validation states
+  <Form key={`${itemId}-${isEditMode}`} item={item} />
+  ```
+
+  - Resetting an animation instead of transitioning from a previous state:
+  
+  ```tsx
+  // Restart animation when count changes
+  <AnimatedNumber key={count} value={count} />
+  ```
+
+  The key principle is: when the key changes, React treats it as a completely different component instance, discarding all previous state. This is cleaner than manually resetting multiple state variables.
+
+- Follow consistent code formatting, naming conventions and folder structure. This makes the codebase more readable and easier to maintain.

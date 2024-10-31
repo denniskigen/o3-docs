@@ -45,7 +45,7 @@ The following are some general guidelines for search inputs:
           .filter(debouncedSearchTerm, forms, {
             extract: (form: TypedForm) => `${form.name} ${form.version}`,
           })
-          .sort((r1, r2) => r1.score - r2.score)
+          .sort((r1, r2) => r2.score - r1.score)
           .map((result) => result.original)
       : forms;
   }, [filter, forms, debouncedSearchTerm]);
@@ -57,7 +57,7 @@ The following are some general guidelines for search inputs:
 
   ```tsx
   function Search() {
-    const [search, setSearch] = React.useState('');
+    const [search, setSearch] = useState('');
   
     const { data, isLoading } = useSWR(`/search?q=${search}`, fetcher, {
       keepPreviousData: true
@@ -73,7 +73,7 @@ The following are some general guidelines for search inputs:
         />
   
         <div className={isLoading ? "loading" : ""}>
-          {data?.products.map(item => <Product key={item.id} name={item.name} />)
+          {data?.products.map(item => <Product key={item.id} name={item.name} />)}
         </div>
       </div>
     );
@@ -89,3 +89,5 @@ The following are some general guidelines for search inputs:
     frameBorder="0"
     allowFullScreen
   ></iframe>
+
+  Here's an example of using `keepPreviousData` in the O3 patient search https://github.com/openmrs/openmrs-esm-patient-management/blob/main/packages/esm-patient-search-app/src/patient-search.resource.tsx#L198.

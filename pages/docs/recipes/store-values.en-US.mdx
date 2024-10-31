@@ -86,6 +86,51 @@ userStore.set((state) => state.user = /* value from somewhere */);
 
 Updating the store using `set()` will update all variables subscribed to the store, including (like in the example) `user`.
 
+#### App context
+
+[App Context](https://github.com/openmrs/openmrs-esm-core/pull/976) is a mechanism for sharing state across different parts of the application, specifically designed for cross-component communication within the currently active application. Unlike global stores which persist between component renders, App Context is tied to the lifecycle of specific components.
+
+Common use cases for App Context include:
+- Sharing state between components that exist in different React trees
+- Managing temporary shared state that should only exist while specific components are active
+- Coordinating between different parts of a feature (e.g., sharing selected patient data across related components). 
+
+The framework provides two hooks for working with App Context:
+
+- [useDefineAppContext](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-react-utils/src/useDefineAppContext.ts) for defining the context.
+- [useAppContext](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-react-utils/src/useAppContext.ts) for accessing the context.
+
+##### Defining a context
+
+```tsx
+const [dateRange, setDateRange] = useState<Date[]>([
+  dayjs().startOf("day").toDate(),
+  new Date(),
+]);
+
+useDefineAppContext<DateFilterContext>("laboratory-date-filter", {
+  dateRange,
+  setDateRange,
+});
+```
+
+##### Accessing the context
+
+```tsx
+const { dateRange, setDateRange } = useAppContext<DateFilterContext>(
+  "laboratory-date-filter"
+) ?? {
+  // Fallback values used when the app context is undefined
+  dateRange: "fallback-date-range",
+  setDateRange: "fallback setter function",
+};
+```
+
+**When to use App Context vs Global Store**
+
+- Use **App Context** when you need to share state between components that should only exist while those components are active in the application.
+- Use **Global Store** when you need state to persist between component renders or across the entire application lifecycle.
+
 ### Persistent Storage
 
 Persistent storage refers to any storage mechanism that persists beyond a render of the single-page.

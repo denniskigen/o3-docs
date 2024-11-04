@@ -123,13 +123,6 @@
   - Prevent unnecessary re-renders by proper state management
 
   ```tsx
-  // Bad - new object created every render
-  <Component style={{ margin: '10px' }} />
-
-  // Good - stable object reference
-  const styles = { margin: '10px' };
-  <Component style={styles} />
-
   // Bad - new function created every render
   <Button onClick={() => handleClick(id)} />
 

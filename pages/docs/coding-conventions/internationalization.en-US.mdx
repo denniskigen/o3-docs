@@ -60,10 +60,10 @@ The following are some guidelines to follow when handling i18n in O3:
 
   ```tsx
   // If there's only one risk flag, the string "1 risk flag" is displayed.
-  // If there are multiple risk flags, the string "{count} risk flags" is displayed
+  // If there are multiple risk flags, the string "{{count}} risk flags" is displayed
   // e.g. "3 risk flags".
   <span className={styles.flagText}>
-    {t("flagCount", {
+    {t("flagCount", "{{count}} risk flag", {
       count: riskFlags.length,
     })}
   </span>

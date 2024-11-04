@@ -50,7 +50,7 @@ The following are some general guidelines for testing:
 - [Avoid the test user](https://kentcdodds.com/blog/avoid-the-test-user).
 - Avoid testing implementation details. Instead, test the component's public API. This makes it easier to refactor the component without having to rewrite the tests.
 - When stubbing out functionality from `@openmrs/esm-framework`, follow the mocking patterns described [here](/docs/frontend-modules/unit-and-integration-testing#mocking-patterns).
-- [Write fewer, longer tests](https://kentcdodds.com/blog/write-fewer-longer-tests).
+- Write fewer, more comprehensive tests that cover complete scenarios, rather than many small isolated tests. Read this [blog post by Testing Library author, Kent C. Dodds](https://kentcdodds.com/blog/write-fewer-longer-tests) for more information.
   - Group related test scenarios together.
   - Build up complex scenarios progressively.
   - Use test hooks (`beforeEach`, `afterEach`, `beforeAll`, `afterAll`) to reduce duplication.
@@ -58,8 +58,6 @@ The following are some general guidelines for testing:
 ### E2E testing
 
 - Follow the e2e testing [best practices](https://playwright.dev/docs/test-best-practices) outlined in the Playwright docs.
-
-
 - Structure large test suites using page object models:
   - Create separate classes for each major page/component
   - Encapsulate selectors and common actions

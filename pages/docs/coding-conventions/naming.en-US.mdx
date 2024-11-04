@@ -35,7 +35,7 @@
 
 - Follow the extension system [nomenclature guide](/docs/extension-system#nomenclature) when naming your extensions and extension slots.
 - Use the file name as the component name. For example, `user.component.tsx` should contain a component named `UserComponent`. This makes it easier to find the component in the codebase.
-- Avoid using DOM component prop names for different purposes. For example, avoid using the `className` prop to pass a CSS class name to a component. Instead, use a prop name that is specific to the component, such as `cssClass`.
+- Avoid using DOM component prop names for different purposes. For example, avoid using the `style` prop to pass configuration options. Instead, use a descriptive prop name that matches its purpose, such as `config` or `options`.
 - Use `camelCase` for prop names. This is consistent with the naming convention for variables, functions, and methods.
 - Translation keys should be in `camelCase` whereas translation strings should be in `sentence case`. For example, `firstName` is a translation key whereas `First name` is it's corresponding translation string.
 - Frontend modules in monorepos should have names that start with the `esm-` prefix. The name of the module should describe what the module does. For example, `esm-user-management` is a good name for a frontend module handling user management concerns and `esm-patient-chart` is a good name for a frontend module handling patient chart concerns.

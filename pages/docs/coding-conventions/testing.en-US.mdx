@@ -10,10 +10,10 @@ The following are some general guidelines for testing:
 ### Unit and integration testing
 
 - Avoid these [common testing pitfalls](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library):
-  - Using the wrong assertion. Install and use [@testing-library/jest-dom](https://github.com/testing-library/jest-dom) to extend Jest's `expect` with assertions for testing React components.
-  - Using the wrong query. Use [this resource](https://testing-library.com/docs/guide-which-query) to choose the right query for the element you want to test.
-  - Using `query*` variants for _anything_ except checking if an element exists. Only use `query*` variants for asserting that an element does not exist.
-  - Using `waitFor` to wait for elements that can be queried with `screen.find*`.
+  - Don't use the wrong assertion. Install and use [@testing-library/jest-dom](https://github.com/testing-library/jest-dom) to extend Jest's `expect` with assertions for testing React components.
+  - Don't use the wrong query. Use [this resource](https://testing-library.com/docs/guide-which-query) to choose the right query for the element you want to test.
+  - Don't use `query*` variants for _anything_ except checking if an element exists. Only use `query*` variants for asserting that an element does not exist.
+  - Don't use `waitFor` to wait for elements that can be queried with `screen.find*`.
 
   ```tsx
   // ❌
@@ -25,7 +25,7 @@ The following are some general guidelines for testing:
   const submitButton = await screen.findByRole('button', { name: /submit/i })
   ```
 
-  - Passing an empty callback to `waitFor`.
+  - Don't pass an empty callback to `waitFor`.
 
   ```tsx
   // ❌
@@ -38,14 +38,12 @@ The following are some general guidelines for testing:
   expect(window.fetch).toHaveBeenCalledTimes(1)
   ```
 
-  Wait for a specific assertion inside `waitFor`.
-
-  - Incorrectly adding `aria-*`, `role`, and other accessibility attributes to elements. Only add them if the application actually uses them.
-  - Not using Testing Library's ESLint plugins: [eslint-plugin-testing-library](https://github.com/testing-library/eslint-plugin-testing-library) and [eslint-plugin-jest-dom](https://github.com/testing-library/eslint-plugin-jest-dom).
-  - Using the `cleanup` function. RTL takes care of cleaning up after each test.
-  - Not using `screen` to query for elements. Use `screen` for querying elements and debugging assertions.
-  - Unnecessarily wrapping things in `act`. Follow [this guide](https://kentcdodds.com/blog/fix-the-not-wrapped-in-act-warning) instead to fix `Not wrapped in act(...)` warnings.
-  - Not using `render` or `renderHook` to wrap components in tests.
+  - Don't add `aria-*`, `role`, and other accessibility attributes to elements unless the application actually uses them.
+  - Don't use Testing Library's ESLint plugins: [eslint-plugin-testing-library](https://github.com/testing-library/eslint-plugin-testing-library) and [eslint-plugin-jest-dom](https://github.com/testing-library/eslint-plugin-jest-dom).
+  - Don't use the `cleanup` function. RTL takes care of cleaning up after each test.
+  - Don't use `screen` to query for elements. Use `screen` for querying elements and debugging assertions.
+  - Don't unnecessarily wrap things in `act`. Follow [this guide](https://kentcdodds.com/blog/fix-the-not-wrapped-in-act-warning) instead to fix `Not wrapped in act(...)` warnings.
+  - Don't use `render` or `renderHook` to wrap components in tests.
 
 - [Avoid the test user](https://kentcdodds.com/blog/avoid-the-test-user).
 - Avoid testing implementation details. Instead, test the component's public API. This makes it easier to refactor the component without having to rewrite the tests.

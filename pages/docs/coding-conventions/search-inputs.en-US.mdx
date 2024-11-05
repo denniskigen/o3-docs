@@ -2,6 +2,12 @@
 
 The following are some general guidelines for search inputs:
 
+- Prefer using server-side search functionality over implementing search-filtering on the client side, as the latter requires fetching the entire data set and can be inefficient. However, client-side search might be the right choice in cases where the server-side search functionality is insufficient or the expected result size is small. In either case, be careful with handling server-side pagination, as most REST resources has a search result [size limit](https://openmrs.atlassian.net/wiki/spaces/docs/pages/25469882/REST+Module) per request. Use the [useOpenmrsPagination](https://github.com/openmrs/openmrs-esm-core/blob/0120ab0a384d7a2adcd90aec88dc224802af6ab2/packages/framework/esm-react-utils/src/useOpenmrsPagination.ts), [useOpenmrsFetchAll](https://github.com/openmrs/openmrs-esm-core/blob/f76380b9886f893d8184451e3ac9f27057ee18d7/packages/framework/esm-react-utils/src/useOpenmrsFetchAll.ts) and [useOpenmrsInfinite](https://github.com/openmrs/openmrs-esm-core/blob/2c36c62216a94589bfde7b5ed46cdeee08b308fb/packages/framework/esm-react-utils/src/useOpenmrsInfinite.ts) hooks to handle server-side pagination for different use cases.
+
+```tsx
+  // client side search filtering, `data` contains entire data set when `isLoading` is no longer true.
+  const { data, totalCount, isLoading } = useOpenmrsFetchAll<Patient>(`${restBaseUrl}/patient`);
+  // do something with the data
 - Debounce search inputs to prevent unnecessary requests to the backend. Use the [useDebounce](https://github.com/openmrs/openmrs-esm-core/blob/2396ab96a37bc7202c853110969d82c17fe098a6/packages/framework/esm-react-utils/src/useDebounce.ts) hook to debounce search inputs. Here's a snippet (some bits are omitted for brevity) showing how you could use the hook:
 
   ```tsx

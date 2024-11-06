@@ -5,7 +5,7 @@ import { Callout, Steps } from "nextra-theme-docs";
   Wiki at https://openmrs.atlassian.net/wiki/x/K4L-C
 </Callout>
 
-## End-to-end testing with Playwright
+# End-to-end testing with Playwright
 
 [Playwright](https://playwright.dev) is a testing framework that allows you to write reliable end-to-end tests in JavaScript. Great work by the OpenMRS QA team means that we now have Playwright set up across most of our key repositories.
 
@@ -23,7 +23,7 @@ We recommend installing the official Playwright [VS Code plugin](https://playwri
 You can also use the `npx playwright test` command to run your tests. We also recommend following the [best practices](https://playwright.dev/docs/best-practices) outlined in the Playwright documentation.
 This will help you write tests that are reliable and easy to maintain.
 
-### Writing tests
+## Writing tests
 
 In general, it is recommended to read through the official [Playwright docs](https://playwright.dev/docs/intro) before writing new test cases. The project uses the official Playwright test runner and, generally, follows a very simple project structure:
 
@@ -92,7 +92,7 @@ test("Search patient by patient identifier", async ({ page, api }) => {
 });
 ```
 
-### Running tests
+## Running tests locally
 
 To run e2e tests locally, you'd need to fire up a dev server running the frontend module whose tests you want to run.
 
@@ -143,7 +143,7 @@ yarn test-e2e conditions -g "Record and edit a condition"
 
 </Steps>
 
-### Demo data usage
+## Demo data usage in E2E tests
 
 To ensure that the test contains the necessary metadata, you may follow the procedures outlined below:
 
@@ -151,11 +151,11 @@ To ensure that the test contains the necessary metadata, you may follow the proc
 2. Leverage demo data - If the test case only requires data viewing, the demo data available in the RefApp can suffice. Check the demo data module to know more.
 3. Generate the required data - In case the above solutions are inadequate, you can use the API to create the necessary data ahead of the test.
 
-### Debugging Tests
+## Debugging Tests
 
 Refer to [this documentation](https://playwright.dev/docs/debug) on how to debug a test.
 
-### View test reports from GitHub Actions / Bamboo
+## View test reports from GitHub Actions / Bamboo
 
 To download the report from the GitHub action/Bamboo plan, follow these steps:
 
@@ -165,7 +165,7 @@ To download the report from the GitHub action/Bamboo plan, follow these steps:
 
 The report will show you a full summary of your tests, including information on which tests passed, failed, were skipped, or were flaky. You can explore the details of individual tests, including any errors or failures, video recordings, traces and the steps involved in each test. Simply click on a test to view its details.
 
-### Do's and Don'ts
+## Do's and Don'ts
 
 - Do ensure that all test cases are written clearly and concisely, with step-by-step instructions that can be easily understood.
 - Do use a variety of test cases to cover all possible scenarios, including best-case scenarios, worst-case scenarios, and edge cases.
@@ -174,7 +174,7 @@ The report will show you a full summary of your tests, including information on 
 - Don't ignore any errors or issues that arise during testing, even if they seem minor. Report them to the development team so that they can be addressed promptly.
 - Don't skip any critical paths or scenarios. Ensure that all scenarios are tested thoroughly to identify any potential issues or defects.
 
-### Best Practices
+## Best Practices
 
 - Start testing early in the development process to identify and address issues before they become more challenging and expensive to fix.
 - Utilize automated testing whenever possible to save time and increase efficiency.
@@ -183,11 +183,11 @@ The report will show you a full summary of your tests, including information on 
 - Continuously review and update the testing plan to ensure that it covers all relevant features and scenarios.
 - Work collaboratively with the O3 team to ensure that any issues or defects are identified and resolved quickly.
 
-### Automating the E2E tests with GitHub Actions
+## Automating the E2E tests with GitHub Actions
 
 Automating end-to-end (E2E) tests through GitHub Actions provides an efficient way to ensure the reliability of software changes.
 
-#### Dockerized test environment
+### Dockerized test environment
 
 Our E2E tests are executed in a dockerized environment for each pull request and commit to the O3 repositories.
 This approach offers several advantages over traditional methods:
@@ -201,7 +201,7 @@ This approach offers several advantages over traditional methods:
 - **Minimized Impact of Failures:** Failures within the E2E tests do not impact the status or stability of the dev3 server.
   This separation ensures that the main development environment remains unaffected by testing failures.
 
-#### Optimization of Testing Process
+### Optimization of Testing Process
 
 To enhance the efficiency of the E2E testing process, we have implemented several optimization methods:
 
@@ -216,7 +216,7 @@ To enhance the efficiency of the E2E testing process, we have implemented severa
 The pre-filled backend and database docker images, along with the dynamically built lightweight frontend image,
 are combined within the same docker-compose stack and used for setting up the e2e test environment.
 
-##### Additional Implementation Details
+#### Additional Implementation Details
 
 **Docker Image Generation:** The pre-filled docker images are created and pushed to the Docker Hub
 through a dedicated bamboo stage within the [REFAPP-D3X](https://ci.openmrs.org/browse/REFAPP-D3X) bamboo job.
@@ -224,7 +224,7 @@ This stage involves a script that retrieves the latest versions of both the fron
 It then runs and waits for data generation before building the `:nightly-with-data` docker images of the backend and database.
 These images are subsequently pushed to the Docker Hub. More details on this can be found [here](https://talk.openmrs.org/t/using-pre-filled-docker-images-for-running-e2e-tests/40003).
 
-### Troubleshooting
+## Troubleshooting
 
 If you can't debug tests in [UI mode](https://playwright.dev/docs/test-ui-mode) because your local web server reloads due to static file changes, use the [Playwright Inspector](https://playwright.dev/docs/running-tests#debug-tests-with-the-playwright-inspector) instead. Run the following command:
 

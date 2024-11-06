@@ -1,0 +1,81 @@
+# Event handlers
+
+- Ensure that your event handlers properly define their cleanup logic. Event handlers in useEffect callbacks should _always return_ a cleanup function to prevent unexpected behaviour. For example, do this:
+
+  ```tsx {8-10}
+  useEffect(() => {
+    const handleClick = () => {
+      // ... handle the click event
+    };
+
+    document.addEventListener("click", handleClick);
+
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  }, []);
+  ```
+
+  Instead of this:
+
+  ```tsx {9}
+  useEffect(() => {
+    const handleClick = () => {
+      // ... handle the click event
+    };
+
+    document.addEventListener("click", handleClick);
+
+    // Incorrect cleanup: Executes immediately, not when the component unmounts
+    document.removeEventListener("click", handleClick);
+  }, []);
+  ```
+
+  This is important because improper cleanup can lead to memory leaks and unexpected behaviour.
+
+- Event handler props should be prefixed with `on` and use camelCase:
+
+  ```tsx
+  // Good
+  <button onClick={handleClick} onMouseEnter={handleMouseEnter}>
+
+  // Avoid
+  <button clickHandler={handleClick} mouseenter={handleMouseEnter}>
+  ```
+
+- The handling functions themselves should use the `handle` prefix:
+
+  ```tsx
+  // Good
+  const handleSubmit = (event) => { ... }
+  const handleInputChange = (event) => { ... }
+
+  // Avoid
+  const submit = (event) => { ... }
+  const inputChanged = (event) => { ... }
+  ```
+
+- Be explicit with event parameters:
+
+  ```tsx
+  // Good
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => { ... }
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => { ... }
+
+  // Avoid
+  const handleChange = (e) => { ... }
+  const handleClick = (x) => { ... }
+  ```
+
+- Properly type your event handlers:
+
+  ```tsx
+  type ButtonProps = {
+    onClick: (event: MouseEvent<HTMLButtonElement>) => void;
+    children: ReactNode;
+  };
+
+  const Button = ({ onClick, children }: ButtonProps) => (
+    <button onClick={onClick}>{children}</button>
+  );
+  ```

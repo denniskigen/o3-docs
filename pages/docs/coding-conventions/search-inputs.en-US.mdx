@@ -1,0 +1,101 @@
+# Search inputs
+
+The following are some general guidelines for search inputs:
+
+- Prefer using server-side search functionality over implementing search filtering on the client side. The latter requires fetching the entire data set and can be inefficient. However, client-side search might be the right choice in cases where the server-side search functionality is insufficient or the expected result size is small. In either case, be careful with handling server-side pagination, as most REST resources have a search result [size limit](https://openmrs.atlassian.net/wiki/spaces/docs/pages/25469882/REST+Module) per request. Use the [useOpenmrsPagination](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-react-utils/src/useOpenmrsPagination.ts), [useOpenmrsFetchAll](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-react-utils/src/useOpenmrsFetchAll.ts) and [useOpenmrsInfinite](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-react-utils/src/useOpenmrsInfinite.ts) hooks to handle server-side pagination for different use cases.
+
+  ```tsx
+  // client side search filtering, `data` contains entire data set when `isLoading` is no longer true.
+  const { data, totalCount, isLoading } = useOpenmrsFetchAll<Patient>(`${restBaseUrl}/patient`);
+  // do something with the data
+  ```
+
+- Debounce search inputs to prevent unnecessary requests to the backend. Use the [useDebounce](https://github.com/openmrs/openmrs-esm-core/blob/2396ab96a37bc7202c853110969d82c17fe098a6/packages/framework/esm-react-utils/src/useDebounce.ts) hook to debounce search inputs. Here's a snippet (some bits are omitted for brevity) showing how you could use the hook:
+
+  ```tsx
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm);
+
+  return (
+    <TableToolbarSearch
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+      placeholder={t("searchThisList", "Search this list")}
+    />
+  );
+
+  // Do something with the debouncedSearchTerm
+  ```
+
+- Use [fuzzy](https://npm.im/fuzzy) to implement fuzzy search. Fuzzy search is a strategy for matching search terms that are similar to, but not exactly the same as, the search term. For example, if the search term is `John`, fuzzy search will match `Jon`, `Jhon`, and `Johhn`. This is useful for matching search terms that are misspelled or contain typos. Here's how we can leverage fuzzy to enhance the search experience from the snippet above:
+
+  ```tsx
+  const [filter, setFilter] = useState("");
+
+  const filteredForms: Array<TypedForm> = useMemo(() => {
+    if (!debouncedSearchTerm) {
+      if (filter === "Retired") {
+        return forms.filter((form) => form.retired);
+      }
+
+      if (filter === "Published") {
+        return forms.filter((form) => form.published);
+      }
+
+      if (filter === "Unpublished") {
+        return forms.filter((form) => !form.published);
+      }
+
+      return forms;
+    }
+
+    return debouncedSearchTerm
+      ? fuzzy
+          .filter(debouncedSearchTerm, forms, {
+            extract: (form: TypedForm) => `${form.name} ${form.version}`,
+          })
+          .sort((r1, r2) => r2.score - r1.score)
+          .map((result) => result.original)
+      : forms;
+  }, [filter, forms, debouncedSearchTerm]);
+  ```
+
+  We're using the `debouncedSearchTerm` from the snippet above to filter the list of forms. We're also using the `extract` option to tell fuzzy how to extract the search term from the form. In this case, we're extracting the search term from the form's name and version. This is because we want to match forms that contain the search term in their name or version. Finally, we're sorting the results by score, which is a measure of how closely the search term matches the form.
+
+- When doing data fetching based on continuous user action, such as real-time search when typing in a search input, keeping the previous search results in the UI until the new search results are fetched and displayed can improve the user experience a lot. SWR hooks have a [keepPreviousData](https://swr.vercel.app/docs/advanced/understanding.en-US#return-previous-data-for-better-ux) option that can be used to achieve this. This approach prevents the UI from flashing empty when the new search results are fetched, which can be jarring to the user.
+
+  ```tsx
+  function Search() {
+    const [search, setSearch] = useState('');
+  
+    const { data, isLoading } = useSWR(`/search?q=${search}`, fetcher, {
+      keepPreviousData: true
+    });
+  
+    return (
+      <div>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search..."
+        />
+  
+        <div className={isLoading ? "loading" : ""}>
+          {data?.products.map(item => <Product key={item.id} name={item.name} />)}
+        </div>
+      </div>
+    );
+  }
+  ```
+
+  With `keepPreviousData` set to `true`, you will still get the previous data even if you change the SWR key and the data for the new key starts loading again:
+
+  <iframe 
+    src="https://user-images.githubusercontent.com/3676859/163695903-a3eb1259-180e-41e0-821e-21c320201194.mp4"
+    width="100%"
+    height="400"
+    frameBorder="0"
+    allowFullScreen
+  ></iframe>
+
+  Here's an example of using `keepPreviousData` in the O3 patient search https://github.com/openmrs/openmrs-esm-patient-management/blob/main/packages/esm-patient-search-app/src/patient-search.resource.tsx#L198.

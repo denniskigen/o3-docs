@@ -1,0 +1,17 @@
+# State management
+
+We use various approaches to manage state in O3, from React's built-in hooks to third-party libraries like [Zustand](https://github.com/pmndrs/zustand) for global state management. Read more about state management [in this recipe](/docs/recipes/store-values). Below are some general guidelines for state management:
+
+- Follow the guidelines outlined [here](https://kentcdodds.com/blog/application-state-management-with-react).
+- Keep state as close as possible to the component that needs it.
+- To share state between components, [lift the state up to the nearest common ancestor](https://react.dev/learn/sharing-state-between-components#) of the components that need to share the state and pass the state down to the components as props. This is the simplest way to share state between components.
+- Avoid creating state variables for things that can be [computed from existing state variables](https://react.dev/learn/you-might-not-need-an-effect#updating-state-based-on-props-or-state). For example, if you have a state variable called `firstName` and another called `lastName`, don't create a third state variable called `fullName`. Instead, derive the `fullName` from the `firstName` and `lastName` state variables.
+- Follow state immutability principles:
+  - Never modify state directly.
+  - Use spread operators or immutable update patterns.
+  - Use state updater functions for state that depends on previous state.
+- Consider using React's built-in hooks to optimize performance:
+  - Use `useMemo` for expensive computations.
+  - Use `useCallback` for memoized callbacks.
+  - Split state into smaller pieces to prevent unnecessary re-renders.
+- Don't use global state for data that should be scoped to a specific component or a small set of components.

@@ -1,0 +1,94 @@
+# Internationalization
+
+We use [i18next](https://www.i18next.com/) and [react-i18next](https://react.i18next.com/) to handle i18n in O3. Each frontend module has its own locale-specific translation files in the `src/translations` directory. Strings in the codebase are translated using the `t` function exported by `react-i18next`. The `t` function takes a key and an optional default value. These keys and strings are extracted automatically using the `extract-translations` script each time a commit is created. This uses the [i18next-parser](https://github.com/i18next/i18next-parser) library under the hood. By default, the `en.json` file is used as the source of truth for the translation keys in the codebase. We then rely on the integration with [Transifex](https://www.transifex.com/) to manage the translation files for each locale. You can read more about how i18n is implemented in OpenMRS [here](https://om.rs/translate).
+
+The following are some guidelines to follow when handling i18n in O3:
+
+- Do not manually edit any of the locale-specific translation files in the `translations` directory. Run the `extract-translations` script instead to keep the `en.json` file in sync with the translation keys in the codebase. The Transifex integration will automatically update the translation files for each locale via automated pull requests.
+- Use the [useTranslation](https://react.i18next.com/latest/usetranslation-hook) hook to translate strings in your components.
+
+  ```tsx
+  import { useTranslation } from "react-i18next";
+
+  const AddVitalsButton = () => {
+    const { t } = useTranslation();
+    return (
+        <Button
+          kind="ghost"
+          renderIcon={Add}
+          iconDescription="Add vitals"
+          onClick={launchVitalsBiometricsForm}
+      >
+        // The second argument is the default value if the key is not found in the translation files
+        {t("add", "Add")}
+      </Button>
+    );
+  };
+  ```
+
+  The corresponding keys and strings for the code above should look like this:
+
+  ```json filename="en.json"
+  "add": "Add"
+  ```
+
+- Use the [Trans](https://react.i18next.com/latest/trans-component) component to translate strings that contain HTML tags.
+
+  ```tsx
+  import { Trans } from "react-i18next";
+
+  const VitalsHeader = () => {
+    const { t } = useTranslation();
+    return (
+      // other code omitted for brevity
+      <Trans i18nKey="overOneWeekOldVitals">
+        <span>
+          These vitals are <strong>over one week old</strong>
+        </span>
+      </Trans>
+    );
+  };
+  ```
+
+  The corresponding keys and strings for the code above should look like this:
+
+  ```json filename="en.json"
+  "overOneWeekOldVitals": "<0>These vitals are <1>over one week old</1></0>",
+  ```
+
+- To handle pluralization, use the following pattern:
+
+  ```tsx
+  // If there's only one risk flag, the string "1 risk flag" is displayed.
+  // If there are multiple risk flags, the string "{{count}} risk flags" is displayed
+  // e.g. "3 risk flags".
+  <span className={styles.flagText}>
+    {t("flagCount", "{{count}} risk flag", {
+      count: riskFlags.length,
+    })}
+  </span>
+  ```
+
+  The corresponding keys and strings for the code above should look like this:
+
+  ```json
+  "flagCount_one": "{{ count }} risk flag",
+  "flagCount_other": "{{ count }} risk flags"
+  ```
+
+- To interpolate variables in a string, use the following pattern:
+
+  ```tsx
+  // Using variables in translations
+  const WelcomeMessage = ({ patientName }) => {
+    const { t } = useTranslation();
+    return (
+      <p>{t("welcome", "Welcome, {{name}}!", { name: patientName })}</p>
+    );
+  };
+  ```
+
+  The corresponding translation key should look like:
+  ```json filename="en.json"
+  "welcome": "Welcome, {{name}}!"
+  ```

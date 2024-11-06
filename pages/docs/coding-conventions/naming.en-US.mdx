@@ -1,0 +1,44 @@
+# Naming
+
+- Follow the guidelines in this [naming cheatsheet](https://github.com/kettanaito/naming-cheatsheet).
+- Use `camelCase` for variables, functions, methods, and class names.
+- Use `kebab-case` for file names and folder names.
+- Components should contain the `.component` suffix in their name (e.g. `user.component.tsx`). This nomenclature is used to distinguish components from other files such as resources, stylesheets, and tests, and determines where the i18next-parser tool extracts translation keys and strings from. Translation keys and strings will not be extracted from files that do not match this convention by default.
+- Components may also contain different suffixes to indicate their purpose. These custom suffixes should be used in addition to the base `.component` suffix. They include:
+  - `.extension` for components that render extensions e.g. [lab-order-basket-panel.extension.tsx](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-labs-app/src/lab-orders/lab-order-basket-panel/lab-order-basket-panel.extension.tsx#L21) for the `Lab Order Basket panel` extension.
+  - `.modal` for components that render modals e.g. [delete-condition.modal.tsx](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-conditions-app/src/conditions/delete-condition.modal.tsx) for the `Delete Conditions` modal.
+  - `.workspace` for components that render forms in the workspace e.g. [order-basket.workspace.tsx](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-orders-app/src/order-basket/order-basket.workspace.tsx#L4) for the `Order Basket` workspace.
+- Unit and integration test files should contain the `.test` suffix in their name (e.g. `user.test.tsx`). Do not include the word `component` in the test file name.
+- Playwright e2e tests should contain the `.spec` suffix in their name (e.g. `user.spec.ts`).
+- Stylesheets should not contain `.component` suffix in their name (e.g. `user.component.scss`). This is because stylesheets are not components, and are not translated by the translation system. Instead, stylesheets should be named after the component they are styling (e.g. `user.scss`).
+- Resource files that encapsulate data fetching logic should contain the `.resource` suffix in their name (e.g. `user.resource.ts`). This is to distinguish them from other files such as components, stylesheets, and tests.
+- Use appropriate extensions for TypeScript files:
+  - Use the `.tsx` extension for files that contain JSX.
+  
+  ```tsx
+  // user.component.tsx
+  const UserComponent: React.FC<UserComponentProps> => {
+    return <div>User Component</div>
+  }
+  ```
+
+  - Use the `.ts` extension for files that do not contain JSX.
+
+  ```ts
+  // user.resource.ts
+  export const fetchUser = () => {
+    return openmrsFetch<User>('/ws/rest/v1/user');
+  }
+  ```
+
+  In most cases, you shouldn't need to use the `.tsx` extension for files outside the `src` directory.
+
+- Follow the extension system [nomenclature guide](/docs/extension-system#nomenclature) when naming your extensions and extension slots.
+- Use the file name as the component name. For example, `user.component.tsx` should contain a component named `UserComponent`. This makes it easier to find the component in the codebase.
+- Avoid using DOM component prop names for different purposes. For example, avoid using the `style` prop to pass configuration options. Instead, use a descriptive prop name that matches its purpose, such as `config` or `options`.
+- Use `camelCase` for prop names. This is consistent with the naming convention for variables, functions, and methods.
+- Translation keys should be in `camelCase` whereas translation strings should be in `sentence case`. For example, `firstName` is a translation key whereas `First name` is it's corresponding translation string.
+- Frontend modules in monorepos should have names that start with the `esm-` prefix. The name of the module should describe what the module does. For example, `esm-user-management` is a good name for a frontend module handling user management concerns and `esm-patient-chart` is a good name for a frontend module handling patient chart concerns.
+- Event handler props should be named after they event they handle `e.g. onClick` for a click handler. By convention, event handler props should start with the `on` prefix, followed by a capital letter.
+- State updater functions should be named after the state they update. For example, `setFirstName` is a good name for a state updater function that updates the `firstName` state.
+- What to name your branches is typically down to personal preference. However, when in doubt, name your branches using the [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/) type that your work conforms to, followed by a slash and a short dash-separated description of the work. Good examples include: `feat/debounced-order-basket-search`, `fix/missing-translation`, `chore/bump-dependencies` and `refactor/remove-unused-code`.

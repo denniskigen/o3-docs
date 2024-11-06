@@ -1,0 +1,224 @@
+import { Callout } from "nextra-theme-docs";
+
+# Styling
+
+- We use CSS modules for styling. This means that all styles are scoped to the component that defines them. This is important because it helps to prevent unintended side effects and makes the codebase easier to maintain.
+
+  ```scss
+    // styles.scss
+  .container {
+    display: flex;
+    gap: 1rem;
+  }
+  ```
+
+  ```tsx
+  // component.tsx
+  import styles from './styles.scss';
+  
+  // The class name will be automatically transformed to something like "container_abc123"
+  return <div className={styles.container}>...</div>;
+  ```
+
+- Avoid deep nesting of styles as it increases specificity and makes styles harder to override. Prefer flat selectors where possible:
+
+  ```scss
+  // ❌ Bad: Deep nesting
+  .container {
+    .header {
+      .title {
+        .text {
+          color: colors.$gray-100;
+        }
+      }
+    }
+  }
+
+  // ✅ Good: Flat structure
+  .container {
+    display: flex;
+  }
+
+  .headerTitle {
+    color: colors.$gray-100;
+  }
+  ```
+
+- Avoid using global styles as they can cause unintended side effects and make the codebase harder to maintain. Instead, scope style overrides under specific class names:
+
+  ```scss
+  // ❌ Bad: Global styles affecting all text inputs
+  :global(.cds--text-input) {
+    height: 3rem;
+    @extend .label01;
+  }
+
+  // ✅ Good: Styles scoped to a specific component
+  .patientSearchInput {
+    :global(.cds--text-input) {
+      height: 3rem;
+      @extend .label01;
+    }
+
+    // Additional component-specific styles
+    display: flex;
+    gap: 1rem;
+  }
+  ```
+
+  Benefits of scoped styles:
+  - Prevents unintended style leaks
+  - Makes it clear which component owns the styles
+  - Easier to maintain and debug
+  - Reduces the risk of style conflicts
+  - Better encapsulation of component styles
+
+- When you do need to override Carbon Design System styles:
+  1. First try using Carbon's built-in props and variants
+  2. If that's not possible, scope the override to your component's class
+  3. Document why the override is necessary with a comment
+  4. If you need to override styles across multiple components, consider adding an explicit override to the `overrides.scss` file. This approach is explained in the next tip.
+
+  ```scss
+  .formField {
+    // Override Carbon's default spacing for dense forms
+    :global(.cds--form-item) {
+      margin-bottom: 0.5rem;
+    }
+
+    // Custom styling for validation states
+    &.hasError {
+      :global(.cds--text-input) {
+        border-color: $danger;
+      }
+    }
+  }
+  ```
+
+- Put Carbon style overrides in [overrides.scss](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-styleguide/src/_overrides.scss). This ensures that the overrides are applied consistently across the application.
+- Prefer using Carbon [color](https://carbondesignsystem.com/guidelines/color/overview/), [spacing](https://carbondesignsystem.com/guidelines/spacing/overview/) and [type](https://carbondesignsystem.com/guidelines/typography/overview/) tokens over hard-coded values. Below are some examples of using tokens in code:
+
+  ```scss
+  @use "@carbon/colors";
+  @use "@carbon/layout";
+  @use "@carbon/type";
+
+  .listWrapper {
+    margin: layout.$spacing-05; // 1rem
+  }
+
+  .resultsCount {
+    @include type.type-style("label-01");
+  }
+
+  .sortDropdown {
+    color: colors.$gray-100;
+    gap: 0;
+  }
+  ```
+
+  Find a useful reference for color token mappings [here](https://carbon-elements.netlify.app/colors/examples/preview/).
+
+- Use SASS [features](https://sass-lang.com/documentation) like interpolation, at-rules, mixins, and functions to make your styles more reusable and maintainable.
+- If you want to apply styles based on the user's viewport size, use our predefined [breakpoints](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-styleguide/src/breakpoints/index.ts). For example, to apply different styles for tablet and desktop viewports, do this:
+
+  ```scss
+  // Tablet viewports
+  :global(.omrs-breakpoint-lt-desktop) {
+    .form {
+      height: calc(100vh - 9rem);
+    }
+  }
+
+  // Desktop viewports
+  :global(.omrs-breakpoint-gt-tablet) {
+    .form {
+      height: calc(100vh - 6rem);
+    }
+  }
+  ```
+
+  <Callout emoji="ℹ️" type="info">
+    Make sure to scope your styles under a class name (such as `.form` in the example above) to avoid them affecting
+    other components.
+  </Callout>
+
+- Use the [classnames](https://npm.im/classnames) library to conditionally apply styles to an element. Consider using classnames if you're interpolating multiple class names into a string. For example, the following snippet:
+
+  ```tsx
+  <NumberInput
+    allowEmpty
+    className={`${styles.textInput} ${val.className}`}
+    // other props omitted for brevity
+  />
+  ```
+
+  Could be replaced by:
+
+  ```tsx
+  import classnames from "classnames";
+
+  <NumberInput
+    allowEmpty
+    className={classNames(styles.textInput, val.className)}
+    // ... other props omitted for brevity
+  />;
+  ```
+
+  The following snippet shows a more advanced case - a `div` styled with multiple conditional styles:
+
+  ```tsx
+  return (
+    <div
+      className={`${styles.textInputContainer} ${disabled && styles.disabledInput} ${
+        !isWithinNormalRange && styles.danger
+      } ${useMuacColors ? muacColorCode : undefined}`}
+    >
+      // ... details omitted for brevity
+    </div>
+  );
+  ```
+
+  You can refactor this snippet to leverage `classnames` as follows:
+
+  ```tsx
+  import classNames from "classnames";
+
+  const containerClasses = classNames(styles.textInputContainer, {
+    [styles.disabledInput]: disabled,
+    [styles.danger]: !isWithinNormalRange,
+    [muacColorCode]: useMuacColors,
+  });
+
+  return <div className={containerClasses}>// ... details omitted for brevity</div>;
+  ```
+
+- Be wary of using newer CSS features that don't have widespread browser support. While modern CSS features can be powerful, we need to ensure our applications work across all supported browsers. Here are some guidelines:
+
+  - Check browser support on [Can I Use](https://caniuse.com/) before using newer CSS features
+  - Consider providing fallbacks for newer features:
+
+    ```scss
+    .container {
+      // Fallback for browsers that don't support gap
+      margin-right: 1rem;
+      // Modern browsers will use gap
+      gap: 1rem;
+    }
+    ```
+
+  - Be especially careful with:
+    - Container queries (limited support)
+    - CSS subgrid (partial support)
+    - `:has()` selector (no support in some browsers)
+    - CSS nesting (emerging support)
+    
+  - Prefer well-supported alternatives when possible:
+    - Use flexbox/grid over newer layout features
+    - Use @media queries instead of container queries
+    - Use BEM naming over CSS nesting
+    
+  - Test your styles across our supported browsers:
+    - Chrome/Edge (latest versions)
+    - Firefox (latest version)
+    - Safari (latest version)

@@ -1,0 +1,103 @@
+# Error handling
+
+- Use `try/catch` blocks to handle errors that could occur during runtime. Render an error snackbar to the user with a descriptive error message when an error occurs.
+
+  ```tsx
+  try {
+    await savePatientData(patient);
+    showSnackbar({ title: t('patientSaved', 'Patient data saved successfully') });
+  } catch (error) {
+    showSnackbar({
+      title: t('errorSavingPatient', 'Error saving patient'),
+      kind: 'error',
+      description: error?.message ?? t('unknownError', 'An unknown error occurred'),
+    });
+  }
+  ```
+
+- Don't check the response status of a request to determine whether to show a success snackbar. Instead, always show a success snackbar after a request is successful. `openmrsFetch` will throw an error if the request fails, so you don't need to check the response status to determine whether to show a success or error snackbar.
+
+  ```tsx
+  // Don't do this
+  saveVisit(visitPayload).then((response) => {
+    if (response.status === 201) {
+      // Handle the success case
+    } else {
+      // Handle the error case
+    }
+  });
+  ```
+
+  ```tsx
+  // Instead, do this:
+  saveVisit(visitPayload).then(() => {
+    // Handle the success case
+  }).catch((error) => {
+    // Handle the error case
+  });
+  ```
+
+  Alternatively, you can use `async/await` syntax to handle the success and error cases:
+
+  ```tsx
+  try {
+    await saveVisit(visitPayload);
+    // Handle the success case
+  } catch (error) {
+    // Handle the error case
+  }
+  ```
+
+- When handling errors in async functions, prefer `async/await` over promise chains for better readability and error handling clarity. For example:
+
+  ```tsx
+  // Avoid promise chains
+  savePatientData(patient)
+    .then((response) => {
+      showSnackbar({ kind: 'success', title: t('patientSaved', 'Patient data saved successfully') });
+      return response;
+    })
+    .then(processPatientData)
+    .catch((error) => {
+      showSnackbar({
+        title: t('errorSavingPatient', 'Error saving patient'),
+        kind: 'error',
+        description: error?.message
+      });
+    });
+
+  // Prefer async/await
+  async function handleSavePatient(patient) {
+    try {
+      await savePatientData(patient);
+      showSnackbar({ kind: 'success', title: t('patientSaved', 'Patient data saved successfully') });
+    } catch (error) {
+      showSnackbar({
+        title: t('errorSavingPatient', 'Error saving patient'),
+        kind: 'error',
+        description: error?.message
+      });
+    }
+  }
+  ```
+
+  The `async/await` approach:
+  - Makes the code flow more readable and sequential.
+  - Simplifies error handling with a single try/catch block.
+  - Makes it easier to debug since stack traces are more meaningful.
+  - Allows easier handling of multiple async operations.
+
+  Use a `finally` block to execute cleanup code that should run regardless of whether the operation succeeded or failed:
+
+  ```tsx
+  async function handleSavePatient(patient) {
+    try {
+      // ...
+    } catch (error) {
+      // Handle the error case
+    } finally {
+      // Do any additional cleanup work
+      closeModal();
+    }
+  }
+  ```

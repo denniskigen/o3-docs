@@ -52,6 +52,28 @@ The following are some general guidelines for testing:
   - Group related test scenarios together.
   - Build up complex scenarios progressively.
   - Use test hooks (`beforeEach`, `afterEach`, `beforeAll`, `afterAll`) to reduce duplication.
+  
+- Don't clear mocks in `beforeEach` hooks. Most mocks should be cleared automatically by the testing framework if you have this set in your root-level jest config:
+
+  ```ts
+  // jest.config.js
+  clearMocks: true,
+  ```
+
+- Don't mock components. Instead, render them with the real implementation. This makes it easier to catch regressions when refactoring components.
+
+  ```tsx
+  // ❌
+  jest.mock('./my-component', () => ({
+    __esModule: true,
+    default: () => <div>My Component</div>,
+  }));
+  ```
+
+  ```tsx
+  // ✅
+  render(<MyComponent />);
+  ```
 
 ### E2E testing
 

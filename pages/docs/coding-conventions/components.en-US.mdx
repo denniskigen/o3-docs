@@ -96,3 +96,5 @@
   The key principle is: when the key changes, React treats it as a completely different component instance, discarding all previous state. This is cleaner than manually resetting multiple state variables.
 
 - Follow consistent code formatting, naming conventions and folder structure. This makes the codebase more readable and easier to maintain.
+
+- Provide dependencies for your effects. This helps to ensure that your effects remain synchronized with the latest props and state of your component. The general rule of thumb is to make dependencies as specific as possible while still capturing all values that could affect the effect's behavior. This gives you the best balance between performance and correctness. As far as what not to include as dependencies, see this guide in the [React docs](https://react.dev/learn/removing-effect-dependencies#what-to-do-about-object-dependencies) for more information. We use the `exhaustive-deps` rule from the `eslint-plugin-react-hooks` plugin to enforce this in our linting rules.

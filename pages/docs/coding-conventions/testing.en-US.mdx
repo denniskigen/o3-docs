@@ -10,6 +10,7 @@ The following are some general guidelines for testing:
 ### Unit and integration testing
 
 - Avoid these [common testing pitfalls](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library):
+
   - Don't use the wrong assertion. Install and use [@testing-library/jest-dom](https://github.com/testing-library/jest-dom) to extend Jest's `expect` with assertions for testing React components.
   - Don't use the wrong query. Use [this resource](https://testing-library.com/docs/guide-which-query) to choose the right query for the element you want to test.
   - Don't use `query*` variants for _anything_ except checking if an element exists. Only use `query*` variants for asserting that an element does not exist.
@@ -18,30 +19,41 @@ The following are some general guidelines for testing:
   ```tsx
   // ❌
   const submitButton = await waitFor(() =>
-    screen.getByRole('button', { name: /submit/i }),
-  )
+    screen.getByRole("button", { name: /submit/i })
+  );
 
   // ✅
-  const submitButton = await screen.findByRole('button', { name: /submit/i })
+  const submitButton = await screen.findByRole("button", { name: /submit/i });
   ```
 
   - Don't pass an empty callback to `waitFor`.
 
   ```tsx
   // ❌
-  await waitFor(() => {})
-  expect(window.fetch).toHaveBeenCalledWith('foo')
-  expect(window.fetch).toHaveBeenCalledTimes(1)
+  await waitFor(() => {});
+  expect(window.fetch).toHaveBeenCalledWith("foo");
+  expect(window.fetch).toHaveBeenCalledTimes(1);
 
   // ✅
-  await waitFor(() => expect(window.fetch).toHaveBeenCalledWith('foo'))
-  expect(window.fetch).toHaveBeenCalledTimes(1)
+  await waitFor(() => expect(window.fetch).toHaveBeenCalledWith("foo"));
+  expect(window.fetch).toHaveBeenCalledTimes(1);
   ```
 
   - Don't add `aria-*`, `role`, and other accessibility attributes to elements unless the application actually uses them.
-  - Don't use Testing Library's ESLint plugins: [eslint-plugin-testing-library](https://github.com/testing-library/eslint-plugin-testing-library) and [eslint-plugin-jest-dom](https://github.com/testing-library/eslint-plugin-jest-dom).
+  - Use the Testing Library's ESLint plugins: [eslint-plugin-testing-library](https://github.com/testing-library/eslint-plugin-testing-library) and [eslint-plugin-jest-dom](https://github.com/testing-library/eslint-plugin-jest-dom).
   - Don't use the `cleanup` function. RTL takes care of cleaning up after each test.
-  - Don't use `screen` to query for elements. Use `screen` for querying elements and debugging assertions.
+  - Use `screen` to query and debug elements. This is the recommended way to find elements in your tests as it ensures you're working with the current document and provides better error messages.
+
+  ```tsx
+  // ❌
+  const { getByText } = render(<MyComponent />);
+  const element = getByText(/hello/i);
+
+  // ✅
+  render(<MyComponent />);
+  const element = screen.getByText(/hello/i);
+  ```
+
   - Don't unnecessarily wrap things in `act`. Follow [this guide](https://kentcdodds.com/blog/fix-the-not-wrapped-in-act-warning) instead to fix `Not wrapped in act(...)` warnings.
   - Don't use `render` or `renderHook` to wrap components in tests.
 
@@ -52,7 +64,6 @@ The following are some general guidelines for testing:
   - Group related test scenarios together.
   - Build up complex scenarios progressively.
   - Use test hooks (`beforeEach`, `afterEach`, `beforeAll`, `afterAll`) to reduce duplication.
-  
 - Don't clear mocks in `beforeEach` hooks. Most mocks should be cleared automatically by the testing framework if you have this set in your root-level jest config:
 
   ```ts
@@ -64,7 +75,7 @@ The following are some general guidelines for testing:
 
   ```tsx
   // ❌
-  jest.mock('./my-component', () => ({
+  jest.mock("./my-component", () => ({
     __esModule: true,
     default: () => <div>My Component</div>,
   }));
@@ -79,16 +90,18 @@ The following are some general guidelines for testing:
 
 - Follow the e2e testing [best practices](https://playwright.dev/docs/test-best-practices) outlined in the Playwright docs.
 - Structure large test suites using page object models:
+
   - Create separate classes for each major page/component
   - Encapsulate selectors and common actions
-  
+
     ```ts filename="e2e/pages/conditions-page.ts"
-    import { type Page } from '@playwright/test';
+    import { type Page } from "@playwright/test";
 
     export class ConditionsPage {
       constructor(readonly page: Page) {}
 
-      readonly conditionsTable = () => this.page.getByRole('table', { name: /conditions summary/i });
+      readonly conditionsTable = () =>
+        this.page.getByRole("table", { name: /conditions summary/i });
 
       async goTo(uuid: string) {
         await this.page.goto(`/openmrs/spa/patient/${uuid}/chart/Conditions`);
@@ -97,6 +110,7 @@ The following are some general guidelines for testing:
     ```
 
 - Follow Playwright's [E2E testing best practices](https://playwright.dev/docs/test-best-practices):
+
   - Use web-first assertions instead of manual waits
   - Implement proper error handling and retry mechanisms
   - Use test fixtures for common setup/teardown
@@ -106,21 +120,23 @@ The following are some general guidelines for testing:
       patient = await generateRandomPatient(api);
     });
 
-    test('Record, edit and delete a condition', async ({ page }) => {
+    test("Record, edit and delete a condition", async ({ page }) => {
       const conditionsPage = new ConditionsPage(page);
-      const headerRow = conditionsPage.conditionsTable().locator('thead > tr');
-      const dataRow = conditionsPage.conditionsTable().locator('tbody > tr');
+      const headerRow = conditionsPage.conditionsTable().locator("thead > tr");
+      const dataRow = conditionsPage.conditionsTable().locator("tbody > tr");
 
-      await test.step('When I go to the Conditions page', async () => {
+      await test.step("When I go to the Conditions page", async () => {
         await conditionsPage.goTo(patient.uuid);
       });
 
-      await test.step('And I click on the `Record conditions` button', async () => {
+      await test.step("And I click on the `Record conditions` button", async () => {
         await conditionsPage.page.getByText(/record conditions/i).click();
       });
 
-      await test.step('Then I should see the conditions form launch in the workspace', async () => {
-        await expect(conditionsPage.page.getByText(/record a condition/i)).toBeVisible();
+      await test.step("Then I should see the conditions form launch in the workspace", async () => {
+        await expect(
+          conditionsPage.page.getByText(/record a condition/i)
+        ).toBeVisible();
       });
     });
     ```

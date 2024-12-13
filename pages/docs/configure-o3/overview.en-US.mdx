@@ -26,7 +26,31 @@ For more information on how to configure your O3 instance using the initializer 
 
 ## Configuring individual frontend modules
 
-Per-app configuration is available in O3 via the built-in [configuration system](/docs/configuration-system). Each frontend module can define its own configuration schema in a `config-schema.ts` file inside its `src` directory. The properties specified in the config schema allow implementers to tailor the behavior of the module to their needs. The configuration system also allows implementers to specify default values for the various configuration properties. 
+Per-app configuration is available in O3 via the built-in [configuration system](/docs/configuration-system). Each frontend module can define its own configuration schema in a `config-schema.ts` file inside its `src` directory. The following snippet is drawn from the Programs frontend module's config-schema:
+
+```tsx filename="src/config-schema.ts"
+import { Type } from '@openmrs/esm-framework';
+
+export const configSchema = {
+  hideAddProgramButton: {
+    _type: Type.Boolean,
+    _default: false,
+  },
+  showProgramStatusField: {
+    _type: Type.Boolean,
+    _description:
+      'Whether to show the Program status field in the Record program enrollment and Edit program enrollment forms. If set to true, the `Program status` field is displayed in the Programs datatable',
+    _default: false,
+  },
+};
+
+export interface ConfigObject {
+  hideAddProgramButton: boolean;
+  showProgramStatusField: boolean;
+}
+```
+
+The properties specified in the config schema allow implementers to tailor the behavior of the module to their needs. The configuration system also allows implementers to specify default values for the various configuration properties. 
 
 Implementers can make changes to frontend module configurations through the built-in implementer tools panel. Once you log into O3, clicking the caret arrow centered at the bottom of the screen will pull up the implementer tools. Alternatively, you can click on the cog icon in the navbar. Once open, you can look up configuration properties by searching through the configuration and modify them on the fly. Note that any tweaks made to the configuration through the implementer tools will be lost once you refresh the page. To make permanent changes to the configuration, you will need to commit those changes to your distro's configuration. The implementer tools allow you to download a temporary config file containing your changes by clicking the `Download config` button.
 

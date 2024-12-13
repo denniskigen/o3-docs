@@ -1,42 +1,97 @@
 # Contribuer
 
-Si vous souhaitez contribuer à O3, vous devez suivre les étapes suivantes.
+Si vous souhaitez contribuer à O3, vous devrez suivre les étapes suivantes :
 
-- Accédez à [OpenMRS Jira](https://issues.openmrs.org/). Si vous n'y avez pas accès, faites une demande auprès du [Help Desk](https://wiki.openmrs.org/display/~helpdesk). Attendez au moins 24 heures pour que la demande soit approuvée ; vous recevrez un courriel à cet effet. Une fois la demande approuvée, jetez un coup d'œil à tous les [problèmes liés au module frontend](https://issues.openmrs.org/projects/MF/issues). Les bons premiers problèmes sont classés sous l'étiquette [intro](https://issues.openmrs.org/browse/MF-508?jql=project%20%3D%20MF%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%22intro%22%20ORDER%20BY%20priority%20DESC%2C%20updated%20DESC).
-- Rejoignez notre [Canal Slack](https://openmrs.slack.com/archives/CHP5QAE5R) et présentez-vous. Vous devrez d'abord créer un [compte Slack OpenMRS](https://slack.openmrs.org/) si vous n'en avez pas.
+- Obtenir l'accès à [OpenMRS Jira](https://issues.openmrs.org/). Si vous n'avez pas accès, faites une demande auprès du [Help desk](https://wiki.openmrs.org/display/~helpdesk). Attendez au moins 24 heures pour que la demande soit approuvée ; vous recevrez un e-mail lors de l'approbation. Une fois approuvé, consultez tous les [problèmes O3 ouverts](https://openmrs.atlassian.net/issues/?jql=project+%3D+%22O3%22+ORDER+BY+created+DESC&atlOrigin=eyJpIjoiNjIyNDg5YjMyZDUxNGVjMGI4OTI2ZDczNjgxNjBlZTIiLCJwIjoiaiJ9). Les bons premiers problèmes sont classés sous l'étiquette [intro](https://issues.openmrs.org/browse/MF-508?jql=project%20%3D%20MF%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%22intro%22%20ORDER%20BY%20priority%20DESC%2C%20updated%20DESC).
+- Rejoignez notre [canal Slack](https://openmrs.slack.com/archives/CHP5QAE5R) et présentez-vous. Vous devrez d'abord créer un [compte Slack OpenMRS](https://slack.openmrs.org/) si vous n'en avez pas.
+- Une fois que vous êtes suffisamment installé, vous pouvez commencer à contribuer à O3. Commencez par lire les guides des [conventions de codage](/docs/coding-conventions) et du [développement de modules frontend](/docs/frontend-modules/development) pour comprendre ce que nous attendons des contributeurs. Lisez les [dépôts clés](/docs/frontend-modules/key-repositories) pour comprendre la base de code et comment les différentes parties s'imbriquent.
+- Si vous êtes intéressé par un domaine particulier, envisagez de rejoindre l'[équipe de fonctionnalités](https://openmrs.atlassian.net/wiki/spaces/projects/pages/26938774/Squad+Dashboard) correspondante. Chez OpenMRS, nous utilisons des équipes de fonctionnalités pour gérer le travail des différentes équipes. Les équipes de fonctionnalités sont un excellent moyen de rencontrer des personnes à travers le projet et de comprendre comment les différentes parties du système s'assemblent.
+- Restez positif. Nous sommes un groupe sympathique et nous aimons nous entraider. Si vous voyez quelqu'un en difficulté, faites ce que vous pouvez pour l'aider. Si vous n'êtes pas sûr de quelque chose, demandez dans le canal Slack `#openmrs3-helpme`.
 
-### Lignes directrices pour les contributions
+## Directives de contribution
 
-- **Les demandes de retrait (PR) ne doivent pas obligatoirement correspondre à un ticket** - S'il existe un ticket pour le PR, il doit être clairement nommé et lié au PR.
-- \*\*Les demandes de Pull sont autorisées (et encouragées) à contenir plus d'un commit. Ces commits sont écrasés lorsque votre PR est fusionnée dans `main`.
-- **Ne pas fermer un PR et en recréer un nouveau avec le même code** - Si vous avez ouvert un PR pour un travail et qu'un évaluateur a demandé des changements, n'ouvrez pas un nouveau PR avec les mises à jour et ne fermez pas l'ancien. Cela rend les choses très difficiles pour les évaluateurs.
-- **Lisez et remplissez le modèle de rapport lors du dépôt d'un rapport** - Le modèle de rapport existe pour vous aider à nous fournir toutes les informations dont nous avons besoin dans un format que nous pouvons rapidement examiner. En le remplissant correctement, vous faciliterez et accélérerez le travail de tout le monde.
-- **Travaillez de manière progressive** - Les PR de petite taille sont plus faciles à lire et à valider. L'ouverture de plusieurs PR pour le même ticket est excellente si ces PR représentent différents éléments ou étapes du travail relatif à ce ticket.
-- **N'augmentez pas la portée d'un PR après qu'il ait été révisé** - Si votre code a été révisé, n'ajoutez pas un tas de code supplémentaire qui n'est pas lié à la révision. Les corrections sont acceptables, mais les nouvelles fonctionnalités doivent faire l'objet de leur propre PR. N'oubliez pas que les petits PRs sont plus faciles à réviser de toute façon!
-- **Le titre de votre PR doit indiquer le type de changement dont il s'agit** - Nous utilisons les titres des PR pour déterminer les changements de version lors de la [/docs/frontend-modules/releasing](/docs/frontend-modules/releasing) des modules frontaux.
-- **Le titre de votre PR doit indiquer le type de changement dont il s'agit** - Nous utilisons les titres des PR pour déterminer les changements de version lors de la [publication](/docs/frontend-modules/releasing) des modules frontaux. Les titres des PR doivent commencer par le type de [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/) correspondant à votre PR. Exemples de bons titres de PR:
+### Problèmes
 
-  - "(docs) Ajouter aux docs de contribution"
-  - "(fix) Erreur de console lors de la visite de la page des allergies"
-  - (feat) Ajout d'une barre de recherche au widget des médicaments"
-  - "(refactor) Mise en ordre de l'implémentation du tableau de bord"
-  - "BREAKING: Nouveau système de navigation à gauche"
+Nous utilisons Jira pour suivre les problèmes et le travail. Si vous prévoyez de contribuer à O3, vous devez être familier avec notre utilisation de Jira. Voici quelques directives à suivre lors de la création et du travail sur les problèmes :
 
-  Les préfixes courants incluent les préfixes ci-dessus, ainsi que `chore`, `style`, `perf`, et `test`. Pour en savoir plus sur les types de livraisons conventionnelles [ici](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13#types).
+- Nous recommandons généralement de **créer un ticket** sur notre [tableau des problèmes](https://openmrs.atlassian.net/jira/software/c/projects/O3/boards/37/backlog) avant de commencer à travailler sur une fonctionnalité ou un correctif de bug. Cela nous aide à nous assurer que le travail est nécessaire et qu'il n'est pas déjà en cours par quelqu'un d'autre.
+- Lors de la création d'un ticket, assurez-vous qu'il a un titre et une description clairs. La description doit inclure le problème que vous essayez de résoudre, le contexte et toute information pertinente qui aidera quelqu'un à comprendre le travail que vous proposez. S'il y a des fichiers de conception ou des maquettes, joignez-les au ticket. Si le ticket concerne un bug, incluez les étapes pour reproduire le bug. Si possible, ajoutez des captures d'écran ou des vidéos. Plus vous fournissez d'informations, plus il est facile pour quelqu'un de comprendre le travail que vous proposez.
+- Vous n'êtes pas obligé de vous assigner le ticket lors de sa création. Si vous n'avez pas la bande passante pour y travailler, laissez-le non assigné. Si vous avez la bande passante, assignez-le vous. En général, il est préférable de le laisser non assigné si vous n'êtes pas sûr de pouvoir y travailler immédiatement.
+- Ne désassignez pas un ticket de quelqu'un d'autre sans en avoir discuté avec lui au préalable. Si vous pensez que quelqu'un d'autre devrait travailler sur un ticket, demandez-lui s'il peut le prendre en charge.
 
-  Les changelogs que nous publions avec chaque version sont générés à partir des titres des PR, il est donc important de suivre cette convention. \_Ne vous inquiétez pas si vous n'êtes pas sûr du titre à utiliser \_Votre réviseur doit s'assurer que votre PR a un titre approprié.
+### Pull requests
 
-### Lignes directrices pour l'examen du code
+L'étape suivante consiste à créer une pull request (PR) avec vos modifications. Nous utilisons le processus de PR pour examiner et fusionner le code dans les branches principales de nos dépôts. N'importe qui peut ouvrir une PR. Le même processus est suivi pour tous les contributeurs, que vous soyez un contributeur débutant ou un membre de l'équipe principale.
 
-- Encourager le retour d'information en tant qu'auteur et évaluateur.
-- Encourager le plus grand nombre possible de contributeurs à s'engager dans une contribution profonde et significative.
-- Tenir compte des différents niveaux d'expérience des contributeurs d'OpenMRS.
-- Éviter le "gatekeeping", qui consiste à trop insister auprès des contributeurs sur le fait qu'ils ne suivent pas le bon processus.
-- Encourager l'appropriation du code, notamment en examinant les modifications apportées au code et aux projets auxquels vous avez contribué.
-- Fournir un retour d'information détaillé et utile aux contributeurs, y compris en utilisant la de GitHub [fonction de suggestion](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/incorporating-feedback-in-your-pull-request) pour aider le contributeur à savoir comment apporter les modifications nécessaires.
+Voici quelques directives à suivre lors de la création d'une PR :
 
-_Les lignes directrices ci-dessus ont été établies dans [RFC-20](https://github.com/openmrs/openmrs-rfc-frontend/blob/master/text/0020-contributing-guidelines.md)_.
+- **Forkez et clonez le dépôt** - Avant de pouvoir créer une PR, vous devez forker le dépôt auquel vous souhaitez contribuer. Une fois que vous avez forké le dépôt, clonez-le sur votre machine locale.
+- **Créez une branche** dans Git pour isoler votre travail de la branche principale. Le nom de la branche doit être descriptif du travail que vous faites. Par exemple, si vous corrigez un bug, le nom de la branche pourrait être `fix/description-du-bug`.
 
-### Conventions de codage
+Les messages de commit typiques doivent suivre la convention suivante :
 
-Lisez notre guide [coding conventions](/docs/coding-conventions) pour en savoir plus sur les conventions que nous encourageons dans O3.
+- `feat: Ajout d'une barre de recherche au widget médicaments`
+- `fix: Erreur console lors de la visite de la page allergies`
+- `chore: Mise à jour des dépendances`
+- `test: Ajout de tests unitaires pour le widget médicaments`
+- `BREAKING: Nouveau système de navigation gauche`
+
+- Dans la mesure du possible, incluez des tests avec votre code. Nous utilisons Jest, React Testing Library et Playwright pour les tests.
+- Le commit du code exécutera le linter et le formateur. S'il y a des erreurs de linting, vous devrez les corriger avant de pouvoir pousser vos modifications.
+- Pour ouvrir vos modifications en tant que PR, **poussez votre branche** vers votre dépôt forké.
+- La plupart des dépôts auront un modèle de PR que vous devez remplir. Le modèle vous demandera des informations sur le travail que vous effectuez, le contexte et toute autre information pertinente.
+
+Le titre de votre pull request doit inclure une étiquette de commit conventionnelle qui indique le type de modification que vous effectuez. Exemples de bons titres de PR :
+
+- `(chore) Suppression du feature flag du widget commandes`
+- `(fix) O3-2657: Affichage des erreurs en ligne lorsque l'enregistrement des commandes échoue`
+- `(feat) O3-2724: Déplacement des overlays dans le framework`
+- `(test) O3-3040: Ajout d'un test E2E pour l'ajout d'une note de visite`
+- `BREAKING: Mise à niveau vers Carbon v11`
+
+### Revue de code
+
+Une fois que vous avez ouvert une PR, l'étape suivante consiste à la faire examiner. Les revues de code sont une partie essentielle du processus de développement. Elles aident à garantir que le code que vous proposez est de haute qualité et qu'il répond aux normes du projet auquel vous contribuez.
+
+#### Motivation pour les revues de code
+
+- **Qualité** - Les revues de code aident à garantir que le code que vous proposez est de haute qualité.
+- **Apprentissage** - Les revues de code sont une opportunité d'apprentissage.
+- **Cohérence** - Les revues de code aident à garantir que le code est cohérent avec le reste de la base de code.
+- **Lisibilité** - La lisibilité est difficile à juger par soi-même.
+- **Détection des erreurs accidentelles et structurelles** - Les revues de code aident à détecter les erreurs accidentelles et structurelles.
+
+#### Directives pour les auteurs de PR
+
+- **Testez vos modifications localement** - Avant de faire examiner votre code, testez vos modifications localement.
+- **Documentez les choses** - Votre PR modifie-t-elle le schéma de configuration des modules ?
+- **Suivez le modèle de PR** - Suivez le modèle fourni et fournissez autant de contexte que possible.
+- **Soyez ouvert aux retours** - Les revues de code sont une opportunité d'apprentissage.
+- **Faites le suivi des revues et des suggestions** - Une fois que vous avez reçu des retours sur votre code, faites le suivi.
+- **Maintenez votre branche PR à jour** - Si votre PR est ouverte pendant longtemps, vous devrez peut-être la rebaser.
+- **Soumettez votre code à une auto-revue** - Avant d'ouvrir une PR, examinez votre code vous-même.
+
+#### Directives pour les examinateurs
+
+- **Posez des questions** - Si vous ne comprenez pas quelque chose dans le code, posez des questions.
+- **Fournissez des retours** - Lors de la fourniture de retours, soyez précis sur ce que vous aimez et n'aimez pas dans le code.
+- **Évaluez si le code atteint ses objectifs** - Évaluez si le code soumis atteint réellement ses objectifs prévus.
+- **Évaluez si le code est maintenable** - Évaluez si le code est maintenable.
+- **Pensez à comment vous auriez résolu le problème** - Votre approche est-elle radicalement différente de celle de l'auteur ?
+- **Considérez si le changement introduit des effets secondaires indésirables** - Le changement casse-t-il des fonctionnalités existantes ?
+- **Lisez les tests** - Si le code inclut des tests, lisez-les.
+- **Demandez des mises à jour de la documentation** - Si les modifications du code nécessitent des mises à jour de la documentation.
+- **Fournissez des retours concis et impersonnels** - Lors de la fourniture de retours, soyez concis et impersonnel.
+- **Donnez du temps à l'auteur pour faire des modifications** - Une fois que vous avez fourni des retours.
+- **Donnez des retours clairs sur la façon dont l'auteur doit procéder** - Si vous souhaitez revoir la PR.
+- **Soyez respectueux** - Les revues de code peuvent être un processus sensible.
+- **Évitez le gatekeeping** - Ce qui inclut de trop insister auprès des contributeurs sur leur non-respect du processus correct.
+- **Encouragez l'appropriation du code** - Y compris l'examen des modifications du code et des projets auxquels vous avez contribué.
+
+### Lectures complémentaires
+
+- [La norme de la revue de code](https://google.github.io/eng-practices/review/reviewer/standard.html)
+- [Meilleures pratiques de revue de code de Palantir](https://blog.palantir.com/code-review-best-practices-19e02780015f)
+- [Directives de contribution O3 introduites dans RFC 20](https://github.com/openmrs/openmrs-rfc-frontend/blob/master/text/0020-contributing-guidelines.md)
+- [Arrêtez de payer la taxe de productivité de la revue de code](https://app.campsite.co/campsite/p/notes/4zvq5fmqazmh)
+- [Revue de code Git Kraken](https://www.gitkraken.com/blog/code-review)

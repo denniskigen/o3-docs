@@ -28,7 +28,7 @@ Our major repositories are set up as monorepos. A monorepo is a collection of ma
 
 Most of the time, you'll likely be working with either the `patient chart` or `patient management` repositories. However, you might find yourself occasionally needing to delve into `core`. The packages available in core include:
 
-- [Login](#core/tree/main/packages/apps/esm-login-app) - responsible for rendering the loading page, the login page, and the location picker.
+- [Login](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-login-app) - responsible for rendering the loading page, the login page, and the location picker.
 - [Devtools](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-devtools-app) - provides a UI that enables developers to use the [import map overrides](https://github.com/single-spa/import-map-overrides) library in O3. This enables developers to override frontend modules at runtime, essentially replacing them with local versions. This mechanism allows developers to test their local changes to frontend modules against the most up-to-date production version of the application.
 - [Implementer tools](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-implementer-tools-app) - provides a UI for implementers and developers to tweak configuration properties dynamically at runtime and viewing administrative information about their frontend. Once tested and validated, these configuration properties can then be persisted to a distro's configuration.
 - [Primary navigation](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-primary-navigation-app) - renders the top navigation menu in the application, featuring the app icon, patient search, the implementer tools menu, the registration page, the app menu, and the user menu.
@@ -63,7 +63,7 @@ Contains various frontend modules that constitute widgets in a patient dashboard
 - [Notes](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-notes-app) - provides a tabular overview of the visit notes recorded for a patient as well as a form for recording new visit notes.
 - [Patient banner](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-banner-app) - provides a banner that displays the patient's name, their avatar, gender, age, and identifiers. It also provides an expandable panel that shows their address, contact details, and relationships with other patients. The patient banner can also display custom tags to mark whether a patient has an active visit ongoing or whether they are deceased.
 - [Programs](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-programs-app) - provides a tabular overview of the programs a patient is enrolled in as well as a form for enrolling the patient into new programs.
-- [Test results](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-test-results-app) - provides tabular and chart-based overviews of the test results available for a patient.
+- [Test results](https://github.com/openmrs/openmrs-esm-patient-chart/tree/main/packages/esm-patient-tests-app) - provides tabular and chart-based overviews of the test results available for a patient.
 - [Vitals](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-vitals-app) - provides tabular and chart-based overviews of the vitals and biometrics recorded for a patient as well as a form for recording vitals and biometrics. It also provides a vitals header that displays a summary of the most recently recorded vitals.
 
 In addition to these widgets, two other microfrontends exist that encapsulate cross-cutting concerns. These are:
@@ -86,16 +86,16 @@ This monorepo includes the following frontend modules:
 
 - [Active visits](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-active-visits-app) - provides a tabular overview of checked in patients for the current day.
 - [Appointments](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-appointments-app) - provides capabilities to create, edit and manage patient appointments.
-- [Service queues](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-outpatient-app) - provides capabilities to create, manage and view queues in a location.
+- [Service queues](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-service-queues-app) - provides capabilities to create, manage and view queues in a location.
 - [Patient search](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-search-app) - provides the ability to search for existing patients using simple and advanced search.
 - [Patient registration](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-registration-app) - provides the ability to register new patients and verify them through configurable external patient registries.
-- [Patient list](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-list-app) - provides a UI to create and manage patient lists.
+- [Patient list](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-list-management-app) - provides a UI to create and manage patient lists.
 
 ### Laboratory app
 
 This frontend module utilizes the following widgets to manage laboratory requests and queues in a user-friendly manner:
 
-- [Laboratory header](https://github.com/openmrs/openmrs-esm-laboratory-app/tree/main/src/header) - Displays the page header details, including the page name, icon, and other relevant information.
+- [Laboratory header](https://github.com/openmrs/openmrs-esm-laboratory-app/tree/main/src) - Displays the page header details, including the page name, icon, and other relevant information.
 - [Laboratory summary tiles](https://github.com/openmrs/openmrs-esm-laboratory-app/tree/main/src/lab-tiles) - Provide numerical summaries of the laboratory tests, indicating the number of tests ordered, in progress, and completed.
 - [Laboratory orders tabs](https://github.com/openmrs/openmrs-esm-laboratory-app/blob/main/src/lab-tabs/laboratory-tabs.component.tsx) - Widgets (buttons) that allow toggling between the ordered, in-progress, and completed test results. These results are displayed in a tabular format within the overlay.
 - [Overlay](https://github.com/openmrs/openmrs-esm-laboratory-app/blob/main/src/components/overlay/overlay.component.tsx) - Displays test orders in a tabular view. The content can be toggled using the Laboratory Orders Tabs.

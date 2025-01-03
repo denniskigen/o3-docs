@@ -225,15 +225,32 @@ Whereas this test passes and can give us some amount of confidence that this com
 
 When writing tests, you’ll often need to mock out dependencies. Here are a few patterns you can use to write more effective, maintainable and type-safe tests for your frontend modules:
 
-Core exports a module mock that can be used to test functionality in `@openmrs/esm-framework`. You'll typically have a Jest configuration file that sets up the mock for you like so:
+Core exports a [module mock](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/mock.tsx) that can be used to test functionality in `@openmrs/esm-framework`. 
 
-```js filename="jest.config.js"
+In each frontend module's Jest configuration file, you'll see a line like the highlighted one below:
+
+```js {4}
 module.exports = {
-  "@openmrs/esm-framework": "@openmrs/esm-framework/mock",
-};
+  // ... other configuration properties
+  moduleNameMapper: {
+    '@openmrs/esm-framework': '@openmrs/esm-framework/mock',
+    // ... other moduleNameMapper entries
+  }
+} 
 ```
 
-This line tells Jest to use the mock module for all imports of `@openmrs/esm-framework`. This is useful because it allows you to test your module in isolation without having to worry about the framework.
+This line tells Jest to replace (mock) any imports of `@openmrs/esm-framework` with the contents of `@openmrs/esm-framework/mock` during tests. This is crucial because `@openmrs/esm-framework` is a library that provides core functionality such as configuration, authentication, module loading, routing, and more. The mock version (`@openmrs/esm-framework/mock`) provides stubs for all of these functions that:
+
+- Don't make real network requests.
+- Don't require a real OpenMRS backend.
+- Allow easier control of framework functionality in your tests.
+
+This is considered a best practice in tsting because it:
+
+- Isolates tests from external dependencies.
+- Makes tests more predictable and easier to write.
+- Allows you to control the behavior of the framework in your tests.
+- Speeds up test execution by avoiding real network requests and backend dependencies.
 
 The framework mock aggregates stubs for all the framework APIs that your module might use. If functionality is missing, you should first add it to the mock. You can do this by extending any of the existing stubs or adding new ones.
 
@@ -250,7 +267,9 @@ jest.mock("@openmrs/esm-framework", () => ({
 }));
 ```
 
-This is an anti-pattern. The right way to extend the framework mock is to add the missing functionality to the mock itself. Here's an example of how you can do this:
+This is an anti-pattern. That's not because this approach won't work, it will. It's an anti-pattern because it essentially creates a parallel mocking structure that is not as easy to maintain as the framework mock. Because the stubs in the framework mock are centralized, it's easier to add new stubs each time new functionality is added to the framework.
+
+The right way to extend the framework mock is to add the missing functionality to the mock itself. Here's an example of how you can do this:
 
 ```tsx
 import { useConfig } from "@openmrs/esm-framework";
@@ -263,6 +282,17 @@ beforeEach(() => {
 
 // Your tests go here...
 ```
+
+Here's an example of a real-world pull request that added new stubs to the framework mock: https://github.com/openmrs/openmrs-esm-core/pull/1105. 
+
+When adding new stubs, follow these guidelines:
+
+- **Choose the correct mock file**: Add stubs to the mock file that corresponds to the package containing the original functionality:
+   - For `@openmrs/esm-extensions` functionality → add to `@openmrs/esm-extensions/mock.tsx`
+   - For `@openmrs/esm-api` functionality → add to `@openmrs/esm-api/mock.tsx`
+   - For `@openmrs/esm-module-management` functionality → add to `@openmrs/esm-module-management/mock.tsx`
+   - And so on...
+- **Follow existing patterns**: Follow existing patterns in the mock file.
 
 #### Annotating mocks with type information
 

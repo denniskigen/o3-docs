@@ -4,22 +4,18 @@ import { FileTree } from "nextra/components";
 
 # Overview
 
-<Callout emoji="ℹ️" type="info">
-  Significant changes to the architecture of the app shell related to how frontend modules get loaded were introduced in [Core v5](/docs/changelog). If you haven't migrated your frontend modules to leverage these new capabilities, follow the [Migration Guide](/docs/migrate-to-core-v5) for a in-depth walkthrough of how to do so.
-</Callout>
+Frontend modules are the fundamental building block for creating applications in O3. They are self-contained pieces of functionality that can be loaded by the [app shell](/docs/app-shell). For example, you could have a frontend module that handles rendering concerns related to vitals and biometrics. This module could include the following functionality: 
 
-Frontend modules are the fundamental building block for creating applications in O3. They are self-contained pieces of functionality that can be loaded into O3 by the [app shell](/docs/app-shell). For example, you could have a frontend module that handles rendering concerns related to vitals and biometrics. This module could include the following: 
+- A component that displays a tabular overview of a patient's vitals and biometrics
+- A component that displays chart visualizations of a patient's vitals and biometrics
+- A form that allows a user to record a new set of vitals and biometrics readings
+- A component that displays a patient's most recent vitals and biometrics readings in the patient's chart header
 
-- A page that displays a tabular overview of a patient's vitals and biometrics
-- A page that displays chart visualizations of a patient's vitals and biometrics.
-- A form that allows a user to record a new set of vitals and biometrics readings.
-- A vitals header that displays a patient's most recent vitals and biometrics readings.
+These components would be defined in the frontend module's `src` directory. The components defined in the frontend module's `src` directory are automatically registered with the app shell and can be used in the application. They would get displayed on the screen when the user navigates to the appropriate pages.
 
-This frontend module could then be loaded into the app shell and displayed in the patient chart. Frontend modules in O3 are typically built using React, but because we use [single-spa](https://single-spa.js.org/) under the hood, they can be built using any frontend framework that single-spa supports. For example, the [Angular form engine](/docs/key-repositories#angular-form-engine) frontend module is written in Angular and is a wrapper around the [AMPATH form engine](https://ampath-forms.vercel.app/). So in that sense, the app shell is framework-agnostic. In practice, the lower-level workings of the app shell have been abstracted in such a way that frontend engineers can focus on building frontend modules without having to worry about the underlying framework.
+Frontend modules in O3 are typically built using React, but because we use [single-spa](https://single-spa.js.org/) under the hood, they can be built using any frontend framework that single-spa supports. For example, the [Form entry](/docs/key-repositories#angular-form-engine) frontend module is written in Angular and is a wrapper app around the [Angular form engine](https://github.com/openmrs/openmrs-ngx-formentry). So in that sense, the app shell is framework-agnostic. In practice, the lower-level workings of the app shell have been abstracted in such a way that frontend engineers can focus on building frontend modules without having to worry about which framework they are using.
 
-Frontend modules are typically organized into domain-specific [monorepos](https://monorepo.tools/#what-is-a-monorepo). For example, frontend modules concerning the management of patients exist in the [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management) monorepo.
-
-In this structure, you'll typically have a `packages` directory at the root of your monorepo. This package's directory will contain all of your front-end modules. For example, the patient management monorepo has the following structure:
+Frontend modules are typically organized into domain-specific repositories. For example, frontend modules concerning the management of patients exist in the [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management) monorepo. Core aggregates the core frontend modules that are reused in all O3 applications. Patient Chart aggregates the frontend modules that make up the widgets in a patient dashboard. These repositories can be either monorepos or standard repositories depending on their scope and purpose. In cases where a frontend module is structured as a monorepo, you'll typically have a `packages` directory at the root of your monorepo. This directory will contain all of your frontend modules. For example, the Patient Management monorepo has the following structure:
 
 <FileTree>
   <FileTree.Folder name="packages" defaultOpen>
@@ -28,6 +24,7 @@ In this structure, you'll typically have a `packages` directory at the root of y
     <FileTree.Folder name="esm-outpatient-app" />
     <FileTree.Folder name="esm-patient-list-app" />
     <FileTree.Folder name="esm-patient-registration-app" />
+    <FileTree.Folder name="esm-ward-app" />
     <FileTree.Folder name="esm-patient-search-app" defaultOpen>
       <FileTree.Folder name="src" defaultOpen>
         <FileTree.File name="config-schema.ts" />
@@ -41,16 +38,27 @@ In this structure, you'll typically have a `packages` directory at the root of y
   <FileTree.File name="yarn.lock" />
 </FileTree>
 
-Each frontend module has its own `package.json` file separate from the root-level `package.json` file. This is because each frontend module is a separate NPM package. This means that each frontend module can have its own scripts and dependencies. Additionally, each frontend module has a `src` directory that contains the source code for the frontend module. The `src` directory also contains two important files from the perspective of the app shell - `index.ts` and `routes.json`. These two files define the dynamic and static metadata of the frontend module, respectively. They are discussed in more detail below.
+Each frontend module is structured as an independent NPM package with:
 
-Frontend modules are also referred to as `microfrontends` in O3. They get shipped in the ES module format, which explains the `esm-` prefix in their nomenclature. They may have an `-app` suffix in their name, but this is not required. 
+- Its own `package.json` file (separate from the root-level `package.json` file). This file defines the module's dependencies and metadata.
+- A `src` directory that contains the source code for the frontend module. That directory contains the following important files:
+  - A `config-schema.ts` file that defines the module's configuration schema
+  - A `declarations.d.ts` file that defines the module's TypeScript declarations
+  - An `index.ts` file that defines the module's entry point
+  - A `routes.json` file that defines the module's static metadata
 
-Frontend modules get loaded into the application based on a special JSON file called an [import map](http://localhost:3001/docs/core-concepts#import-map). More details about how frontend modules get loaded are discussed in the [App shell](/docs/app-shell) and [Module loading](/docs/frontend-modules/loading-modules) guide.
+Frontend modules are alternatively referred to as `microfrontends` in O3. They have the following characteristics:
 
-<br />
+- They get shipped in the ECMAScript module format (ESM). This is a standard format for shipping JavaScript modules that allows for better code organization and dependency management. This explains the `esm-` prefix in their name.
+- They have a descriptive middle section in their name describing the module's functionality. For example, `esm-patient-search-app` is a module that handles searching for patients.
+- They may have an `-app` suffix in their name, but this is not required.
+
+O3 distributions consist of a set of frontend modules that are shipped together. For example, the frontend modules shipped with the community demo [reference application](https://dev3.openmrs.org/openmrs) are described in this [spa-assemble-config.json](https://github.com/openmrs/openmrs-esm-core/blob/main/spa-assemble-config.json) file.
+
+{/* <br />
 <Image src="/o3-execution.png" alt="O3 architecture" width={600} height={600} />
 
-This diagram walks through what happens when the application is executed. The app shell loads configuration files, the import map specifies where frontend modules get fetched from, and [loads frontend modules](/docs/frontend-modules/module-loading).
+This diagram walks through what happens when the application is executed. The app shell loads configuration files, the import map specifies where frontend modules get fetched from, and [loads frontend modules](/docs/frontend-modules/module-loading). */}
 
 ## Anatomy of a frontend module
 
@@ -106,7 +114,7 @@ Frontend modules have their [entry point](https://webpack.js.org/concepts/entry-
 ```ts
 import { defineConfigSchema, getSyncLifecycle, registerBreadcrumbs } from "@openmrs/esm-framework";
 import { configSchema } from "./config-schema";
-import rootComponent from ""./root.component";
+import rootComponent from "./root.component";
 import systemAdministrationFormBuilderCardLinkComponent from "./form-builder-admin-card-link.component";
 
 const moduleName = "@openmrs/esm-form-builder-app";

@@ -90,19 +90,28 @@ Define the Zod schema for the form data:
 ```tsx
 import { z } from "zod";
 
-const oldPasswordValidation = z.string().min(1, {
-  message: t("oldPasswordRequired", "Old password is required"),
-});
+const oldPasswordValidation = z
+  .string({
+    required_error: t('oldPasswordRequired', 'Old password is required'),
+  })
+  .trim()
+  .min(1, t('oldPasswordRequired', 'Old password is required'));
 
-const newPasswordValidation = z.string().min(1, {
-  message: t("newPasswordRequired", "New password is required"),
-});
+const newPasswordValidation = z
+  .string({
+    required_error: t('newPasswordRequired', 'New password is required'),
+  })
+  .trim()
+  .min(1, t('newPasswordRequired', 'New password is required'));
 
-const passwordConfirmationValidation = z.string().min(1, {
-  message: t("passwordConfirmationRequired", "Password confirmation is required"),
-});
+const passwordConfirmationValidation = z
+  .string({
+    required_error: t('passwordConfirmationRequired', 'Password confirmation is required'),
+  })
+  .trim()
+  .min(1, t('passwordConfirmationRequired', 'Password confirmation is required'));
 
-const schema = z
+const changePasswordSchema = z
   .object({
     oldPassword: oldPasswordValidation,
     newPassword: newPasswordValidation,
@@ -114,7 +123,7 @@ const schema = z
   });
 ```
 
-This schema defines the validation rules for the form fields. Each field is defined as a string that must not be empty. If the field is empty, a custom error message is provided using the translation function `t()`. Additionally, a refinement rule is added to check if the `newPassword` matches the `passwordConfirmation`. If they don't match, an error message is displayed.
+This schema defines the validation rules for the form fields. Each field is defined as a string that must not be empty. We trim the string to remove any leading or trailing whitespace. If the field is empty, a custom error message is provided using the translation function `t()`. Additionally, a refinement rule is added to check if the `newPassword` matches the `passwordConfirmation`. If they don't match, an error message is displayed. These validation rules are fairly basic - they only ensure that each field is not empty. They don't enforce any other rules, such as password complexity or minimum length.
 
 ### Step 3
 
@@ -129,7 +138,7 @@ const {
   control,
   formState: { errors },
 } = useForm({
-  resolver: zodResolver(schema),
+  resolver: zodResolver(changePasswordSchema),
   defaultValues: {
     oldPassword: "",
     newPassword: "",
@@ -145,12 +154,17 @@ This code snippet creates a custom resolver using `zodResolver` from `@hookform/
 Add the `handleSubmit` function to your form:
 
 ```tsx
-const onSubmit = (data) => {
-  setIsChangingPassword(true);
-
+const onSubmit = async (data: z.infer<typeof changePasswordSchema>) => {
   const { oldPassword, newPassword, passwordConfirmation } = data;
 
-  // Handle form submission
+  try {
+    setIsChangingPassword(true);
+    await changePassword(oldPassword, newPassword);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setIsChangingPassword(false);
+  }
 };
 ```
 
@@ -215,6 +229,53 @@ In this code snippet, the `Controller` component is used to connect the form fie
 That's it! You have successfully integrated React Hook Form with Zod to validate your form. Now, when the user submits the form, the data will be validated against the Zod schema, and any validation errors will be displayed to the user.
 
 </Steps>
+
+## Defining Schemas Outside Components
+
+There are cases where you may need to define your schema outside of the component. These include:
+
+- When sharing validation logic between multiple forms.
+- When validation rules need to be dynamic based on context.
+- When working with multi-step forms.
+- When handling complex conditional validation.
+
+In these scenarios, you can create a factory function that returns the schema. Something like this:
+
+```tsx
+import { type TFunction } from "react-i18next";
+
+const createChangePasswordSchema = (t: TFunction) => {
+  return z
+    .object({
+      oldPassword: oldPasswordValidation,
+      newPassword: newPasswordValidation,
+      passwordConfirmation: passwordConfirmationValidation,
+    })
+    .refine((data) => data.newPassword === data.passwordConfirmation, {
+      message: t("passwordsDoNotMatch", "Passwords do not match"),
+      path: ["passwordConfirmation"],
+    });
+};
+
+// Define a type for the form data. This type can be exported and used in other components that reuse the same schema.
+export type ChangePasswordFormData = z.infer<ReturnType<typeof createChangePasswordSchema>>;
+
+// Further below in the component
+const ChangePasswordModal = () => {
+  const { t } = useTranslation();
+  const changePasswordSchema = createChangePasswordSchema(t);
+
+  const {
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<ChangePasswordFormData>({
+    resolver: zodResolver(changePasswordSchema),
+  });
+};
+```
+
+One key benefit of this approach is that you can get access to the `t` function from the component body through the factory function. This allows you to translate your error messages even though the schema is defined outside of the component. The main trade-off with this approach is slightly more complexity in the initial setup, but this is usually worth it for benefits in maintainability and reusability.
 
 By combining React Hook Form and Zod, you can create a powerful form validation system that ensures data integrity and type safety in your React applications. Read more about [React Hook Form](https://react-hook-form.com/) and [Zod](https://zod.dev/) to explore their full capabilities and features.
 

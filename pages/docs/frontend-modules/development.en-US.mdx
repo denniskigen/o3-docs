@@ -130,7 +130,21 @@ localStorage.setItem('openmrs:devtools', 'true')
 
 Reload the page. You should see a new icon in the bottom right corner of the screen. Click on it to launch the import map overrides panel. You can now override import map entries for the frontend modules in your distribution with locally running copies. Add an import map override for the Implementer tools app by searching for the app in the `Search modules` input field. You should see the app in the search results. Type the URL to the bundled JavaScript code for the app in the `URL` input field.
 
-For the Implementer tools app on port 7000, the URL would be http://localhost:7001/openmrs-esm-implementer-tools-app.js. Click the `Apply` button to add the override. Next, do the same for the Primary navigation app. The URL for the Primary navigation app on port 9000 would be http://localhost:9001/openmrs-esm-primary-navigation-app.js. Click the `Apply` button to add the override. The changes should take effect immediately. If you reload the page, you should see the icon turn red to signify that there are import map overrides in place.
+For the Implementer tools app on port 7000, the URL ideally would be http://localhost:7001/openmrs-esm-implementer-tools-app.js. To check the URL more accurately you can navigate to the network tab of where the ESM is running and find out there.
+
+Below is a screenshot demonstrating looking for the openmrs-esm-patient-orders-app in chrome.
+
+<br />
+![chrome import map example](/chrome-import-map-example.png)
+<br />
+
+After findng out the correct url click the `Apply` button to add the override.
+Next, do the same for the Primary navigation app. The URL for the Primary
+navigation app on port 9000 would ideally be
+http://localhost:9001/openmrs-esm-primary-navigation-app.js. Click the `Apply`
+button to add the override. The changes should take effect immediately. If you
+reload the page, you should see the icon turn red to signify that there are
+import map overrides in place.
 
 You should now see your changes to the Implementer tools and Primary navigation apps propagate to the app shell. You can now test out your changes in the context of the app shell.
 

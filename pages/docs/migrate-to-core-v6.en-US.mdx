@@ -3,11 +3,12 @@ import { Callout, Steps } from "nextra-theme-docs";
 # Migrating to Core v6.3.1-pre.2986
 
 <Callout type="info">
-  **Target audience:** This migration guide is specifically for developers using pre-release (`next`-tagged) versions of the Core tooling and framework packages.  
+  **Target audience:** This migration guide is specifically for developers using pre-release (`next`-tagged) versions of the Core tooling and framework packages.
 
-  If your distribution is pinned to the stable `latest` versions, **you do not need to migrate yet**—these changes will become relevant with the next [O3 v3.5.0 stable release](https://openmrs.atlassian.net/wiki/spaces/docs/pages/479199233/Release+Notes+3.5+Goal+2025-08).  
+If your distribution is pinned to the stable `latest` versions, **you do not need to migrate yet**—these changes will become relevant with the next [O3 v3.5.0 stable release](https://openmrs.atlassian.net/wiki/spaces/docs/pages/479199233/Release+Notes+3.5+Goal+2025-08).
 
-  Only follow this guide if you're working with bleeding-edge development or staging environments on pre-release (`next`) versions.
+Only follow this guide if you're working with bleeding-edge development or staging environments on pre-release (`next`) versions.
+
 </Callout>
 
 This guide is for migrating frontend modules to use core tooling and framework versions higher than `v6.3.1-pre.2986`. This pre-release version corresponds to [this pull request](https://github.com/openmrs/openmrs-esm-core/pull/1346).
@@ -46,7 +47,7 @@ Core `v6.3.1-pre.2986` introduces a significant architectural rework focused on 
 
 The key improvements include:
 
-- **Reliable sequential builds – eliminates memory issues that caused build failures.
+- \*\*Reliable sequential builds – eliminates memory issues that caused build failures.
 - **5–10× faster core tooling** thanks to Rspack migration for the build system.
 - **~3× faster build times** for applications (sub-1-minute builds).
 - **51% smaller bundle size** – 6.37 MB reduction in total framework size.
@@ -101,7 +102,6 @@ fnm use 22
 ```
 
 Alternatively, if you're using [nvm](https://github.com/nvm-sh/nvm), you can run:
-
 
 ```bash
 nvm install 22
@@ -279,7 +279,7 @@ To see examples of how frontend modules have been migrated to Core v6, check out
 - [Form builder](https://github.com/openmrs/openmrs-esm-form-builder/pull/547)
 - [Laboratory](https://github.com/openmrs/openmrs-esm-laboratory-app/pull/188)
 - [Patient chart](https://github.com/openmrs/openmrs-esm-patient-chart/pull/2492)
-- [Patient registration](https://github.com/openmrs/openmrs-esm-patient-registration/pull/1659)
+- [Patient management](https://github.com/openmrs/openmrs-esm-patient-management/pull/1659)
 - [React form engine](https://github.com/openmrs/openmrs-esm-react-form-engine/pull/151)
 - [Stock management](https://github.com/openmrs/openmrs-esm-stock-management/pull/300)
 - [Template](https://github.com/openmrs/openmrs-esm-template-app/pull/51)

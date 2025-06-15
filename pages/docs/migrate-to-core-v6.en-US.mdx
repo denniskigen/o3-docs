@@ -382,34 +382,9 @@ yarn turbo build --force # Test sequential builds without the turbo cache
 
 ### Package architecture: Why your imports changed
 
-We reorganized the framework packages to be more modular and efficient.
-
-#### How you should import
-
-**Best practice:**  
-
-For most applications, always import from `@openmrs/esm-framework`. The details of which sub-package a function comes from are managed internally by the framework and should not concern most app developers.
-
-```typescript
-// Recommended for all app and module code
-import { openmrsFetch, getPatient, getVisits } from "@openmrs/esm-framework";
-```
-
-If you need something not exported from `@openmrs/esm-framework`, consult the documentation or use `@openmrs/esm-framework/internal` (for advanced/core use only).
-
-#### Why the split happened
-
-Previously, `@openmrs/esm-api` included both core primitives (like `openmrsFetch()`) and application-level utilities (like patient/visit fetching). This led to circular dependencies between packages such as `@openmrs/esm-api` and `@openmrs/esm-offline`, and made maintenance difficult.
-
-By refactoring, `@openmrs/esm-api` now only handles fundamental concerns (e.g., `openmrsFetch()` and session checks), while application-level utilities have moved to packages like `@openmrs/esm-emr-api`. However, apps should still import these via `@openmrs/esm-framework`.
-
-This avoids circular dependencies and clarifies responsibilities.
-
-**Note:** This split was not primarily about reducing bundle size (since the framework is treated as a singleton), but about maintainability and architectural clarity.
+We reorganized the framework packages to be more modular and efficient. We also modernized how packages expose their functionality:
 
 #### Framework package cleanup
-
-We also modernized how packages expose their functionality:
 
 - **Before:** Deep imports like `@openmrs/esm-framework/src/internal/utils`
 - **After:** Clean public API through proper `exports` field

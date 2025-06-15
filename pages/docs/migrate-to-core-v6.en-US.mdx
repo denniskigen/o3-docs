@@ -1,0 +1,483 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+# Migrating to Core v6.3.1-pre.2986
+
+<Callout type="info">
+  **Target audience:** This migration guide is specifically for developers using pre-release (`next`-tagged) versions of the Core tooling and framework packages.
+
+If your distribution is pinned to the stable `latest` versions, **you do not need to migrate yet**—these changes will become relevant with the next [O3 v3.5.0 stable release](https://openmrs.atlassian.net/wiki/spaces/docs/pages/479199233/Release+Notes+3.5+Goal+2025-08).
+
+Only follow this guide if you're working with bleeding-edge development or staging environments on pre-release (`next`) versions.
+
+</Callout>
+
+This guide is for migrating frontend modules to use core tooling and framework versions higher than `v6.3.1-pre.2986`. This pre-release version corresponds to [this pull request](https://github.com/openmrs/openmrs-esm-core/pull/1346).
+
+To figure out what version of the core tooling or framework you're running, run:
+
+```bash
+yarn why openmrs
+# or
+yarn why @openmrs/esm-framework
+```
+
+You should see something like this:
+
+```bash
+└─ your-frontend-module@workspace:.
+   └─ openmrs@npm:6.3.1-pre.2986 (via npm:next)
+```
+
+If you're running anything higher than `v6.3.1-pre.2986` for either of these, you don't need to migrate. Otherwise, read on to learn how to migrate.
+
+## Background: Why this migration was necessary
+
+Core v5 suffered from a critical build system issue: **sequential builds would slow down dramatically or fail entirely** due to memory exhaustion. This made development workflows unreliable and forced developers to use [workarounds](docs/frontend-modules/development#im-running-into-memory-issues-when-building-core) like clearing caches between builds or restarting Node processes.
+
+Following the [v3.4.0 release](https://openmrs.atlassian.net/wiki/spaces/docs/pages/384696321/Release+Notes+3.4+2025-05), we undertook a major tooling upgrade that [culminated in this PR](https://github.com/openmrs/openmrs-esm-core/pull/1346). This represents a fundamental change to how we build, run, and test frontend modules in O3.
+
+Core v6 solves these issues through two major architectural changes:
+
+1. **ES Module architecture** with lighter-weight builds (covered in this guide)
+2. **Rspack build system** migration for core tooling (5-10x faster than Webpack)
+
+## Introduction
+
+Core `v6.3.1-pre.2986` introduces a significant architectural rework focused on **reliable builds** and **dramatic performance improvements**. This update restructures the framework packages to use ES modules natively, splits the API packages for better tree-shaking, and migrates core tooling to modern standards.
+
+The key improvements include:
+
+- \*\*Reliable sequential builds – eliminates memory issues that caused build failures.
+- **5–10× faster core tooling** thanks to Rspack migration for the build system.
+- **~3× faster build times** for applications (sub-1-minute builds).
+- **51% smaller bundle size** – 6.37 MB reduction in total framework size.
+- **Better TypeScript performance** – uses generated `.d.ts` files instead of parsing source TypeScript.
+- **Modern ESM architecture** – native ES module support with improved tree-shaking and clearer import boundaries for apps.
+- **Improved package structure** – clearer separation of core and application-level APIs, with most app code now importing from `@openmrs/esm-framework`.
+- **Enhanced tooling** – migration from Jest to Vitest for faster test execution and better ESM compatibility.
+
+To leverage these improvements, you'll need to migrate your existing frontend modules to this pre-release version of Core or higher. This guide will walk you through the process of doing so.
+
+## Migration steps
+
+<Steps>
+
+### Bump core dependencies
+
+Bump core dependencies to their newest `next` tagged versions by running:
+
+```bash
+yarn up openmrs@next @openmrs/esm-framework@next
+```
+
+**Note:** If you’re using `@openmrs/esm-styleguide` as a direct dependency in your frontend module, you’ll need to bump it to `next` as well.
+
+### Bump styleguide dependency
+
+Bump `@openmrs/esm-styleguide` to the newest `next` tagged version by running:
+
+```bash
+yarn up openmrs@next @openmrs/esm-framework@next
+```
+
+Make sure to pin the version specifiers for these packages back to `next` in `package.json` and then run `yarn` to update the dependencies.
+
+### Bump Carbon and Webpack dependencies
+
+Bump Carbon, Webpack and other dependencies to the following versions:
+
+```sh
+yarn up @carbon/react@^1.83.0 webpack@^5.99.9 webpack-cli@^6.0.1 webpack-dev-server@^5.2.1
+```
+
+### Bump Node.js version
+
+Upgrade your Node.js version to [v22](https://nodejs.org/en/blog/release/v22.16.0) (the current LTS version at the time of writing) or higher.
+
+We recommend using [fnm](https://github.com/Schniz/fnm) to manage multiple Node.js versions on your system. To fix this issue, you can run:
+
+```bash
+fnm install 22
+fnm use 22
+```
+
+Alternatively, if you're using [nvm](https://github.com/nvm-sh/nvm), you can run:
+
+```bash
+nvm install 22
+nvm use 22
+```
+
+### Update Jest configuration
+
+The framework now exports ES modules, which requires updates to your Jest configuration to properly handle the new module formats.
+
+#### Update `transform` patterns
+
+In your `jest.config.js`, update the `transform` property to handle both `.js` and `.ts` files with the new pattern:
+
+**Before:**
+
+```javascript
+module.exports = {
+  transform: {
+    "^.+\\.tsx?$": ["@swc/jest"],
+  },
+  // ... rest of config
+};
+```
+
+**After:**
+
+```javascript
+module.exports = {
+  transform: {
+    "^.+\\.m?[jt]sx?$": ["@swc/jest"],
+  },
+  // ... rest of config
+};
+```
+
+#### Update `transformIgnorePatterns`
+
+You'll also need to update your `transformIgnorePatterns` to ensure ES modules from the `@openmrs` packages are properly transformed:
+
+**Before:**
+
+```javascript
+module.exports = {
+  transformIgnorePatterns: ["/node_modules/(?!@openmrs)"],
+  // ... rest of config
+};
+```
+
+**After:**
+
+```javascript
+module.exports = {
+  transformIgnorePatterns: ["/node_modules/(?!@openmrs|.+\\.pnp\\.[^\\/]+$)"],
+  // ... rest of config
+};
+```
+
+This change allows Jest to properly transform both JavaScript and TypeScript files, including ES modules (`.mjs` files).
+
+#### Fix mock import paths
+
+The framework mock exports have been restructured. Update your Jest `moduleNameMapper` configuration:
+
+**Before:**
+
+```javascript
+module.exports = {
+  moduleNameMapper: {
+    "@openmrs/esm-framework": "@openmrs/esm-framework/mock.tsx",
+    // ... other mappings
+  },
+};
+```
+
+**After:**
+
+```javascript
+module.exports = {
+  moduleNameMapper: {
+    "@openmrs/esm-framework": "@openmrs/esm-framework/mock",
+    // ... other mappings
+  },
+};
+```
+
+Note the removal of the `.tsx` extension—the mock export now resolves automatically to the appropriate file format.
+
+### Fix Carbon type errors
+
+Core `v6.3.1-pre.2986` includes an update to `@carbon/react@^1.83.0`, which comes with improved TypeScript definitions. While this is generally better for type safety, it may surface previously hidden type errors in your code.
+
+To fix these errors, you'll need to update your code to use the new TypeScript definitions. In general, the type errors surfaced by the TypeScript compiler should be self-explanatory. Typically, this will include the following:
+
+- Prop type errors for Carbon components - Component APIs have changed and you'll need to update your code to use the new APIs.
+- Stricter prop validation - Improved TypeScript definitions catch invalid or unknown props.
+- Semantic type errors - The TypeScript compiler may catch previously undetected issues in your code.
+
+#### General approach to fixing Carbon type errors
+
+1. Read TypeScript error messages carefully - they usually specify exactly what's wrong.
+2. Consult the [Carbon Design System component API docs](https://react.carbondesignsystem.com/) for the latest component APIs.
+3. Use your IDE's TypeScript support to see available props and their types - useful where we're not overriding the default Carbon type declarations with ambient type declaration overrides in `declarations.d.ts`.
+4. Avoid `@ts-ignore` - embrace the improved type safety as it often reveals real bugs.
+5. Remove deprecated props and update to current Carbon patterns.
+
+The goal is to leverage the better type definitions rather than suppress them, as they help catch actual issues in component usage.
+
+</Steps>
+
+If you've followed all of the steps above, you should be running the latest versions of the core dependencies, Carbon and Webpack. Next, we'll need to go through the following sanity checks to make sure everything is working as expected:
+
+- Run tests: `yarn test`
+- Run a development build: `yarn start`
+- Run a production build: `yarn build`
+
+If you get any errors, check out the [Troubleshooting](#troubleshooting) section below. You can file bugs under this [Jira epic](https://openmrs.atlassian.net/browse/O3-4744).
+
+## Troubleshooting
+
+### I've pulled the latest changes but I can't get a local dev server running
+
+If you’ve pulled the latest changes and the dev server won’t start, make sure to run `yarn` to install the latest dependencies. The new architecture requires updated peer dependencies.
+
+### I'm getting a `SyntaxError: Unexpected token 'export'` error related to ES modules
+
+This means Jest is not properly transforming ES modules from the framework. Ensure your `transform` and `transformIgnorePatterns` are configured correctly. See the [Update Jest configuration](#update-jest-configuration) section above for more details.
+
+### I'm getting errors like `Cannot find module 'vitest'` or ES module import errors in my tests
+
+If you encounter errors like `Cannot find module 'vitest'` or ES module import errors in your tests:
+
+- Ensure all `@openmrs/*` packages and `openmrs` are upgraded to the latest `next` versions: `yarn up --fixed '@openmrs/*@next' openmrs@next`.
+
+### I'm getting an `Error [ERR_REQUIRE_ESM]: require() of ES Module ... not supported` error when running a dev server
+
+If you're getting the following error:
+
+```bash
+Error [ERR_REQUIRE_ESM]: require() of ES Module ... not supported.
+Instead change the require of index.js ... to a dynamic import() which is available in all CommonJS modules.
+```
+
+when running a dev server, this means that Node.js is refusing to load an ES Module (.mjs or type: "module") using `require()`. CommonJS (require()) and ES Modules (import) are different systems. Node.js does not allow you to use `require()` to load an ES Module unless you are using [Node.js v22.12.0+](https://nodejs.org/api/esm.html#esm_node_js_es_modules) with the new experimental feature enabled. You can fix this by bumping your Node.js version to [v22](https://nodejs.org/en/blog/release/v22.16.0) (the current LTS version at the time of writing) or higher.
+
+See the [Bump Node.js version](#bump-nodejs-version) section above for more details.
+
+### My tests are failing with mock-related errors
+
+The framework now uses different mock files for different environments. If you're seeing mock-related failures, ensure you're using the correct mock import path:
+
+```javascript
+'@openmrs/esm-framework': '@openmrs/esm-framework/mock'
+```
+
+## Performance benefits
+
+After migrating to Core v6, you should see:
+
+- **Reliable builds**: No more memory issues or sequential build failures
+- **Faster builds**: Sub-1-minute build times in most cases
+- **Smaller bundles**: Approximately 50% reduction in framework bundle size
+- **Better development experience**: Faster hot reloading and more responsive dev servers
+- **Improved CI/CD**: Faster test execution and build processes
+
+## Migration examples
+
+To see examples of how frontend modules have been migrated to Core v6, check out these recent pull requests across the OpenMRS ecosystem:
+
+- [Admin tools](https://github.com/openmrs/openmrs-esm-admin-tools/pull/98)
+- [Billing](https://github.com/openmrs/openmrs-esm-billing-app/pull/127)
+- [Cohort builder](https://github.com/openmrs/openmrs-esm-cohort-builder/pull/141)
+- [Dispensing](https://github.com/openmrs/openmrs-esm-dispensing-app/pull/214)
+- [Fast data entry](https://github.com/openmrs/openmrs-esm-fast-data-entry-app/pull/114)
+- [Form builder](https://github.com/openmrs/openmrs-esm-form-builder/pull/547)
+- [Laboratory](https://github.com/openmrs/openmrs-esm-laboratory-app/pull/188)
+- [Patient chart](https://github.com/openmrs/openmrs-esm-patient-chart/pull/2492)
+- [Patient management](https://github.com/openmrs/openmrs-esm-patient-management/pull/1659)
+- [React form engine](https://github.com/openmrs/openmrs-esm-react-form-engine/pull/151)
+- [Stock management](https://github.com/openmrs/openmrs-esm-stock-management/pull/300)
+- [Template](https://github.com/openmrs/openmrs-esm-template-app/pull/51)
+- [User onboarding](https://github.com/openmrs/openmrs-esm-user-onboarding/pull/32)
+
+## Technical details
+
+This section explains the "why" behind Core v6's migration requirements. If you just need to get your app working, the main guide above covers everything you need. If you're interested in the technical details, read on.
+
+### The big picture: From TypeScript sources to ES modules
+
+Core v6 fundamentally changed how the framework is built and distributed. Here's what that means in practice:
+
+#### Before (Core v5 and earlier)
+
+When you imported from the framework, you were getting raw TypeScript files:
+
+```typescript
+import { openmrsFetch } from "@openmrs/esm-framework";
+// ↳ This imported actual .ts source files
+// ↳ Your build had to compile our TypeScript every time
+// ↳ Slower builds, larger bundles
+```
+
+#### After (Core v6)
+
+Now you get pre-compiled ES modules with separate type definitions:
+
+```typescript
+import { openmrsFetch } from "@openmrs/esm-framework";
+// ↳ This imports compiled .js files + .d.ts types
+// ↳ Your build skips compiling our code
+// ↳ Much faster builds, smaller bundles
+```
+
+**Why this matters:** Your TypeScript compiler now does 50-70% less work because it doesn't have to recompile the entire framework on every build.
+
+### Performance: The numbers behind the improvements
+
+The architectural changes deliver measurable performance gains:
+
+| Metric                    | Before (v5)  | After (v6) | Improvement        |
+| ------------------------- | ------------ | ---------- | ------------------ |
+| **Build time**            | 2-3+ minutes | < 1 minute | ~3x faster         |
+| **Bundle size**           | 12.26 MB     | 5.89 MB    | 51% smaller        |
+| **Framework compilation** | Every build  | One-time   | Eliminated         |
+| **Sequential builds**     | Often failed | Reliable   | Build system fixed |
+
+#### How we got these improvements
+
+**Reliable Builds:**
+
+- Eliminated [memory exhaustion issues](https://o3-docs.openmrs.org/docs/frontend-modules/development#im-running-into-memory-issues-when-building-core) that plagued Core v5
+- Rspack migration provides 5-10x performance improvement for core tooling
+- Better resource management and parallel processing
+
+**Faster Builds:**
+
+- TypeScript compiler uses pre-generated `.d.ts` files instead of parsing source code
+- Eliminated circular dependency resolution overhead
+- Better caching with ES module imports
+
+**Smaller Bundles:**
+
+- Tree-shaking now works properly (ES modules enable static analysis)
+- Split large packages into smaller, focused ones
+- Removed duplicate code that was being bundled multiple times
+
+**Better Runtime Performance:**
+
+- Modules load on-demand instead of all at startup
+- Browser can cache individual modules independently
+- Reduced JavaScript execution time on initial page load
+
+### Build system evolution: Webpack to Rspack
+
+Core v6 addresses the fundamental build system problems that affected Core v5:
+
+#### The problem with Core v5
+
+- **Sequential builds would progressively slow down or fail entirely**
+- **Memory exhaustion** causing Node processes to crash
+- **Required manual workarounds** like cache clearing between builds
+- **Unreliable development workflows** that frustrated developers
+
+#### The Rspack solution
+
+- **Rust-based bundler** with native parallel processing
+- **5-10x performance improvement** over Webpack
+- **Compatible API** - uses Webpack's plugin system and config format
+- **Production-ready** - powers builds for TikTok, Miro, and Alibaba
+- **Native ES module support** out of the box
+
+You can test the new build system performance by running:
+
+```bash
+yarn turbo build --force
+yarn turbo build --force # Test sequential builds without the turbo cache
+```
+
+### Package architecture: Why your imports changed
+
+We reorganized the framework packages to be more modular and efficient. We also modernized how packages expose their functionality:
+
+#### Framework package cleanup
+
+- **Before:** Deep imports like `@openmrs/esm-framework/src/internal/utils`
+- **After:** Clean public API through proper `exports` field
+- **Benefit:** Better TypeScript support, clearer boundaries, easier maintenance
+
+### Testing: Why your Jest config needs updates
+
+Core v6 embraces ES modules, which Jest historically struggled with. Here's how we solved it:
+
+#### The dual mock system
+
+The framework now ships with two sets of mocks:
+
+```bash
+@openmrs/esm-framework/
+├── mock.ts        # For ES modules (Vitest, modern Jest)
+├── mock-jest.ts   # For CommonJS (traditional Jest)
+└── package.json   # Automatically picks the right one
+```
+
+When you import `@openmrs/esm-framework/mock`, the framework automatically gives you the right version based on how you're importing it.
+
+#### Core framework uses Vitest now
+
+We migrated the framework itself from Jest to Vitest because:
+
+- **Native ES module support** - no complex configuration needed
+- **Faster test execution** - built on Vite's fast bundling
+- **Better developer experience** - clearer error messages
+
+Your apps can still use Jest! The Jest configuration updates in this guide ensure compatibility with our new ES module architecture.
+
+### Build system updates: Modern tooling
+
+#### Sass modernization
+
+- **New:** `sass-embedded` with modern compiler API
+- **Old:** Legacy node-sass (deprecated)
+- **Benefit:** Faster CSS compilation, better error messages
+
+#### Webpack evolution
+
+- **Module resolution:** Updated for ES modules
+- **CSS processing:** Improved pipeline for framework styles
+- **Development:** Better hot reloading and source maps
+
+### Migration strategy: Balancing change and stability
+
+#### Backward compatibility approach
+
+We designed the migration to be **incremental, not disruptive:**
+
+✅ **What stays the same:**
+
+- Your component APIs work unchanged
+- Configuration patterns are identical
+- Development workflow remains familiar
+
+⚠️ **What requires updates:**
+
+- Build configuration (Jest, Webpack)
+- Package versions and imports
+- TypeScript compilation setup
+
+#### Browser and environment support
+
+- **Modern browsers:** Native ES module support ensures optimal performance.
+- **Older browsers:** Automatic transpilation is provided, so your application remains compatible even if the browser doesn’t fully support ES modules.
+- **Node.js:** You must use Node.js v22 or higher for development and builds with Core v6 and above. Note that Node v22 is the current LTS version at the time of writing. See the [Bump Node.js version](#bump-nodejs-version) section above for more details.
+- **Framework bundling note:** While framework components are distributed as ES modules (ESMs), browsers actually use emulated ESMs under the hood. This means you get the benefits of modern module loading, but with compatibility for a wide range of environments.
+
+### Why this migration matters long-term
+
+This isn't just about performance today—it's about positioning the framework for the future:
+
+- **Developer experience:** Reliable builds and faster feedback loops mean happier, more productive developers.
+- **Ecosystem health:** Modern ES modules work better with the broader JavaScript ecosystem.
+- **Maintainability:** Cleaner architecture makes it easier to add features and fix bugs.
+- **Performance budget:** Smaller bundles leave more room for your application's features.
+
+The migration work you're doing now pays dividends in faster development cycles, reliable build processes, and better user experiences going forward.
+
+## What's next?
+
+### Current migration status
+
+- **Core tooling** migrated to Rspack (OpenMRS CLI)
+- **Login app** can use Rspack with `--use-rspack` flag.
+- **Other apps** planned for future migration
+- **Webpack still supported** for existing applications during transition
+- **Migrated repositories:** We've migrated several repositories over to Core v6.3.1-pre.2986. See the [Migration examples](#migration-examples) section above for the full list.
+
+### Remaining work
+
+- Migrating all frontend modules to the new build system based on Rspack.
+- Migrating all frontend modules from using Jest to Vitest.

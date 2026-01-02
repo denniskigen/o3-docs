@@ -1,12 +1,16 @@
-# Overview
+import { Callout } from "nextra-theme-docs";
 
-There are various aspects of the Patient Chart that can be configured. This guide will walk you through the various configuration options.
+# Configuring the Patient Chart
 
-## Configuring the Patient Chart navigation: Pages & Dashboards
+The Patient Chart is one of the most configurable parts of O3. You can customize navigation, visit workflows, encounter management, and various patient chart widgets through configuration.
 
-You can configure the patient chart navigation by adding an extension to the patient-chart-dashboard-slot of the esm-patient-chart-app.
+## Configuring Patient Chart Navigation
 
-### Sample Config:
+You can customize the patient chart navigation by adding extensions to extension slots. The most common approach is to add navigation groups to the `patient-chart-dashboard-slot`.
+
+### Adding Navigation Groups
+
+Navigation groups allow you to organize related dashboards and pages into collapsible sections. You can add multiple navigation groups to organize your patient chart navigation:
 
 ```json
 {
@@ -30,41 +34,389 @@ You can configure the patient chart navigation by adding an extension to the pat
 }
 ```
 
-## Configure the Vitals and Biometrics form
+Each navigation group requires:
+- A unique ID (using the `#` suffix, e.g., `nav-group#HIVAdultReturn`)
+- A `title` that will be displayed in the navigation
+- A `slotName` that defines the extension slot where dashboards within this group will be rendered
 
-In some cases, you may want or need to use a specific form (e.g. an existing Triage Assessment Form) as a replacement for the out-of-the-box Vital Signs app's structured form. In that case, you will instruct the esm-patient-vitals-app to leverage a particular form that you have already set up. (For more information on setting up forms in O3, see the section _Forms in O3_).
+## Configuring Visit Workflows
 
-### Sample Config
+### Restricting Visit Locations
+
+By default, users can select any location when starting a visit. You can restrict the location picker to only show locations with the "Visit Location" tag:
 
 ```json
-"@openmrs/esm-patient-vitals-app": {
-  "vitals": {
-    "useFormEngine": true,
-    "formName": "Surgical Operation",
-    "formUuid": "96637f12-3c04-311f-b477-3fa6a866e895",
-    "encounterTypeUuid": "67a71486-1a54-468f-ac3e-7091a9a79584"
+{
+  "@openmrs/esm-patient-chart-app": {
+    "restrictByVisitLocationTag": true
   }
 }
 ```
 
-### Tutorial Video for O3 Patient Chart Configuration:
+**Note**: This requires the EMR API module to be installed. If the module is not installed and this option is enabled, a warning will be displayed.
 
-<iframe
-  width="560"
-  height="315"
-  src="https://www.youtube.com/embed/57nRWhJdf1E"
-  title="YouTube video player"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-  allowFullScreen
-/>
+### Showing Upcoming Appointments
 
-## Configuring your first app using the Obs-by-encounter widget
+You can display upcoming appointments in the Start Visit form:
 
-This can be achieved by adding an extension to the patient-chart-allergies-dashboard-slot of the esm-patient-chart-app.
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "showUpcomingAppointments": true
+  }
+}
+```
 
-Note: The "color" comes in for the chart visual. The color code you choose dictates the color of the data line in the chart.
+This requires the `@openmrs/esm-appointments-app` module to be installed.
 
-### Sample Config
+### Showing Recommended Visit Types
+
+If you're using programs, you can display a tab with recommended visit types based on the patient's program enrollment:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "showRecommendedVisitTypeTab": true,
+    "visitTypeResourceUrl": "/etl-latest/etl/patient/"
+  }
+}
+```
+
+The `visitTypeResourceUrl` specifies the custom URL endpoint to load resources required for showing recommended visit types. The default is `/etl-latest/etl/patient/`.
+
+### Showing All Encounters Tab
+
+By default, the Patient Visits section shows both a "Visit Summary" tab and an "All Encounters" tab. You can hide the "All Encounters" tab:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "showAllEncountersTab": false
+  }
+}
+```
+
+The default value is `true`.
+
+### Disabling Empty Tabs
+
+You can hide tabs (notes, tests, medications, encounters) when they are empty:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "disableEmptyTabs": true
+  }
+}
+```
+
+### Configuring Visit Attribute Types
+
+You can configure which visit attribute types are shown when filling out the visit form, and whether they are required or displayed in the patient banner:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "visitAttributeTypes": [
+      {
+        "uuid": "57ea0cbb-064f-4d09-8cf4-e8228700491c",
+        "required": false,
+        "displayInThePatientBanner": true
+      },
+      {
+        "uuid": "aac48226-d143-4274-80e0-264db4e368ee",
+        "required": true,
+        "displayInThePatientBanner": false
+      }
+    ]
+  }
+}
+```
+
+Each visit attribute type configuration includes:
+- `uuid` - The UUID of the visit attribute type (required)
+- `required` - Whether the field is required in the visit form (default: `false`)
+- `displayInThePatientBanner` - Whether to show this attribute's value in the patient banner (default: `true`)
+- `showWhenExpression` - (optional) A JavaScript expression that determines when to show this attribute type. The expression has access to a `visitAttributes` object containing all current visit attribute values. For example, `"visitAttributes['some-attribute-uuid'] === 'some-value'"` would only show this attribute when another attribute has a specific value.
+
+**Example with conditional display**:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "visitAttributeTypes": [
+      {
+        "uuid": "57ea0cbb-064f-4d09-8cf4-e8228700491c",
+        "required": false,
+        "displayInThePatientBanner": true
+      },
+      {
+        "uuid": "aac48226-d143-4274-80e0-264db4e368ee",
+        "required": false,
+        "displayInThePatientBanner": false,
+        "showWhenExpression": "visitAttributes['57ea0cbb-064f-4d09-8cf4-e8228700491c'] === 'yes'"
+      }
+    ]
+  }
+}
+```
+
+### Showing Extra Visit Attributes Slot
+
+If you're using extensions that provide additional visit attributes, you can enable handling of those attributes:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "showExtraVisitAttributesSlot": true
+  }
+}
+```
+
+When enabled, the Start Visit form will handle submission of extra visit attributes from the `extra-visit-attributes-slot` extension slot.
+
+### Showing Service Queue Fields
+
+If you're using the service queues module, you can display service queue fields in the Start Visit form:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "showServiceQueueFields": true
+  }
+}
+```
+
+This requires the `@openmrs/esm-service-queues-app` module to be installed.
+
+### Disabling Visit Location Changes
+
+You can make the visit location field read-only in the Start Visit form:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "disableChangingVisitLocation": true
+  }
+}
+```
+
+When enabled, users will not be able to change the visit location from the form (it will be view-only).
+
+## Configuring Encounter Management
+
+### Encounter Editable Duration
+
+You can configure how long after creation an encounter remains editable:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "encounterEditableDuration": 30
+  }
+}
+```
+
+The value is specified in minutes. A value of `0` (the default) means encounters are editable forever. For example, setting `30` means encounters can only be edited within 30 minutes of creation.
+
+### Override Privileges for Encounter Editing
+
+You can specify privileges that allow users to edit encounters even after the editable duration has expired:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "encounterEditableDuration": 30,
+    "encounterEditableDurationOverridePrivileges": [
+      "Edit Encounters",
+      "Manage Encounters"
+    ]
+  }
+}
+```
+
+Users with any of the specified privileges can edit encounters regardless of the `encounterEditableDuration` setting.
+
+### Hiding Observations from Encounter Summary
+
+You can hide specific observations from appearing in the Encounters summary table:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "obsConceptUuidsToHide": [
+      "some-concept-uuid-to-hide-1",
+      "some-concept-uuid-to-hide-2"
+    ]
+  }
+}
+```
+
+Any observation with a concept UUID matching one in this array will be filtered out from the observations list in the Encounters summary table.
+
+### Configuring Notes Concepts
+
+You can configure which concept UUIDs should be treated as "notes" in the visit summary:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "notesConceptUuids": [
+      "162169AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "another-notes-concept-uuid"
+    ]
+  }
+}
+```
+
+The default value includes the general patient note concept (`162169AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`). Observations with these concept UUIDs will be displayed in the visit notes section.
+
+### Requiring Active Visit for Encounter Tile
+
+By default, the encounter tile requires an active visit. You can disable this requirement:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "requireActiveVisitForEncounterTile": false
+  }
+}
+```
+
+The default value is `true`.
+
+## Configuring the Vitals and Biometrics Form
+
+### Using a Custom Form
+
+In some cases, you may want to use a specific form (e.g., an existing Triage Assessment Form) as a replacement for the out-of-the-box Vital Signs app's structured form. You can configure the vitals app to use a form built with the Form Engine:
+
+```json
+{
+  "@openmrs/esm-patient-vitals-app": {
+    "vitals": {
+      "useFormEngine": true,
+      "formName": "Surgical Operation",
+      "formUuid": "96637f12-3c04-311f-b477-3fa6a866e895",
+      "encounterTypeUuid": "67a71486-1a54-468f-ac3e-7091a9a79584"
+    }
+  }
+}
+```
+
+**Required properties when `useFormEngine` is `true`**:
+- `formUuid` - The UUID of the form to use
+- `encounterTypeUuid` - The UUID of the encounter type for vitals encounters
+- `formName` - A display name for the form (optional, defaults to "Vitals")
+
+For more information on setting up forms in O3, see the [Forms in O3](/docs/forms-in-o3) documentation.
+
+### Vitals Overdue Threshold
+
+You can configure how many hours must pass before vitals are considered overdue:
+
+```json
+{
+  "@openmrs/esm-patient-vitals-app": {
+    "vitals": {
+      "vitalsOverdueThresholdHours": 24
+    }
+  }
+}
+```
+
+The default value is `12` hours.
+
+### Showing Print Button
+
+You can enable a print button in the vitals datatable header:
+
+```json
+{
+  "@openmrs/esm-patient-vitals-app": {
+    "vitals": {
+      "showPrintButton": true
+    }
+  }
+}
+```
+
+### MUAC Color Codes
+
+For Mid-Upper Arm Circumference (MUAC) measurements, you can enable color coding to show nutritional status:
+
+```json
+{
+  "@openmrs/esm-patient-vitals-app": {
+    "vitals": {
+      "useMuacColors": true
+    }
+  }
+}
+```
+
+When enabled, the MUAC input field will display status colors (e.g., red for severe acute malnutrition, yellow for moderate, green for normal).
+
+## Configuring Clinical Summary Tiles
+
+Clinical summary tiles display key clinical data (like weight and height) in a card format on the patient chart. You can configure custom tiles:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "tileDefinitions": [
+      {
+        "title": "Weight and Height",
+        "columns": [
+          {
+            "title": "Weight",
+            "concept": "5089AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "encounterType": "67a71486-1a54-468f-ac3e-7091a9a79584",
+            "hasSummary": true
+          },
+          {
+            "title": "Height",
+            "concept": "5090AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "encounterType": "67a71486-1a54-468f-ac3e-7091a9a79584",
+            "hasSummary": true
+          }
+        ]
+      },
+      {
+        "title": "Blood Pressure",
+        "columns": [
+          {
+            "title": "Systolic",
+            "concept": "5085AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "encounterType": "67a71486-1a54-468f-ac3e-7091a9a79584",
+            "hasSummary": false
+          },
+          {
+            "title": "Diastolic",
+            "concept": "5086AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "encounterType": "67a71486-1a54-468f-ac3e-7091a9a79584",
+            "hasSummary": false
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Configuration properties**:
+- `title` - The tile title displayed in the clinical summary
+- `columns` - An array of column definitions, each with:
+  - `title` - The column header
+  - `concept` - The concept UUID to display
+  - `encounterType` - The encounter type UUID to filter observations
+  - `hasSummary` - (optional) Whether to show a summary value (e.g., latest value) in the tile header (default: `false`)
+
+## Configuring Custom Widgets
+
+### Obs-by-Encounter Widget
+
+You can create custom widgets that display observations over time using the `obs-by-encounter-widget` extension. This widget displays data in both chart and table formats:
 
 ```json
 {
@@ -79,18 +431,27 @@ Note: The "color" comes in for the chart visual. The color code you choose dicta
             "data": [
               {
                 "concept": "1132AAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                "label": "sodium",
-                "color": "green"
+                "label": "Sodium",
+                "color": "green",
+                "graphGroup": "Electrolytes",
+                "decimalPlaces": 2
               },
               {
                 "concept": "856AAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
                 "label": "Viral load",
-                "color": "red"
+                "color": "red",
+                "graphGroup": "Viral Load"
               }
             ],
             "table": {
               "pageSize": 5
-            }
+            },
+            "encounterTypes": ["67a71486-1a54-468f-ac3e-7091a9a79584"],
+            "dateFormat": "dateTime",
+            "showEncounterType": false,
+            "showGraphByDefault": true,
+            "graphOldestFirst": false,
+            "interpretationSlot": "hiv-interpretation-slot"
           }
         }
       }
@@ -99,15 +460,131 @@ Note: The "color" comes in for the chart visual. The color code you choose dicta
 }
 ```
 
-### Video Tutorial: Add the Template "obs-by-encounter" Widget
+**Configuration properties**:
+- `title` - The widget title displayed in the dashboard (can also be a translation key)
+- `resultName` - A name identifier for the widget, displayed in messages about this data
+- `data` - An array of concept configurations, each with:
+  - `concept` - The concept UUID to display (required)
+  - `label` - The display label for this concept (defaults to concept display name if not provided)
+  - `color` - The color for the data line in the chart (e.g., "green", "red", "blue", default: "blue")
+  - `graphGroup` - (optional) For showing multiple concepts on the same graph. Concepts with the same `graphGroup` value will be displayed together. The `graphGroup` value is used as the label (or translation key) in the graph view menu panel.
+  - `decimalPlaces` - (optional) Number of decimal places to display (0-10, default: 2)
+- `table` - Table configuration:
+  - `pageSize` - Number of rows per page (default: 5)
+- `encounterTypes` - (optional) Array of encounter type UUIDs. If specified, only observations from these encounter types will be displayed (default: empty array, shows all encounter types)
+- `dateFormat` - (optional) How to format dates: `"date"`, `"time"`, or `"dateTime"` (default: `"dateTime"`)
+- `showEncounterType` - (optional) Whether to display the encounter type column in the table view (default: `false`)
+- `showGraphByDefault` - (optional) Whether to display the graph view by default instead of the table view (default: `false`)
+- `graphOldestFirst` - (optional) Whether to sort graph values from oldest to most recent (default: `false`, shows newest first)
+- `interpretationSlot` - (optional) Extension slot name to display interpretations below the graph. If specified, extensions in this slot will be rendered below the graph visualization.
+
+**Note**: The `color` property determines the color of the data line in the chart visualization. Choose colors that provide good contrast and are accessible. When using `graphGroup`, multiple concepts can be displayed on the same graph, which is useful for related measurements (e.g., grouping systolic and diastolic blood pressure together).
+
+## Advanced Configuration Options
+
+### Concept UUIDs for Forms
+
+You can configure the concept UUIDs used for boolean and other common form values:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "trueConceptUuid": "1065AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "falseConceptUuid": "1066AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "otherConceptUuid": "5622AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "freeTextFieldConceptUuid": "5622AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "visitDiagnosisConceptUuid": "159947AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  }
+}
+```
+
+These are used internally by forms and clinical views. The defaults are standard CIEL concepts, so you typically only need to change these if you're using a custom concept dictionary.
+
+### Default Facility URL
+
+If the default facility is not available in the session, you can specify a custom URL to load it:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "defaultFacilityUrl": "/openmrs/ws/rest/v1/location?tag=Login%20Location&limit=1"
+  }
+}
+```
+
+### Offline Visit Type
+
+You can configure which visit type is used for automatically created offline visits:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "offlineVisitTypeUuid": "a22733fa-3501-4020-a520-da024eeff088"
+  }
+}
+```
+
+The default is `a22733fa-3501-4020-a520-da024eeff088`.
+
+### Drug Order Type UUID
+
+You can configure the UUID for the "Drug" order type used to fetch medications:
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "drugOrderTypeUUID": "131168f4-15f5-102d-96e4-000c29c2a5d7"
+  }
+}
+```
+
+The default is `131168f4-15f5-102d-96e4-000c29c2a5d7`.
+
+### Patient Chart Logo
+
+You can configure a logo specifically for the patient chart (separate from the navbar logo):
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "logo": {
+      "src": "${openmrsSpaBase}/assets/patient-chart-logo.svg",
+      "alt": "Patient Chart Logo",
+      "name": "My Clinic"
+    }
+  }
+}
+```
+
+The logo configuration supports:
+- `src` - URL or path to an image file (if empty, defaults to OpenMRS SVG sprite)
+- `alt` - Alternative text for accessibility
+- `name` - Text to display when image is absent (only used if `src` is empty)
+
+## Tutorial Videos
+
+### O3 Patient Chart Configuration
+
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/57nRWhJdf1E"
+  title="O3 Patient Chart Configuration"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowFullScreen
+/>
+
+### Adding the Obs-by-Encounter Widget
 
 <iframe
   width="560"
   height="315"
   src="https://www.youtube.com/embed/Nv-9hrRC758"
-  title="YouTube video player"
+  title="Add the Template obs-by-encounter Widget"
   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
   allowFullScreen
 />
 
-_Note: Have you developed a configurable extension? Please consider making a similar video to showcase how to do the configuration, and share your video on our [Talk Forum](https://talk.openmrs.org/)! This will create a library of widgets for us to showcase._
+<Callout emoji="💡" type="info">
+  **Have you developed a configurable extension?** Please consider making a similar video to showcase how to do the configuration, and share your video on our [Talk Forum](https://talk.openmrs.org/)! This will create a library of widgets for us to showcase.
+</Callout>

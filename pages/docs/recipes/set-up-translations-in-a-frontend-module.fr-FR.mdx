@@ -4,10 +4,10 @@ L'internationalisation est le processus de conception d'applications logicielles
 
 Nous utilisons [react-i18next](https://react.i18next.com/) pour internationaliser le contenu des modules frontaux.
 
-Afin d'internationaliser votre module frontend, ajoutez cette ligne dans le fichier index.ts pour indiquer au shell de l'application où trouver les fichiers de traduction.
+Afin d'internationaliser votre module frontend, ajoutez cette ligne dans le fichier `src/index.ts` pour indiquer au shell de l'application où trouver les fichiers de traduction. Cela doit être exporté pour que le shell de l'application puisse y accéder.
 
 ```ts
-const importTranslation = require.context("../translations", false, /.json$/, "lazy");
+export const importTranslation = require.context("../translations", false, /.json$/, "lazy");
 ```
 
 Toutes les traductions sont ajoutées dans le répertoire `translations` qui se trouve au premier niveau du paquet. Le fichier source des traductions est le `en.json` qui contient les traductions en anglais de tous les textes codés en dur.

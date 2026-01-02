@@ -1,0 +1,112 @@
+# Champs de recherche
+
+Voici quelques lignes directrices générales pour les champs de recherche :
+
+- Préférez utiliser la fonctionnalité de recherche côté serveur plutôt que d'implémenter le filtrage de recherche côté client. Ce dernier nécessite de récupérer l'ensemble de données complet et peut être inefficace. Cependant, la recherche côté client pourrait être le bon choix dans les cas où la fonctionnalité de recherche côté serveur est insuffisante ou lorsque la taille de résultat attendue est petite. Dans les deux cas, soyez prudent avec la gestion de la pagination côté serveur, car la plupart des ressources REST ont une [limite de taille](https://openmrs.atlassian.net/wiki/spaces/docs/pages/25469882/REST+Module) de résultat de recherche par requête. Utilisez les hooks [useOpenmrsPagination](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-react-utils/src/useOpenmrsPagination.ts), [useOpenmrsFetchAll](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-react-utils/src/useOpenmrsFetchAll.ts) et [useOpenmrsInfinite](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-react-utils/src/useOpenmrsInfinite.ts) pour gérer la pagination côté serveur pour différents cas d'usage.
+
+  ```tsx
+  // filtrage de recherche côté client, `data` contient l'ensemble de données complet lorsque `isLoading` n'est plus vrai.
+  const { data, totalCount, isLoading } = useOpenmrsFetchAll<Patient>(`${restBaseUrl}/patient`);
+  // faire quelque chose avec les données
+  ```
+
+- Débouncez les champs de recherche pour éviter les requêtes inutiles au backend. Utilisez le hook [useDebounce](https://github.com/openmrs/openmrs-esm-core/blob/2396ab96a37bc7202c853110969d82c17fe098a6/packages/framework/esm-react-utils/src/useDebounce.ts) pour débouncer les champs de recherche. Voici un extrait (certains bits sont omis pour la brièveté) montrant comment vous pourriez utiliser le hook :
+
+  ```tsx
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm);
+
+  return (
+    <TableToolbarSearch
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+      placeholder={t("searchThisList", "Rechercher dans cette liste")}
+    />
+  );
+
+  // Faire quelque chose avec le debouncedSearchTerm
+  ```
+
+- Utilisez [fuzzy](https://npm.im/fuzzy) pour implémenter la recherche floue. La recherche floue est une stratégie pour faire correspondre des termes de recherche qui sont similaires, mais pas exactement les mêmes que le terme de recherche. Par exemple, si le terme de recherche est `John`, la recherche floue correspondra à `Jon`, `Jhon` et `Johhn`. C'est utile pour faire correspondre des termes de recherche qui sont mal orthographiés ou contiennent des fautes de frappe. Voici comment nous pouvons utiliser fuzzy pour améliorer l'expérience de recherche à partir de l'extrait ci-dessus :
+
+  ```tsx
+  const [filter, setFilter] = useState("");
+
+  const filteredForms: Array<TypedForm> = useMemo(() => {
+    if (!debouncedSearchTerm) {
+      if (filter === "Retired") {
+        return forms.filter((form) => form.retired);
+      }
+
+      if (filter === "Published") {
+        return forms.filter((form) => form.published);
+      }
+
+      if (filter === "Unpublished") {
+        return forms.filter((form) => !form.published);
+      }
+
+      return forms;
+    }
+
+    return debouncedSearchTerm
+      ? fuzzy
+          .filter(debouncedSearchTerm, forms, {
+            extract: (form: TypedForm) => `${form.name} ${form.version}`,
+          })
+          .sort((r1, r2) => r2.score - r1.score)
+          .map((result) => result.original)
+      : forms;
+  }, [filter, forms, debouncedSearchTerm]);
+  ```
+
+  Nous utilisons le `debouncedSearchTerm` de l'extrait ci-dessus pour filtrer la liste des formulaires. Nous utilisons également l'option `extract` pour dire à fuzzy comment extraire le terme de recherche du formulaire. Dans ce cas, nous extrayons le terme de recherche du nom et de la version du formulaire. C'est parce que nous voulons faire correspondre les formulaires qui contiennent le terme de recherche dans leur nom ou leur version. Enfin, nous trions les résultats par score, qui est une mesure de la proximité avec laquelle le terme de recherche correspond au formulaire.
+
+- Lors de la récupération de données basée sur une action utilisateur continue, telle que la recherche en temps réel lors de la saisie dans un champ de recherche, garder les résultats de recherche précédents dans l'interface utilisateur jusqu'à ce que les nouveaux résultats de recherche soient récupérés et affichés peut améliorer considérablement l'expérience utilisateur. Les hooks SWR ont une option [keepPreviousData](https://swr.vercel.app/docs/advanced/understanding.en-US#return-previous-data-for-better-ux) qui peut être utilisée pour y parvenir. Cette approche empêche l'interface utilisateur de clignoter vide lorsque les nouveaux résultats de recherche sont récupérés, ce qui peut être déconcertant pour l'utilisateur.
+
+  ```tsx
+  // Utilisation de keepPreviousData avec useSWRInfinite pour la recherche
+  const { data, isLoading } = useSWRInfinite(getKey, fetcher, {
+    keepPreviousData: true,
+    initialSize: 1,
+  });
+  ```
+
+  Ceci est particulièrement important pour les champs de recherche où les utilisateurs tapent continuellement, car cela fournit une expérience plus fluide en maintenant les résultats précédents pendant que les nouveaux se chargent.
+
+  ```tsx
+  function Search() {
+    const [search, setSearch] = useState('');
+  
+    const { data, isLoading } = useSWR(`/search?q=${search}`, fetcher, {
+      keepPreviousData: true
+    });
+  
+    return (
+      <div>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search..."
+        />
+  
+        <div className={isLoading ? "loading" : ""}>
+          {data?.products.map(item => <Product key={item.id} name={item.name} />)}
+        </div>
+      </div>
+    );
+  }
+  ```
+
+  Avec `keepPreviousData` défini sur `true`, vous obtiendrez toujours les données précédentes même si vous changez la clé SWR et que les données pour la nouvelle clé commencent à se charger à nouveau :
+
+  <iframe 
+    src="https://user-images.githubusercontent.com/3676859/163695903-a3eb1259-180e-41e0-821e-21c320201194.mp4"
+    width="100%"
+    height="400"
+    frameBorder="0"
+    allowFullScreen
+  ></iframe>
+
+  Voici un exemple d'utilisation de `keepPreviousData` dans la recherche de patients O3 https://github.com/openmrs/openmrs-esm-patient-management/blob/main/packages/esm-patient-search-app/src/patient-search.resource.tsx#L198.
+

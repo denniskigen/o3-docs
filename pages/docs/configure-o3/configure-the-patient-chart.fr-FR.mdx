@@ -1,12 +1,16 @@
-# Vue d'ensemble
+import { Callout } from "nextra-theme-docs";
 
-Il est possible de configurer différents aspects du dossier du patient. Ce guide vous guidera à travers les différentes options de configuration.
+# Configuration du dossier du patient
 
-## Configuration de la navigation dans le dossier du patient: Pages et tableaux de bord
+Le dossier du patient est l'une des parties les plus configurables d'O3. Vous pouvez personnaliser la navigation, les flux de travail des visites, la gestion des rencontres et divers widgets du dossier du patient via la configuration.
 
-Vous pouvez configurer la navigation dans le dossier du patient en ajoutant une extension à l'emplacement patient-chart-dashboard de l'application esm-patient-chart.
+## Configuration de la navigation du dossier du patient
 
-### Exemple de configuration:
+Vous pouvez personnaliser la navigation du dossier du patient en ajoutant des extensions aux emplacements d'extension. L'approche la plus courante consiste à ajouter des groupes de navigation à l'emplacement `patient-chart-dashboard-slot`.
+
+### Ajout de groupes de navigation
+
+Les groupes de navigation vous permettent d'organiser les tableaux de bord et les pages connexes en sections repliables. Vous pouvez ajouter plusieurs groupes de navigation pour organiser la navigation de votre dossier du patient :
 
 ```json
 {
@@ -30,41 +34,324 @@ Vous pouvez configurer la navigation dans le dossier du patient en ajoutant une 
 }
 ```
 
-## Configurer le formulaire des signes vitaux et des données biométriques
+Chaque groupe de navigation nécessite :
+- Un identifiant unique (en utilisant le suffixe `#`, par exemple `nav-group#HIVAdultReturn`)
+- Un `title` qui sera affiché dans la navigation
+- Un `slotName` qui définit l'emplacement d'extension où les tableaux de bord de ce groupe seront rendus
 
-Dans certains cas, vous pouvez vouloir ou avoir besoin d'utiliser un formulaire spécifique (par exemple un formulaire d'évaluation de triage existant) pour remplacer le formulaire structuré de l'application Vital Signs prête à l'emploi. Dans ce cas, vous demanderez à l'application esm-patient-vitals-app de s'appuyer sur un formulaire particulier que vous avez déjà configuré. (Pour plus d'informations sur la configuration des formulaires dans O3, voir la section _Formulaires dans O3_).
+## Configuration des flux de travail des visites
 
-### Exemple de configuration
+### Restriction des lieux de visite
+
+Par défaut, les utilisateurs peuvent sélectionner n'importe quel lieu lors du démarrage d'une visite. Vous pouvez restreindre le sélecteur de lieu pour n'afficher que les lieux avec le tag "Visit Location" :
 
 ```json
-"@openmrs/esm-patient-vitals-app": {
-  "vitals": {
-    "useFormEngine": true,
-    "formName": "Opération chirurgicale",
-    "formUuid": "96637f12-3c04-311f-b477-3fa6a866e895",
-    "encounterTypeUuid": "67a71486-1a54-468f-ac3e-7091a9a79584"
+{
+  "@openmrs/esm-patient-chart-app": {
+    "restrictByVisitLocationTag": true
   }
 }
 ```
 
-### Tutorial Video for O3 Patient Chart Configuration:
+**Note** : Cela nécessite que le module EMR API soit installé. Si le module n'est pas installé et que cette option est activée, un avertissement sera affiché.
 
-<iframe
-  width="560"
-  height="315"
-  src="https://www.youtube.com/embed/57nRWhJdf1E"
-  title="YouTube video player"
-  allow="accelerometer ; autoplay ; clipboard-write ; encrypted-media ; gyroscope ; picture-in-picture ; web-share"
-  allowFullScreen
-/>
+### Affichage des rendez-vous à venir
 
-## Configurer votre première application en utilisant le widget Obs-by-encounter
+Vous pouvez afficher les rendez-vous à venir dans le formulaire de démarrage de visite :
 
-Ceci peut être réalisé en ajoutant une extension à l'emplacement patient-chart-allergies-dashboard de l'application esm-patient-chart-app.
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "showUpcomingAppointments": true
+  }
+}
+```
 
-Remarque: La "couleur" intervient dans l'aspect visuel du tableau. Le code couleur que vous choisissez dicte la couleur de la ligne de données dans le graphique.
+Cela nécessite que le module `@openmrs/esm-appointments-app` soit installé.
 
-### Exemple de configuration
+### Affichage des types de visite recommandés
+
+Si vous utilisez des programmes, vous pouvez afficher un onglet avec les types de visite recommandés basés sur l'inscription du patient au programme :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "showRecommendedVisitTypeTab": true,
+    "visitTypeResourceUrl": "/etl-latest/etl/patient/"
+  }
+}
+```
+
+Le `visitTypeResourceUrl` spécifie l'URL de point de terminaison personnalisée pour charger les ressources nécessaires à l'affichage des types de visite recommandés. La valeur par défaut est `/etl-latest/etl/patient/`.
+
+### Affichage de l'onglet Toutes les rencontres
+
+Par défaut, la section Visites du patient affiche à la fois un onglet "Résumé de la visite" et un onglet "Toutes les rencontres". Vous pouvez masquer l'onglet "Toutes les rencontres" :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "showAllEncountersTab": false
+  }
+}
+```
+
+La valeur par défaut est `true`.
+
+### Désactivation des onglets vides
+
+Vous pouvez masquer les onglets (notes, tests, médicaments, rencontres) lorsqu'ils sont vides :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "disableEmptyTabs": true
+  }
+}
+```
+
+### Configuration des types d'attributs de visite
+
+Vous pouvez configurer quels types d'attributs de visite sont affichés lors du remplissage du formulaire de visite, et s'ils sont requis ou affichés dans la bannière du patient :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "visitAttributeTypes": [
+      {
+        "uuid": "57ea0cbb-064f-4d09-8cf4-e8228700491c",
+        "required": false,
+        "displayInThePatientBanner": true
+      },
+      {
+        "uuid": "aac48226-d143-4274-80e0-264db4e368ee",
+        "required": true,
+        "displayInThePatientBanner": false
+      }
+    ]
+  }
+}
+```
+
+Chaque configuration de type d'attribut de visite comprend :
+- `uuid` - L'UUID du type d'attribut de visite (requis)
+- `required` - Si le champ est requis dans le formulaire de visite (par défaut : `false`)
+- `displayInThePatientBanner` - S'il faut afficher la valeur de cet attribut dans la bannière du patient (par défaut : `true`)
+
+## Configuration de la gestion des rencontres
+
+### Durée d'édition des rencontres
+
+Vous pouvez configurer combien de temps après la création une rencontre reste éditable :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "encounterEditableDuration": 30
+  }
+}
+```
+
+La valeur est spécifiée en minutes. Une valeur de `0` (la valeur par défaut) signifie que les rencontres sont éditables indéfiniment. Par exemple, définir `30` signifie que les rencontres ne peuvent être modifiées que dans les 30 minutes suivant leur création.
+
+### Privilèges de substitution pour l'édition des rencontres
+
+Vous pouvez spécifier des privilèges qui permettent aux utilisateurs de modifier les rencontres même après l'expiration de la durée d'édition :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "encounterEditableDuration": 30,
+    "encounterEditableDurationOverridePrivileges": [
+      "Edit Encounters",
+      "Manage Encounters"
+    ]
+  }
+}
+```
+
+Les utilisateurs avec l'un des privilèges spécifiés peuvent modifier les rencontres indépendamment du paramètre `encounterEditableDuration`.
+
+### Masquage des observations du résumé des rencontres
+
+Vous pouvez masquer des observations spécifiques de l'affichage dans le tableau de résumé des rencontres :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "obsConceptUuidsToHide": [
+      "some-concept-uuid-to-hide-1",
+      "some-concept-uuid-to-hide-2"
+    ]
+  }
+}
+```
+
+Toute observation avec un UUID de concept correspondant à l'un de ceux de ce tableau sera filtrée de la liste des observations dans le tableau de résumé des rencontres.
+
+### Configuration des concepts de notes
+
+Vous pouvez configurer quels UUIDs de concepts doivent être traités comme "notes" dans le résumé de visite :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "notesConceptUuids": [
+      "162169AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "another-notes-concept-uuid"
+    ]
+  }
+}
+```
+
+La valeur par défaut inclut le concept de note générale du patient (`162169AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`). Les observations avec ces UUIDs de concepts seront affichées dans la section des notes de visite.
+
+### Exiger une visite active pour la tuile de rencontre
+
+Par défaut, la tuile de rencontre nécessite une visite active. Vous pouvez désactiver cette exigence :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "requireActiveVisitForEncounterTile": false
+  }
+}
+```
+
+La valeur par défaut est `true`.
+
+## Configuration du formulaire des signes vitaux et des données biométriques
+
+### Utilisation d'un formulaire personnalisé
+
+Dans certains cas, vous pouvez vouloir utiliser un formulaire spécifique (par exemple, un formulaire d'évaluation de triage existant) pour remplacer le formulaire structuré de l'application Vital Signs prête à l'emploi. Vous pouvez configurer l'application des signes vitaux pour utiliser un formulaire construit avec le moteur de formulaires :
+
+```json
+{
+  "@openmrs/esm-patient-vitals-app": {
+    "vitals": {
+      "useFormEngine": true,
+      "formName": "Opération chirurgicale",
+      "formUuid": "96637f12-3c04-311f-b477-3fa6a866e895",
+      "encounterTypeUuid": "67a71486-1a54-468f-ac3e-7091a9a79584"
+    }
+  }
+}
+```
+
+**Propriétés requises lorsque `useFormEngine` est `true`** :
+- `formUuid` - L'UUID du formulaire à utiliser
+- `encounterTypeUuid` - L'UUID du type de rencontre pour les rencontres de signes vitaux
+- `formName` - Un nom d'affichage pour le formulaire (optionnel, par défaut : "Vitals")
+
+Pour plus d'informations sur la configuration des formulaires dans O3, consultez la documentation [Formulaires dans O3](/docs/forms-in-o3).
+
+### Seuil de retard des signes vitaux
+
+Vous pouvez configurer combien d'heures doivent s'écouler avant que les signes vitaux ne soient considérés comme en retard :
+
+```json
+{
+  "@openmrs/esm-patient-vitals-app": {
+    "vitals": {
+      "vitalsOverdueThresholdHours": 24
+    }
+  }
+}
+```
+
+La valeur par défaut est `12` heures.
+
+### Affichage du bouton d'impression
+
+Vous pouvez activer un bouton d'impression dans l'en-tête du tableau de données des signes vitaux :
+
+```json
+{
+  "@openmrs/esm-patient-vitals-app": {
+    "vitals": {
+      "showPrintButton": true
+    }
+  }
+}
+```
+
+### Codes de couleur MUAC
+
+Pour les mesures de circonférence médiane du bras (MUAC), vous pouvez activer le codage couleur pour afficher le statut nutritionnel :
+
+```json
+{
+  "@openmrs/esm-patient-vitals-app": {
+    "vitals": {
+      "useMuacColors": true
+    }
+  }
+}
+```
+
+Lorsqu'il est activé, le champ de saisie MUAC affichera des couleurs de statut (par exemple, rouge pour la malnutrition aiguë sévère, jaune pour modérée, vert pour normal).
+
+## Configuration des tuiles de résumé clinique
+
+Les tuiles de résumé clinique affichent des données cliniques clés (comme le poids et la taille) dans un format de carte sur le dossier du patient. Vous pouvez configurer des tuiles personnalisées :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "tileDefinitions": [
+      {
+        "title": "Poids et Taille",
+        "columns": [
+          {
+            "title": "Poids",
+            "concept": "5089AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "encounterType": "67a71486-1a54-468f-ac3e-7091a9a79584",
+            "hasSummary": true
+          },
+          {
+            "title": "Taille",
+            "concept": "5090AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "encounterType": "67a71486-1a54-468f-ac3e-7091a9a79584",
+            "hasSummary": true
+          }
+        ]
+      },
+      {
+        "title": "Tension artérielle",
+        "columns": [
+          {
+            "title": "Systolique",
+            "concept": "5085AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "encounterType": "67a71486-1a54-468f-ac3e-7091a9a79584",
+            "hasSummary": false
+          },
+          {
+            "title": "Diastolique",
+            "concept": "5086AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "encounterType": "67a71486-1a54-468f-ac3e-7091a9a79584",
+            "hasSummary": false
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Propriétés de configuration** :
+- `title` - Le titre de la tuile affiché dans le résumé clinique
+- `columns` - Un tableau de définitions de colonnes, chacune avec :
+  - `title` - L'en-tête de la colonne
+  - `concept` - L'UUID du concept à afficher
+  - `encounterType` - L'UUID du type de rencontre pour filtrer les observations
+  - `hasSummary` - (optionnel) S'il faut afficher une valeur de résumé (par exemple, la dernière valeur) dans l'en-tête de la tuile (par défaut : `false`)
+
+## Configuration des widgets personnalisés
+
+### Widget Obs-by-Encounter
+
+Vous pouvez créer des widgets personnalisés qui affichent les observations au fil du temps en utilisant l'extension `obs-by-encounter-widget`. Ce widget affiche les données à la fois en format graphique et en tableau :
 
 ```json
 {
@@ -78,12 +365,12 @@ Remarque: La "couleur" intervient dans l'aspect visuel du tableau. Le code coule
             "resultName": "HIV",
             "data": [
               {
-                "concept": "1132AAAAAAAAAAAAAAAAAAAAAAAAA",
-                "label": "sodium",
-                "color": "vert"
+                "concept": "1132AAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "label": "Sodium",
+                "color": "green"
               },
               {
-                "concept": "856AAAAAAAAAAAAAAAAAAAAAAAAA",
+                "concept": "856AAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
                 "label": "Charge virale",
                 "color": "red"
               }
@@ -99,15 +386,131 @@ Remarque: La "couleur" intervient dans l'aspect visuel du tableau. Le code coule
 }
 ```
 
-### Tutoriel vidéo: Ajouter le modèle de widget "obs-by-encounter
+**Propriétés de configuration** :
+- `title` - Le titre du widget affiché dans le tableau de bord (peut également être une clé de traduction)
+- `resultName` - Un identifiant de nom pour le widget, affiché dans les messages concernant ces données
+- `data` - Un tableau de configurations de concepts, chacune avec :
+  - `concept` - L'UUID du concept à afficher (requis)
+  - `label` - L'étiquette d'affichage pour ce concept (par défaut, utilise le nom d'affichage du concept si non fourni)
+  - `color` - La couleur de la ligne de données dans le graphique (par exemple, "green", "red", "blue", par défaut : "blue")
+  - `graphGroup` - (optionnel) Pour afficher plusieurs concepts sur le même graphique. Les concepts avec la même valeur `graphGroup` seront affichés ensemble. La valeur `graphGroup` est utilisée comme étiquette (ou clé de traduction) dans le panneau de menu de la vue graphique.
+  - `decimalPlaces` - (optionnel) Nombre de décimales à afficher (0-10, par défaut : 2)
+- `table` - Configuration du tableau :
+  - `pageSize` - Nombre de lignes par page (par défaut : 5)
+- `encounterTypes` - (optionnel) Tableau d'UUIDs de types de rencontres. Si spécifié, seules les observations de ces types de rencontres seront affichées (par défaut : tableau vide, affiche tous les types de rencontres)
+- `dateFormat` - (optionnel) Comment formater les dates : `"date"`, `"time"`, ou `"dateTime"` (par défaut : `"dateTime"`)
+- `showEncounterType` - (optionnel) S'il faut afficher la colonne du type de rencontre dans la vue tableau (par défaut : `false`)
+- `showGraphByDefault` - (optionnel) S'il faut afficher la vue graphique par défaut au lieu de la vue tableau (par défaut : `false`)
+- `graphOldestFirst` - (optionnel) S'il faut trier les valeurs du graphique du plus ancien au plus récent (par défaut : `false`, affiche le plus récent en premier)
+- `interpretationSlot` - (optionnel) Nom de l'emplacement d'extension pour afficher les interprétations sous le graphique. Si spécifié, les extensions dans cet emplacement seront rendues sous la visualisation du graphique.
+
+**Note** : La propriété `color` détermine la couleur de la ligne de données dans la visualisation du graphique. Choisissez des couleurs qui offrent un bon contraste et sont accessibles. Lors de l'utilisation de `graphGroup`, plusieurs concepts peuvent être affichés sur le même graphique, ce qui est utile pour les mesures connexes (par exemple, regrouper la tension artérielle systolique et diastolique ensemble).
+
+## Options de configuration avancées
+
+### UUIDs de concepts pour les formulaires
+
+Vous pouvez configurer les UUIDs de concepts utilisés pour les valeurs booléennes et autres valeurs communes des formulaires :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "trueConceptUuid": "1065AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "falseConceptUuid": "1066AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "otherConceptUuid": "5622AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "freeTextFieldConceptUuid": "5622AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "visitDiagnosisConceptUuid": "159947AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  }
+}
+```
+
+Ceux-ci sont utilisés en interne par les formulaires et les vues cliniques. Les valeurs par défaut sont des concepts CIEL standard, vous n'avez donc généralement besoin de les modifier que si vous utilisez un dictionnaire de concepts personnalisé.
+
+### URL de l'établissement par défaut
+
+Si l'établissement par défaut n'est pas disponible dans la session, vous pouvez spécifier une URL personnalisée pour le charger :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "defaultFacilityUrl": "/openmrs/ws/rest/v1/location?tag=Login%20Location&limit=1"
+  }
+}
+```
+
+### Type de visite hors ligne
+
+Vous pouvez configurer quel type de visite est utilisé pour les visites hors ligne créées automatiquement :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "offlineVisitTypeUuid": "a22733fa-3501-4020-a520-da024eeff088"
+  }
+}
+```
+
+La valeur par défaut est `a22733fa-3501-4020-a520-da024eeff088`.
+
+### UUID du type de commande de médicament
+
+Vous pouvez configurer l'UUID du type de commande "Drug" utilisé pour récupérer les médicaments :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "drugOrderTypeUUID": "131168f4-15f5-102d-96e4-000c29c2a5d7"
+  }
+}
+```
+
+La valeur par défaut est `131168f4-15f5-102d-96e4-000c29c2a5d7`.
+
+### Logo du dossier du patient
+
+Vous pouvez configurer un logo spécifiquement pour le dossier du patient (distinct du logo de la barre de navigation) :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "logo": {
+      "src": "${openmrsSpaBase}/assets/patient-chart-logo.svg",
+      "alt": "Logo du dossier du patient",
+      "name": "Ma Clinique"
+    }
+  }
+}
+```
+
+La configuration du logo prend en charge :
+- `src` - URL ou chemin vers un fichier image (si vide, utilise par défaut le sprite SVG OpenMRS)
+- `alt` - Texte alternatif pour l'accessibilité
+- `name` - Texte à afficher lorsque l'image est absente (utilisé uniquement si `src` est vide)
+
+## Tutoriels vidéo
+
+### Configuration du dossier du patient O3
+
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/57nRWhJdf1E"
+  title="Configuration du dossier du patient O3"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowFullScreen
+/>
+
+### Ajout du widget Obs-by-Encounter
 
 <iframe
   width="560"
   height="315"
   src="https://www.youtube.com/embed/Nv-9hrRC758"
-  title="YouTube video player"
-  allow="accelerometer ; autoplay ; clipboard-write ; encrypted-media ; gyroscope ; picture-in-picture ; web-share"
+  title="Ajouter le modèle de widget obs-by-encounter"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
   allowFullScreen
 />
 
-_Remarque: avez-vous développé une extension configurable? Pensez à réaliser une vidéo similaire pour montrer comment effectuer la configuration et partagez votre vidéo sur notre [Forum de discussion](https://talk.openmrs.org/)! Vous créerez ainsi une bibliothèque de widgets que nous pourrons présenter._
+<Callout emoji="💡" type="info">
+  **Avez-vous développé une extension configurable ?** Pensez à réaliser une vidéo similaire pour montrer comment effectuer la configuration et partagez votre vidéo sur notre [Forum de discussion](https://talk.openmrs.org/) ! Vous créerez ainsi une bibliothèque de widgets que nous pourrons présenter.
+</Callout>

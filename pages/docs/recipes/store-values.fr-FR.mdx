@@ -6,14 +6,13 @@ Il existe plusieurs formes de stockage dans les navigateurs modernes. Voici un a
 
 En général, le stockage en mémoire fait référence à tout ce qui est stocké en Javascript et qui ne fait pas partie d'un stockage persistant. En général, les valeurs stockées en mémoire restent valables pendant:
 
-| Type           | Durée                                      |
-| -------------- | ------------------------------------------ |
-| Variable       | Champ d'application de la variable         |
-| React State    | Cycle de vie d'un composant                |
-| React Memo     | Cycle de vie du composant                  |
-| React Context  | React Context                              |
-| Contexte React | Cycle de vie de la sous-arborescence React |
-| Global Store   | Jusqu'au rechargement de la page           |
+| Type          | Durée                                      |
+| ------------- | ------------------------------------------ |
+| Variable      | Champ d'application de la variable         |
+| React State   | Cycle de vie d'un composant                |
+| React Memo    | Cycle de vie du composant                  |
+| React Context | Cycle de vie de la sous-arborescence React |
+| Global Store  | Jusqu'au rechargement de la page           |
 
 Aucune valeur en mémoire ne survit au rechargement de la page. Pour les valeurs qui doivent persister après un rechargement de page (et notez que cela signifie un rafraîchissement de la page du navigateur et pas seulement une navigation dans l'application), utilisez le stockage persistant.
 
@@ -80,10 +79,12 @@ const userStore = createGlobalStore<UserStore>('userStore', { user: null });
 const user = useStore<UserStore, User | null>(userStore, state => state.user);
 
 // à un autre moment
-userStore.set((state) => state.user = /* valeur provenant de quelque part */);
+userStore.setState({ user: /* valeur provenant de quelque part */ });
+// ou en utilisant une mise à jour fonctionnelle:
+userStore.setState((state) => ({ ...state, user: /* valeur provenant de quelque part */ }));
 ```
 
-La mise à jour du magasin en utilisant `set()` mettra à jour toutes les variables souscrites au magasin, y compris (comme dans l'exemple) `user`.
+La mise à jour du magasin en utilisant `setState()` mettra à jour toutes les variables souscrites au magasin, y compris (comme dans l'exemple) `user`.
 
 ### Stockage persistant
 

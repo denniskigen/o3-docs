@@ -1,0 +1,70 @@
+# Lancer des workspaces
+
+Pour lancer un workspace, utilisez la fonction `launchWorkspace`. Si le workspace accepte des props, elles peuvent être passées via le second argument. La propriété `workspaceTitle` est toujours acceptée et permet de surcharger le titre du workspace (défini lors de son enregistrement).
+
+```ts copy
+import { launchWorkspace } from "@openmrs/esm-framework";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { Button } from "@carbon/react";
+
+const MyComponent = () => {
+  const openOrderBasket = () => {
+    launchWorkspace('order-basket', {
+      workspaceTitle: "Order basket, courtesy of MyComponent"
+    });
+  };
+
+  return (
+    <button onClick={openOrderBasket}>
+      Open order basket
+    </button>
+  );
+};
+```
+
+Pour lancer un workspace patient qui nécessite une visite, utilisez `useLaunchWorkspaceRequiringVisit`.
+
+Si les visites sont activées sur le serveur OpenMRS et que le patient n'a pas de visite active, l'utilisateur sera invité à démarrer une nouvelle visite avant de lancer le workspace.
+
+```ts copy
+import { launchWorkspace } from "@openmrs/esm-framework";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { Button } from "@carbon/react";
+import { useLaunchWorkspaceRequiringVisit } from "@openmrs/esm-patient-common-lib";
+
+const MyComponent = () => {
+  const openOrderBasket = () => {
+    launchWorkspace('order-basket', {
+      workspaceTitle: "Order basket, courtesy of MyComponent"
+    });
+  };
+
+  return (
+    <button onClick={openOrderBasket}>
+      Open order basket
+    </button>
+  );
+};
+
+const OrderBasketActionButton: React.FC = () => {
+  const { t } = useTranslation();
+  const launchOrderBasket = useLaunchWorkspaceRequiringVisit("order-basket");
+
+  return <Button onClick={launchOrderBasket}>Launch order basket</Button>;
+};
+
+export default OrderBasketActionButton;
+```
+
+## Comportement
+
+`launchWorkspace` suit les règles suivantes lors de l'ouverture d'un workspace:
+
+1. S'il n'y a pas de workspace déjà ouvert, le lancement d'un nouveau workspace l'ouvre.
+2. Si le workspace portant le même nom est déjà ouvert et actif, ses `additionalProps` sont mis à jour (s'ils ont changé).
+3. Pour le workspace actuellement actif, s'il ne peut pas être masqué (c'est‑à‑dire s'il a été enregistré avec `canHide: false`), le lancement d'un nouveau workspace demande confirmation avant de fermer le workspace ouvert.
+4. Si le nouveau workspace lancé a le même type qu'un workspace déjà ouvert, le workspace précédent de ce type est remis au premier plan. Une modal s'affiche ensuite pour confirmer la fermeture du workspace courant avant d'ouvrir le nouveau.
+
+Pour un exemple plus complexe, regardons une situation qui implique les règles 3 et 4. Si un utilisateur ouvre le workspace A de type `clinical-form`, puis ouvre un workspace B de type `form` qui ne peut pas être réduit (`canHide == false`), et essaie ensuite d'ouvrir un workspace C de type `clinical-form` (identique au type du workspace A), l'utilisateur verra d'abord une modal pour confirmer la fermeture du workspace B (qui ne peut pas être réduit). Ensuite, une seconde modal apparaîtra pour le workspace A, qui a le même type `clinical-form`, car deux workspaces du même type ne peuvent pas être ouverts en même temps.

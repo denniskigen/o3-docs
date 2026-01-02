@@ -1,0 +1,18 @@
+# Gestion de l'état
+
+Nous utilisons diverses approches pour gérer l'état dans O3, des hooks intégrés de React aux bibliothèques tierces comme [Zustand](https://github.com/pmndrs/zustand) pour la gestion d'état globale. Lisez-en plus sur la gestion d'état [dans cette recette](/docs/recipes/store-values). Voici quelques lignes directrices générales pour la gestion d'état :
+
+- Suivez les lignes directrices décrites [ici](https://kentcdodds.com/blog/application-state-management-with-react).
+- Gardez l'état aussi proche que possible du composant qui en a besoin.
+- Pour partager l'état entre les composants, [remontez l'état jusqu'à l'ancêtre commun le plus proche](https://react.dev/learn/sharing-state-between-components#) des composants qui ont besoin de partager l'état et passez l'état aux composants comme props. C'est la façon la plus simple de partager l'état entre les composants.
+- Évitez de créer des variables d'état pour des choses qui peuvent être [calculées à partir de variables d'état existantes](https://react.dev/learn/you-might-not-need-an-effect#updating-state-based-on-props-or-state). Par exemple, si vous avez une variable d'état appelée `firstName` et une autre appelée `lastName`, ne créez pas une troisième variable d'état appelée `fullName`. Au lieu de cela, dérivez le `fullName` des variables d'état `firstName` et `lastName`.
+- Suivez les principes d'immutabilité de l'état :
+  - Ne modifiez jamais l'état directement.
+  - Utilisez des opérateurs spread ou des modèles de mise à jour immuables.
+  - Utilisez des fonctions de mise à jour d'état pour l'état qui dépend de l'état précédent.
+- Envisagez d'utiliser les hooks intégrés de React pour optimiser les performances :
+  - Utilisez `useMemo` pour les calculs coûteux.
+  - Utilisez `useCallback` pour les callbacks mémorisés.
+  - Divisez l'état en plus petits morceaux pour empêcher les re-rendus inutiles.
+- N'utilisez pas l'état global pour les données qui devraient être limitées à un composant spécifique ou à un petit ensemble de composants.
+

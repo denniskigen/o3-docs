@@ -1,0 +1,141 @@
+# Organisation du code
+
+- Colocalisez les fichiers connexes dans le même répertoire. Chaque composant doit avoir son propre répertoire contenant tous ses fichiers associés. Ceci inclut :
+  - Fichier de composant (par exemple, `patient-banner.component.tsx`) - C'est un composant React.
+  - Fichier de test (par exemple, `patient-banner.test.tsx`) - C'est un fichier de test Jest.
+  - Feuille de style (par exemple, `patient-banner.module.scss`) - C'est une feuille de style de module CSS.
+  - Fichier de ressource (par exemple, `patient-banner.resource.ts`) - C'est un fichier qui contient la logique de récupération de données.
+  - Tous les autres fichiers connexes (par exemple, constantes, types, utilitaires)
+
+  Exemple de structure de répertoire :
+
+  ```
+  src/
+  └── patient-banner/
+      ├── patient-banner.component.tsx
+      ├── patient-banner.test.tsx
+      ├── patient-banner.module.scss
+      └── patient-banner.resource.ts
+  ```
+
+  Cette approche :
+  - Facilite la recherche et la modification des fichiers connexes
+  - Simplifie le refactoring et la maintenance
+  - Garde la base de code modulaire et bien organisée
+  - Rend clair quels fichiers appartiennent à quel composant
+
+- Évitez de placer les styles de plusieurs composants dans la même feuille de style. Créez plutôt une feuille de style séparée pour chaque composant. Cela facilite la recherche des styles pour un composant particulier.
+- Utilisez l'[application template](https://github.com/openmrs/openmrs-esm-template-app) pour rapidement créer de nouveaux modules frontend O3 :
+  1. Visitez le [dépôt template](https://github.com/openmrs/openmrs-esm-template-app)
+  2. Cliquez sur le bouton vert `Use this template`
+  3. Choisissez `Create a new repository`
+  4. Suivez les instructions de configuration dans le README du template
+
+  Le template fournit :
+  - Configuration TypeScript correcte
+  - Configuration de test préconfigurée avec Jest
+  - Configurations ESLint et Prettier
+  - Workflows GitHub Actions
+  - Structure de projet de base suivant les conventions O3
+  - Exemples de composants et de tests
+
+- Groupez les imports par ordre alphabétique en fonction de leur type. L'ordre recommandé est :
+  - Imports React et framework (par exemple, `React`, `useState`, `useEffect`)
+  - Modules externes (par exemple, `lodash`, `dayjs`, `react-i8next`)
+  - Imports de composants Carbon (par exemple, `Button`, `InlineLoading`)
+  - Imports OpenMRS (par exemple, `@openmrs/esm-framework`, `@openmrs/esm-patient-common-lib`)
+  - Imports locaux (composants, hooks, utilitaires, etc.)
+  - Imports d'actifs (par exemple `import styles from './user.scss'`)
+
+  Dans un avenir proche, nous pourrons utiliser le tri d'ordre d'import ESLint pour faire respecter cette convention. Suivre cette convention facilite le maintien de la cohérence dans la base de code.
+
+- Consolidez les imports de bibliothèque en une seule instruction d'import. Cela facilite la visualisation des modules utilisés et rend le code plus lisible. Par exemple, préférez :
+
+  ```tsx
+  // Bon
+  import { Button, InlineLoading } from '@carbon/react';
+  ```
+
+  À :
+
+  ```tsx
+  // Mauvais
+  import { Button } from '@carbon/react';
+  import { InlineLoading } from '@carbon/react';
+  ```
+
+  Notez que vous devriez toujours garder les imports de différents modules séparés :
+
+  ```tsx
+  // Bon - imports séparés pour différents modules
+  import { useState, useEffect } from 'react';
+  import { useTranslation } from 'react-i18next';
+  import { Button, DataTable } from '@carbon/react';
+  import { useConfig, showSnackbar } from '@openmrs/esm-framework';
+  ```
+
+  Les imports de type doivent être marqués avec le mot-clé `type`. Un plugin ESLint signalera automatiquement tous les imports de type qui ne sont pas marqués avec le mot-clé `type`.
+
+  ```tsx
+  // Bon
+  import { showModal, type Visit } from '@openmrs/esm-framework';
+  ```
+
+- Placez les annotations de type et les interfaces en haut du fichier, après les imports et au-dessus de tout code de composant. Étant donné que les types et interfaces TypeScript sont des constructions de développement qui sont supprimées pendant la compilation, ils n'affectent pas le comportement d'exécution de votre code.
+
+   ```tsx
+  import React from 'react';
+  import { useTranslation } from 'react-i18next';
+  import { Button } from '@carbon/react';
+  import { showSnackbar } from '@openmrs/esm-framework';
+
+  // Les définitions de type viennent après les imports, avant le code du composant
+  interface UserData {
+    id: string;
+    name: string;
+    email: string;
+    role: 'admin' | 'user';
+  }
+
+  type UserComponentProps = {
+    userData: UserData;
+    onSave: (data: UserData) => void;
+    isEditable?: boolean;
+  };
+
+  // Le code du composant suit les définitions de type
+  export const UserComponent: React.FC<UserComponentProps> = ({ 
+    userData,
+    onSave,
+    isEditable = false 
+  }) => {
+    // ... implémentation du composant
+  };
+  ```
+
+  Quelques points clés sur le placement des types :
+  - Gardez les types et interfaces connexes regroupés ensemble
+  - Placez les types plus génériques avant les types plus spécifiques qui pourraient en dépendre
+  - Envisagez d'extraire les types couramment utilisés dans un fichier `types.ts` séparé s'ils sont utilisés dans plusieurs composants
+
+  Sur l'utilisation d'alias `type` ou de déclarations `interface` :
+  - Utilisez `interface` lorsque vous avez besoin de fusion de déclaration ou d'héritage.
+  - Utilisez `type` pour les unions, intersections, primitives, tuples et types utilitaires.
+  - Soyez cohérent dans votre base de code - si votre équipe a standardisé sur une approche, suivez cette convention.
+
+  ```ts
+  // Utiliser interface pour les formes d'objet
+  interface UserProps {
+    name: string;
+    age: number;
+    onSave: (data: User) => void;
+  }
+  ```
+
+  ```ts
+  // Utiliser type pour les unions et types plus complexes
+  type Status = 'loading' | 'success' | 'error';
+  type ButtonKind = 'primary' | 'secondary' | 'ghost';
+  type Nullable<T> = T | null;
+  ```
+

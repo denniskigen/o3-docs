@@ -5,14 +5,24 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "next lint"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/denniskigen/o3-docs"
   },
-  "author": "Dennis Kigen",
+  "author": "OpenMRS",
   "license": "MPL-2.0",
+  "keywords": [
+    "openmrs",
+    "o3",
+    "documentation",
+    "frontend",
+    "microfrontends",
+    "react",
+    "nextjs"
+  ],
   "bugs": {
     "url": "https://github.com/denniskigen/o3-docs"
   },

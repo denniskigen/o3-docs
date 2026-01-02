@@ -1,0 +1,205 @@
+# Formulaires
+
+- Utilisez [React Hook Form](https://react-hook-form.com/) avec [Zod](https://zod.dev/) pour la validation des formulaires. Cette combinaison offre une validation type-safe et d'excellentes performances :
+
+  ```tsx
+  import { useForm, Controller } from 'react-hook-form';
+  import { zodResolver } from '@hookform/resolvers/zod';
+  import { z } from 'zod';
+
+  // Définir le schéma de validation
+  const formSchema = z.object({
+    name: z.string({
+      required_error: t('nameRequired', 'Le nom est requis'),
+    }).min(1, t('nameRequired', 'Le nom est requis')),
+    email: z.string().email(t('invalidEmail', 'Adresse e-mail invalide')),
+    age: z.number().min(18, t('ageMustBe18', 'L'âge doit être d'au moins 18 ans')),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t('passwordsDoNotMatch', 'Les mots de passe ne correspondent pas'),
+    path: ['confirmPassword'],
+  });
+
+  // Utiliser dans le composant
+  const {
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      age: 18,
+    },
+  });
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      await saveData(data);
+      showSnackbar({ title: t('saved', 'Enregistré avec succès') });
+    } catch (error) {
+      showSnackbar({
+        kind: 'error',
+        title: t('errorSaving', 'Erreur lors de l'enregistrement'),
+        subtitle: error?.message,
+      });
+    }
+  };
+  ```
+
+- Utilisez `Controller` de React Hook Form lors de l'intégration avec les composants Carbon qui ne suivent pas les modèles d'entrée HTML standard :
+
+  ```tsx
+  <Controller
+    name="status"
+    control={control}
+    render={({ field }) => (
+      <Select
+        {...field}
+        id="status"
+        labelText={t('status', 'Statut')}
+        items={statusOptions}
+      />
+    )}
+  />
+  ```
+
+- Gérez les erreurs de soumission de formulaire de manière appropriée. Affichez les erreurs de validation inline et montrez des snackbars pour les erreurs serveur :
+
+  ```tsx
+  const onSubmit = async (data: FormData) => {
+    try {
+      setIsSubmitting(true);
+      await saveFormData(data);
+      showSnackbar({ title: t('formSaved', 'Formulaire enregistré avec succès') });
+      closeWorkspace();
+    } catch (error) {
+      // Erreurs serveur affichées via snackbar
+      showSnackbar({
+        kind: 'error',
+        title: t('errorSavingForm', 'Erreur lors de l'enregistrement du formulaire'),
+        subtitle: error?.message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  ```
+
+- Utilisez les états de chargement pendant la soumission du formulaire pour éviter les soumissions en double :
+
+  ```tsx
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  <Button
+    type="submit"
+    disabled={isSubmitting}
+    renderIcon={isSubmitting ? InlineLoading : Save}
+  >
+    {isSubmitting ? t('saving', 'Enregistrement...') : t('save', 'Enregistrer')}
+  </Button>
+  ```
+
+- Lors de la création de schémas Zod qui incluent des messages d'erreur traduits, créez le schéma en utilisant une fonction qui accepte la fonction de traduction comme paramètre. Cela garantit que les schémas sont correctement localisés et peuvent être mémorisés :
+
+  ```tsx
+  import type { TFunction } from 'i18next';
+
+  // Bon - fonction factory de schéma
+  const createFormSchema = (t: TFunction) =>
+    z.object({
+      name: z.string().min(1, t('nameRequired', 'Le nom est requis')),
+      email: z.string().email(t('invalidEmail', 'Adresse e-mail invalide')),
+    });
+
+  // Utiliser dans le composant avec useMemo
+  const { t } = useTranslation();
+  const formSchema = useMemo(() => createFormSchema(t), [t]);
+  
+  const { control, handleSubmit } = useForm({
+    resolver: zodResolver(formSchema),
+  });
+  ```
+
+- Pour les formulaires d'espace de travail, utilisez `DefaultPatientWorkspaceProps` de `@openmrs/esm-patient-common-lib` pour garantir des props cohérentes dans tous les formulaires d'espace de travail patient :
+
+  ```tsx
+  import { type DefaultPatientWorkspaceProps } from '@openmrs/esm-patient-common-lib';
+
+  interface MyFormProps extends DefaultPatientWorkspaceProps {
+    // Ajoutez des props supplémentaires spécifiques à votre formulaire
+  }
+
+  const MyForm: React.FC<MyFormProps> = ({
+    closeWorkspace,
+    closeWorkspaceWithSavedChanges,
+    patientUuid,
+    promptBeforeClosing,
+  }) => {
+    // Implémentation du formulaire
+  };
+  ```
+
+- Utilisez `promptBeforeClosing` pour avertir les utilisateurs lorsqu'ils tentent de fermer un espace de travail avec des modifications non enregistrées. Ceci doit être appelé dans un `useEffect` qui surveille l'état `isDirty` du formulaire :
+
+  ```tsx
+  const {
+    formState: { isDirty },
+  } = useForm(...);
+
+  useEffect(() => {
+    promptBeforeClosing(() => isDirty);
+  }, [isDirty, promptBeforeClosing]);
+  ```
+
+- Utilisez `closeWorkspaceWithSavedChanges` lorsque le formulaire est soumis avec succès, et `closeWorkspace` lorsque l'utilisateur annule :
+
+  ```tsx
+  const onSubmit = async (data: FormData) => {
+    try {
+      await saveData(data);
+      mutate(); // Mettre à jour le cache SWR
+      closeWorkspaceWithSavedChanges(); // Utiliser ceci en cas de succès
+      showSnackbar({ title: t('saved', 'Enregistré avec succès') });
+    } catch (error) {
+      showSnackbar({
+        kind: 'error',
+        title: t('errorSaving', 'Erreur lors de l'enregistrement'),
+        subtitle: error?.message,
+      });
+    }
+  };
+
+  // Bouton d'annulation
+  <Button kind="secondary" onClick={() => closeWorkspace()}>
+    {t('cancel', 'Annuler')}
+  </Button>
+  ```
+
+- Affichez les erreurs au niveau du formulaire en utilisant le composant `InlineNotification` de Carbon. Envisagez des états d'erreur séparés pour les opérations de création vs mise à jour :
+
+  ```tsx
+  const [errorCreating, setErrorCreating] = useState(null);
+  const [errorUpdating, setErrorUpdating] = useState(null);
+
+  {errorCreating && (
+    <InlineNotification
+      role="alert"
+      kind="error"
+      lowContrast
+      title={t('errorCreating', 'Erreur lors de la création')}
+      subtitle={errorCreating?.message}
+    />
+  )}
+
+  {errorUpdating && (
+    <InlineNotification
+      role="alert"
+      kind="error"
+      lowContrast
+      title={t('errorUpdating', 'Erreur lors de la mise à jour')}
+      subtitle={errorUpdating?.message}
+    />
+  )}
+  ```
+

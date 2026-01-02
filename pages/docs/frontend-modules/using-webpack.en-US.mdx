@@ -1,33 +1,43 @@
 # Using Webpack
 
+> Note: We are actively moving away from Webpack to Rspack. For more details, see the [migrate-to-core-v6 guide](/docs/migrate-to-core-v6).
+
 OpenMRS frontend apps use a standard [webpack](https://webpack.js.org) configuration [defined in esm-core](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/tooling/webpack-config).
 The general purpose of this webpack configuration is to standardise how projects are built and to allow us to ensure that all applications follow standard
 patterns. While it is not required that you use this default webpack configuration, it is highly recommended that you do so. This page documents some notes
 on how this webpack configuration bundles modules that are important considerations if you want to create a custom webpack configuration.
 
-The O3 frontend uses a packaging pattern called [module federation](/docs/frontend-modules/module-loading), which is a pattern that allows runtime code sharing between different webpack applications.
+The O3 frontend uses a packaging pattern called [module federation](/docs/frontend-modules/loading-modules), which is a pattern that allows runtime code sharing between different webpack applications.
 This differs from webpack's usual use because external dependencies can be resolved at runtime instead of during the build step. In essence, this allows us to
-use share code between different apps without needing to rebuild all the full application. You can read more about module federation in the
+share code between different apps without needing to rebuild the full application. You can read more about module federation in the
 [corresponding GitHub org](https://github.com/module-federation) or [the Webpack documentation](https://webpack.js.org/concepts/module-federation/). Module
 federation allows for a number of patterns for sharing code, examples of which can be found [in the module-federation-examples repo](https://github.com/module-federation/module-federation-examples).
 
 O3 uses a module federation pattern called "dynamic remote containers". In essence, this means that not only are dependencies resolved at runtime, but which
-modules are available is also resolved at runtime. This allows O3 to be a very flexible and modular system: we do not need to know ahead of time what apps and
-libraries are being used. However, this does have some implications for any module's Webpack configuration so that it can be properly loaded by the O3 app
+modules are available is also resolved at runtime. This allows O3 to be flexible and modular: we do not need to know ahead of time what apps and
+libraries are being used. However, this does have implications for any module's Webpack configuration so it can be properly loaded by the O3 app
 shell. In particular, a module loaded by the O3 app shell should not declare any explicit entry point; all modules aside from the app shell itself are loaded as
 dynamic remotes. The setup we use is heavily inspired by the [dynamic remotes examples](https://github.com/module-federation/module-federation-examples/tree/master/advanced-api)
 provided by the module federation team.
 
-At runtime, we expect each frontend module that loads OpenMRS applications to be built using [Webpack's `var` type](https://webpack.js.org/configuration/output/#outputlibrarytype).
+At runtime, we expect each frontend module that is loaded by the app shell to be built using [Webpack's `var` type](https://webpack.js.org/configuration/output/#outputlibrarytype).
 The `var` type results in the module being exposed as a global property. We expect the name of this variable to be the same as the name of the module
 except slightly mangled to produce a valid JS variable name. To mangle the module name, we use the following: `name.replace(/[\/\-@]/g, "_")`, which replaces
 all `@`, `/` and `-` characters with underscores so `@openmrs/esm-patient-chart-app` is exposed via the variable `_openmrs_esm_patient_chart_app`. This is necessary
 because to dynamically load code from the module, we need to be able to access the module.
 
-Each federated module that provides either extensions or pages that are intended to be loaded by the app shell needs to expose a module called `"./start"`, which
-contains the exports for: `importTranslations`, `setupOpenMRS()`, etc. In our Webpack configuration, this is done by exposing the `index.ts` file as the
+Each federated module that provides extensions or pages intended to be loaded by the app shell needs to expose a module called `"./start"`, which
+contains the exports for: `importTranslation`, `startupApp()`, and component exports referenced in `routes.json`. In our Webpack configuration, this is done by exposing the `index.ts` file as the
 `"./start"` module. If you are dynamically loading code yourself using the `importDynamic` function provided by `esm-framework`, you can point it to a different
 exposed module. However, extensions and pages exposed via other modules will need to be manually registered before they are available.
+
+## Compatibility checklist
+
+If you are customizing Webpack, keep these compatibility requirements:
+
+- Output library type is `var`.
+- Output library name follows the OpenMRS name-mangling rule (`@openmrs/esm-foo` → `_openmrs_esm_foo`).
+- The remote exposes a `./start` module for the app shell to load.
 
 ## Shared Dependencies
 
@@ -37,14 +47,14 @@ To simplify things, all shared dependencies are treated as `singletons`, which m
 libraries. We do this for two reasons:
 
 1. Core dependencies of most frontend modules like React, React DOM, and React Router must be loaded as singletons, because they use unversioned global state to provide their functionality (e.g., React's `__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED`)
-2. This allows us to ensure that we are using the same versions of, e.g., Carbon in all components. This does have the less desireable effect that upgrading core dependencies has to be done all at once and we may re-evaluate this decision at a latter point.
+2. This allows us to ensure that we are using the same versions of, e.g., Carbon in all components. This does have the less desirable effect that upgrading core dependencies has to be done all at once and we may re-evaluate this decision at a later point.
 
 All shared dependencies are loaded into the `default` scope and their share name and exposed import is the same as the dependency, i.e., React is shared as
 `react` and imported as `react` in our code. This basically ensures that things work as we expect them to.
 
 ## Customising the Webpack Build
 
-Our Webpack configuration is designed to work for the majority of use-cases without any changes. However, not every module will have the same needs and so we
+Our Webpack configuration is designed to work for the majority of use cases without any changes. However, not every module will have the same needs and so we
 provide the ability to override the Webpack configuration in a module by overriding the appropriate variables. The override variables can be found [inside our
 webpack config](https://github.com/openmrs/openmrs-esm-core/blob/1acdec571b0284d0c78c367b1377d544bc87485a/packages/tooling/webpack-config/src/index.ts#L84).
 
@@ -53,19 +63,19 @@ webpack config](https://github.com/openmrs/openmrs-esm-core/blob/1acdec571b0284d
 #### esm-patient-common-lib
 
 The most common limitation that our default Webpack configuration provides is that we assume that all libraries loaded from `node_modules` are already in
-standard Javascript instead of Typescript. This assumption means that we do not use a Webpack loader to pre-process libraries in the `node_modules` folder. The
+standard JavaScript instead of TypeScript. This assumption means that we do not use a Webpack loader to pre-process libraries in the `node_modules` folder. The
 idea here is that, by not passing the code in `node_modules` through a loader, the overall build for all apps will be faster. Moreover, since general use
-libraries published to the NPM registry are normally packaged as Javascript already, there's really no reason to re-process those files. However, there are
+libraries published to the npm registry are normally packaged as JavaScript already, there's really no reason to re-process those files. However, there are
 some situations where we do need to process the libraries in `node_modules`. The most obvious one in the general ecosystem is `esm-patient-common-lib`, a shared
-library for apps that are part of the patient chart. `esm-patient-common-lib` does not have a build step and so the published version is just the raw Typescript
-source. Since Webpack cannot load Typescript without a loader of some sort, builds will fail if we do not modify the Webpack configuration of the apps consuming
-that library to also process those Typescript files. Note that this does not apply to the packages in the openmrs-esm-patient-chart monorepo because they load
+library for apps that are part of the patient chart. `esm-patient-common-lib` does not have a build step and so the published version is just the raw TypeScript
+source. Since Webpack cannot load TypeScript without a loader of some sort, builds will fail if we do not modify the Webpack configuration of the apps consuming
+that library to also process those TypeScript files. Note that this does not apply to the packages in the openmrs-esm-patient-chart monorepo because they load
 `esm-patient-common-lib` via the Yarn workspace rather than via `node_modules` so inside the patient chart monorepo, `esm-patient-common-lib` is processed
 properly.
 
 #### esm-form-entry-app
 
-The form entry frontend module is an Angular application that encapsulates the capabilities of the [Angular form engine](/docs/key-repositories#angular-form-engine)). It leverages a custom webpack configuration that supports [module federation](http://localhost:3000/docs/frontend-modules/loading-modules#module-federation) using dynamic remote containers. These capabilities are enabled by the [@angular-architects/module-federation](https://github.com/angular-architects/module-federation-plugin) library. This library modifies the Angular [workspace configuration](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-entry-app/angular.json), adding a an `extraWebpackConfig` property to the `build` and `serve` builder targets. This property points to a [custom webpack configuration](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-entry-app/webpack.config.js) that among other things:
+The form entry frontend module is an Angular application that encapsulates the capabilities of the [Angular form engine](/docs/key-repositories#angular-form-engine). It leverages a custom webpack configuration that supports [module federation](/docs/frontend-modules/loading-modules#module-federation) using dynamic remote containers. These capabilities are enabled by the [@angular-architects/module-federation](https://github.com/angular-architects/module-federation-plugin) library. This library modifies the Angular [workspace configuration](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-entry-app/angular.json), adding an `extraWebpackConfig` property to the `build` and `serve` builder targets. This property points to a [custom webpack configuration](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-form-entry-app/webpack.config.js) that among other things:
 
 - Sets up the `ModuleFederationPlugin` to expose the form entry app as a remote module that can be loaded dynamically by the app shell.
 - Specifies shared dependencies based on the `peerDependencies` of the form entry app.

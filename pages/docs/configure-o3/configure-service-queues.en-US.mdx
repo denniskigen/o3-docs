@@ -1,0 +1,404 @@
+# Configuring Service Queues
+
+Service Queues is one of the most configurable modules in O3, allowing you to customize queue tables, priorities, statuses, vitals, biometrics, and more. This guide covers all configuration options for the Service Queues module.
+
+## Overview
+
+The Service Queues module manages patient queues in outpatient settings. You can configure:
+
+- Dashboard title and default service queue
+- Priority tags with colors and styles
+- Queue table columns and layouts (per queue/status)
+- Concept UUIDs for vitals, diagnoses, and other clinical data
+- Vitals and biometrics configuration
+- Visit queue numbers
+- Patient chart URLs
+- Recommended visit types
+
+## Dashboard Title
+
+Configure the title displayed on the service queues dashboard:
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "dashboardTitle": {
+      "key": "serviceQueues",
+      "value": "Service queues"
+    }
+  }
+}
+```
+
+- `key` - Translation key for the title
+- `value` - Default text if translation is not found
+
+## Default Service Queue
+
+Set the default service queue selected when opening the start visit form:
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "defaultInitialServiceQueue": "Outpatient Triage"
+  }
+}
+```
+
+The default is `"Outpatient Triage"`.
+
+## Priority Configuration
+
+Configure priority tags with colors and styles:
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "priorityConfigs": [
+      {
+        "conceptUuid": "04f6f7e0-e3cb-4e13-a133-4479f759574e",
+        "color": "red",
+        "style": null
+      },
+      {
+        "conceptUuid": "f4620bfa-3625-4883-bd3f-84c2cce14470",
+        "color": "green",
+        "style": null
+      },
+      {
+        "conceptUuid": "dc3492ef-24a5-4fd9-b58d-4fd2acf7071f",
+        "color": "orange",
+        "style": null
+      }
+    ]
+  }
+}
+```
+
+**Available colors**: `red`, `magenta`, `purple`, `blue`, `teal`, `cyan`, `gray`, `orange`, `green`, `warm-gray`, `cool-gray`, `high-contrast`, `outline`
+
+**Available styles**: `bold` (or `null` for no special style)
+
+- `conceptUuid` - UUID of the priority concept to configure
+- `color` - Color of the priority tag
+- `style` - Style to apply (currently only `bold` or `null`)
+
+## Concept UUIDs
+
+Configure concept UUIDs used throughout the service queues module:
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "concepts": {
+      "defaultPriorityConceptUuid": "f4620bfa-3625-4883-bd3f-84c2cce14470",
+      "defaultStatusConceptUuid": "51ae5e4d-b72b-4912-bf31-a17efb690aeb",
+      "defaultTransitionStatus": "ca7494ae-437f-4fd0-8aae-b88b9a2ba47d",
+      "emergencyPriorityConceptUuid": "04f6f7e0-e3cb-4e13-a133-4479f759574e",
+      "systolicBloodPressureUuid": "5085AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "diastolicBloodPressureUuid": "5086AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "pulseUuid": "5087AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "temperatureUuid": "5088AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "oxygenSaturationUuid": "5092AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "heightUuid": "5090AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "weightUuid": "5089AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "respiratoryRateUuid": "5242AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "generalPatientNoteConceptUuid": "162169AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "problemListConceptUuid": "1284AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "visitDiagnosesConceptUuid": "159947AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "historicalObsConceptUuid": ["161643AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"]
+    }
+  }
+}
+```
+
+**Key concepts**:
+- `defaultPriorityConceptUuid` - Default priority (e.g., "Not urgent")
+- `defaultStatusConceptUuid` - Default status (e.g., "Waiting")
+- `defaultTransitionStatus` - Status when attending service (e.g., "In Service")
+- `emergencyPriorityConceptUuid` - Highest priority (e.g., "Emergency")
+- Vitals concepts (systolic/diastolic BP, pulse, temperature, oxygen saturation, height, weight, respiratory rate)
+- `generalPatientNoteConceptUuid` - Free text note field
+- `problemListConceptUuid` - Problem list concept
+- `visitDiagnosesConceptUuid` - Visit diagnoses concept
+- `historicalObsConceptUuid` - Observations displayed in previous visit modal (array)
+
+## Queue Tables
+
+Configure queue table columns and layouts. This is a powerful feature that allows you to customize table columns per queue and status.
+
+### Column Definitions
+
+Define custom columns or override built-in columns:
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "queueTables": {
+      "columnDefinitions": [
+        {
+          "id": "patient-name",
+          "columnType": "patient-name",
+          "header": "Patient Name"
+        },
+        {
+          "id": "custom-identifier",
+          "columnType": "patient-identifier",
+          "header": "National ID",
+          "config": {
+            "identifierTypeUuid": "f85081e2-b4be-4e48-b3a4-7994b69bb101"
+          }
+        },
+        {
+          "id": "status",
+          "columnType": "status",
+          "header": "Status",
+          "config": {
+            "statusConfigs": [
+              {
+                "conceptUuid": "51ae5e4d-b72b-4912-bf31-a17efb690aeb",
+                "iconComponent": "Group"
+              },
+              {
+                "conceptUuid": "ca7494ae-437f-4fd0-8aae-b88b9a2ba47d",
+                "iconComponent": "InProgress"
+              }
+            ]
+          }
+        },
+        {
+          "id": "actions",
+          "columnType": "actions",
+          "config": {
+            "actions": {
+              "buttons": ["call"],
+              "overflowMenu": ["move", "transition", "edit", "remove", "undo"]
+            }
+          }
+        },
+        {
+          "id": "queue-number",
+          "columnType": "queue-number",
+          "config": {
+            "visitQueueNumberAttributeUuid": "c61ce16f-272a-41e7-9924-4c555d3f18b5"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+**Built-in column types**:
+- `patient-name` - Patient name
+- `patient-identifier` - Patient identifier (requires `identifierTypeUuid` in config)
+- `patient-age` - Patient age
+- `coming-from` - Where patient came from
+- `priority` - Priority tag
+- `status` - Status with icons (requires `statusConfigs` in config)
+- `queue` - Queue name
+- `queue-number` - Queue number (requires `visitQueueNumberAttributeUuid`)
+- `visit-start-time` - Visit start time
+- `wait-time` - Wait time
+- `actions` - Action buttons (requires `actions` config)
+
+**Status icons**: `Group`, `InProgress`
+
+**Action types**: `move`, `call`, `edit`, `transition`, `remove`, `delete`, `undo`
+
+**Column configuration options**:
+- `id` - Unique identifier for the column
+- `columnType` - Type of column (if different from ID)
+- `header` - Header text (will be translated if it's a valid translation key)
+- `config` - Column-specific configuration:
+  - For `patient-identifier`: `identifierTypeUuid` - UUID of identifier type
+  - For `status`: `statusConfigs` - Array of status icon configurations
+  - For `actions`: `actions.buttons` and `actions.overflowMenu` - Arrays of action types
+  - For `queue-number`: `visitQueueNumberAttributeUuid` - UUID of visit attribute containing queue number
+
+### Table Definitions
+
+Define which columns appear in which tables:
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "queueTables": {
+      "tableDefinitions": [
+        {
+          "columns": [
+            "patient-name",
+            "coming-from",
+            "priority",
+            "status",
+            "queue",
+            "wait-time",
+            "actions"
+          ],
+          "appliedTo": [
+            {
+              "queue": "",
+              "status": ""
+            }
+          ]
+        },
+        {
+          "columns": [
+            "patient-name",
+            "custom-identifier",
+            "priority",
+            "status",
+            "actions"
+          ],
+          "appliedTo": [
+            {
+              "queue": "some-queue-uuid",
+              "status": "some-status-uuid"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+- `columns` - Array of column IDs (from `columnDefinitions` or built-in columns)
+- `appliedTo` - (Optional) Array of conditions specifying which queues/statuses this table applies to
+  - If omitted, applies to all tables
+  - Empty `queue` or `status` string means "all queues" or "all statuses"
+  - If multiple table definitions match, the first one is used
+
+**Example**: The first table definition applies to all queues and statuses (default). The second applies only to a specific queue and status combination.
+
+## Visit Queue Number Attribute
+
+Configure the visit attribute that contains the queue number:
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "visitQueueNumberAttributeUuid": "c61ce16f-272a-41e7-9924-4c555d3f18b5"
+  }
+}
+```
+
+**Note**: This must be set if you use a `queue-number` column in any table definition (unless set per-column in `columnDefinitions`).
+
+## Default Identifier Types
+
+Configure identifier types displayed in queue tables:
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "defaultIdentifierTypes": [
+      "05ee9cf4-7242-4a17-b4d4-00f707265c8a",
+      "f85081e2-b4be-4e48-b3a4-7994b69bb101"
+    ]
+  }
+}
+```
+
+These identifier types are displayed on patient search result pages.
+
+## Contact Attribute Type
+
+Configure the person attribute type for contact information (e.g., "Next of kin contact details"):
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "contactAttributeType": "some-attribute-type-uuid"
+  }
+}
+```
+
+## Patient Chart URL
+
+Configure where users are redirected when clicking a patient name:
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "customPatientChartUrl": "${openmrsSpaBase}/patient/${patientUuid}/chart"
+  }
+}
+```
+
+The URL template supports:
+- `${openmrsSpaBase}` - Base URL for the SPA
+- `${patientUuid` - UUID of the patient
+- `${openBase}` - Base URL (also available)
+
+## Vitals Configuration
+
+Configure vitals form settings:
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "vitals": {
+      "formUuid": "a000cb34-9ec1-4344-a1c8-f692232f6edd",
+      "encounterTypeUuid": "67a71486-1a54-468f-ac3e-7091a9a79584"
+    }
+  }
+}
+```
+
+- `formUuid` - UUID of the vitals form
+- `encounterTypeUuid` - UUID of the encounter type for vitals encounters
+
+## Biometrics Configuration
+
+Configure biometrics display:
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "biometrics": {
+      "bmiUnit": "kg / m²"
+    }
+  }
+}
+```
+
+- `bmiUnit` - Unit for BMI display (default: `"kg / m²"`)
+
+## Recommended Visit Types
+
+Enable recommended visit types tab:
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "showRecommendedVisitTypeTab": true,
+    "visitTypeResourceUrl": "/etl-latest/etl/patient/"
+  }
+}
+```
+
+- `showRecommendedVisitTypeTab` - Whether to display recommended visit type tab
+- `visitTypeResourceUrl` - Custom URL to load resources for recommended visit types (required if `showRecommendedVisitTypeTab` is `true`)
+
+## Appointment Statuses
+
+Configure appointment statuses (shared with appointments app):
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "appointmentStatuses": [
+      "Requested",
+      "Scheduled",
+      "CheckedIn",
+      "Completed",
+      "Cancelled",
+      "Missed"
+    ]
+  }
+}
+```
+
+The default statuses are: `Requested`, `Scheduled`, `CheckedIn`, `Completed`, `Cancelled`, `Missed`.
+

@@ -24,6 +24,9 @@ const config: DocsThemeConfig = {
     link: "https://github.com/denniskigen/o3-docs",
   },
   docsRepositoryBase: "https://github.com/denniskigen/o3-docs/blob/main",
+  chat: {
+    link: "https://talk.openmrs.org",
+  },
   footer: {
     text: `© ${new Date().getFullYear()} OpenMRS`,
   },

@@ -4,13 +4,13 @@ To create a Workspace, you need to create the component that implements it, and 
 
 ## The Workspace Component
 
-A Workspace is implemented as a React Component. All Workspaces receive the props defined and documented in the interface `DefaultWorkspaceProps` including `patientUuid` and the functions `closeWorkspace` and `promptBeforeClosing`.
+A Workspace is implemented as a React Component. For patient workspaces, all Workspaces receive the props defined and documented in the interface `DefaultPatientWorkspaceProps` which includes `patient`, `patientUuid`, and the functions `closeWorkspace`, `promptBeforeClosing`, and `closeWorkspaceWithSavedChanges`.
 
-Your Workspace's prop type should extend (or simply be) `DefaultWorkspaceProps`. This will ensure that you have the correct typings for the props that the Workspace system passes along.
+Your Workspace's prop type should extend `DefaultPatientWorkspaceProps` from `@openmrs/esm-patient-common-lib` for patient workspaces. This will ensure that you have the correct typings for the props that the Workspace system passes along.
 
 The `promptBeforeClosing` prop should be used to inform the Workspace system whether there are unsaved changes in the form. By default, it will be assumed that any open Workspace has unsaved changes. This results in the very annoying behavior that if someone opens your Workspace and then immediately tries to click away, they will be prompted about unsaved changes (this is safer than the alternative, which is by default to never prompt). It is your job as a Workspace creator to ensure that this doesn't happen. You do that using `promptBeforeClosing`.
 
-Workspaces may also receive custom props. These will be passed along by the [launch function call](./launching-workspace).
+Workspaces may also receive custom props. These will be passed along by the [launch function call](./launching-workspaces).
 
 ### Example Workspace
 
@@ -21,11 +21,11 @@ We define a very minimalistic Workspace supporting the gastrodynamics department
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, ButtonSet, Form, TextInput } from '@carbon/react';
-import { type DefaultWorkspaceProps } from '@openmrs/esm-patient-common-lib';
+import { type DefaultPatientWorkspaceProps } from '@openmrs/esm-patient-common-lib';
 import { postGastrodynamicsForm } from './gastrodynamics.resource';
-import styles from './gastrodynamics-form.scss';
+import styles from './gastrodynamics-form.module.scss';
 
-export function GastrodynamicsForm({ patientUuid, closeWorkspace, promptBeforeClosing }: DefaultWorkspaceProps) {
+export function GastrodynamicsForm({ patientUuid, closeWorkspace, promptBeforeClosing }: DefaultPatientWorkspaceProps) {
   const { t } = useTranslation();
   const [textValue, setTextValue] = useState('');
 
@@ -61,32 +61,48 @@ export function GastrodynamicsForm({ patientUuid, closeWorkspace, promptBeforeCl
 
 ## Registering a Workspace
 
-Registering lets the Workspace system know about the new Workspace. Once the Workspace is registered, it may be [launched](./launching-workspace).
+Registering lets the Workspace system know about the new Workspace. Workspaces are registered in the `routes.json` file and exported in the `index.ts` file. Once the Workspace is registered, it may be [launched](./launching-workspaces).
 
-Our new Workspace can be registered in the `index.ts` file, using the `registerWorkspace` function from `@openmrs/esm-patient-common-lib`. The parameters to `registerWorkspace` are documented in the `WorkspaceRegistration` interface.
-
-Note that while the parameters to `registerWorkspace` allow some flexibility of behavior, you should generally strive to make Workspaces conformant to one of the designed [variants](https://zeroheight.com/23a080e38/p/483a22-workspace).
+Note that while the parameters allow some flexibility of behavior, you should generally strive to make Workspaces conformant to one of the designed [variants](https://zeroheight.com/23a080e38/p/483a22-workspace).
 
 ## Example Registration
 
-Here's an example, which would go in the index file of the app. We are assuming that the app is called `@myorg/esm-gastrodynamics-app`.
+Here's an example of registering a workspace. First, add the workspace definition to `routes.json`:
 
-```ts copy
-// index.ts
-import { registerWorkspace } from '@openmrs/esm-patient-common-lib';
-
-export function startupApp() {
-  registerWorkspace({
-    name: 'gastrodynamics-form',
-    title: translateFrom('@myorg/esm-gastrodynamics-app', 'gastrodynamicsTitle', 'Gastrodynamics'),
-    load: getAsyncLifecycle(() => import('./gastrodynamics.workspace'), options),
-    type: 'other-form',
-    canHide: false,
-    canMaximize: true,
-    width: 'narrow',
-    preferredWindowSize: 'maximized'
-  });
+```json copy
+// routes.json
+{
+  "workspaces": [
+    {
+      "name": "gastrodynamics-form",
+      "title": "Gastrodynamics",
+      "component": "gastrodynamicsForm",
+      "type": "other-form",
+      "canHide": false,
+      "canMaximize": true,
+      "width": "narrow",
+      "preferredWindowSize": "maximized"
+    }
+  ]
 }
 ```
 
+Then export the workspace component in your `index.ts` file:
+
+```ts copy
+// index.ts
+import { getAsyncLifecycle } from '@openmrs/esm-framework';
+
+const moduleName = '@myorg/esm-gastrodynamics-app';
+
+const options = {
+  featureName: 'gastrodynamics',
+  moduleName,
+};
+
+export const gastrodynamicsForm = getAsyncLifecycle(
+  () => import('./gastrodynamics.workspace'),
+  options
+);
+```
 

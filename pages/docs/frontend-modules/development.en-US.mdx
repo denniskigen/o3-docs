@@ -28,7 +28,7 @@ You shouldn't need to scope commands by their target packages in non-monorepos.
 
 ### Monorepos
 
-Most of our frontend modules are part of monorepos. For example, the [Patient Chart](https://github.com/openmrs/openmrs-esm-patient-chart) monorepo consists of several frontend modules that handle Patient-related concerns. You'll typically want to run a specific frontend module within a monorepo. To do that, run `yarn start --sources` and pass in the relative path to your target frontend module. For example, to run just the [Vitals](https://github.com/openmrs/openmrs-esm-patient-chart/tree/main/packages/esm-patient-vitals-app) frontend module, you'd run:
+Most of our frontend modules are part of monorepos. For example, the [Patient Chart](https://github.com/openmrs/openmrs-esm-patient-chart) monorepo consists of several frontend modules that handle patient-related concerns. You'll typically want to run a specific frontend module within a monorepo. To do that, run `yarn start --sources` and pass in the relative path to your target frontend module. For example, to run just the [Vitals](https://github.com/openmrs/openmrs-esm-patient-chart/tree/main/packages/esm-patient-vitals-app) frontend module, you'd run:
 
 ```sh
 yarn start --sources packages/esm-patient-vitals-app
@@ -36,7 +36,7 @@ yarn start --sources packages/esm-patient-vitals-app
 
 Where the argument following `--sources` is the relative path to the frontend module you want to run.
 
-It is possible to run multiple frontend module simultaneously. For example, if you're making changes to the [Order Basket](https://zeroheight.com/23a080e38/p/71ad91-order-basket), you'll likely want to test those changes against the Medications and Orders frontend modules. To do that, you'd run:
+It is possible to run multiple frontend modules simultaneously. For example, if you're making changes to the [Order Basket](https://zeroheight.com/23a080e38/p/71ad91-order-basket), you'll likely want to test those changes against the Medications and Orders frontend modules. To do that, you'd run:
 
 ```sh
 yarn start --sources packages/esm-patient-medications packages/esm-patient-orders-app
@@ -50,10 +50,12 @@ By default, the dev server will run on port 8080. If you wish to run the server 
 yarn start --sources 'packages/esm-patient-vitals-app' --port=7000
 ```
 
+This will start the app shell at `http://localhost:7000/openmrs/spa` and serve the module on the next available port (typically `http://localhost:7001`).
+
 <Callout type="info">
   **`openmrs` tooling deep dive**
 
-`yarn start` is a shorthand for running the [openmrs CLI](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/tooling/openmrs). More specifically, it's aliased to run `openmrs develop`, which creates a produ ction build of the app shell and runs it against a given OpenMRS backend. It spins up a Webpack dev server on port 8080 and proxies requests to the default backend, which is hosted at https://dev3.openmrs.org. This dev server will by default run local copies of the frontend modules you specify and override their import map entries. All the other frontend modules run on that dev server should be the latest versions from the community dev3 server. With `openmrs develop`, you can also:
+`yarn start` is a shorthand for running the [openmrs CLI](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/tooling/openmrs). More specifically, it's aliased to run `openmrs develop`, which compiles the app shell and runs it against a given OpenMRS backend. It spins up a Webpack dev server on port 8080 and proxies requests to the default backend, which is hosted at https://dev3.openmrs.org. This dev server will by default run local copies of the frontend modules you specify and override their import map entries. All the other frontend modules run on that dev server should be the latest versions from the community dev3 server. With `openmrs develop`, you can also:
 
 - Specify an alternative backend server (other than the community dev3 server) and proxy requests to it. For example, to run the Vitals app and proxy requests to the O3 QA dev environment's backend, you can run:
 
@@ -71,7 +73,7 @@ To learn more about the `develop` command, read through its [implementation](htt
 
 ## Using import map overrides
 
-O3 determines where to load the code for frontend modules from based on the [import map](/docs/core-concepts#import-map) provided to the app shell. The import map is a JSON object that maps module specifiers to URLs. You can find the import map for your O3 distro by navigating to `/openmrs/spa/importmap.json` in your browser. The [Devtools](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-devtools-app) frotend modules provides an interface for overriding entries in your import map. You can leverage this when doing local development to load copies of your frontend modules from your local dev server. For example, if you fire up a [local development server running the app shell](docs/frontend-modules/development#running-the-app-shell-locally), it's possible to override import map entries for multiple frotend modules from multiple projects at the same time. This is useful when you're working on a feature that spans multiple frontend modules.
+O3 determines where to load the code for frontend modules from based on the [import map](/docs/core-concepts#import-map) provided to the app shell. The import map is a JSON object that maps module specifiers to URLs. You can find the import map for your O3 distro by navigating to `/openmrs/spa/importmap.json` in your browser. The [Devtools](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-devtools-app) frontend module provides an interface for overriding entries in your import map. You can leverage this when doing local development to load copies of your frontend modules from your local dev server. For example, if you fire up a [local development server running the app shell](#running-the-app-shell-locally), it's possible to override import map entries for multiple frontend modules from multiple projects at the same time. This is useful when you're working on a feature that spans multiple frontend modules.
 
 <Callout type="warning">
   Import map overrides don't work on the dev3 server because of security restrictions. We'll work on loosening these
@@ -85,7 +87,7 @@ O3 determines where to load the code for frontend modules from based on the [imp
 ### Run the app shell
 
 ```sh
-cd @openmrs/esm-core
+cd openmrs-esm-core
 yarn run:shell
 ```
 
@@ -96,18 +98,18 @@ This should fire up a dev server on port 8080 (assuming you have no other dev se
 In a different terminal window, run:
 
 ```sh
-cd openmrs/esm-core
+cd openmrs-esm-core
 yarn start --sources packages/apps/esm-implementer-tools-app --port=7000
 ```
 
-This should fire up a dev server on port 8081 (the next available port). To see the actual bundled JavaScript code for the app, navigate to http://localhost:8081/openmrs-esm-implementer-tools-app.js in your browser. This URL is the entry point for the app shell to load the implementer tools app. It's important that the URL points to the correct location of the bundled JavaScript code. Often, you might want to specify a different port number to ensure that the URL points to the correct location than the default port or whatever port the tooling assigns.
+This should fire up a dev server on port 7001 (the next available port after 7000). To see the actual bundled JavaScript code for the app, navigate to http://localhost:7001/openmrs-esm-implementer-tools-app.js in your browser. This URL is the entry point for the app shell to load the implementer tools app. It's important that the URL points to the correct location of the bundled JavaScript code. Often, you might want to specify a different port number to ensure that the URL points to the correct location rather than the default port or whatever port the tooling assigns.
 
 <Callout type="info">
 **Port numbers**
 
-By default, the Webpack dev server runs on port 8080. If you're running multiple dev servers, the next available port is assigned to the next dev server. For example, if you're running a dev server on port 8080 and you start another dev server, it will run on port 8081. If you start another dev server, it will run on port 8082, and so on. This is also important to not when setting up import map overrides. If you're running a frontend module using `yarn start` on port 8080, the URL to the bundled JavaScript code will be http://localhost:8081/openmrs-esm-form-builder-app.js. The name of this URL corresponds to the name used in the [browser](https://github.com/openmrs/openmrs-esm-form-builder/blob/main/package.json#L6) entry in the `package.json` file of the frontend module you're running. If you're running a frontend module on a different port, you'll need to adjust the URL accordingly.
+By default, the Webpack dev server runs on port 8080. If you're running multiple dev servers, the next available port is assigned to the next dev server. For example, if you're running a dev server on port 8080 and you start another dev server, it will run on port 8081. If you start another dev server, it will run on port 8082, and so on. This is also important to note when setting up import map overrides. If you're running a frontend module using `yarn start` on port 8080, the URL to the bundled JavaScript code will be http://localhost:8081/openmrs-esm-form-builder-app.js. The name of this URL corresponds to the name used in the [browser](https://github.com/openmrs/openmrs-esm-form-builder/blob/main/package.json#L6) entry in the `package.json` file of the frontend module you're running. If you're running a frontend module on a different port, you'll need to adjust the URL accordingly.
 
-Note that if you're running multiple frontend modules simultaneously using `yarn start`, the app shell will run on port 8080 and the frontend modules will run on the next available ports. That is, the packages will run on port 8081, 8082, and so on, if available. However, if you're running each frontend module individually, you'll likely have to configure the port number manually as the app shell will default to trying to load the frontend module from the next available port after 8080.
+Note that if you're running multiple frontend modules simultaneously using `yarn start`, the app shell will run on port 8080 and the frontend modules will run on the next available ports. That is, the packages will run on port 8081, 8082, and so on, if available. However, if you're running each frontend module individually with a custom `--port`, the module will typically be served on the next available port after the one you chose.
 
 </Callout>
 
@@ -116,13 +118,13 @@ Note that if you're running multiple frontend modules simultaneously using `yarn
 In a different terminal window, run:
 
 ```sh
-cd openmrs/esm-core
+cd openmrs-esm-core
 yarn start --sources packages/apps/esm-primary-navigation-app --port=9000
 ```
 
 ### Consolidate everything
 
-On the dev server running the app shell, login and navigate to the home page. We want to make sure that import map overrides are enabled. Type this command in the browser devtools console and press enter:
+On the dev server running the app shell, log in and navigate to the home page. We want to make sure that import map overrides are enabled. Type this command in the browser devtools console and press enter:
 
 ```sh
 localStorage.setItem('openmrs:devtools', 'true')
@@ -138,7 +140,7 @@ You should now see your changes to the Implementer tools and Primary navigation 
 
 ## Running `esm-patient-common-lib` locally
 
-The `esm-patient-common-lib` is a library of common components and utilities used primarily by the patient chart in O3. You might to make changes to the library and test those changes against a local dev server. To achieve that, you can do the following:
+The `esm-patient-common-lib` is a library of common components and utilities used primarily by the patient chart in O3. You might want to make changes to the library and test those changes against a local dev server. To achieve that, you can do the following:
 
 - Launch the `package.json` file for the frontend module you want to work on. Look for the `esm-patient-common-lib` dependency in the `peerDependencies` section. Remove that entry and run `yarn` to install dependencies.
 - Run your local dev server using `yarn start`. For example, for the labs app, run:
@@ -190,6 +192,24 @@ There is no simple correlation between frontend modules and pages and content. T
 
 There are no hard and fast rules for figuring out where to make changes. The best approach is to try out different things and see what works for you. The more you work on the codebase, the more familiar you’ll become with it and the easier it’ll be to figure out where to make changes. If you have done all of the things above and still haven’t found the code you’re looking for, feel free to ask in the [#openmrs-helpme channel](https://openmrs.slack.com/archives/C02UNMKFH8V) on Slack.
 
+## Working on a ticket (practical flow)
+
+If you’re picking up a ticket and want to get to done quickly, this flow usually works:
+
+1. **Find the right repo/module** using the techniques above.
+2. **Run the module locally** and reproduce the issue or verify the requirement.
+3. **Make the change** and keep the [coding conventions](/docs/coding-conventions/introduction) in mind.
+4. **Verify locally** (UI check + relevant tests).
+5. **Update translations** if you add or change user‑facing strings.
+6. **Open a PR** with a clear summary and screenshots if the UI changed.
+
+Common blockers to watch for:
+
+- **Backend access/auth:** You’ll need a running OpenMRS backend (dev3 or local). If login fails, confirm you’re using valid credentials for that environment.
+- **Import map overrides:** If a change doesn’t show up, check devtools overrides and hard refresh to clear cached import maps.
+- **Expected URLs:** The app shell runs at `/openmrs/spa` and your local module may be served from a different port.
+- **Feature flags:** If you’re not seeing a new UI, check whether it’s behind a feature flag in the Implementer Tools' feature flag menu.
+
 ## How can I develop against a restricted environment?
 
 In general, you can develop against another environment using the `--backend` flag. If the other environment is guarded, e.g., by an IP or network restriction then this is something you need to take care of on your local machine. In case the guarded environment is restricted via some SSO mechanism using a cookie you could use the `--add-cookie` flag to achieve this. As an example, look at the access for a development server from the ICRC:
@@ -202,17 +222,17 @@ The cookie must be obtained by you and strongly depends on the backend used.
 
 ## Should I write tests?
 
-Yes, absolutely! We have a test suite for the frontend modules in the monorepo. We use [Jest](https://jestjs.io/) for testing. We also use [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) for testing React components. We have a [testing guide](/docs/frontend-modules/testing) that you can refer to for more information on how to write tests. We're adding support for [Playwright e2e tests](https://playwright.dev/) as well across our repositories. Consider adding e2e tests for your changes as well. Going through the testing guide as well as the tests in the codebase should give you a good sense of how to write tests.
+Yes, absolutely! We have a test suite for the frontend modules in the monorepo. Depending on the repo, we use [Jest](https://jestjs.io/) or [Vitest](https://vitest.dev/), and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) for React components. Check the module’s `package.json` to see which test runner is configured. See the [unit and integration testing guide](/docs/frontend-modules/unit-and-integration-testing) and the [end-to-end testing guide](/docs/frontend-modules/end-to-end-testing) for more on how to write tests. Consider adding E2E tests for your changes as well. Going through the testing guide as well as the tests in the codebase should give you a good sense of how to write tests.
 
 ## Pushing your changes to GitHub
 
-Once you’re done working on a feature or fix, you’ll want to push your changes to GitHub and file a PR. To do this, package your changes in a commit. We have guidelines for writing commit messages in our [contributing guide](https://o3-dev.docs.openmrs.org/#/getting_started/contributing).
+Once you’re done working on a feature or fix, you’ll want to push your changes to GitHub and file a PR. To do this, package your changes in a commit. We have guidelines for writing commit messages in our [contributing guide](/docs/frontend-modules/contributing).
 
 Creating a commit should trigger some pre-commit hooks. Typically, part of the work these hooks do involves running `yarn run extract-translations`. This task fires up `turborepo` and runs the `extract-translations` task in each package in the monorepo. This task extracts translation keys and strings and updates the default locale’s translations file, `en.json` in the `translations` directory of your frontend module. This is useful for internationalization. After the pre-commit hooks run, you then want to push your changes to GitHub. Doing so will trigger a `pre-push` hook that will typically run the following tasks in parallel using `turborepo`:
 
 - `typescript` - checks your application’s types.
 - `lint` - runs a lint check using Prettier.
-- `test` - runs tests using Jest and React Testing Library.
+- `test` - runs tests (Jest or Vitest, depending on the repo).
 
 If any of these tasks fail, the push should fail. The terminal should display the error message(s) that caused the push to fail. You’ll need to fix the error(s) and push again. Once the push succeeds, you can go to the GitHub repo related to your package and file a pull request.
 
@@ -351,4 +371,4 @@ Alternatively, you could also run
 git clean -fdx
 ```
 
-This command removes untracked files and directories from your working directory and resets the git index. This can help resolve issues with the build process by cleaning up build artifacts, `node_modules` directories, and other temporary files that can sometimes cause issues with the build process. It might be a good idea to do this before running `yarn turbo build` to ensure that you're starting with a clean slate. Note that this command will irreversibly delete files in your working directory. Make sure you don't have any important files in your working directory that you don't want to lose.
+This command removes untracked files and directories from your working directory and resets the git index. This can help resolve issues with the build process by cleaning up build artifacts, `node_modules` directories, and other temporary files that can sometimes cause issues with the build process. It might be a good idea to do this before running `yarn turbo build` to ensure that you're starting with a clean slate. **Use this as a last resort** — it will irreversibly delete files in your working directory. Make sure you don't have any important files in your working directory that you don't want to lose.

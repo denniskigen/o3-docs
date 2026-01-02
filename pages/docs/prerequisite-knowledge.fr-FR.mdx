@@ -1,4 +1,4 @@
-# Connaissances prérequises [#prerequisite-knowledge]
+# Connaissances prérequises
 
 Avant de vous lancer dans la construction avec O3, vous devez au moins maîtriser HTML, CSS et JavaScript. Si vous débutez totalement dans le développement frontend, il est particulièrement important de bien comprendre les bases. Voici une liste des technologies utilisées dans O3 ainsi que des ressources recommandées pour les apprendre.
 
@@ -14,7 +14,7 @@ Une solide compréhension des fondamentaux HTML et CSS est essentielle pour le d
 - [Apprendre CSS sur web.dev](https://web.dev/learn/css/)
 
 
-## JavaScript [#javascript]
+## JavaScript
 
 La connaissance de JavaScript est un prérequis pour tout le reste. Nous recommandons les ressources suivantes :
 
@@ -25,7 +25,7 @@ La connaissance de JavaScript est un prérequis pour tout le reste. Nous recomma
 - [Josh Comeau's Operator lookup](https://www.joshwcomeau.com/operator-lookup/)
 - [Visual guide to references in JavaScript](https://daveceddia.com/javascript-references/)
 
-## React [#react]
+## React
 
 Les [docs officielles](https://react.dev/) sont un excellent moyen de se familiariser avec React. **Ne survolez pas [les fondamentaux](https://react.dev/learn/thinking-in-react)** ! Une bonne compréhension des concepts de base est essentielle pour apprendre à développer des modules frontend de haute qualité dans O3. Nous recommandons également les ressources suivantes :
 
@@ -39,7 +39,7 @@ Les [docs officielles](https://react.dev/) sont un excellent moyen de se familia
 - [Guide des re-rendus de React - Nadia Makarevich](https://www.developerway.com/posts/react-re-renders-guide)
 - [Quand React rend-il votre composant - Zhenghao Hao](https://www.zhenghao.io/posts/react-rerender)
 
-## TypeScript [#typescript]
+## TypeScript
 
 La plupart de notre code est écrit en TypeScript. Nous recommandons les ressources suivantes :
 
@@ -48,14 +48,14 @@ La plupart de notre code est écrit en TypeScript. Nous recommandons les ressour
 - [Total TypeScript](https://www.totaltypescript.com/tutorials)
 - [Feuilles de triche React + TypeScript](https://github.com/typescript-cheatsheets/react)
 
-## Outils JavaScript [#javascript-tools]
+## Outils JavaScript
 
-- [yarn](https://yarnpkg.com/) - nous utilisons yarn comme gestionnaire de paquets. En général, si le dépôt que vous consultez contient un fichier `yarn.lock` à sa racine, il utilise yarn. Nous utilisons les [workspaces de yarn](https://yarnpkg.com/features/workspaces) pour versionner et publier les packages dans nos monorepos.
+- [yarn](https://yarnpkg.com/) - de nombreux dépôts OpenMRS utilisent yarn comme gestionnaire de paquets. En général, si le dépôt que vous consultez contient un fichier `yarn.lock` à sa racine, il utilise yarn. Nous utilisons les [workspaces de yarn](https://yarnpkg.com/features/workspaces) pour versionner et publier les packages dans nos monorepos.
 - [turbo](https://turbo.build/repo) - nous utilisons `turbo` pour exécuter des scripts pendant le développement local et nos processus d'intégration continue.
 - [swc](https://swc.rs/) - nous utilisons SWC pour compiler notre code JavaScript et TypeScript dans un format pris en charge par tous les principaux navigateurs.
 - [webpack](https://webpack.js.org) - nous utilisons webpack pour empaqueter notre code en vue de la production. Nous utilisons [webpack 5](https://webpack.js.org/blog/2020-10-10-webpack-5-release/), qui est la dernière version de webpack au moment de la rédaction.
 
-## Git [#git]
+## Git
 
 Il est impératif que vous conserviez votre code dans un système de contrôle de version. OpenMRS utilise [Git](https://git-scm.com/). Vous devez connaître les bases de l'utilisation de Git et de GitHub. Voici d'excellentes ressources d'apprentissage :
 
@@ -64,14 +64,15 @@ Il est impératif que vous conserviez votre code dans un système de contrôle d
 - [Dangit, Git](https://dangitgit.com/en)
 - [Guide OpenMRS pour utiliser Git](https://wiki.openmrs.org/display/docs/Using+Git)
 
-## OpenMRS [#openmrs]
+## API et modèle de données OpenMRS
 
-OpenMRS fournit diverses API permettant au frontend de demander des données. Nous recommandons de vous familiariser avec la documentation de ces API ainsi qu'avec le modèle de données OpenMRS. Voici les liens pertinents :
+OpenMRS fournit des API que le frontend utilise pour demander des données. Nous recommandons de vous familiariser avec
+ces API ainsi qu'avec le modèle de données OpenMRS. Voici les liens pertinents :
 
 - [Modèle de données OpenMRS](https://devmanual.openmrs.org/technology/datamodel/)
 - [REST API](https://rest.openmrs.org/)
-- [FHIR wiki](https://om.rs/fhir)
+- [API FHIR](https://om.rs/fhir)
 
-## Prochaines étapes [#next-steps]
+## Prochaines étapes
 
-Prêt à vous lancer ? Il est temps d'en apprendre davantage sur les principaux dépôts de l'écosystème O3 et sur leur fonctionnement ensemble. Passez à la section suivante pour en savoir plus.
+Prêt à vous lancer ? Commencez par les [Concepts de base](/docs/core-concepts) pour comprendre la structure d’O3.

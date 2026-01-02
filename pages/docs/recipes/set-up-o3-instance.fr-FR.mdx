@@ -1,14 +1,11 @@
 import { Callout, Steps } from "nextra-theme-docs";
-
-<Callout emoji="⚠️" type="warning">
-  CECI N'EST PLUS LA SOURCE DE VÉRITÉ ACTIVEMENT MAINTENUE POUR LA DOCUMENTATION
-  DES DÉVELOPPEURS O3. Cet effort a été déplacé vers le Wiki OpenMRS à l'adresse
-  suivante: https://openmrs.atlassian.net/wiki/x/94ABCQ
-</Callout>
+import DeprecationWarning from "../../../components/deprecation-warning";
 
 # Configuration d'une instance de O3
 
 Ce guide est destiné aux développeurs qui souhaitent configurer une instance de O3. En termes généraux, il existe deux approches pour configurer une instance de O3:
+
+<DeprecationWarning href="https://openmrs.atlassian.net/wiki/x/94ABCQ" locale="fr-FR" />
 
 - Utiliser le `SDK OpenMRS`
 - Utiliser `Docker`
@@ -169,11 +166,9 @@ Pour exécuter l'image Docker O3 sur une base de données existante, faites ce q
 
 ### Étape 1
 
-En partant du [fichier Docker compose standard](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/docker-compose.yml), supprimez le service `db` (lignes 47-62 ci-dessous) et le volume `db-data` (ligne 66).
+En partant du [fichier Docker compose standard](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/docker-compose.yml), supprimez le service `db` (lignes 44-60 ci-dessous) et le volume `db-data` (ligne 64).
 
-```yml {47-62, 66} filename="docker-compose.yml"
-version: "3.7"
-
+```yml {44-60, 64} filename="docker-compose.yml"
 services:
   gateway:
     image: openmrs/openmrs-reference-application-3-gateway:${TAG:-qa}
@@ -190,7 +185,7 @@ services:
     environment:
       SPA_PATH: /openmrs/spa
       API_URL: /openmrs
-      SPA_CONFIG_URLS:
+      SPA_CONFIG_URLS: /openmrs/spa/config-core_demo.json
       SPA_DEFAULT_LOCALE:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/"]
@@ -209,8 +204,8 @@ services:
       OMRS_CONFIG_CREATE_TABLES: "true"
       OMRS_CONFIG_CONNECTION_SERVER: db
       OMRS_CONFIG_CONNECTION_DATABASE: openmrs
-      OMRS_CONFIG_CONNECTION_USERNAME: ${OPENMRS_DB_USER:-openmrs}
-      OMRS_CONFIG_CONNECTION_PASSWORD: ${OPENMRS_DB_PASSWORD:-openmrs}
+      OMRS_CONFIG_CONNECTION_USERNAME: ${OMRS_DB_USER:-openmrs}
+      OMRS_CONFIG_CONNECTION_PASSWORD: ${OMRS_DB_PASSWORD:-openmrs}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/openmrs"]
       timeout: 5s
@@ -219,11 +214,11 @@ services:
 
   # MariaDB
   db:
-    image: mariadb:10.8.2
+    image: mariadb:10.11.7
     restart: "unless-stopped"
-    command: "mysqld --character-set-server=utf8 --collation-server=utf8_general_ci"
+    command: "mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci"
     healthcheck:
-      test: 'mysql --user=${OMRS_DB_USER:-openmrs} --password=${OMRS_DB_PASSWORD:-openmrs} --execute "SHOW DATABASES;"'
+      test: "mysql --user=${OMRS_DB_USER:-openmrs} --password=${OMRS_DB_PASSWORD:-openmrs} --execute \"SHOW DATABASES;\""
       interval: 3s
       timeout: 1s
       retries: 5
@@ -242,11 +237,11 @@ volumes:
 
 ### Étape 2
 
-Dans le service `backend`, changez la variable de serveur `OMRS_CONFIG_CONNECTION_SERVER` pour le nom d'hôte du serveur de base de données et `OMRS_CONFIG_CONNECTION_SERVER` pour le nom de la base de données existante (le laisser tel quel fonctionne probablement pour 99% des installations).
+Dans le service `backend`, changez la variable `OMRS_CONFIG_CONNECTION_SERVER` pour le nom d'hôte du serveur de base de données et la variable `OMRS_CONFIG_CONNECTION_DATABASE` pour le nom de la base de données existante (le laisser tel quel fonctionne probablement pour 99% des installations).
 
 ### Étape 3
 
-Créez un fichier `.env` dans le même dossier avec `OPENMRS_DB_USER` et `OPENMRS_DB_PASSWORD` définis aux valeurs appropriées pour la base de données existante.
+Créez un fichier `.env` dans le même dossier avec `OMRS_DB_USER` et `OMRS_DB_PASSWORD` définis aux valeurs appropriées pour la base de données existante.
 
 ### Étape 4
 
@@ -333,9 +328,9 @@ Par défaut, la RefApp est configurée pour utiliser les versions taguées `next
 
 <Steps>
 
-### Étape 1: Mettre à jour les version des modules frontend
+### Étape 1: Mettre à jour les versions des modules frontend
 
-Mettez à jour les versions des modules frontend dans votre instance de `next` à `latest` en modifiant le fichier `frontend/spa-assemble-config.json` comme suit:
+Mettez à jour les versions des modules frontend dans votre instance de `next` à `latest` en modifiant le fichier `frontend/spa-assemble-config.json` comme suit. Pour plus d'informations sur ce fichier, consultez le guide [Vue d'ensemble de la configuration](/docs/configure-o3/overview#spa-assemble-configjson):
 
 ```json filename="frontend/spa-assemble-config.json"
 {
@@ -349,7 +344,7 @@ Mettez à jour les versions des modules frontend dans votre instance de `next` �
 
 Cela garantit que l'application utilisera les versions stables les plus récentes de ces modules frontend.
 
-### Étape 2: Mettre à jour la version d l'app shell
+### Étape 2: Mettre à jour la version de l'app shell
 
 Mettez à jour la version de l'app shell dans le Dockerfile frontend en changeant la valeur de l'argument `APP_SHELL_VERSION` à `latest`:
 
@@ -371,20 +366,20 @@ Une fois que vous avez configuré votre instance O3, il y a plusieurs choses que
 
 - Changer la langue par défaut de votre instance. Vous pouvez le faire en naviguant dans la section `Administration` de l'interface utilisateur OpenMRS héritée et en modifiant la langue par défaut.
 
-- Personnaliser O3. Vous pouvez ajuster votre branding, ajuster votre import map pour ajouter ou supprimer des widgets de votre distribution, et plus encore.
+- Personnaliser O3. Vous pouvez ajuster votre branding, configurer des modules, et plus encore. Consultez le guide [Vue d'ensemble de la configuration](/docs/configure-o3/overview) pour plus de détails.
 
 - Assurer le bon fonctionnement de vos modules (cela est pertinent uniquement si vous configurez O3 sur une base de données existante). Vous pouvez utiliser la page `Gérer les modules` dans l'interface d'administration héritée pour vérifier si les modules fonctionnent correctement.
 
 - Tester diverses fonctionnalités - essayez d'enregistrer un patient et de lancer son dossier médical. Recherchez des erreurs dans la console ou des erreurs dans l'interface utilisateur. Vous pourriez également vouloir vérifier les erreurs dans l'onglet réseau des outils de développement de votre navigateur. Si vous n'avez pas le module `fhir` en cours d'exécution, vous devriez vous attendre à rencontrer des problèmes lors du rendu de la bannière du patient et de la plupart des autres widgets dans le dossier médical, car les éléments du dossier médical dépendent d'un `UUID patient` valide, et l'objet patient est récupéré via un point de terminaison FHIR.
 
-- Réfléchir à la façon de configurer vos formulaires dans O3. Les formulaires dans O3 sont construits à l'aide de JSON et sont conformes à ce [schéma standard](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). Si vos formulaires existants ont été créés à l'aide de l'entrée de formulaire HTML, vous devrez les convertir en schémas JSON. Consultez le générateur de formulaires intégré dans O3 pour avoir une idée de l'apparence de ce format. L'éditeur de schémas vous permet de créer un nouveau formulaire en utilisant une ébauche de schéma factice. Pour en savoir plus sur les formulaires dans O3, lisez la recette `Construire des formulaires dans O3`.
+- Réfléchir à la façon de configurer vos formulaires dans O3. Les formulaires dans O3 sont construits à l'aide de JSON et sont conformes à ce [schéma standard](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). Si vos formulaires existants ont été créés à l'aide de l'entrée de formulaire HTML, vous devrez les convertir en schémas JSON. Consultez le générateur de formulaires intégré dans O3 pour avoir une idée de l'apparence de ce format. L'éditeur de schémas vous permet de créer un nouveau formulaire en utilisant une ébauche de schéma factice. Pour en savoir plus sur les formulaires dans O3, lisez la recette [Construire des formulaires à l'aide du générateur de formulaires O3](/docs/forms-in-o3/build-forms-with-o3-form-builder).
 
   <Callout emoji="ℹ️" type="info">
     Un module OpenMRS existe pour convertir des schémas d'entrée de formulaire
     HTML en schémas JSON compatibles avec le schéma standard O3 à l'adresse
     suivante: https://github.com/openmrs/hfe-o3-form-schema-converter.
     Actuellement, des travaux sont en cours pour améliorer l'outil. Consultez le
-    README du dépôt pour savoir ce qui est possible.
+    README du dépôt pour savoir ce qui est possible. Voir aussi le guide [Convertir les formulaires d'entrée de formulaire HTML en O3](/docs/forms-in-o3/convert-html-form-entry-forms).
   </Callout>
 
 ## Liens utiles

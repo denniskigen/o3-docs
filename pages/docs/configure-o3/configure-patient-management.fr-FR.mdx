@@ -1,0 +1,977 @@
+# Configuration de la gestion des patients
+
+Les modules de gestion des patients fournissent des fonctionnalités complètes pour enregistrer les patients, rechercher des patients, gérer les rendez-vous, les files d'attente de service, les salles, et plus encore. Ce guide couvre les options de configuration pour tous les modules de gestion des patients.
+
+## Vue d'ensemble
+
+La fonctionnalité de gestion des patients dans O3 se compose de plusieurs modules :
+
+- **Enregistrement des patients** - Enregistrer et modifier les informations des patients
+- **Recherche de patients** - Rechercher des patients existants
+- **Rendez-vous** - Planifier et gérer les rendez-vous des patients
+- **Files d'attente de service** - Gérer les files d'attente des patients dans les établissements ambulatoires
+- **Gestion des salles** - Gérer les salles et lits pour les patients hospitalisés
+- **Visites actives** - Afficher et gérer les visites actives des patients
+- **Listes de patients** - Créer et gérer des listes/cohortes de patients
+- **Tableau de bord d'accueil** - Configurer les tableaux de bord par défaut et la navigation
+- **Gestion des lits** - Configurer les paramètres de lits et d'admission
+- **Programmes** - Configurer l'inscription et la gestion des programmes patients
+
+## Enregistrement des patients
+
+L'application d'enregistrement des patients est hautement configurable, vous permettant de personnaliser la structure du formulaire d'enregistrement, les champs, les sections et les règles de validation pour correspondre aux besoins de votre implémentation.
+
+### Vue d'ensemble
+
+Le formulaire d'enregistrement est organisé en **sections**, chacune contenant des **champs**. Vous pouvez :
+- Utiliser les sections et champs intégrés
+- Créer des sections et champs personnalisés
+- Remplacer les sections et champs intégrés
+- Configurer des paramètres spécifiques aux champs (validation, options d'affichage, etc.)
+
+### Sections intégrées
+
+L'application d'enregistrement comprend les sections intégrées suivantes :
+
+- `demographics` - Informations de base sur le patient (nom, sexe, date de naissance, identifiants)
+- `contact` - Coordonnées (adresse, téléphone)
+- `relationships` - Relations du patient
+- `death` - Informations sur le décès (date/heure du décès, cause du décès)
+
+### Champs intégrés
+
+Les champs suivants sont intégrés et peuvent être utilisés dans n'importe quelle section :
+
+- `name` - Nom du patient (prénom, deuxième prénom, nom de famille)
+- `gender` - Sexe administratif
+- `dob` - Date de naissance
+- `id` - Identifiants du patient
+- `address` - Adresse du patient
+- `phone` - Numéro de téléphone
+- `causeOfDeath` - Cause du décès
+- `dateAndTimeOfDeath` - Date et heure du décès
+
+### Configuration des sections
+
+#### Définition de sections personnalisées
+
+Vous pouvez créer des sections personnalisées en les définissant dans `sectionDefinitions` :
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "sectionDefinitions": [
+      {
+        "id": "additionalDetails",
+        "name": "Détails supplémentaires",
+        "fields": ["referredby", "insurance"]
+      }
+    ]
+  }
+}
+```
+
+Chaque définition de section comprend :
+- `id` - Un identifiant unique pour la section (requis)
+- `name` - Le titre d'affichage de la section (optionnel, peut être une clé de traduction)
+- `fields` - Un tableau d'identifiants de champs à inclure dans cette section. Peut inclure des champs intégrés ou des champs personnalisés définis dans `fieldDefinitions`
+
+#### Remplacement des sections intégrées
+
+Vous pouvez remplacer les sections intégrées en utilisant leurs identifiants dans `sectionDefinitions` :
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "sectionDefinitions": [
+      {
+        "id": "demographics",
+        "name": "Informations sur le patient",
+        "fields": ["name", "gender", "dob"]
+      }
+    ]
+  }
+}
+```
+
+#### Spécification de l'ordre des sections
+
+Utilisez le tableau `sections` pour contrôler l'ordre d'apparition des sections :
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "sections": [
+      "demographics",
+      "contact",
+      "relationships",
+      "additionalDetails"
+    ]
+  }
+}
+```
+
+L'ordre par défaut est : `["demographics", "contact", "relationships"]`.
+
+### Configuration des champs
+
+#### Définition de champs personnalisés
+
+Les champs personnalisés peuvent être définis comme **attributs de personne** ou **observations (obs)** :
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "fieldDefinitions": [
+      {
+        "id": "referredby",
+        "type": "person attribute",
+        "uuid": "4dd56a75-14ab-4148-8700-1f4f704dc5b0",
+        "label": "Référence par",
+        "answerConceptSetUuid": "6682d17f-0777-45e4-a39b-93f77eb3531c",
+        "validation": {
+          "required": true
+        }
+      },
+      {
+        "id": "chiefComplaint",
+        "type": "obs",
+        "uuid": "5622AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "label": "Motif de consultation",
+        "validation": {
+          "required": false
+        }
+      }
+    ]
+  }
+}
+```
+
+**Propriétés de définition de champ** :
+
+- `id` - Identifiant unique pour le champ (requis)
+- `type` - Soit `"person attribute"` soit `"obs"` (requis)
+- `uuid` - UUID du type d'attribut de personne (pour les attributs de personne) ou UUID du concept (pour les obs) (requis)
+- `label` - Étiquette personnalisée pour le champ (optionnel, par défaut le nom d'affichage des métadonnées)
+- `placeholder` - Texte d'espace réservé pour la saisie (optionnel)
+- `showHeading` - S'il faut afficher un titre au-dessus du champ (par défaut : `false`)
+- `validation` - Règles de validation :
+  - `required` - Si le champ est requis (par défaut : `false`)
+  - `matches` - Modèle RegEx optionnel pour la validation de la saisie
+- `locationTag` - (Pour les attributs de personne de type location uniquement) Filtrer les lieux par tag
+- `answerConceptSetUuid` - (Pour les questions codées uniquement) UUID du concept contenant les réponses possibles
+- `customConceptAnswers` - (Pour les questions codées uniquement) Remplacer les réponses par une liste personnalisée :
+  ```json
+  "customConceptAnswers": [
+    {
+      "uuid": "some-concept-uuid",
+      "label": "Étiquette personnalisée"
+    }
+  ]
+  ```
+- `allowFutureDates` - (Pour les champs de date) Autoriser les dates futures (par défaut : `true`)
+- `allowPastDates` - (Pour les champs de date) Autoriser les dates passées (par défaut : `true`)
+
+**Important** : Si vous utilisez des champs de type `"obs"`, vous **devez** configurer `registrationObs.encounterTypeUuid` (voir ci-dessous).
+
+#### Remplacement des champs intégrés
+
+Vous pouvez remplacer les champs intégrés en les définissant dans `fieldDefinitions` avec le même identifiant :
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "fieldDefinitions": [
+      {
+        "id": "phone",
+        "type": "person attribute",
+        "uuid": "14d4f066-15f5-102d-96e4-000c29c2a5d7",
+        "validation": {
+          "required": true,
+          "matches": "^\\+?[1-9]\\d{1,14}$"
+        }
+      }
+    ]
+  }
+}
+```
+
+### Configurations spécifiques aux champs
+
+#### Configuration du champ Nom
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "fieldConfigurations": {
+      "name": {
+        "displayMiddleName": true,
+        "allowUnidentifiedPatients": true,
+        "defaultUnknownGivenName": "INCONNU",
+        "defaultUnknownFamilyName": "INCONNU",
+        "displayCapturePhoto": true,
+        "displayReverseFieldOrder": false
+      }
+    }
+  }
+}
+```
+
+- `displayMiddleName` - Afficher le champ du deuxième prénom (par défaut : `true`)
+- `allowUnidentifiedPatients` - Autoriser l'enregistrement de patients non identifiés (par défaut : `true`)
+- `defaultUnknownGivenName` - Prénom par défaut pour les patients non identifiés (par défaut : `"UNKNOWN"`)
+- `defaultUnknownFamilyName` - Nom de famille par défaut pour les patients non identifiés (par défaut : `"UNKNOWN"`)
+- `displayCapturePhoto` - Afficher l'emplacement de capture de photo du patient (par défaut : `true`)
+- `displayReverseFieldOrder` - Afficher les champs comme "Nom de famille" → "Deuxième prénom" → "Prénom" (par défaut : `false`)
+
+#### Configuration du champ Sexe
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "fieldConfigurations": {
+      "gender": [
+        {
+          "value": "male",
+          "label": "Homme"
+        },
+        {
+          "value": "female",
+          "label": "Femme"
+        },
+        {
+          "value": "other",
+          "label": "Autre"
+        },
+        {
+          "value": "unknown",
+          "label": "Inconnu"
+        }
+      ]
+    }
+  }
+}
+```
+
+La `value` doit être l'une des suivantes : `"male"`, `"female"`, `"other"`, ou `"unknown"` (valeurs du sexe administratif FHIR). L'`label` est optionnel et sera traduit s'il n'est pas fourni.
+
+#### Configuration du champ Adresse
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "fieldConfigurations": {
+      "address": {
+        "useAddressHierarchy": {
+          "enabled": true,
+          "useQuickSearch": true,
+          "searchAddressByLevel": false
+        }
+      }
+    }
+  }
+}
+```
+
+- `useAddressHierarchy.enabled` - Utiliser la hiérarchie d'adresses dans le formulaire d'enregistrement (par défaut : `true`)
+- `useAddressHierarchy.useQuickSearch` - Activer la recherche rapide dans les adresses enregistrées (par défaut : `true`)
+- `useAddressHierarchy.searchAddressByLevel` - Remplir les adresses par niveaux (Comté → sous-comté) (par défaut : `false`)
+
+#### Configuration de la date de naissance
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "fieldConfigurations": {
+      "dateOfBirth": {
+        "allowEstimatedDateOfBirth": true,
+        "useEstimatedDateOfBirth": {
+          "enabled": false,
+          "dayOfMonth": 0,
+          "month": 0
+        }
+      }
+    }
+  }
+}
+```
+
+- `allowEstimatedDateOfBirth` - Autoriser la date de naissance estimée (par défaut : `true`)
+- `useEstimatedDateOfBirth.enabled` - Utiliser un jour/mois fixe pour les dates estimées (par défaut : `false`)
+- `useEstimatedDateOfBirth.dayOfMonth` - Jour à utiliser (0 = dernier jour du mois précédent, 1-31 = jour spécifique) (par défaut : `0`)
+- `useEstimatedDateOfBirth.month` - Mois à utiliser (0 = janvier, 11 = décembre) (par défaut : `0`)
+
+#### Configuration du champ Téléphone
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "fieldConfigurations": {
+      "phone": {
+        "personAttributeUuid": "14d4f066-15f5-102d-96e4-000c29c2a5d7",
+        "validation": {
+          "required": false,
+          "matches": "^\\+?[1-9]\\d{1,14}$"
+        }
+      }
+    }
+  }
+}
+```
+
+- `personAttributeUuid` - UUID du type d'attribut de personne pour le numéro de téléphone (par défaut : `"14d4f066-15f5-102d-96e4-000c29c2a5d7"`)
+- `validation.required` - Si le téléphone est requis (par défaut : `false`)
+- `validation.matches` - Modèle RegEx optionnel pour la validation du téléphone
+
+#### Configuration de la cause du décès
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "fieldConfigurations": {
+      "causeOfDeath": {
+        "conceptUuid": "9272a14b-7260-4353-9e5b-5787b5dead9d",
+        "required": false
+      }
+    }
+  }
+}
+```
+
+- `conceptUuid` - UUID du concept pour les réponses de cause de décès (par défaut : `"9272a14b-7260-4353-9e5b-5787b5dead9d"`)
+- `required` - Si la cause de décès est requise (par défaut : `false`)
+
+### Observations d'enregistrement
+
+Si vous utilisez des champs de type `"obs"`, vous devez configurer la rencontre d'enregistrement :
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "registrationObs": {
+      "encounterTypeUuid": "873f968a-73a8-4f9c-ac78-9d4778baaf96",
+      "encounterProviderRoleUuid": "a0b03050-c99b-11e0-9572-0800200c9a66",
+      "registrationFormUuid": "b5f4ffc0-36e9-11e0-93ed-00248140a5eb"
+    }
+  }
+}
+```
+
+- `encounterTypeUuid` - UUID du type de rencontre pour les obs d'enregistrement (requis si vous utilisez des champs obs)
+- `encounterProviderRoleUuid` - Rôle du prestataire pour la rencontre d'enregistrement (par défaut : `"a0b03050-c99b-11e0-9572-0800200c9a66"`)
+- `registrationFormUuid` - UUID du formulaire à associer à la rencontre d'enregistrement (optionnel)
+
+### Types d'identifiants de patient par défaut
+
+Configurez quels types d'identifiants sont affichés par défaut :
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "defaultPatientIdentifierTypes": [
+      "05a29f94-c0ed-11e2-94be-8c13b969e334",
+      "f85081e2-b4be-4e48-b3a4-7994b69bb101"
+    ]
+  }
+}
+```
+
+Chaque valeur doit être un UUID d'un type d'identifiant de patient.
+
+### Lien du bouton de soumission
+
+Configurez où les utilisateurs sont redirigés après un enregistrement réussi :
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "links": {
+      "submitButton": "${openmrsSpaBase}/patient/${patientUuid}/chart"
+    }
+  }
+}
+```
+
+Le modèle d'URL prend en charge :
+- `${openmrsSpaBase}` - URL de base pour le SPA
+- `${patientUuid}` - UUID du patient enregistré
+
+La valeur par défaut est `${openmrsSpaBase}/patient/${patientUuid}/chart`.
+
+### UUID du concept de champ texte libre
+
+Configurez l'UUID du concept utilisé pour les champs texte libre :
+
+```json
+{
+  "@openmrs/esm-patient-registration-app": {
+    "freeTextFieldConceptUuid": "5622AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  }
+}
+```
+
+La valeur par défaut est `"5622AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"`.
+
+## Recherche de patients
+
+Configurez la façon dont les patients sont recherchés et affichés dans les résultats de recherche.
+
+### URL du dossier du patient
+
+Configurez où les utilisateurs sont redirigés lors de la sélection d'un patient dans les résultats de recherche :
+
+```json
+{
+  "@openmrs/esm-patient-search-app": {
+    "search": {
+      "patientChartUrl": "${openmrsSpaBase}/patient/${patientUuid}/chart/"
+    }
+  }
+}
+```
+
+Le modèle d'URL prend en charge :
+- `${openmrsSpaBase}` - URL de base pour le SPA
+- `${patientUuid}` - UUID du patient sélectionné
+
+### Patients récemment recherchés
+
+Activez ou désactivez l'affichage des patients récemment recherchés :
+
+```json
+{
+  "@openmrs/esm-patient-search-app": {
+    "search": {
+      "showRecentlySearchedPatients": true
+    }
+  }
+}
+```
+
+Lorsqu'il est activé, une liste de patients récemment recherchés apparaît dans les résultats de recherche initiaux.
+
+### Comportement de recherche sur tablette
+
+Désactivez la recherche instantanée sur les appareils tablettes :
+
+```json
+{
+  "@openmrs/esm-patient-search-app": {
+    "search": {
+      "disableTabletSearchOnKeyUp": true
+    }
+  }
+}
+```
+
+Lorsqu'il est activé, la recherche ne se déclenchera pas automatiquement lorsque l'utilisateur tape sur les appareils tablettes.
+
+### Champs de filtre de recherche
+
+Configurez quels champs apparaissent dans les filtres de recherche avancée :
+
+```json
+{
+  "@openmrs/esm-patient-search-app": {
+    "search": {
+      "searchFilterFields": {
+        "gender": {
+          "enabled": true
+        },
+        "dateOfBirth": {
+          "enabled": true
+        },
+        "age": {
+          "enabled": true,
+          "min": 0,
+          "max": 120
+        },
+        "postcode": {
+          "enabled": true
+        },
+        "personAttributes": [
+          {
+            "attributeTypeUuid": "14d4f066-15f5-102d-96e4-000c29c2a5d7",
+            "placeholder": "Numéro de téléphone",
+            "answerConceptSetUuid": "",
+            "conceptAnswersUuids": [],
+            "locationTag": ""
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+**Champs de filtre intégrés** :
+- `gender` - Filtrer par sexe
+- `dateOfBirth` - Filtrer par date de naissance
+- `age` - Filtrer par plage d'âge (prend en charge les propriétés `min` et `max`)
+- `postcode` - Filtrer par code postal
+
+**Attributs de personne** :
+- `attributeTypeUuid` - UUID du type d'attribut de personne (requis)
+- `placeholder` - Texte d'espace réservé pour le champ
+- `answerConceptSetUuid` - (Pour les attributs codés) UUID du concept contenant les réponses possibles
+- `conceptAnswersUuids` - (Pour les attributs codés) Tableau d'UUIDs de concepts pour les réponses possibles
+- `locationTag` - (Pour les attributs de type location) Filtrer les lieux par tag
+
+### Inclusion des patients décédés
+
+Contrôlez si les patients décédés apparaissent dans les résultats de recherche :
+
+```json
+{
+  "@openmrs/esm-patient-search-app": {
+    "includeDead": true
+  }
+}
+```
+
+La valeur par défaut est `true`.
+
+### Types d'attributs de contact
+
+Configurez quels types d'attributs de personne sont affichés comme informations de contact :
+
+```json
+{
+  "@openmrs/esm-patient-search-app": {
+    "contactAttributeType": [
+      "14d4f066-15f5-102d-96e4-000c29c2a5d7",
+      "e3d177ee-04ad-11ed-828d-0242ac1e0002"
+    ]
+  }
+}
+```
+
+Les valeurs par défaut incluent :
+- Numéro de téléphone (`14d4f066-15f5-102d-96e4-000c29c2a5d7`)
+- Email (`e3d177ee-04ad-11ed-828d-0242ac1e0002`)
+
+### Types d'identifiants par défaut
+
+Configurez quels types d'identifiants sont affichés comme tags de bannière dans les résultats de recherche :
+
+```json
+{
+  "@openmrs/esm-patient-search-app": {
+    "defaultIdentifierTypes": [
+      "05a29f94-c0ed-11e2-94be-8c13b969e334"
+    ]
+  }
+}
+```
+
+La valeur par défaut est l'ID OpenMRS (`05a29f94-c0ed-11e2-94be-8c13b969e334`).
+
+## Rendez-vous
+
+Configurez la planification des rendez-vous, les statuts, les types et l'affichage du tableau.
+
+### Statuts des rendez-vous
+
+Configurez quels statuts de rendez-vous sont disponibles :
+
+```json
+{
+  "@openmrs/esm-appointments-app": {
+    "appointmentStatuses": [
+      "Requested",
+      "Scheduled",
+      "CheckedIn",
+      "Completed",
+      "Cancelled",
+      "Missed"
+    ]
+  }
+}
+```
+
+Les statuts par défaut sont : `Requested`, `Scheduled`, `CheckedIn`, `Completed`, `Cancelled`, `Missed`.
+
+### Types de rendez-vous
+
+Configurez quels types de rendez-vous sont disponibles :
+
+```json
+{
+  "@openmrs/esm-appointments-app": {
+    "appointmentTypes": ["Scheduled"]
+  }
+}
+```
+
+La valeur par défaut est `["Scheduled"]`.
+
+### Rendez-vous toute la journée
+
+Activez la planification de rendez-vous toute la journée (sans heures de début/fin spécifiques) :
+
+```json
+{
+  "@openmrs/esm-appointments-app": {
+    "allowAllDayAppointments": true
+  }
+}
+```
+
+La valeur par défaut est `false`.
+
+### Bouton d'enregistrement
+
+Configurez le comportement du bouton d'enregistrement :
+
+```json
+{
+  "@openmrs/esm-appointments-app": {
+    "checkInButton": {
+      "enabled": true,
+      "showIfActiveVisit": false,
+      "customUrl": ""
+    }
+  }
+}
+```
+
+- `enabled` - Si le bouton d'enregistrement est activé (par défaut : `true`)
+- `showIfActiveVisit` - S'il faut afficher le bouton si le patient a une visite active (par défaut : `false`)
+- `customUrl` - URL personnalisée à ouvrir au lieu du formulaire de démarrage de visite (optionnel)
+
+### Bouton de départ
+
+Configurez le bouton de départ :
+
+```json
+{
+  "@openmrs/esm-appointments-app": {
+    "checkOutButton": {
+      "enabled": true,
+      "customUrl": ""
+    }
+  }
+}
+```
+
+- `enabled` - Si le bouton de départ est activé (par défaut : `true`)
+- `customUrl` - URL personnalisée à ouvrir lors du clic sur départ (optionnel)
+
+### URL du dossier du patient
+
+Configurez où les utilisateurs sont redirigés lors du clic sur un nom de patient :
+
+```json
+{
+  "@openmrs/esm-appointments-app": {
+    "customPatientChartUrl": "${openmrsSpaBase}/patient/${patientUuid}/chart"
+  }
+}
+```
+
+Le modèle d'URL prend en charge `${openmrsSpaBase}` et `${patientUuid}`.
+
+### Colonnes du tableau des rendez-vous
+
+Configurez quelles colonnes apparaissent dans le tableau des rendez-vous :
+
+```json
+{
+  "@openmrs/esm-appointments-app": {
+    "appointmentsTableColumns": [
+      "patientName",
+      "identifier",
+      "location",
+      "serviceType",
+      "status"
+    ]
+  }
+}
+```
+
+Options de colonnes disponibles : `patientName`, `identifier`, `location`, `serviceType`, `status`, `dateTime`, `provider`.
+
+### Type d'identifiant du patient
+
+Configurez quel type d'identifiant afficher :
+
+```json
+{
+  "@openmrs/esm-appointments-app": {
+    "patientIdentifierType": "OpenMRS ID"
+  }
+}
+```
+
+### Export Excel
+
+Inclure les numéros de téléphone dans les feuilles de calcul Excel exportées :
+
+```json
+{
+  "@openmrs/esm-appointments-app": {
+    "includePhoneNumberInExcelSpreadsheet": true
+  }
+}
+```
+
+La valeur par défaut est `false`.
+
+### Onglet Rendez-vous non planifiés
+
+Afficher l'onglet Rendez-vous non planifiés :
+
+```json
+{
+  "@openmrs/esm-appointments-app": {
+    "showUnscheduledAppointmentsTab": false
+  }
+}
+```
+
+**Note** : Définir ceci à `true` nécessite un point de terminaison `unscheduledAppointment` personnalisé qui n'est pas actuellement disponible par défaut.
+
+## Files d'attente de service
+
+Les Files d'attente de service sont l'un des modules les plus configurables d'O3, vous permettant de personnaliser les tableaux de files d'attente, les priorités, les statuts, les signes vitaux, les biométries, et plus encore.
+
+**Domaines de configuration clés** :
+- Titre du tableau de bord et file d'attente de service par défaut
+- Tags de priorité avec couleurs et styles
+- Colonnes et mises en page des tableaux de files d'attente (par file/statut)
+- UUID de concepts pour les signes vitaux, les diagnostics et autres données cliniques
+- Configuration des signes vitaux et biométries
+- Numéros de file d'attente de visite
+- URLs du dossier patient
+- Types de visite recommandés
+
+Pour des instructions de configuration détaillées, consultez le guide [Configuration des files d'attente de service](/docs/configure-o3/configure-service-queues).
+
+## Gestion des salles
+
+La gestion des salles gère les salles et lits pour les patients hospitalisés, vous permettant de configurer les cartes de patients, les types de salles et les paramètres de l'espace de travail.
+
+**Domaines de configuration clés** :
+- Éléments de carte patient (observations, éléments en attente, identifiants, adresse, tags, etc.)
+- Types de salles pour différents emplacements
+- Paramètres de l'espace de travail
+
+Pour des instructions de configuration détaillées, consultez le guide [Configuration de la gestion des salles](/docs/configure-o3/configure-ward-management).
+
+## Visites actives
+
+Configurez le widget/tableau des visites actives.
+
+### Identifiants
+
+Configurez quels identifiants afficher :
+
+```json
+{
+  "@openmrs/esm-active-visits-app": {
+    "activeVisits": {
+      "identifiers": [
+        {
+          "header": {
+            "key": "openmrsId",
+            "default": "ID OpenMRS"
+          },
+          "identifierName": "OpenMRS Identification Number"
+        }
+      ]
+    }
+  }
+}
+```
+
+- `header.key` - Clé de traduction pour l'en-tête de colonne
+- `header.default` - Texte par défaut si la traduction n'est pas trouvée
+- `identifierName` - Nom du type d'identifiant à filtrer
+
+### Attributs de personne
+
+Configurez quels attributs de personne afficher :
+
+```json
+{
+  "@openmrs/esm-active-visits-app": {
+    "activeVisits": {
+      "attributes": [
+        {
+          "display": "Numéro de téléphone",
+          "header": {
+            "key": "phoneNumber",
+            "default": "Téléphone"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+- `display` - Nom d'affichage du type d'attribut
+- `header.key` - Clé de traduction pour l'en-tête de colonne
+- `header.default` - Texte par défaut si la traduction n'est pas trouvée
+
+### Observations
+
+Configurez quelles observations afficher :
+
+```json
+{
+  "@openmrs/esm-active-visits-app": {
+    "activeVisits": {
+      "obs": [
+        "5085AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "5086AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      ]
+    }
+  }
+}
+```
+
+Chaque valeur doit être un UUID de concept.
+
+### Taille de page
+
+Configurez la pagination :
+
+```json
+{
+  "@openmrs/esm-active-visits-app": {
+    "activeVisits": {
+      "pageSize": 10,
+      "pageSizes": [10, 20, 50, 100]
+    }
+  }
+}
+```
+
+- `pageSize` - Nombre par défaut de visites par page (par défaut : `10`)
+- `pageSizes` - Options de taille de page disponibles (par défaut : `[10, 20, 50]`)
+
+## Listes de patients
+
+Configurez la gestion des listes/cohortes de patients.
+
+### UUIDs de type de cohorte
+
+Configurez les UUIDs pour différents types de cohortes :
+
+```json
+{
+  "@openmrs/esm-patient-list-management-app": {
+    "myListCohortTypeUUID": "e71857cb-33af-4f2c-86ab-7223bcfa37ad",
+    "systemListCohortTypeUUID": "eee9970e-7ca0-4e8c-a280-c33e9d5f6a04"
+  }
+}
+```
+
+- `myListCohortTypeUUID` - UUID pour le type de cohorte "Ma liste" (par défaut : `"e71857cb-33af-4f2c-86ab-7223bcfa37ad"`)
+- `systemListCohortTypeUUID` - UUID pour le type de cohorte "Liste système" (par défaut : `"eee9970e-7ca0-4e8c-a280-c33e9d5f6a04"`)
+
+### Listes à afficher
+
+Configurez le nombre par défaut de listes affichées :
+
+```json
+{
+  "@openmrs/esm-patient-list-management-app": {
+    "patientListsToShow": 10
+  }
+}
+```
+
+La valeur par défaut est `10`.
+
+## Tableau de bord d'accueil
+
+Configurez la page d'accueil et les tableaux de bord par défaut.
+
+### Mode de navigation gauche
+
+Configurez le comportement de la barre de navigation gauche :
+
+```json
+{
+  "@openmrs/esm-home-app": {
+    "leftNavMode": "normal"
+  }
+}
+```
+
+Options :
+- `"normal"` - Navigation standard (par défaut)
+- `"collapsed"` - Toujours repliée (même sur les grands écrans)
+- `"hidden"` - Complètement masquée sur la page d'accueil
+
+### Tableau de bord par défaut par rôle
+
+Configurez quel tableau de bord les utilisateurs voient par défaut en fonction de leur rôle :
+
+```json
+{
+  "@openmrs/esm-home-app": {
+    "defaultDashboardPerRole": {
+      "Organizational: Registration Clerk": "appointments",
+      "Organizational: Provider": "service-queues"
+    }
+  }
+}
+```
+
+- Les clés sont les noms de rôles OpenMRS
+- Les valeurs sont les noms des tableaux de bord (ce qui apparaît dans l'URL après `/home/`)
+- Si un rôle n'est pas configuré, `"service-queues"` est la valeur par défaut
+
+## Gestion des lits
+
+Configurez les paramètres de lits et d'admission.
+
+### Tag de lieu d'admission
+
+Configurez quel tag de lieu est requis pour l'admission :
+
+```json
+{
+  "@openmrs/esm-bed-management-app": {
+    "admissionLocationTagName": "Admission Location"
+  }
+}
+```
+
+Les patients ne peuvent être admis aux soins hospitaliers que dans des lieux avec ce tag. La valeur par défaut est `"Admission Location"`.
+
+## Programmes
+
+Configurez l'inscription et la gestion des programmes patients.
+
+### Masquer le bouton Ajouter un programme
+
+Masquer le bouton "Ajouter" dans le widget Programmes :
+
+```json
+{
+  "@openmrs/esm-programs-app": {
+    "hideAddProgramButton": true
+  }
+}
+```
+
+La valeur par défaut est `false` (le bouton est visible).
+
+### Afficher le champ Statut du programme
+
+Afficher le champ Statut du programme dans les formulaires d'inscription au programme et de modification de l'inscription au programme, et l'afficher dans le tableau de données Programmes :
+
+```json
+{
+  "@openmrs/esm-programs-app": {
+    "showProgramStatusField": true
+  }
+}
+```
+
+La valeur par défaut est `false` (le champ de statut est masqué).
+

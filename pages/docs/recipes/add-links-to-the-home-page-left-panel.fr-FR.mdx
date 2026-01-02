@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Steps } from "nextra-theme-docs";
+import { Callout, Steps } from "nextra-theme-docs";
 
 # Ajout de liens au panneau de gauche de la page d'accueil
 
@@ -7,7 +7,7 @@ Ce guide vous explique comment ajouter un lien au [panneau de gauche](https://ze
 
 ## Exemple: Ajout d'un lien pour l'application Listes de patients
 
-This guide will walk you through adding a link to the [Patient Lists](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-list-app) app, which is a frontend module that's part of the O3 Patient Management monorepo. The Patient Lists app handles the creation and management of patient lists. This app has a landing screen that displays a tab view of all the lists that have been created. The landing screen also contains a button that allows you to create a new list. Clicking on a list will navigate you to the list details screen.
+Ce guide vous explique comment ajouter un lien vers l’application [Patient Lists](https://github.com/openmrs/openmrs-esm-patient-management/tree/main/packages/esm-patient-list-app), un module frontend du monorepo O3 Patient Management. L’application Patient Lists permet de créer et de gérer des listes de patients. Son écran d’accueil affiche un onglet avec toutes les listes créées, ainsi qu’un bouton pour en créer une nouvelle. En cliquant sur une liste, on accède à son écran de détails.
 
 Vous trouverez ci-dessous une capture d'écran de l'écran d'accueil de l'application Listes de patients:
 
@@ -54,63 +54,59 @@ Cette configuration `BrowserRouter` nous permettra de naviguer vers l'écran d'a
 
 ### Etape 2: Ajouter un lien `Listes de patients` au panneau de gauche
 
-Nous allons commencer par ajouter une exportation nommée au fichier `index.ts` de l'application Listes de patients qui ressemble à ce qui suit:
+Nous allons commencer par créer un fichier de métadonnées de tableau de bord et une fonction d'aide pour créer le lien du tableau de bord. Tout d'abord, créez un fichier `dashboard.meta.ts`:
 
-```ts {5-14} filename="index.ts"
-import { createLeftPanelLink } from "./left-panel.component";
-import { getSyncLifecycle } from "@openmrs/esm-framework";
+```ts filename="src/dashboard.meta.ts"
+export const dashboardMeta = {
+  path: 'patient-lists',
+  slot: 'patient-lists-dashboard-slot',
+  title: 'Patient lists',
+  basePath: `${window.spaBase}/home`,
+} as const;
+```
 
-import rootComponent from './root.component';
+Ensuite, créez un fichier `createDashboardLink.tsx`:
 
-export const root = getSyncLifecycle(rootComponent), options);
+```tsx filename="src/createDashboardLink.tsx"
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { DashboardExtension, type DashboardExtensionProps, type IconId } from '@openmrs/esm-framework';
 
-export const patientListLeftPanelLink = getSyncLifecycle(
-  createLeftPanelLink({
-    name: "patient-lists",
-    title: "Patient lists",
-    slot: "patient-lists-dashboard-slot",
-  }),
-  options
+export const createDashboardLink = (config: Omit<DashboardExtensionProps, 'icon'> & { icon?: IconId }) => () => (
+  <BrowserRouter>
+    <DashboardExtension path={config.path} title={config.title} basePath={config.basePath} icon={config.icon} />
+  </BrowserRouter>
 );
 ```
 
-Alors que `left-panel-link.component` ressemble à ceci:
+<Callout emoji="ℹ️" type="info">
+  **Note**: La propriété `icon` est optionnelle. Si elle est fournie, elle doit être un nom d'icône Carbon valide (par exemple, `"Calendar"`, `"User"`, `"List"`). L'icône sera affichée à côté du texte du lien dans le panneau de gauche.
+</Callout>
 
-```ts filename="left-panel-link.component.tsx"
-import React, { useMemo } from "react";
-import last from "lodash-es/last";
-import { BrowserRouter, useLocation } from "react-router-dom";
-import { ConfigurableLink } from "@openmrs/esm-framework";
+Maintenant, ajoutez une exportation nommée au fichier `index.ts` de l'application Listes de patients:
 
-export interface LinkConfig {
-  name: string;
-  title: string;
-}
+```ts filename="src/index.ts"
+import { getSyncLifecycle, getAsyncLifecycle } from "@openmrs/esm-framework";
+import { createDashboardLink } from "./createDashboardLink";
+import { dashboardMeta } from "./dashboard.meta";
 
-function LinkExtension({ config }: { config: LinkConfig }) {
-  const { name, title } = config;
-  const location = useLocation();
-  const spaBasePath = window.getOpenmrsSpaBase() + "home";
+const moduleName = '@openmrs/esm-patient-list-management-app';
 
-  const urlSegment = useMemo(() => decodeURIComponent(last(location.pathname.split("/"))), [location.pathname]);
+const options = {
+  featureName: 'patient list',
+  moduleName,
+};
 
-  return (
-    <ConfigurableLink
-      to={spaBasePath + "/" + name}
-      className={`cds--side-nav__link ${name === urlSegment && "active-left-nav-link"}`}
-    >
-      {title}
-    </ConfigurableLink>
-  );
-}
+// Utilisez getAsyncLifecycle pour le code splitting en production
+export const root = getAsyncLifecycle(() => import('./root.component'), options);
 
-export const createLeftPanelLink = (config: LinkConfig) => () =>
-  (
-    <BrowserRouter>
-      <LinkExtension config={config} />
-    </BrowserRouter>
-  );
+// Les liens du tableau de bord utilisent généralement getSyncLifecycle car ils sont légers
+export const patientListDashboardLink = getSyncLifecycle(createDashboardLink(dashboardMeta), options);
 ```
+
+<Callout emoji="ℹ️" type="info">
+  **Note**: Dans les applications de production, le composant `root` utilise généralement `getAsyncLifecycle` pour le code splitting et de meilleures performances. Le lien du tableau de bord utilise `getSyncLifecycle` car c'est un composant léger. Le guide montre un exemple simplifié; votre `index.ts` réel peut également inclure d'autres exports, la fonction `startupApp()` et la configuration `importTranslation`.
+</Callout>
 
 ### Etape 3: Connecter l'extension du lien `Patient lists` au panneau de gauche de la page d'accueil
 
@@ -124,19 +120,19 @@ Ensuite, nous devons connecter l'extension du lien `Patient lists` au panneau de
   },
   "extensions": [
     {
-      "component": "patientListLeftPanelLink",
-      "name": "patient-lists-home-left-panel-link",
+      "name": "patient-lists-dashboard-link",
+      "component": "patientListDashboardLink",
       "slot": "homepage-dashboard-slot",
       "meta": {
         "name": "patient-lists",
-        "title": "Patient lists",
-        "slot": "patient-lists-app-slot"
+        "slot": "patient-lists-dashboard-slot",
+        "title": "Patient lists"
       }
     },
     {
+      "name": "patient-lists-dashboard",
       "component": "root",
-      "name": "patient-lists-root",
-      "slot": "patient-lists-app-slot"
+      "slot": "patient-lists-dashboard-slot"
     }
     // ...
   ]
@@ -145,13 +141,15 @@ Ensuite, nous devons connecter l'extension du lien `Patient lists` au panneau de
 
 Quelques points à noter:
 
-- La propriété `component` est fixée à `patientListLeftPanelLink`, qui est l'export nommé que nous avons défini dans l'étape précédente.
-- La propriété `name` est fixée à `patient-lists-left-panel-link`, qui est le nom de l'extension.
+- La propriété `component` est fixée à `patientListDashboardLink`, qui est l'export nommé que nous avons défini dans l'étape précédente.
+- La propriété `name` est fixée à `patient-lists-dashboard-link`, qui est le nom de l'extension.
 - La propriété `slot` est fixée à `homepage-dashboard-slot`, qui est le nom du slot auquel nous voulons ajouter l'extension. Ce slot est l'endroit où les liens affichés sur le panneau de gauche de la page d'accueil O3 sont rendus.
-- La propriété `meta` est fixée à l'objet que nous avons passé à `createLeftPanelLink` à l'étape précédente. Cet objet contient les propriétés `name`, `slot`, et `title` qui sont requises par le composant `patientListLeftPanelLink`.
+- La propriété `meta` contient la configuration du tableau de bord:
+  - La propriété `name` est fixée à `patient-lists`, qui est le segment de chemin utilisé dans l'URL.
+  - La propriété `slot` est fixée à `patient-lists-dashboard-slot`, qui est le nom du slot où le contenu du tableau de bord de l'application Listes de patients sera rendu.
+  - La propriété `title` est fixée à `Patient lists`, qui est le texte d'affichage du lien.
 
-  - La propriété `name` est fixée à `patient-lists`, qui est le nom de l'application.
-  - La propriété `slot` est fixée à `patient-lists-dashboard-slot`, qui est le nom du slot auquel nous voulons ajouter l'extension. Ce slot est l'endroit où les liens qui sont affichés sur le panneau gauche de l'écran d'atterrissage de l'application Listes de patients sont rendus.
+La deuxième définition d'extension enregistre le composant `root` pour qu'il soit rendu dans le `patient-lists-dashboard-slot` lorsque l'application Listes de patients est active.
 
 ### Étape 4: Profit!
 

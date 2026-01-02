@@ -284,7 +284,7 @@ En rassemblant tout cela, nous obtenons la définition suivante de `extensions`:
       "name": "location-changer",
       "slot": "user-panel-slot",
       "component": "changeLocationLink",
-      "online": vrai,
+      "online": true,
       "offline": true,
       "order": 1
     }
@@ -335,7 +335,7 @@ Le fichier `routes.json` final ressemble à ceci:
       "name": "location-changer",
       "slot": "user-panel-slot",
       "component": "changeLocationLink",
-      "online": vrai,
+      "online": true,
       "offline": true,
       "order": 1
     }
@@ -379,10 +379,10 @@ const sharedOnlineOfflineProps = {
   online: {
     isLoginEnabled: true,
   },
-  hors ligne: {
+  offline: {
     isLoginEnabled: false,
   },
-} ;
+};
 
 function setupOpenMRS() {
   const moduleName = "@openmrs/esm-login-app" ;
@@ -604,17 +604,13 @@ export const changeLocationLink = getSyncLifecycle(
 
 ## Mettre à jour les dépendances principales
 
-Ensuite, vous devrez mettre à jour vers les dernières versions de `@openmrs/esm-framework` et `openmrs`. Pour ce faire, lancez
+Ensuite, vous devrez mettre à jour vers les dernières versions de `@openmrs/esm-framework` et `openmrs`. Pour ce faire, lancez :
 
 ```sh
 yarn up openmrs@next @openmrs/esm-framework@next
 ```
 
-Vérifiez que vous avez la dernière version du framework en lançant:
-
-```sh 
-yarn up openmrs@next @openmrs/esm-framework@next
-```
+Vérifiez que vous avez la dernière version du framework en lançant :
 
 ```sh
 yarn why openmrs
@@ -655,24 +651,24 @@ Si votre configuration Jest est dans un fichier JSON, vous pourriez vouloir le d
 
 ### Je reçois un `Module not found: Error: Impossible de résoudre l'erreur 'css-loader'`.
 
-Cette erreur signifie qu'il vous manque la dépendance [css-loader](https://www.npmjs.com/package/css-loader), que le framework utilise. To fix this, make sure you install `swc-node/loader` as a devDependency in your frontend module:
+Cette erreur signifie qu'il vous manque la dépendance [css-loader](https://www.npmjs.com/package/css-loader), que le framework utilise. Pour corriger cela, assurez-vous d'installer `css-loader` en tant que devDependency dans votre module frontend :
 
 ```sh
 yarn add -D css-loader
 ```
 
-### I'm getting a minified single-spa error `#10: Invalid mount lifecycle on parcel` when I run my frontend module:
+### Je reçois une erreur single-spa minifiée `#10: Invalid mount lifecycle on parcel` lorsque je lance mon module frontend :
 
 <br />
 <Image src="/named-export-error.png" alt="Screenshot of the error message" width={500} height={500} />
 
-This error means that your frontend module has an invalid mount lifecycle function. The usual culprit is a misconfigured named export in your app's `index.ts` file. Make sure that your named exports directly reference exports from invoking `getAsyncLifecycle` and `getSyncLifecycle`:
+Cette erreur signifie que votre module frontend a une fonction de cycle de vie de montage invalide. Le coupable habituel est un export nommé mal configuré dans le fichier `index.ts` de votre application. Assurez-vous que vos exports nommés référencent directement les exports provenant de `getAsyncLifecycle` et `getSyncLifecycle` :
 
 ```ts
-// This is incorrect. `root`. Remove the function call
+// Ceci est incorrect. `root`. Supprimez l'appel de fonction.
 export const root = () => getAsyncLifecycle(() => import("./root.component"), options);
 
-// This is correct way to import the component
+// Voici la bonne manière d'importer le composant
 export const root = getAsyncLifecycle(() => import("./root.component"), options);
 ```
 
@@ -683,4 +679,4 @@ Il s'agit d'une [erreur commune](https://github.com/search?q=org%3Aopenmrs+expor
 Pour voir plus d'exemples sur la façon de mettre à jour un module frontend vers la nouvelle structure, consultez les fichiers `index.ts` et `routes.json` dans n'importe lequel de nos [référentiels clés](/docs/key-repositories). Par exemple, voici les liens vers les fichiers `index.ts` et `routes.json` pour le module frontal `@openmrs/esm-patient-chart-app` dans le dépôt Patient Chart:
 
 - [index.ts](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-chart-app/src/index.ts)
-- [routes.json](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-chart-app/src/r)
+- [routes.json](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-chart-app/src/routes.json)

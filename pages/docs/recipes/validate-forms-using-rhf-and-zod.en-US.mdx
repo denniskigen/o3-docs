@@ -131,13 +131,13 @@ Create a custom resolver for React Hook Form that uses Zod for validation:
 
 ```tsx
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 
 const {
   handleSubmit,
   control,
   formState: { errors },
-} = useForm({
+} = useForm<z.infer<typeof changePasswordSchema>>({
   resolver: zodResolver(changePasswordSchema),
   defaultValues: {
     oldPassword: "",
@@ -147,26 +147,37 @@ const {
 });
 ```
 
-This code snippet creates a custom resolver using `zodResolver` from `@hookform/resolvers`. The resolver uses the Zod schema defined in Step 2 to validate the form data.
+This code snippet creates a custom resolver using `zodResolver` from `@hookform/resolvers`. The resolver uses the Zod schema defined in Step 2 to validate the form data. The `defaultValues` prop is optional but recommended to ensure the form fields are initialized with empty strings. The generic type parameter `<z.infer<typeof changePasswordSchema>>` provides type inference for the form data.
 
 ### Step 4
 
 Add the `handleSubmit` function to your form:
 
 ```tsx
-const onSubmit = async (data: z.infer<typeof changePasswordSchema>) => {
-  const { oldPassword, newPassword, passwordConfirmation } = data;
+import type { SubmitHandler } from "react-hook-form";
+
+const onSubmit: SubmitHandler<z.infer<typeof changePasswordSchema>> = async (data) => {
+  const { oldPassword, newPassword } = data;
 
   try {
     setIsChangingPassword(true);
     await changePassword(oldPassword, newPassword);
+    // Handle success (e.g., show success message, close modal)
   } catch (error) {
+    // Handle error (e.g., show error message)
     console.error(error);
   } finally {
     setIsChangingPassword(false);
   }
 };
+
+// Optional: Handle validation errors
+const onError = () => {
+  setIsChangingPassword(false);
+};
 ```
+
+The `SubmitHandler` type from React Hook Form provides better type safety and ensures the handler receives the correct data type. The `onError` callback is optional but useful for handling cases where validation fails.
 
 ### Step 5
 
@@ -175,7 +186,7 @@ Add the `Form` and `Controller` components to your form:
 ```tsx
 import { Controller } from "react-hook-form";
 
-<Form onSubmit={handleSubmit(onSubmit)}>
+<Form onSubmit={handleSubmit(onSubmit, onError)}>
   <Controller
     name="oldPassword"
     control={control}
@@ -223,6 +234,8 @@ import { Controller } from "react-hook-form";
 ```
 
 In this code snippet, the `Controller` component is used to connect the form fields to the React Hook Form. The `name` prop specifies the field name, the `control` prop specifies the form control, and the `render` prop specifies the input component to render. The `invalid` and `invalidText` props are used to display validation errors for each field.
+
+The `handleSubmit` function accepts two callbacks: `onSubmit` (called when validation passes) and `onError` (called when validation fails). This allows you to handle both successful submissions and validation errors appropriately.
 
 ### Step 6
 

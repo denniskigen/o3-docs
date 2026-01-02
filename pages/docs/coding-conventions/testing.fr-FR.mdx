@@ -1,0 +1,142 @@
+# Tests
+
+Nous utilisons une combinaison de tests unitaires, de tests d'intégration et de tests e2e pour assurer la fiabilité et la maintenabilité d'O3. Nous utilisons les outils suivants :
+
+- [Jest](https://jestjs.io) et [React Testing Library](https://testing-library.com/react) pour les tests unitaires et d'intégration.
+- [Playwright](https://playwright.dev) pour les tests e2e.
+
+Voici quelques lignes directrices générales pour les tests :
+
+### Tests unitaires et d'intégration
+
+- Évitez ces [pièges de test courants](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library) :
+
+  - N'utilisez pas la mauvaise assertion. Installez et utilisez [@testing-library/jest-dom](https://github.com/testing-library/jest-dom) pour étendre le `expect` de Jest avec des assertions pour tester les composants React.
+  - N'utilisez pas la mauvaise requête. Utilisez [cette ressource](https://testing-library.com/docs/guide-which-query) pour choisir la bonne requête pour l'élément que vous voulez tester.
+  - N'utilisez pas les variantes `query*` pour _quoi que ce soit_ sauf pour vérifier si un élément existe. Utilisez uniquement les variantes `query*` pour affirmer qu'un élément n'existe pas.
+  - N'utilisez pas `waitFor` pour attendre des éléments qui peuvent être interrogés avec `screen.find*`.
+
+  ```tsx
+  // ❌
+  const submitButton = await waitFor(() =>
+    screen.getByRole("button", { name: /submit/i })
+  );
+
+  // ✅
+  const submitButton = await screen.findByRole("button", { name: /submit/i });
+  ```
+
+  - Ne passez pas un callback vide à `waitFor`.
+
+  ```tsx
+  // ❌
+  await waitFor(() => {});
+  expect(window.fetch).toHaveBeenCalledWith("foo");
+  expect(window.fetch).toHaveBeenCalledTimes(1);
+
+  // ✅
+  await waitFor(() => expect(window.fetch).toHaveBeenCalledWith("foo"));
+  expect(window.fetch).toHaveBeenCalledTimes(1);
+  ```
+
+  - N'ajoutez pas `aria-*`, `role` et d'autres attributs d'accessibilité aux éléments sauf si l'application les utilise réellement.
+  - Utilisez les plugins ESLint de Testing Library : [eslint-plugin-testing-library](https://github.com/testing-library/eslint-plugin-testing-library) et [eslint-plugin-jest-dom](https://github.com/testing-library/eslint-plugin-jest-dom).
+  - N'utilisez pas la fonction `cleanup`. RTL s'occupe du nettoyage après chaque test.
+  - Utilisez `screen` pour interroger et déboguer les éléments. C'est la façon recommandée de trouver des éléments dans vos tests car cela garantit que vous travaillez avec le document actuel et fournit de meilleurs messages d'erreur.
+
+  ```tsx
+  // ❌
+  const { getByText } = render(<MyComponent />);
+  const element = getByText(/hello/i);
+
+  // ✅
+  render(<MyComponent />);
+  const element = screen.getByText(/hello/i);
+  ```
+
+  - Ne pas envelopper inutilement les choses dans `act`. Suivez [ce guide](https://kentcdodds.com/blog/fix-the-not-wrapped-in-act-warning) à la place pour corriger les avertissements `Not wrapped in act(...)`.
+  - N'utilisez pas `render` ou `renderHook` pour envelopper les composants dans les tests.
+
+- [Évitez le test user](https://kentcdodds.com/blog/avoid-the-test-user).
+- Évitez de tester les détails d'implémentation. Testez plutôt l'API publique du composant. Cela facilite le refactoring du composant sans avoir à réécrire les tests.
+- Lors du stub de fonctionnalités de `@openmrs/esm-framework`, suivez les modèles de mock décrits [ici](/docs/frontend-modules/unit-and-integration-testing#mocking-patterns).
+- Écrivez moins de tests, plus complets qui couvrent des scénarios complets, plutôt que de nombreux petits tests isolés. Lisez ce [billet de blog de l'auteur de Testing Library, Kent C. Dodds](https://kentcdodds.com/blog/write-fewer-longer-tests) pour plus d'informations.
+  - Groupez les scénarios de test connexes ensemble.
+  - Construisez progressivement des scénarios complexes.
+  - Utilisez les hooks de test (`beforeEach`, `afterEach`, `beforeAll`, `afterAll`) pour réduire la duplication.
+- Ne nettoyez pas les mocks dans les hooks `beforeEach`. La plupart des mocks devraient être nettoyés automatiquement par le framework de test si vous avez ceci défini dans votre configuration jest de niveau racine :
+
+  ```ts
+  // jest.config.js
+  clearMocks: true,
+  ```
+
+- Ne mockez pas les composants. Au lieu de cela, rendez-les avec la vraie implémentation. Cela facilite la détection des régressions lors du refactoring des composants.
+
+  ```tsx
+  // ❌
+  jest.mock("./my-component", () => ({
+    __esModule: true,
+    default: () => <div>My Component</div>,
+  }));
+  ```
+
+  ```tsx
+  // ✅
+  render(<MyComponent />);
+  ```
+
+### Tests e2e
+
+- Suivez les [meilleures pratiques](https://playwright.dev/docs/test-best-practices) de test e2e décrites dans la documentation Playwright.
+- Structurez les grandes suites de tests en utilisant des modèles d'objets de page :
+
+  - Créez des classes séparées pour chaque page/composant majeur
+  - Encapsulez les sélecteurs et les actions communes
+
+    ```ts filename="e2e/pages/conditions-page.ts"
+    import { type Page } from "@playwright/test";
+
+    export class ConditionsPage {
+      constructor(readonly page: Page) {}
+
+      readonly conditionsTable = () =>
+        this.page.getByRole("table", { name: /conditions summary/i });
+
+      async goTo(uuid: string) {
+        await this.page.goto(`/openmrs/spa/patient/${uuid}/chart/Conditions`);
+      }
+    }
+    ```
+
+- Suivez les [meilleures pratiques de test e2e](https://playwright.dev/docs/test-best-practices) de Playwright :
+  - Utilisez des assertions web-first plutôt que des attentes manuelles
+  - Implémentez une gestion d'erreur appropriée et des mécanismes de nouvelle tentative
+  - Utilisez des fixtures de test pour la configuration/nettoyage communs
+
+    ```ts
+    test.beforeEach(async ({ api }) => {
+      patient = await generateRandomPatient(api);
+    });
+
+    test("Record, edit and delete a condition", async ({ page }) => {
+      const conditionsPage = new ConditionsPage(page);
+      const headerRow = conditionsPage.conditionsTable().locator("thead > tr");
+      const dataRow = conditionsPage.conditionsTable().locator("tbody > tr");
+
+      await test.step("When I go to the Conditions page", async () => {
+        await conditionsPage.goTo(patient.uuid);
+      });
+
+      await test.step("And I click on the `Record conditions` button", async () => {
+        await conditionsPage.page.getByText(/record conditions/i).click();
+      });
+
+      await test.step("Then I should see the conditions form launch in the workspace", async () => {
+        await expect(
+          conditionsPage.page.getByText(/record a condition/i)
+        ).toBeVisible();
+      });
+    });
+    ```
+

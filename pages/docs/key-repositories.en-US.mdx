@@ -1,6 +1,6 @@
 # Key repositories
 
-The code for O3 is hosted in a number of community-maintained GitHub repositories. The O3 application uses a microfrontends-based architecture. This means that is made up of many smaller, independent applications called "frontend modules". These frontend modules are grouped into different repositories based on which part of O3 they support.
+The code for O3 is hosted in a number of community-maintained GitHub repositories. The O3 application uses a microfrontends-based architecture. This means that it is made up of many smaller, independent applications called "frontend modules". These frontend modules are grouped into different repositories based on which part of O3 they support.
 
 The code in each repository is focused on a particular concern. For example, the [Patient Chart](https://github.com/openmrs/openmrs-esm-patient-chart) repository contains frontend modules for the features of the patient chart, such as allergies, appointments, conditions, forms, medications, notes, programs, test results, and vitals. This is an example of a monorepo, where multiple packages are contained in a single repository; most O3 repositories are structured in this way. The [Core](https://github.com/openmrs/openmrs-esm-core) repository is special. It contains a few frontend modules, but also the core application logic that loads frontend modules, as well as the [O3 tooling](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/tooling/openmrs) and the [JavaScript API](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md).
 
@@ -17,7 +17,11 @@ Repositories you should know in O3 include:
 - [Form Builder](#form-builder) - enables users to build OpenMRS form schemas interactively using an embedded JSON schema editor or an interactive builder UI. It also provides a render tab that renders your form schema using the React Form Engine. Users can publish their schemas to their backend server, enabling them to access their forms and collect data in the patient chart in the Clinical Forms workspace.
 - [Fast Data Entry app](#fast-data-entry) - enables retrospective data entry workflows. Powered by the Angular Form Engine.
 - [Medication Dispensing app](#medication-dispensing) - enables implementers to track medication dispensed within OpenMRS.
+- [Billing app](#billing-app) - enables healthcare facilities to manage patient billing, payments, and service pricing. It provides functionality for generating bills, tracking payments, managing billable services, and handling financial transactions within healthcare settings.
+- [Stock Management](#stock-management) - provides a frontend module for managing inventory and stock levels within healthcare facilities. It integrates with the Community backend module for stock management functionality.
+- [User Onboarding](#user-onboarding) - provides interactive tutorials and onboarding workflows to help new users learn how to use O3. It includes configurable step-by-step guides that can be customized for different implementations.
 - [O3 Distro Reference application](#distro-reference-application) - the reference implementation of O3. Implementers can use this as a starting point for their own distributions.
+- [Content Packages](#content-packages) - Maven artifacts that bundle metadata as configuration files. These packages provide baseline metadata required to run O3, including concepts, locations, forms, and other configuration data.
 - [Admin Tools](#admin-tools) - renders an interstitial page that links users to various frontend modules that aren't part of the core EMR such as the Form Builder, Cohort Builder, OCL Management dashboard, Stock Management dashboard, and more. It also provides a link to the O2 Legacy Admin UI for admin users.
 - [Cohort Builder](#cohort-builder) - a tool that enables users to build and manage dynamic patient cohorts (groups) of patients based on multiple clinical and demographic criteria.
 - [Module Management](#module-management) - a learning frontend module based on the legacy OpenMRS Module management UI. The code in this repo is annotated with comments and can serve as a good starting point for new developers looking to understand how to build frontend modules.
@@ -30,15 +34,16 @@ Core contains both typical frontend modules as well as packages that don't rende
 
 - [Login](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-login-app) - responsible for rendering the login page when a user first launches the application, and the location picker after a user logs in.
 - [Devtools](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-devtools-app) - renders the [import-map-overrides](https://github.com/single-spa/import-map-overrides) UI which enables developers to override frontend modules at runtime, essentially replacing them with local versions. This mechanism allows developers to test their local changes to frontend modules against the most up-to-date production version of the application without needing to rebuild and redeploy the entire application.
+- [Help Menu](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-help-menu-app) - provides a help menu button and popup that displays help-related extensions. It exposes a `help-menu-slot` extension slot where modules can register help items such as release notes, documentation links, and contact information.
 - [Implementer Tools](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-implementer-tools-app) - provides a UI for implementers and developers to tweak configuration properties dynamically at runtime and viewing administrative information about their frontend. It also provides an embedded JSON editor, which allows developers to edit configuration properties via code, a UI editor mode for viewing which extension slots exist in the application and their current configurations, a UI for toggling feature flags, a backend module viewer, and a frontend module viewer that shows detailed configuration and dependency information for each installed module.
 - [Primary Navigation](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-primary-navigation-app) - renders the top navigation menu in the application, featuring the compact Patient search widget, links to the Implementer tools menu, Registration page, User menu, and the App switcher.
 - [Offline Tools](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps/esm-offline-tools-app) - responsible for rendering the widgets related to offline mode.
 
 In addition to these UI-related packages, Core also includes the following non-UI packages:
 
-- [Core Framework](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/framework) - aggregates packages that make up the core [O3 framework API](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md), including shared API objects (such as the patient and visit objects), the breadcrumbs menu, the extension system, shared React utils, global state management tools, error handling, and the style guide, among other things. The functionality exported by these packages gets aggregated into an NPM JavaScript package called [esm-framework](http://npm.im/@openmrs/esm-framework) that gets reused by most frontend modules.
+- [Core Framework](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/framework) - aggregates packages that make up the core [O3 framework API](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md), including shared API objects (such as the patient and visit objects), the breadcrumbs menu, the extension system, shared React utils, global state management tools, error handling, and the style guide, among other things. The functionality exported by these packages gets aggregated into an NPM JavaScript package called [@openmrs/esm-framework](https://www.npmjs.com/package/@openmrs/esm-framework) that gets reused by most frontend modules.
 - [App Shell](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/shell) - the app shell is the entrypoint for the application. It is responsible for loading and registering frontend modules in the import map, coordinating the application lifecycle, handling core routing and module loading mechanics, and more. Read the [app shell guide](docs/app-shell) for more information.
-- [Tooling](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/tooling) - provides a unified command-line interface for various frontend development and deployment tasks. The CLI gets aggregated into an NPM package called [openmrs](http://npm.im/openmrs). Developers can use the CLI to fire up Webpack dev servers for local development, assemble frontend modules for a distribution, build the application, and more.
+- [Tooling](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/tooling) - provides a unified command-line interface for various frontend development and deployment tasks. The CLI gets aggregated into an NPM package called [openmrs](https://www.npmjs.com/package/openmrs). Developers can use the CLI to fire up Webpack dev servers for local development, assemble frontend modules for a distribution, build the application, and more.
 
 ### Home
 
@@ -120,6 +125,18 @@ The [Fast Data Entry app](https://github.com/openmrs/openmrs-esm-fast-data-entry
 
 The [Medication Dispensing app](https://github.com/openmrs/openmrs-esm-dispensing-app) is a simple tool for tracking dispensed medications. It's designed to serve small sites that don't want to deal with implementing a whole external supply chain/ERP system. It simply tracks what needs to be dispensed and what has already been dispensed. The primary target users for this functionality are implementations and facilities that have an on-site pharmacy and don't charge the patient/customer for the services, and who want to dispense medications based on orders within the same OpenMRS instance. Billing and inventory are out of scope.
 
+### Billing app
+
+The [Billing app](https://github.com/openmrs/openmrs-esm-billing-app) is a frontend module designed to streamline financial operations within healthcare settings. It facilitates the management of patient billing, payments, and service pricing. The module integrates with the OpenMRS platform and allows healthcare providers to generate bills, track payments, manage billable services, and handle various financial transactions. It depends on the [OpenMRS Billing backend module](https://github.com/openmrs/openmrs-module-billing) to function properly. The billing app provides features such as billing dashboards, bill history tracking, invoice generation, payment management, and billable services administration.
+
+### Stock Management
+
+The [Stock Management app](https://github.com/openmrs/openmrs-esm-stock-management) is a frontend module for managing inventory and stock levels within healthcare facilities. It provides functionality for tracking stock items, managing stock operations (receipts, issues, adjustments), monitoring stock levels, and generating stock reports. The module integrates with the [Community backend module for stock management](https://github.com/METS-Programme/openmrs-module-ugandaemr-stock-management) to provide comprehensive inventory management capabilities for healthcare facilities.
+
+### User Onboarding
+
+The [User Onboarding app](https://github.com/openmrs/openmrs-esm-user-onboarding) provides interactive tutorials and onboarding workflows to help new users learn how to use O3. It includes configurable step-by-step guides that can be customized for different implementations. The onboarding system supports auto-transition features, allowing tutorials to automatically progress when specific elements appear on the screen. This makes it easier for implementers to create tailored onboarding experiences for their users, helping them understand key features and workflows in the O3 application.
+
 ### Distro Reference Application
 
 This project holds the build configuration for the OpenMRS 3.0 reference application, found on https://dev3.openmrs.org and https://o3.openmrs.org. This distribution consists of four docker images:
@@ -128,6 +145,18 @@ This project holds the build configuration for the OpenMRS 3.0 reference applica
 - `backend` - This image is the OpenMRS backend. It is built from the main Dockerfile included in the root of the project and based on the core OpenMRS Docker file. Additional contents for this image are drawn from the distro sub-directory which includes a full Initializer configuration for the reference application intended as a starting point.
 - `frontend` - This image is a simple nginx container that embeds the 3.x frontend, including the modules described in the file.
 - `proxy` - This image is an even simpler nginx reverse proxy that sits in front of the backend and frontend containers and provides a common interface to both. Basically, this helps mitigate CORS issues.
+
+### Content Packages
+
+Content packages are Maven artifacts that bundle metadata as configuration files. They are referenced in `distro.properties` and loaded automatically when the backend starts. Content packages can include both backend metadata (loaded by the Initializer module) and frontend configuration files.
+
+The reference application uses two content packages:
+
+- [Reference Application Content](https://github.com/openmrs/openmrs-content-referenceapplication) - Contains the baseline metadata necessary to run O3. This includes essential configuration such as the "Login Location" tag, CIEL concept sets, and other core metadata required for the system to function. This is the minimum required content package.
+
+- [Reference Application Demo Content](https://github.com/openmrs/openmrs-content-referenceapplication-demo) - Contains optional demo/starter kit metadata including labs, diagnoses, drugs, and other sample data useful for demos and quick starts. This package also includes frontend configuration for extension slot setup. This is optional and primarily used for demonstration purposes.
+
+Content packages are loaded by the OpenMRS Initializer module and can be customized or extended for specific implementations. They provide a standardized way to share metadata configurations across different OpenMRS instances.
 
 ### Admin Tools
 

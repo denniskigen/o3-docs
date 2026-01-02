@@ -1,33 +1,30 @@
 import { Callout, Steps } from "nextra-theme-docs";
+import DeprecationWarning from "../../../components/deprecation-warning";
 
-<Callout emoji="⚠️" type="warning">
-  Ceci n'est plus la source de vérité activement maintenue pour les documents de développement O3. Cet effort a été
-  déplacé vers le Wiki OpenMRS à l'adresse suivante https://openmrs.atlassian.net/wiki/x/K4L-C
-</Callout>
+# Tests de bout en bout avec Playwright
 
-# Test de bout en bout avec Playwright
+[Playwright](https://playwright.dev) est un framework de test pour écrire des tests fiables de bout en bout en JavaScript. L'équipe QA d'OpenMRS a contribué à standardiser Playwright sur plusieurs de nos dépôts clés.
 
-[Playwright](https://playwright.dev) est un cadre de test qui vous permet d'écrire des tests fiables de bout en bout en JavaScript. Le bon travail de l'équipe QA d'OpenMRS signifie que nous avons maintenant Playwright configuré sur la plupart de nos dépôts clés.
+<DeprecationWarning href="https://openmrs.atlassian.net/wiki/x/K4L-C" locale="fr-FR" />
 
-Cela signifie que nous pouvons maintenant écrire des tests e2e pour les principaux parcours utilisateurs dans le frontend OpenMRS. Ces tests sont configurés pour s'exécuter à la fois sur le commit et le merge.
-Les développeurs sont encouragés à continuer à faire passer les tests et, dans la mesure du possible, à les étendre pour qu'ils correspondent à de nouveaux cas d'utilisation.
-Idéalement, chaque demande d'extension devrait être accompagnée des tests qui affirment que la logique présentée fonctionne comme prévu.
+Cela signifie que nous pouvons écrire des tests E2E pour les principaux parcours utilisateurs dans le frontend OpenMRS. Ces tests sont configurés pour s'exécuter sur les commits et les merges. Gardez-les au vert et, lorsque vous ajoutez un nouveau comportement, étendez les tests pour le couvrir. Idéalement, chaque pull request devrait inclure les tests qui prouvent que le changement fonctionne.
 
-Pour commencer, vous aurez besoin d'installer Playwright:
+Pour commencer, installez Playwright:
 
 ```bash
 npx playwright install
 ```
 
-Nous vous recommandons d'installer le plugin officiel Playwright [VS Code plugin](https://playwright.dev/docs/getting-started-vscode). Cela vous donnera accès au gestionnaire de tests Playwright, que vous pourrez utiliser pour exécuter vos tests.
-Vous pouvez également utiliser la commande `npx playwright test` pour exécuter vos tests. Nous vous recommandons également de suivre les [meilleures pratiques](https://playwright.dev/docs/best-practices) décrites dans la documentation de Playwright.
-Cela vous aidera à écrire des tests fiables et faciles à maintenir.
+Nous recommandons:
+
+- D'installer le plugin Playwright officiel pour [VS Code](https://playwright.dev/docs/getting-started-vscode) pour exécuter et déboguer vos tests.
+- D'exécuter les tests avec `npx playwright test`.
+- De suivre les [bonnes pratiques](https://playwright.dev/docs/best-practices) Playwright pour garder des tests fiables et maintenables.
 
 ## Rédaction de tests
 
-En général, il est recommandé de lire la [documentation officielle de Playwright](https://playwright.dev/docs/intro)
-avant d'écrire de nouveaux cas de test. Le projet utilise l'exécuteur de test officiel Playwright et,
-suit généralement une structure de projet très simple:
+Il est recommandé de lire la [documentation officielle de Playwright](https://playwright.dev/docs/intro)
+avant d'écrire de nouveaux cas de test. Le projet utilise l'exécuteur de test officiel Playwright et suit une structure de projet simple:
 
 ```
 e2e
@@ -46,18 +43,13 @@ e2e
 |__ specs
 |   ^ Contains the actual test cases/specs. New tests should be placed in this folder.
 |__ support
-    ^ Contains support files that requires to run e2e tests, e.g. docker compose files.
+    ^ Contains support files that are required to run E2E tests, e.g. docker-compose files.
 ```
 
 Lorsque vous voulez écrire un nouveau scénario de test, commencez par créer une nouvelle spécification dans `./specs`.
-En fonction de ce que vous voulez réaliser, vous pouvez créer de nouvelles fixtures et/ou de nouveaux
-des modèles d'objets de page. Pour voir des exemples, jetez un oeil au code existant pour voir comment ces différents concepts fonctionnent ensemble.
-différents concepts.
+Selon vos besoins, vous pouvez créer de nouvelles fixtures et/ou de nouveaux modèles d'objets de page. Pour voir des exemples, jetez un oeil au code existant et observez comment ces concepts fonctionnent ensemble.
 
-Les fichiers spec contiennent des scénarios écrits dans une syntaxe de type BDD. Dans cette syntaxe, nous utilisons les appels `test.step` de Playwright et mettons l'accent sur l'utilisateur en utilisant le mot-clé "I".
-Pour plus d'informations sur la syntaxe de type BDD, vous pouvez consulter la documentation à l'adresse https://cucumber.io/docs/gherkin/reference/.
-Cette ressource fournit des informations détaillées sur Gherkin, le langage utilisé pour écrire les spécifications BDD.
-L'extrait de code ci-dessous montre comment cette syntaxe de type BDD est utilisée pour écrire un cas de test:
+Les fichiers spec utilisent souvent un style BDD. Dans ce style, nous utilisons les appels `test.step` de Playwright et une voix utilisateur avec le "I". Pour plus d'informations sur la syntaxe BDD, consultez https://cucumber.io/docs/gherkin/reference/. L'extrait ci-dessous illustre ce style:
 
 ```ts
 test("Search patient by patient identifier", async ({ page, api }) => {
@@ -67,26 +59,26 @@ test("Search patient by patient identifier", async ({ page, api }) => {
   const lastName = patient.person.display.split(" ")[1];
   const homePage = new HomePage(page);
 
-  await test.step("When I visit the home page", async () => {
+  await test.step("Quand je visite la page d'accueil", async () => {
     await homePage.goto();
   });
 
-  await test.step("And I enter a valid patient identifier into the search field", async () => {
+  await test.step("Et je saisis un identifiant patient valide dans le champ de recherche", async () => {
     await homePage.searchPatient(openmrsIdentifier);
   });
 
-  await test.step("Then I should see only the patient with the entered identifier", async () => {
+  await test.step("Alors je ne vois que le patient avec l'identifiant saisi", async () => {
     await expect(homePage.floatingSearchResultsContainer()).toHaveText(/1 search result/);
     await expect(homePage.floatingSearchResultsContainer()).toHaveText(new RegExp(firstName));
     await expect(homePage.floatingSearchResultsContainer()).toHaveText(new RegExp(lastName));
     await expect(homePage.floatingSearchResultsContainer()).toHaveText(new RegExp(openmrsIdentifier));
   });
 
-  await test.step("When I click on the patient", async () => {
+  await test.step("Quand je clique sur le patient", async () => {
     await homePage.clickOnPatientResult(firstName);
   });
 
-  await test.step("Then I should be in the patient's chart page", async () => {
+  await test.step("Alors je devrais être sur la page du dossier patient", async () => {
     await expect(homePage.page).toHaveURL(
       `${process.env.E2E_BASE_URL}/spa/patient/${patient.uuid}/chart/Patient Summary`
     );
@@ -94,26 +86,34 @@ test("Search patient by patient identifier", async ({ page, api }) => {
 });
 ```
 
-## Exécution des tests
+## Prérequis pour exécuter en local
 
-Pour exécuter les tests e2e localement, vous devez démarrer un serveur de développement exécutant le module frontend dont vous souhaitez exécuter les tests.
+Avant d'exécuter les tests E2E en local, assurez-vous d'avoir :
+
+- Un backend OpenMRS en cours d'exécution (dev3 ou local).
+- Un serveur de développement frontend pour le module testé.
+- Les variables d'environnement requises configurées (au minimum `E2E_BASE_URL`).
+
+## Exécuter les tests localement
+
+Pour exécuter les tests E2E localement, démarrez un serveur de développement pour le module frontend que vous souhaitez tester.
 
 <Steps>
 
-## Démarrer le serveur de développement
+### Démarrer le serveur de développement
 
 ```sh
 yarn start --sources "packages/esm-patient-conditions-app"
 ```
 
-## Remplacer l'E2E_BASE_URL
+### Remplacer l'E2E_BASE_URL dans votre terminal
 
 ```sh
 # 8080 est le port par défaut pour le serveur de développement
 export E2E_BASE_URL=http://localhost:8080
 ```
 
-## Exécuter les tests en modes [headed](https://playwright.dev/docs/ci#running-headed) et [UI](https://playwright.dev/docs/test-ui-mode) :
+### Exécuter les tests en modes [headed](https://playwright.dev/docs/ci#running-headed) et [UI](https://playwright.dev/docs/test-ui-mode) :
 
 ```sh
 yarn test-e2e --headed --ui
@@ -125,13 +125,13 @@ Pour exécuter un seul fichier de test, passez le nom du fichier de test que vou
 yarn test-e2e conditions-form.spec.ts
 ```
 
-Pour exécuter un ensemble de fichiers de test de différents répertoires, passez les noms des répertoires dans lesquels vous souhaitez exécuter les tests.
+Pour exécuter un ensemble de fichiers de test de différents répertoires, passez les répertoires que vous souhaitez inclure.
 
 ```sh
 yarn test-e2e specs/conditions specs/programs
 ```
 
-Pour exécuter des fichiers qui contiennent le texte `conditions` dans le nom de fichier, passez simplement ces mots-clés à l'interface de ligne de commande (CLI) :
+Pour exécuter tous les fichiers qui contiennent `conditions` dans le nom, passez ce mot-clé à la CLI :
 
 ```sh
 yarn test-e2e conditions
@@ -145,19 +145,23 @@ yarn test-e2e conditions -g "Enregistrer et modifier une condition"
 
 </Steps>
 
-## Utilisation des données de démonstration
+## Données de test
 
-Pour vous assurer que le test contient les métadonnées nécessaires, vous pouvez suivre les procédures décrites ci-dessous:
+Pour vous assurer que les tests disposent des données nécessaires, utilisez l'une de ces approches :
 
-1. Utiliser l'interface utilisateur - Supposons que le scénario de test implique la modification des informations relatives au patient. Dans ce cas, vous pouvez utiliser l'interface utilisateur pour créer un nouveau dossier patient à des fins de test.
-2. Exploiter les données de démonstration - Si le scénario de test ne nécessite que la visualisation de données, les données de démonstration disponibles dans la RefApp peuvent suffire. Consultez le module de données de démonstration pour en savoir plus.
-3. Générer les données nécessaires - Si les solutions ci-dessus sont inadéquates, vous pouvez utiliser l'API pour créer les données nécessaires avant le test.
+1. Utiliser l'interface utilisateur - Si le scénario implique la modification d'informations patient, créez un dossier patient via l'UI.
+2. Utiliser les données de démonstration - Si le test est en lecture seule, les données de démo de la RefApp peuvent suffire. Consultez le module de données de démonstration.
+3. Créer les données via l'API - Si nécessaire, générez les données avant le test via l'API.
 
 ## Débogage des tests
 
 Reportez-vous à [cette documentation](https://playwright.dev/docs/debug) pour savoir comment déboguer un test.
 
-## Afficher les rapports de test à partir de GitHub Actions / Bamboo
+## Artifacts de test
+
+Lorsque les tests échouent, Playwright peut générer des traces, des captures d'écran et des vidéos selon la configuration. Ces artifacts sont généralement écrits sous l'espace de travail `e2e` dans les répertoires de sortie configurés pour le dépôt. Vérifiez la configuration Playwright du dépôt si vous devez modifier ou localiser ces chemins.
+
+## Afficher les rapports de test depuis GitHub Actions et Bamboo
 
 Pour télécharger le rapport à partir d'une action GitHub ou d'un plan Bamboo, procédez comme suit:
 
@@ -167,7 +171,7 @@ Pour télécharger le rapport à partir d'une action GitHub ou d'un plan Bamboo,
 
 Le rapport vous présentera un résumé complet de vos tests, y compris des informations sur les tests qui ont réussi, échoué, ont été ignorés ou étaient défectueux. Vous pouvez explorer les détails de chaque test, y compris les erreurs ou les échecs, les enregistrements vidéo, les traces et les étapes de chaque test. Il vous suffit de cliquer sur un test pour en afficher les détails.
 
-## Ce qu'il faut faire et ce qu'il ne faut pas faire
+## À faire et à ne pas faire
 
 - Veillez à ce que tous les cas de test soient rédigés de manière claire et concise, avec des instructions étape par étape facilement compréhensibles.
 - Utiliser une variété de cas de test pour couvrir tous les scénarios possibles, y compris les scénarios les plus favorables, les plus défavorables et les cas limites.
@@ -185,7 +189,7 @@ Le rapport vous présentera un résumé complet de vos tests, y compris des info
 - Réviser et mettre à jour en permanence le plan de test pour s'assurer qu'il couvre toutes les fonctionnalités et tous les scénarios pertinents.
 - Travailler en collaboration avec l'équipe O3 pour s'assurer que tout problème ou défaut est identifié et résolu rapidement.
 
-## Automatiser les tests E2E avec les actions GitHub
+## Automatiser les tests E2E avec GitHub Actions
 
 L'automatisation des tests de bout en bout (E2E) à l'aide des actions GitHub constitue un moyen efficace de garantir la fiabilité des modifications logicielles.
 
@@ -194,37 +198,37 @@ L'automatisation des tests de bout en bout (E2E) à l'aide des actions GitHub co
 Nos tests E2E sont exécutés dans un environnement dockerisé pour chaque pull request et commit dans les dépôts O3.
 Cette approche offre plusieurs avantages par rapport aux méthodes traditionnelles:
 
-- **Dépendance réduite sur le serveur Dev3:** En utilisant un environnement dockerisé, les tests E2E ne dépendent pas de l'état ou de la disponibilité du serveur dev3.
-  Cette indépendance garantit que les tests peuvent se dérouler même si le serveur dev3 rencontre des problèmes.
+- **Dépendance réduite au serveur Dev3:** En utilisant un environnement dockerisé, les tests E2E ne dépendent pas de l'état ou de la disponibilité du serveur Dev3.
+  Cette indépendance garantit que les tests peuvent se dérouler même si le serveur Dev3 rencontre des problèmes.
 
 - **Exécution isolée des tests:** L'exécution des tests sur les PR et les commits dans des conteneurs Docker isolés élimine les conflits entre les données.
   Cette isolation évite les scénarios où les données de test entrent en conflit avec d'autres tests ou activités de développement en cours.
 
-- **Impact minimisé des échecs:** Les échecs des tests E2E n'ont pas d'impact sur l'état ou la stabilité du serveur dev3.
+- **Impact minimisé des échecs:** Les échecs des tests E2E n'ont pas d'impact sur l'état ou la stabilité du serveur Dev3.
   Cette séparation garantit que l'environnement de développement principal n'est pas affecté par les défaillances des tests.
 
 ### Optimisation du processus de test
 
 Pour améliorer l'efficacité du processus de test E2E, nous avons mis en œuvre plusieurs méthodes d'optimisation:
 
-1. **Images Docker pré-remplies:** Les images Docker du backend et de la base de données utilisées pour les tests e2E automatisés sont pré-remplies avec les données et les configurations nécessaires.
+1. **Images Docker pré-remplies:** Les images Docker du backend et de la base de données utilisées pour les tests E2E automatisés sont pré-remplies avec les données et les configurations nécessaires.
    Il n'est donc pas nécessaire de générer des données lors de la configuration initiale de l'environnement de test.
    Par conséquent, le temps de configuration est considérablement réduit, ce qui permet une création rapide de l'instance de test.
 
-2. \*\*Pour exécuter les tests automatisés, une version dynamique et légère du frontend est utilisée.
-   Cette version inclut exclusivement les applications et les changements présents dans le référentiel actuel, ainsi que les applications esm essentielles comme l'application de navigation principale.
-   Cette image frontale est construite pendant le flux de travail des actions GitHub des tests E2E.
+2. **Frontend léger et dynamique:** Pour exécuter les tests automatisés, une version dynamique et légère du frontend est utilisée.
+   Cette version inclut uniquement les applications et les changements présents dans le dépôt actuel, ainsi que des applications essentielles comme la navigation principale.
+   Cette image frontale est construite pendant le workflow GitHub Actions des tests E2E.
 
-Les images docker pré-remplies du backend et de la base de données, ainsi que l'image frontale légère construite dynamiquement,
+Les images Docker pré-remplies du backend et de la base de données, ainsi que l'image frontale légère construite dynamiquement,
 sont combinées dans la même pile docker-compose et utilisées pour configurer l'environnement de test E2E.
 
 #### Détails supplémentaires de la mise en œuvre
 
-**Génération d'images Docker:** Les images Docker pré-remplies sont créées et poussées vers le Docker Hub
-à travers une étape bambou dédiée dans le job bambou [REFAPP-D3X](https://ci.openmrs.org/browse/REFAPP-D3X).
+**Génération d'images Docker:** Les images Docker pré-remplies sont créées et poussées vers Docker Hub
+à travers une étape Bamboo dédiée dans le job Bamboo [REFAPP-D3X](https://ci.openmrs.org/browse/REFAPP-D3X).
 Cette étape implique un script qui récupère les dernières versions du frontend et du backend.
-Il s'exécute ensuite et attend la génération des données avant de construire les images docker `:nightly-with-data` du backend et de la base de données.
-Ces images sont ensuite poussées vers le Docker Hub. Plus de détails à ce sujet peuvent être trouvés [ici](https://talk.openmrs.org/t/using-pre-filled-docker-images-for-running-e2e-tests/40003).
+Il s'exécute ensuite et attend la génération des données avant de construire les images Docker `:nightly-with-data` du backend et de la base de données.
+Ces images sont ensuite poussées vers Docker Hub. Plus de détails sont disponibles [ici](https://talk.openmrs.org/t/using-pre-filled-docker-images-for-running-e2e-tests/40003).
 
 ## Dépannage
 
@@ -235,3 +239,10 @@ yarn test-e2e --headed --debug
 ```
 
 Cette approche devrait éviter les problèmes causés par Webpack et les modifications de fichiers statiques.
+
+Si votre serveur de dev continue à se recharger en boucle parce que Playwright écrit des artifacts dans un dossier surveillé, une solution locale courante consiste à définir `outputDir` en dehors du module frontend dans `playwright.config.ts`. C’est un problème connu lié au file watching. Pensez à annuler ce changement avant de committer.
+
+```ts
+// Solution locale uniquement (ne pas committer)
+outputDir: "../e2e/output",
+```

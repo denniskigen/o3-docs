@@ -1,11 +1,31 @@
 # Chargement des modules frontaux dans le shell de l'application
 
-Les modules frontaux dans O3 sont chargés dynamiquement dans l'app shell en utilisant [Webpack Module Federation (MF)](https://webpack.js.org/concepts/module-federation/). La fédération de modules est une architecture JavaScript qui vous permet de partager du code entre des applications JavaScript déployées séparément. Cette architecture peut être utilisée pour créer des microfrontends, qui sont des applications indépendantes plus petites pouvant être combinées pour créer une application plus grande.
+Les modules frontaux dans O3 sont chargés dynamiquement dans l'app shell en utilisant [Webpack Module Federation (MF)](https://webpack.js.org/concepts/module-federation/). La fédération de modules permet de partager du code à l'exécution entre des applications déployées indépendamment, ce qui rend possibles les microfrontends O3.
 
-Jusqu'à récemment, notre système de chargement de modules était basé sur [SystemJS](https://github.com/systemjs/systemjs). La migration vers [v4.0](https://github.com/openmrs/openmrs-esm-core/commit/8f1b7f54330e70f5b420fc2f6685b4e334bcfbb2) du cadre de base a donné naissance à un système hybride de chargement de modules qui utilise à la fois SystemJS et Module Federation. SystemJS était utilisé pour charger l'application `esm-form-entry' (un module frontal autour du [Angular form engine](/docs/key-repositories#angular-form-engine)), tandis que Module Federation était utilisé pour charger tout le reste. Récemment, nous avons [migré](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1168) `esm-form-entry` vers Module Federation, de sorte que nous avons maintenant un système de chargement de modules entièrement basé sur Module Federation.
+Le shell de l'application décide **quoi** charger à partir de l'import map de la distribution (générée depuis `spa-assemble-config.json` pendant l'assemblage de la distro). L'import map est fournie sous forme d'import map SystemJS (`type="systemjs-importmap"`), que SystemJS utilise pour résoudre les noms de modules en URL avant que l'app shell ne les charge.
+
+En bref: **SystemJS résout les URLs, et Module Federation charge le code**. Cette séparation permet de charger les modules à la demande et de garder un bundle initial plus léger.
+
+## Exemple de flux
+
+Voici un exemple minimal du chemin de chargement d’un module:
+
+1. `spa-assemble-config.json` inclut `@openmrs/esm-patient-chart-app`.
+2. Le build de la distro produit une entrée d’import map comme:
+
+   ```json
+   {
+     "imports": {
+       "@openmrs/esm-patient-chart-app": "https://example.org/openmrs/spa/esm-patient-chart-app.js"
+     }
+   }
+   ```
+
+3. SystemJS résout le nom du module vers cette URL.
+4. L’app shell charge le conteneur distant depuis cette URL via Module Federation et appelle `init`/`get`.
 
 ## Fédération de modules
 
-Comme mentionné précédemment, notre système de chargement de modules est basé sur la fédération de modules. Nous avons un système de "conteneurs dynamiques à distance". Le `point d'entrée` de l'application est `@openmrs-esm-app-shell`. La liste des modules distants à charger est fournie par des cartes d'importation. Nos cartes d'importation ne sont pas traitées par le navigateur ou SystemJS, mais sont utilisées en interne pour résoudre les noms de modules en URLs.
+Comme mentionné précédemment, notre système de chargement de modules est basé sur la fédération de modules. O3 utilise un modèle de **conteneurs dynamiques à distance**. Le point d'entrée de l'application est l'app shell, et la liste des modules distants à charger est fournie via l'import map.
 
-Chaque module ("remote") est fourni sous la forme d'un nom et d'une URL. Pour chaque URL, un élément `<script>` est ajouté au DOM. Parce que ces scripts ont un `webpack library type` de `var`, quand ils sont chargés, ils créent une nouvelle variable globale qui a l'interface du conteneur Webpack pour ce module: les méthodes `init` et `get`. Nous les utilisons pour obtenir les exportations réelles du module.
+Chaque module ("remote") est fourni avec un nom et une URL. Pour chaque URL, l'app shell ajoute un élément `<script>` au DOM. Comme ces scripts utilisent le type de bibliothèque `var` de Webpack, ils créent une variable globale qui expose l'interface du conteneur Webpack (`init` et `get`). L'app shell appelle ces méthodes pour charger les exports du module.

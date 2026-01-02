@@ -7,30 +7,31 @@ To work on the O3 frontend, you will need to have the following tools and techno
 - **Git** - We use git for version control.
 - **Node.js** - We use Node for compiling and bundling frontend code. We don’t use Node for running the backend or server. We recommend using the active `LTS` version and using [nvm](https://github.com/nvm-sh/nvm) to manage multiple versions of Node.
 - **Yarn** - We primarily use Yarn `v3` as our package manager.
+- **OpenMRS backend access** - You’ll need access to an OpenMRS backend (dev3 or local) for `yarn start` to work.
 
 ## Code organization
 
 Code in O3 is organized into several domain-specific monorepos:
 
-- [openmrs-esm-core](https://github.com/openmrs/openmrs-esm-core) - contains the core packages for the 3.x frontend. The packages handle ‘cross-cutting’ concerns such as error handling, extensions, react utils, the style guide, the core framework, and more.
+- [openmrs-esm-core](https://github.com/openmrs/openmrs-esm-core) - contains the core packages for the 3.x frontend. The packages handle cross-cutting concerns such as error handling, extensions, React utils, the style guide, the core framework, and more.
 - [openmrs-esm-patient-chart](https://github.com/openmrs/openmrs-esm-patient-chart) - contains the patient dashboard which renders several widgets including allergies, conditions, medications, vitals and biometrics.
 - [openmrs-esm-patient-management](https://github.com/openmrs/openmrs-esm-patient-management) - handles concerns related to managing patients. Includes frontend modules that handle searching for a patient, patient registration, managing patient lists, appointment scheduling and service queues.
 - [openmrs-esm-home](https://github.com/openmrs/openmrs-esm-home) - contains the home page, which sets up the home navigation that contains links to dashboards with the appointments, patient lists, and service queues frontend modules.
 
 ## Installation
 
-Most times, you'll be working within one monorepo. Generally speaking, to set up one of these monorepos locally, you'd need to:
+Most of the time, you'll work within one monorepo. Generally speaking, to set up one of these monorepos locally, you'll need to:
 
 - Clone the repo of interest.
 - `cd` into the root directory of the repo on your local copy and run `yarn` to install dependencies.
 
 ## Editor setup
 
-We typically use Visual Studio code when developing on O3. We recommend setting up the following extensions to enhance your development workflow:
+We typically use Visual Studio Code when developing on O3. We recommend setting up the following extensions to enhance your development workflow:
 
 - [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) - automatic code formatting. All our monorepos contain a Prettier configuration. Setting up this extension enables Prettier to automatically format your code each time you make a commit.
 - [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) - static code analysis tool. ESLint finds and fixes problems in your code and will help flag lint issues as you write your code.
 
 ## Next steps
 
-Success! You are now ready to start building with O3! 🥳 Read through our [contributing guide](/docs/frontend-modules/contributing) to learn how to contribute to O3. You can also read through our [coding conventions](/docs/coding-conventions) guide to learn how to make high quality contributions to O3.
+You’re ready to build with O3. Read the [frontend module development guide](/docs/frontend-modules/development) to run modules locally, the [contributing guide](/docs/frontend-modules/contributing) to understand the contribution flow, and the [coding conventions](/docs/coding-conventions) to align with code style expectations.

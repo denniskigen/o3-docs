@@ -1,0 +1,224 @@
+import { Callout } from "nextra-theme-docs";
+
+# Styles
+
+- Nous utilisons les modules CSS pour le style. Cela signifie que tous les styles sont limités au composant qui les définit. C'est important car cela aide à prévenir les effets secondaires non intentionnés et rend la base de code plus facile à maintenir. Les feuilles de style doivent utiliser l'extension `.module.scss` pour activer la fonctionnalité des modules CSS.
+
+  ```scss
+  // user.module.scss
+  .container {
+    display: flex;
+    gap: 1rem;
+  }
+  ```
+
+  ```tsx
+  // user.component.tsx
+  import styles from './user.module.scss';
+  
+  // Le nom de classe sera automatiquement transformé en quelque chose comme "container_abc123"
+  return <div className={styles.container}>...</div>;
+  ```
+
+- Évitez l'imbrication profonde des styles car cela augmente la spécificité et rend les styles plus difficiles à surcharger. Préférez les sélecteurs plats lorsque c'est possible :
+
+  ```scss
+  // ❌ Mauvais : Imbrication profonde
+  .container {
+    .header {
+      .title {
+        .text {
+          color: colors.$gray-100;
+        }
+      }
+    }
+  }
+
+  // ✅ Bon : Structure plate
+  .container {
+    display: flex;
+  }
+
+  .headerTitle {
+    color: colors.$gray-100;
+  }
+  ```
+
+- Évitez d'utiliser des styles globaux car ils peuvent causer des effets secondaires non intentionnés et rendre la base de code plus difficile à maintenir. Au lieu de cela, limitez les surcharges de style sous des noms de classe spécifiques :
+
+  ```scss
+  // ❌ Mauvais : Styles globaux affectant toutes les entrées de texte
+  :global(.cds--text-input) {
+    height: 3rem;
+    @extend .label01;
+  }
+
+  // ✅ Bon : Styles limités à un composant spécifique
+  .patientSearchInput {
+    :global(.cds--text-input) {
+      height: 3rem;
+      @extend .label01;
+    }
+
+    // Styles supplémentaires spécifiques au composant
+    display: flex;
+    gap: 1rem;
+  }
+  ```
+
+  Avantages des styles limités :
+  - Empêche les fuites de style non intentionnées
+  - Rend clair quel composant possède les styles
+  - Plus facile à maintenir et déboguer
+  - Réduit le risque de conflits de style
+  - Meilleure encapsulation des styles de composant
+
+- Lorsque vous devez surcharger les styles du Carbon Design System :
+  1. Essayez d'abord d'utiliser les props et variantes intégrés de Carbon
+  2. Si ce n'est pas possible, limitez la surcharge à la classe de votre composant
+  3. Documentez pourquoi la surcharge est nécessaire avec un commentaire
+  4. Si vous devez surcharger les styles sur plusieurs composants, envisagez d'ajouter une surcharge explicite au fichier `overrides.scss`. Cette approche est expliquée dans le conseil suivant.
+
+  ```scss
+  .formField {
+    // Surcharger l'espacement par défaut de Carbon pour les formulaires denses
+    :global(.cds--form-item) {
+      margin-bottom: 0.5rem;
+    }
+
+    // Style personnalisé pour les états de validation
+    &.hasError {
+      :global(.cds--text-input) {
+        border-color: $danger;
+      }
+    }
+  }
+  ```
+
+- Placez les surcharges de style Carbon dans [overrides.scss](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-styleguide/src/_overrides.scss). Cela garantit que les surcharges sont appliquées de manière cohérente dans toute l'application.
+- Préférez utiliser les tokens Carbon de [couleur](https://carbondesignsystem.com/guidelines/color/overview/), [espacement](https://carbondesignsystem.com/guidelines/spacing/overview/) et [type](https://carbondesignsystem.com/guidelines/typography/overview/) plutôt que des valeurs codées en dur. Voici quelques exemples d'utilisation de tokens dans le code :
+
+  ```scss
+  @use "@carbon/colors";
+  @use "@carbon/layout";
+  @use "@carbon/type";
+
+  .listWrapper {
+    margin: layout.$spacing-05; // 1rem
+  }
+
+  .resultsCount {
+    @include type.type-style("label-01");
+  }
+
+  .sortDropdown {
+    color: colors.$gray-100;
+    gap: 0;
+  }
+  ```
+
+  Trouvez une référence utile pour les mappages de tokens de couleur [ici](https://carbon-elements.netlify.app/colors/examples/preview/).
+
+- Utilisez les [fonctionnalités SASS](https://sass-lang.com/documentation) comme l'interpolation, les at-rules, les mixins et les fonctions pour rendre vos styles plus réutilisables et maintenables.
+- Si vous voulez appliquer des styles basés sur la taille de la fenêtre d'affichage de l'utilisateur, utilisez nos [breakpoints](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-styleguide/src/breakpoints/index.ts) prédéfinis. Par exemple, pour appliquer différents styles pour les fenêtres d'affichage tablette et bureau, faites ceci :
+
+  ```scss
+  // Fenêtres d'affichage tablette
+  :global(.omrs-breakpoint-lt-desktop) {
+    .form {
+      height: calc(100vh - 9rem);
+    }
+  }
+
+  // Fenêtres d'affichage bureau
+  :global(.omrs-breakpoint-gt-tablet) {
+    .form {
+      height: calc(100vh - 6rem);
+    }
+  }
+  ```
+
+  <Callout emoji="ℹ️" type="info">
+    Assurez-vous de limiter vos styles sous un nom de classe (tel que `.form` dans l'exemple ci-dessus) pour éviter qu'ils n'affectent d'autres composants.
+  </Callout>
+
+- Utilisez la bibliothèque [classnames](https://npm.im/classnames) pour appliquer conditionnellement des styles à un élément. Envisagez d'utiliser classnames si vous interpolez plusieurs noms de classe dans une chaîne. Par exemple, l'extrait suivant :
+
+  ```tsx
+  <NumberInput
+    allowEmpty
+    className={`${styles.textInput} ${val.className}`}
+    // autres props omises pour la brièveté
+  />
+  ```
+
+  Pourrait être remplacé par :
+
+  ```tsx
+  import classnames from "classnames";
+
+  <NumberInput
+    allowEmpty
+    className={classNames(styles.textInput, val.className)}
+    // ... autres props omises pour la brièveté
+  />;
+  ```
+
+  L'extrait suivant montre un cas plus avancé - un `div` stylé avec plusieurs styles conditionnels :
+
+  ```tsx
+  return (
+    <div
+      className={`${styles.textInputContainer} ${disabled && styles.disabledInput} ${
+        !isWithinNormalRange && styles.danger
+      } ${useMuacColors ? muacColorCode : undefined}`}
+    >
+      // ... détails omis pour la brièveté
+    </div>
+  );
+  ```
+
+  Vous pouvez refactoriser cet extrait pour utiliser `classnames` comme suit :
+
+  ```tsx
+  import classNames from "classnames";
+
+  const containerClasses = classNames(styles.textInputContainer, {
+    [styles.disabledInput]: disabled,
+    [styles.danger]: !isWithinNormalRange,
+    [muacColorCode]: useMuacColors,
+  });
+
+  return <div className={containerClasses}>// ... détails omis pour la brièveté</div>;
+  ```
+
+- Soyez prudent lors de l'utilisation de fonctionnalités CSS plus récentes qui n'ont pas de support de navigateur généralisé. Bien que les fonctionnalités CSS modernes puissent être puissantes, nous devons nous assurer que nos applications fonctionnent sur tous les navigateurs supportés. Voici quelques lignes directrices :
+
+  - Vérifiez le support du navigateur sur [Can I Use](https://caniuse.com/) avant d'utiliser des fonctionnalités CSS plus récentes
+  - Envisagez de fournir des alternatives pour les fonctionnalités plus récentes :
+
+    ```scss
+    .container {
+      // Alternative pour les navigateurs qui ne supportent pas gap
+      margin-right: 1rem;
+      // Les navigateurs modernes utiliseront gap
+      gap: 1rem;
+    }
+    ```
+
+  - Soyez particulièrement prudent avec :
+    - Les requêtes de conteneur (support limité)
+    - CSS subgrid (support partiel)
+    - Le sélecteur `:has()` (pas de support dans certains navigateurs)
+    - L'imbrication CSS (support émergent)
+    
+  - Préférez des alternatives bien supportées lorsque c'est possible :
+    - Utilisez flexbox/grid plutôt que des fonctionnalités de mise en page plus récentes
+    - Utilisez les requêtes @media plutôt que les requêtes de conteneur
+    - Utilisez la nomenclature BEM plutôt que l'imbrication CSS
+    
+  - Testez vos styles sur nos navigateurs supportés :
+    - Chrome/Edge (versions les plus récentes)
+    - Firefox (version la plus récente)
+    - Safari (version la plus récente)
+

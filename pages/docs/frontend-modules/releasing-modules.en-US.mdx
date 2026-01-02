@@ -2,12 +2,13 @@ import { Callout } from "nextra-theme-docs";
 
 # Releasing frontend modules
 
-[Releasing](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases) frontend modules is a critical part of the development process. After meeting a reasonable threshold of commits, or after a set amount of time, you will likely want to publish your software to the NPM registry so that consumers can install it. This guide will walk you through the process of releasing frontend modules in the O3 ecosystem.
+[Releasing](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases) frontend modules is a critical part of the development process. After meeting a reasonable threshold of commits, or after a set amount of time, you will likely want to publish your software to the npm registry so that consumers can install it. This guide will walk you through the process of releasing frontend modules in the O3 ecosystem.
 
 <Callout type="info">
-  O3 currently follows a release cadence of two weeks. This means we aim to publish new versions of our frontend to our
-  [QA environment](https://test3.openmrs.org/openmrs/spa) every fortnight. QA review and feedback typically takes a
-  week, after which we promote the release to our [demo Production environment](https://o3.openmrs.org/openmrs/spa).
+  O3 currently follows a release cadence of monthly or every other month. This means we aim to publish new versions of
+  our frontend to our [QA environment](https://test3.openmrs.org/openmrs/spa) on a roughly monthly or bi-monthly cycle.
+  QA review and feedback typically takes a week, after which we promote the release to our
+  [demo Production environment](https://o3.openmrs.org/openmrs/spa).
   This cadence is subject to change as we get more experience with the process.
 </Callout>
 
@@ -21,7 +22,7 @@ import { Callout } from "nextra-theme-docs";
 Cutting an O3 release involves two steps:
 
 1. Bumping your local package versions and pushing those changes to GitHub. This step will trigger the CI's `pre-release` job.
-2. Cutting a release using the Github releases UI. This step triggers the `release` CI job, which publishes the package(s) to the NPM registry.
+2. Cutting a release using the GitHub releases UI. This step triggers the `release` CI job, which publishes the package(s) to the npm registry.
 
 If you want to publish a release version of your module, you need to think about a few things first, including:
 
@@ -76,16 +77,16 @@ yarn release major
 
 This command:
 
-- Runs the `version` command against all the packages in the workspace and bumps them to a major version. For example, if the current version is `1.0.0`, it would get bumped to `2.0.0`.first-letter.
+- Runs the `version` command against all the packages in the workspace and bumps them to a major version. For example, if the current version is `1.0.0`, it would get bumped to `2.0.0`.
 - Tells yarn to sort the packages before running the commands so that they run on the packages in topological order (i.e., packages that depend on other packages get run later).
-- Tells yarn to exclude versioning for the selected monorepo so that the package.json in the root directory is unaffected. The root `package.json` does not require a version for publishing purposes because it is never published.
+- If you need to avoid versioning the root `package.json`, add an explicit `--exclude` for the root package name.
 
 #### Non-monorepos
 
-For non-monorepos, you can use the `version` command directly. For example, if you want to bump the version of a package named `@openmrs/esm-patient-management` to a `major` release, you would run:
+For non-monorepos, you can use the `version` command directly. For example, to bump the package version to a `major` release, run:
 
 ```sh
-yarn version major --workspaces --scope @openmrs/esm-patient-management
+yarn version major
 ```
 
 <Callout type="info">
@@ -107,7 +108,7 @@ Once you're done versioning, you should see a diff in your editor that includes 
 
 Create a new branch named `chore/release-vX.X.X` where `X.X.X` is the version number you are releasing. Commit these changes with the title `(chore) Release vX.X.X`. See an example of [this commit](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1279) that bumps `Patient Chart` to `v5.0.0`.
 
-Once your release commit is merged, the CI workflow's `pre-release` job gets triggered and initiates a version bump for the corresponding version tagged `latest` on NPM. This version is what consumers get when they install your frontend module.
+Once your release commit is merged, the CI workflow's `pre-release` job gets triggered and publishes a pre-release version tagged `next` on npm. This is useful for early testing before you publish `latest`. Under the hood, this job runs the `ci:publish-next` script.
 
 ### Releasing on GitHub
 
@@ -121,21 +122,30 @@ You can then switch to your browser and head back to the releases page of the re
   to review the changes and prepare release notes for the community.
 </Callout>
 
-Once you are satisfied that everything looks ok, click the `Publish release` button. This step should trigger the CI workflow and, notably, the `release` job.
+Once you are satisfied that everything looks OK, click the `Publish release` button. This step should trigger the CI workflow and, notably, the `release` job.
 
 Under the hood, that job runs the following script:
 
 ```json
-"ci:prepublish": "yarn workspaces foreach --all --topological npm publish --access public --tag next",
+"ci:publish": "yarn workspaces foreach --all --topological npm publish --access public --tag latest",
 ```
 
-This command publishes a new package tagged `next`. This is the version that consumers will get when they install your frontend module with the `next` tag. This is useful for testing new features before they get released to the `latest` tag.
+This command publishes a new package tagged `latest`. This is the version consumers will get by default when they install your frontend module.
 
-Broadly speaking, when a PR is merged, a `pre-release` job in our primary GitHub actions CI workflow gets triggered. This job publishes a version of the frontend module to its corresponding npm registry tagged `latest`. This is the version that consumers will get when they install your frontend module.
+Broadly speaking, when a PR is merged, a `pre-release` job in our primary GitHub Actions CI workflow gets triggered. This job publishes a version of the frontend module to its corresponding npm registry tagged `next`.
 
-To see what version the `latest` tag corresponds to for a frontend module, go to its NPM registry page and click on the `version` tag. Look out for the most recent version tagged `latest`.
+To see what version the `latest` tag corresponds to for a frontend module, go to its npm registry page and click on the `version` tag. Look out for the most recent version tagged `latest`.
 
 ### Important notes
 
 - When versioning the [Angular form engine](https://github.com/openmrs/openmrs-ngx-formentry), ensure you bump both the version in the root-level `package.json` file and the version in the `package.json` file in the `projects/openmrs-esm-formentry` directory. The actual library is published from that directory, so it's important to bump the version there as well. More information can be found in [this section](https://github.com/openmrs/openmrs-ngx-formentry#cutting-a-new-release) of the README.
 - When versioning the [Patient Chart](https://github.com/openmrs/openmrs-esm-patient-chart), ensure you bump the Common Lib peer dependency in each of the packages that depend on it. Here's an example of a release commit that bumps both the package version and the peer dependency version: [chore: Release v7.0.0](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1639/files).
+
+### Repo-specific differences
+
+Not every repo wires releases the same way. Before releasing, check:
+
+- `package.json` for `release`, `ci:publish`, `ci:publish-next`, or `ci:prepublish` scripts.
+- `.github/workflows/ci.yml` to see which tags are published on `push` vs `release`.
+
+Always follow the scripts defined in that repo, even if names differ from this guide.

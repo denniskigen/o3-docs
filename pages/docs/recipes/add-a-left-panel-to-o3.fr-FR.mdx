@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Steps } from "nextra-theme-docs";
+import { Callout, Steps } from "nextra-theme-docs";
 
 # Ajout d'un panneau gauche
 
@@ -40,9 +40,9 @@ Pour ce faire, nous allons suivre les étapes ci-dessous:
 Commencez par mettre à jour votre composant racine (ou tout autre composant utilisé par votre application pour configurer le routage) comme suit:
 
 ```tsx {13-19, 23} filename="src/root.component.tsx"
-import React, { useEffect } from "react";
+import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { LeftNavMenu, setLeftNav, unsetLeftNav } from "@openmrs/esm-framework";
+import { LeftNavMenu, useLeftNav } from "@openmrs/esm-framework";
 import BedAdministrationTable from "./bed-administration/bed-administration-table.component";
 import Home from "./home.component";
 import WardWithBeds from "./ward-with-beds/ward-with-beds.component";
@@ -51,17 +51,14 @@ import styles from "./root.scss";
 const Root: React.FC = () => {
   const spaBasePath = window.spaBase;
 
-  useEffect(() => {
-    setLeftNav({
-      name: "bed-management-left-panel-slot",
-      basePath: spaBasePath,
-    });
-    return () => unsetLeftNav("bed-management-left-panel-slot");
-  }, [spaBasePath]);
+  useLeftNav({
+    name: "bed-management-left-panel-slot",
+    basePath: spaBasePath,
+  });
 
   return (
     <BrowserRouter basename={`${window.getOpenmrsSpaBase()}bed-management`}>
-      <LeftNavMenu />
+      <LeftNavMenu isChildOfHeader />
       <main className={styles.container}>
         <Routes>
           <Route path="/summary" element={<Home />} />
@@ -78,16 +75,16 @@ export default Root;
 
 Voici quelques points importants à noter ici:
 
-- Nous importons le composant `LeftNavMenu` du paquetage `@openmrs/esm-framework`. Ce composant rend le panneau de gauche. Nous importons également les fonctions `setLeftNav` et `unsetLeftNav` du même paquet. Ces fonctions sont utilisées pour enregistrer et désenregistrer le panneau gauche avec le [LeftNav store](https://github.com/openmrs/openmrs-esm-core/blob/da401641b4b1895e593e9bcea73af8f8dbd505e5/packages/framework/esm-styleguide/src/left-nav/index.tsx#L18) respectivement. Le magasin LeftNav est un magasin [Zustand](https://github.com/pmndrs/zustand) qui garde la trace de tous les panneaux de gauche qui ont été enregistrés dans l'application.
+- Nous importons le composant `LeftNavMenu` du paquetage `@openmrs/esm-framework`. Ce composant rend le panneau de gauche. Nous importons également le hook `useLeftNav` du même paquet. Ce hook est utilisé pour enregistrer et désenregistrer automatiquement le panneau gauche avec le [LeftNav store](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-react-utils/src/useLeftNav.ts). Le magasin LeftNav est un magasin [Zustand](https://github.com/pmndrs/zustand) qui garde la trace de tous les panneaux de gauche qui ont été enregistrés dans l'application.
 
-- Nous appelons la fonction `setLeftNav` dans un hook `useEffect`. Cette fonction prend un objet avec deux propriétés:
+- Nous appelons le hook `useLeftNav`, qui prend un objet avec deux propriétés:
 
   - `name`: Le nom du slot dans lequel le panneau de gauche doit être rendu. C'est le même nom que vous utiliserez lorsque vous ajouterez le panneau gauche au tableau `extensions` de votre fichier `routes.json`.
   - `basePath`: Le chemin de base de l'application (`/openmrs/spa` par défaut). Ceci est utilisé pour s'assurer que les liens du panneau de gauche sont relatifs au chemin de base de l'application.
 
-- Nous appelons la fonction `unsetLeftNav` dans une fonction de nettoyage `useEffect`. Cette fonction prend le nom du slot dans lequel le panneau gauche a été rendu. Cela permet de s'assurer que le panneau gauche est désenregistré lorsque le composant est démonté.
+- Le hook `useLeftNav` gère automatiquement le nettoyage lorsque le composant est démonté, vous n'avez donc pas besoin d'appeler manuellement une fonction de désenregistrement.
 
-- Nous rendons le composant `LeftNavMenu` en tant que premier enfant du composant `BrowserRouter`. Cela permet de s'assurer que le panneau de gauche est rendu dans toutes les routes de l'application.
+- Nous rendons le composant `LeftNavMenu` en tant que premier enfant du composant `BrowserRouter` avec la prop `isChildOfHeader` définie à `true`. Cette prop est requise pour que le composant soit rendu; sans elle, le composant retournera un fragment vide. Cela permet de s'assurer que le panneau de gauche est rendu dans toutes les routes de l'application.
 
 - Nous mettons en place trois routes pour l'application Bed Management:
 
@@ -102,9 +99,17 @@ Ensuite, nous allons créer une exportation nommée pour le composant `Root` dan
 Ajoutez ce qui suit à votre fichier `index.ts`:
 
 ```ts filename="src/index.ts"
+import { getSyncLifecycle } from "@openmrs/esm-framework";
 import rootComponent from './root.component';
 
-export const root = getSyncLifecycle(rootComponent), options);
+const moduleName = '@openmrs/esm-bed-management-app';
+
+const options = {
+  featureName: 'bed-management',
+  moduleName,
+};
+
+export const root = getSyncLifecycle(rootComponent, options);
 ```
 
 Ensuite, modifiez votre fichier `routes.json` pour inclure la définition de page suivante:
@@ -137,10 +142,20 @@ Ensuite, nous allons ajouter les deux liens que nous avons mentionnés plus tôt
 Pour ce faire, nous devons créer deux extensions qui rendent les liens. Nous allons ensuite ajouter ces extensions au tableau `extensions` de notre fichier `routes.json`. Les exportations nommées de ces extensions seront utilisées comme propriété `component` des extensions, et ressembleront à ce qui suit:
 
 ```ts filename="src/index.ts"
+import { getSyncLifecycle } from "@openmrs/esm-framework";
+import { createLeftPanelLink } from "./left-panel-link.component";
+
+const moduleName = '@openmrs/esm-bed-management-app';
+
+const options = {
+  featureName: 'bed-management',
+  moduleName,
+};
+
 export const summaryLeftPanelLink = getSyncLifecycle(
   createLeftPanelLink({
     name: "summary",
-    title: t("summary", "Summary"),
+    title: "Summary",
   }),
   options
 );
@@ -148,11 +163,15 @@ export const summaryLeftPanelLink = getSyncLifecycle(
 export const wardAllocationLeftPanelLink = getSyncLifecycle(
   createLeftPanelLink({
     name: "ward-allocation",
-    title: t("wardAllocation", "Ward Allocation"),
+    title: "Ward Allocation",
   }),
   options
 );
 ```
+
+<Callout emoji="ℹ️" type="info">
+  **Note**: Si vous souhaitez utiliser des traductions pour les titres des liens, vous devrez gérer la fonction `t()` dans le composant `LinkExtension` dans `left-panel-link.component.tsx`, car `getSyncLifecycle` est appelé au moment du chargement du module, avant que les hooks React puissent être utilisés. Vous pouvez modifier le composant `LinkExtension` pour utiliser le hook `useTranslation()` afin d'obtenir des chaînes traduites.
+</Callout>
 
 La fonction `createLeftPanelLink` est une fonction d'ordre supérieur qui prend une propriété `name` et une propriété `title`. La propriété `name` est le chemin unique auquel le segment d'URL est comparé. Si le nom correspond à la dernière partie de l'URL, le lien correspondant reçoit un style spécial pour indiquer qu'il s'agit du lien actif. La propriété `title` est rendue comme le texte du lien.
 
@@ -186,7 +205,7 @@ function LinkExtension({ config }: { config: LinkConfig }) {
 
   return (
     <ConfigurableLink
-      to={`${window.getOpenmrsSpaBase()}bed-management${nom ? `/${nom}` : ""}`}
+      to={`${window.getOpenmrsSpaBase()}bed-management${name ? `/${name}` : ""}`}
       className={`cds--side-nav__link ${name === urlSegment && "active-left-nav-link"}`}
     >
       {title}

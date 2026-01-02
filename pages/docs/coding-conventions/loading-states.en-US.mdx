@@ -1,0 +1,96 @@
+# Loading states
+
+- When creating custom hooks that wrap SWR, memoize the return value using `useMemo` to prevent unnecessary re-renders. This is especially important when returning an object with multiple properties:
+
+  ```tsx
+  // Good - memoized return value
+  export function usePatient(patientUuid?: string) {
+    const { data: patient, error, isValidating } = useSWR(...);
+    
+    return useMemo(
+      () => ({
+        isLoading: isValidating && !error && !patient,
+        patient,
+        patientUuid,
+        error,
+      }),
+      [isValidating, error, patient, patientUuid],
+    );
+  }
+  ```
+
+- Calculate loading state using `isValidating && !error && !data` rather than relying solely on SWR's `isLoading` property. This ensures that loading is only true when data is actively being fetched and there's no error:
+
+  ```tsx
+  // Good - explicit loading calculation
+  const { data, error, isValidating } = useSWR(url, fetcher);
+  const isLoading = isValidating && !error && !data;
+
+  // Less ideal - relies on SWR's isLoading which may not account for all cases
+  const { data, error, isLoading } = useSWR(url, fetcher);
+  ```
+
+- Use Carbon's loading components to provide visual feedback during data fetching:
+  - Use `InlineLoading` for inline loading indicators within forms or small components
+  - Use `SkeletonText` or `SkeletonPlaceholder` for loading placeholders that match the final content layout
+
+  ```tsx
+  import { InlineLoading, SkeletonText } from '@carbon/react';
+
+  // Inline loading indicator
+  {isLoading && (
+    <InlineLoading description={t('loading', 'Loading')} />
+  )}
+
+  // Skeleton placeholder for content
+  {isLoading ? (
+    <SkeletonText heading width="60%" />
+  ) : (
+    <div>{data?.content}</div>
+  )}
+  ```
+
+- Handle null or undefined data gracefully using optional chaining and nullish coalescing:
+
+  ```tsx
+  // Good - safe data access
+  const patientName = data?.patient?.name ?? t('unknownPatient', 'Unknown patient');
+  const totalCount = data?.total ?? 0;
+
+  // Good - conditional rendering
+  {data?.results?.length > 0 ? (
+    <DataTable data={data.results} />
+  ) : (
+    <EmptyState />
+  )}
+  ```
+
+- When data might be undefined during initial load, use conditional rendering to avoid errors:
+
+  ```tsx
+  // Good - handles undefined data
+  {data && (
+    <PatientBanner patient={data} />
+  )}
+
+  // Also good - using optional chaining
+  {data?.patient && (
+    <PatientBanner patient={data.patient} />
+  )}
+  ```
+
+- Use TypeScript type guards in filter functions to ensure type safety when filtering out invalid data:
+
+  ```tsx
+  // Good - type guard ensures filtered array has correct type
+  const validPatients = data?.filter(
+    (patient): patient is Patient => 
+      patient !== null && patient.person !== null
+  ) ?? [];
+
+  // TypeScript now knows validPatients is Patient[], not (Patient | null)[]
+  validPatients.forEach(patient => {
+    console.log(patient.person.name); // Type-safe access
+  });
+  ```
+

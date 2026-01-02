@@ -2,109 +2,152 @@ import Image from "next/image";
 
 # Concepts de base
 
-Plongeons dans les détails de l'architecture d'O3.
+Cette section explique comment les éléments clés d’O3 s’articulent. À la fin, vous devriez comprendre comment O3 démarre
+et comment les modules sont chargés et configurés. Le schéma ci-dessous montre les principaux blocs et leurs liens.
 
-<br />
-<br />
-<Image src="/o3-architecture.svg" alt="O3 architecture" width={800} height={800} />
+<div className="my-6">
+  <Image
+    src="/o3-architecture.svg"
+    alt="Architecture d’O3"
+    width={800}
+    height={800}
+    sizes="(max-width: 768px) 100vw, 800px"
+  />
+</div>
+
+**Notes sur le schéma (pour la clarté) :** le « distribution manifest » correspond au fichier
+`spa-assemble-config.json`, qui génère la carte d’importation. Les modules se chargent à l’exécution depuis les URLs de
+la carte (souvent un CDN ou un serveur de dev local), et non directement depuis npm. « Webpack dev server (proxy) »
+représente le proxy de développement local ; beaucoup de packages utilisent désormais Rspack, mais le principe reste le
+même.
 
 Les principaux éléments de l'architecture frontale d'O3 sont les suivants:
 
-- Le [shell de l'application](/docs/core-concepts#app-shell) - la "base" de l'application qui coordonne tout.
-- Les [modules frontaux](/docs/core-concepts#frontend-modules) - blocs de construction composables de l'architecture O3 qui constituent l'interface utilisateur.
-- La [carte d'importation](/docs/core-concepts#import-map) - un fichier JSON qui indique au shell de l'application quels modules frontaux charger et où les charger.
-- Le [core framework](/docs/core-concepts#core-framework) - une bibliothèque JavaScript que tous les modules frontaux utilisent.
+- Le [shell de l'application](/docs/core-concepts#app-shell) - la couche de base qui coordonne le démarrage et l’exécution.
+- Les [modules frontaux](/docs/core-concepts#frontend-modules) - blocs UI composables.
+- La [carte d'importation](/docs/core-concepts#import-map) - un fichier JSON qui indique quels modules charger et où les récupérer.
+- Le [core framework](/docs/core-concepts#core-framework) - bibliothèques et API partagées par les modules frontaux.
 
-## Shell de l'application [#app-shell]
+## Où cela se trouve dans le code
 
-Dans O3, l'app shell est la base de l'application. Il est chargé d'effectuer toute une série de tâches essentielles au fonctionnement de l'application. Introduit dans [RFC-26](https://github.com/openmrs/openmrs-rfc-frontend/blob/e745ee9c37b2ca0ae6f4fc93259724e61bfac82e/text/0026-activation-distribution.md), l'app shell est responsable de:
+Si vous voulez voir ces éléments dans l’implémentation de référence, le monorepo
+[`openmrs-esm-core`](https://github.com/openmrs/openmrs-esm-core) les regroupe ainsi :
 
-- Configurer le fichier index.html qui est chargé au démarrage.- Mettre en place des points d'arrêt CSS dans l'interface utilisateur ainsi que des abonnements pour les modales, les toasts et les notifications en ligne.- Chargement de la carte d'importation et ajout des balises de script pour chaque module frontal au fichier index.html.
-- Chargement des routes et de la fonction d'activation de chaque module frontal.
-- Initialisation de la mémoire d'état globale de l'application.
-- Mise en place du service worker qui fournit des capacités de mise en cache permettant notre mode hors ligne rudimentaire.
-- Mise en place de la bibliothèque `esm-api` qui exporte les objets API qui sont réutilisés par plusieurs modules frontaux.
-- Mise en place du système de configuration qui fournit différents niveaux de configurabilité à l'application.
-- Met en place le système d'extension.
+- **App shell** : [`packages/shell/esm-app-shell`](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/shell/esm-app-shell)
+- **Core framework** (agrégé) : [`packages/framework/esm-framework`](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/framework/esm-framework)
+- **Librairies du framework** (packages individuels) : [`packages/framework/*`](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/framework)
+- **Modules frontend de base** : [`packages/apps/*`](https://github.com/openmrs/openmrs-esm-core/tree/main/packages/apps)
 
-### Modules frontaux [#frontend-modules]
+## Shell de l'application
 
-Les [modules frontaux](/docs/frontend-modules/introduction) sont les éléments de base d'O3. Ils sont également appelés `microfrontends` dans l'architecture O3 (l'origine étant le concept similaire dans [single-spa](https://single-spa.js.org)). Les modules frontaux sont organisés en monorepos spécifiques à un domaine. Ils sont chargés dans l'application via la carte d'importation et exportent leurs propres fonctions d'activation et de cycle de vie par défaut. Ces exportations se conforment à une interface microfrontend spécifique introduite dans [RFC-26](https://github.com/openmrs/openmrs-rfc-frontend/blob/e745ee9c37b2ca0ae6f4fc93259724e61bfac82e/text/0026-activation-distribution.md).
+L’app shell est l’application hôte qui démarre O3 et coordonne le chargement et les services d’exécution. Introduit dans
+[RFC-26](https://github.com/openmrs/openmrs-rfc-frontend/blob/e745ee9c37b2ca0ae6f4fc93259724e61bfac82e/text/0026-activation-distribution.md),
+il gère :
 
-Avant 2023, les modules frontaux étaient chargés de manière synchrone, ce qui signifiait que l'application ne se rendait pas tant que tous les modules frontaux n'avaient pas été chargés. C'était un goulot d'étranglement de performance connu. En 2023, un travail significatif a permis aux modules frontaux d'être chargés _à la demande_, ce qui a considérablement amélioré les performances de l'application. Vous pouvez suivre les progrès [ici](https://github.com/openmrs/openmrs-esm-core/pull/671).
+- **Démarrage :** prépare `index.html`, charge la carte d’importation et connecte routes/activateurs.
+- **Services d’exécution :** définit points d’arrêt, abonnements (modales, toasts, notifications) et le mode hors ligne.
+- **Couplage plateforme :** initialise l’état global et met en place configuration et extensions.
 
-### Versions des modules frontaux expliquées
+Pour aller plus loin : [Approfondir la coque d'application](/docs/app-shell)
 
-Chaque module frontend est un package NPM avec un nom se terminant par `-app`. Les ESM d'OpenMRS sont publiés avec trois étiquettes différentes : "next", "latest" et un numéro de version. Voici ce que chaque étiquette signifie :
+### Modules frontaux
 
-- 🔴⚠️🚧 **"next" = Pré-version, en développement.** La plus récente, à la pointe, encore en construction. "next" se réfère toujours à la version la plus récente mais pas encore publiée d'un ESM (par exemple, 3.2.1-pre.1067). _Les versions étiquetées "next" ne sont pas recommandées pour une utilisation en production_ car elles sont considérées comme des travaux en cours instables et n'ont souvent pas subi de tests d'intégration.
-- 🟡 **"latest" = Dernière version publiée.** "latest" se réfère toujours à la version la plus récente publiée d'un ESM (par exemple, 3.2.0). Bien que vous puissiez utiliser la version "latest" de n'importe quel ESM, vous avez plus de contrôle en spécifiant le numéro de version exact de chaque ESM que vous utilisez.
-- 🟢✅ **vX.X.X = Une version spécifique.** Un numéro de version se réfère toujours à une version spécifique de chaque ESM. Par exemple, 3.2.0 ou 3.2.1-pre.1067 sont des versions spécifiques de l'ESM @openmrs/esm-api, bien que cette dernière soit une pré-version.
+Les [modules frontaux](/docs/frontend-modules/overview) sont les unités de fonctionnalité qui composent l’UI d’O3.
+Pensez à chaque module comme une mini‑application qui gère une partie de l’interface (par exemple, le dossier patient
+ou la navigation principale).
 
-## Carte d'importation [#import-map]
+O3 traite ces modules comme des `microfrontends` (terme popularisé par [single-spa](https://single-spa.js.org)).
+L’app shell charge les modules via la carte d’importation et appelle l’**activation** (point d’entrée) de chaque module
+pour enregistrer les routes et les extensions. Les modules exportent des fonctions de cycle de vie conformes à
+l’interface définie dans [RFC-26](https://github.com/openmrs/openmrs-rfc-frontend/blob/e745ee9c37b2ca0ae6f4fc93259724e61bfac82e/text/0026-activation-distribution.md).
+Dans la plupart des distributions, cette carte d’importation est générée à partir de `spa-assemble-config.json`.
+Les extensions sont des blocs UI plug‑in que les modules enregistrent dans des emplacements nommés.
 
-Une carte d'importation est une spécification du navigateur permettant de contrôler l'URL à partir de laquelle les modules JavaScript sont téléchargés dans le navigateur. Introduite dans [RFC-4](https://github.com/openmrs/openmrs-rfc-frontend/blob/master/text/0004-import-maps.md), la carte d'importation indique au shell de l'application quels modules frontaux utiliser et où les télécharger. Par exemple, la carte d'importation [de l'application de référence de la communauté O3](https://dev3.openmrs.org/openmrs/spa) se trouve dans [le référentiel de configuration d'OpenMRS](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/212eb93547e9946621e749c98b3eb2a0048252f0/frontend/spa-build-config.json#L4).
-La plupart des distributions devraient suivre la même approche.
+Notions essentielles (les fichiers que vous manipulerez le plus souvent) :
 
-Pour voir la carte d'importation de votre distro, naviguez vers `/importmap.json`, où vous verrez quelque chose comme:
+- `package.json` - métadonnées, scripts et dépendances du module
+- `src/index.ts` - point d’entrée qui enregistre routes et extensions
+- `routes.json` - métadonnées statiques pour l’app shell
+- `config-schema.ts` - où se trouvent les propriétés de configuration du module
+
+Les modules frontaux sont chargés à la demande par l’app shell lorsqu’ils sont nécessaires, ce qui améliore le temps de
+chargement initial.
+
+Les modules frontaux peuvent vivre dans des dépôts autonomes ou dans des monorepos orientés domaine lorsque plusieurs
+modules partagent un même périmètre. Par exemple, les modules de gestion des patients (inscription, files d’attente,
+rendez-vous, gestion des lits, etc.) sont regroupés dans le monorepo
+[`openmrs-esm-patient-management`](https://github.com/openmrs/openmrs-esm-patient-management).
+
+Vous choisissez quels modules inclure dans une distribution en modifiant son fichier `spa-assemble-config.json`. Pour
+ajouter un module personnalisé, partez du dépôt [template app](https://github.com/openmrs/openmrs-esm-template-app),
+publiez-le sur npm sous votre propre espace de noms, puis ajoutez une entrée pour ce module dans
+`spa-assemble-config.json`.
+
+Ensuite :
+
+- [Aperçu des modules frontend](/docs/frontend-modules/overview)
+- [Anatomie d’un module frontend](/docs/frontend-modules/overview#anatomy-of-a-frontend-module)
+- [Tags de version (`next` vs `latest`)](/docs/frontend-modules/overview)
+
+## Carte d'importation
+
+Une carte d'importation est une spécification du navigateur qui mappe des noms de modules vers leurs URLs de chargement.
+Introduite dans [RFC-4](https://github.com/openmrs/openmrs-rfc-frontend/blob/master/text/0004-import-maps.md), elle indique
+au shell où récupérer chaque module. L’app shell précharge la carte au démarrage puis l’utilise pour résoudre et charger
+les bundles.
+
+En pratique, les cartes d’importation sont générées et servies par la distribution (pas par l’app shell). Par exemple,
+la carte d'importation [de l'application de référence de la communauté O3](https://dev3.openmrs.org/openmrs/spa) est
+servie à `/openmrs/spa/importmap.json`, et sa source se trouve dans
+[le référentiel de configuration d'OpenMRS](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/212eb93547e9946621e749c98b3eb2a0048252f0/frontend/spa-build-config.json#L4).
+La plupart des distributions suivent la même approche.
+
+Pour voir la carte d'importation de votre distro dans le navigateur, naviguez vers `/openmrs/spa/importmap.json` (ou le
+chemin de base SPA de votre distro), où vous verrez quelque chose comme:
 
 ```json
 {
   "imports": {
     "@openmrs/esm-home-app": "./openmrs-esm-home-app-4.1.1-pre.211/openmrs-esm-home-app.js",
-    "@openmrs/esm-patient-attachments-app": "./openmrs-esm-patient-attachments-app-4.3.1-pre.1352/openmrs-esm-patient-attachments-app.js",
-    "@openmrs/esm-form-entry-app": "./openmrs-esm-form-entry-app-4.3.1-pre.1352/openmrs-esm-form-entry-app.js",
     "@openmrs/esm-login-app": "./openmrs-esm-login-app-4.3.2-pre.671/openmrs-esm-login-app.js",
     "@openmrs/esm-primary-navigation-app": "./openmrs-esm-primary-navigation-app-4.3.2-pre.671/openmrs-esm-primary-navigation-app.js",
-    "@openmrs/esm-patient-banner-app": "./openmrs-esm-patient-banner-app-4.3.1-pre.1352/openmrs-esm-patient-banner-app.js",
-    "@openmrs/esm-offline-tools-app": "./openmrs-esm-offline-tools-app-4.3.2-pre.671/openmrs-esm-offline-tools-app.js",
-    "@openmrs/esm-patient-allergies-app": "./openmrs-esm-patient-allergies-app-4.3.1-pre.1352/openmrs-esm-patient-allergies-app.js",
-    "@openmrs/esm-patient-forms-app": "./openmrs-esm-patient-forms-app-4.3.1-pre.1352/openmrs-esm-patient-forms-app.js",
-    "@openmrs/esm-openconceptlab-app": "./openmrs-esm-openconceptlab-app-3.0.1-pre.24/openmrs-esm-openconceptlab-app.js",
-    "@openmrs/esm-patient-programs-app": "./openmrs-esm-patient-programs-app-4.3.1-pre.1352/openmrs-esm-patient-programs-app.js",
-    "@openmrs/esm-generic-patient-widgets-app": "./openmrs-esm-generic-patient-widgets-app-4.3.1-pre.1352/openmrs-esm-generic-patient-widgets-app.js",
-    "@openmrs/esm-dispensing-app": "./openmrs-esm-dispensing-app-1.0.1-pre.161/openmrs-esm-dispensing-app.js",
-    "@openmrs/esm-devtools-app": "./openmrs-esm-devtools-app-4.3.2-pre.671/openmrs-esm-devtools-app.js",
-    "@openmrs/esm-patient-notes-app": "./openmrs-esm-patient-notes-app-4.3.1-pre.1352/openmrs-esm-patient-notes-app.js",
-    "@openmrs/esm-patient-conditions-app": "./openmrs-esm-patient-conditions-app-4.3.1-pre.1352/openmrs-esm-patient-conditions-app.js",
-    "@openmrs/esm-patient-medications-app": "./openmrs-esm-patient-medications-app-4.3.1-pre.1352/openmrs-esm-patient-medications-app.js",
-    "@openmrs/esm-patient-biometrics-app": "./openmrs-esm-patient-biometrics-app-4.3.1-pre.1352/openmrs-esm-patient-biometrics-app.js",
-    "@openmrs/esm-patient-appointments-app": "./openmrs-esm-patient-appointments-app-4.3.1-pre.1352/openmrs-esm-patient-appointments-app.js",
-    "@openmrs/esm-patient-chart-app": "./openmrs-esm-patient-chart-app-4.3.1-pre.1352/openmrs-esm-patient-chart-app.js",
-    "@openmrs/esm-cohort-builder-app": "./openmrs-esm-cohort-builder-app-3.0.1-pre.115/openmrs-esm-cohort-builder-app.js",
-    "@openmrs/esm-patient-vitals-app": "./openmrs-esm-patient-vitals-app-4.3.1-pre.1352/openmrs-esm-patient-vitals-app.js",
-    "@openmrs/esm-patient-list-app": "./openmrs-esm-patient-list-app-4.3.1-pre.1435/openmrs-esm-patient-list-app.js",
-    "@openmrs/esm-patient-test-results-app": "./openmrs-esm-patient-test-results-app-4.3.1-pre.1352/openmrs-esm-patient-test-results-app.js",
-    "@openmrs/esm-implementer-tools-app": "./openmrs-esm-implementer-tools-app-4.3.2-pre.671/openmrs-esm-implementer-tools-app.js",
-    "@openmrs/esm-active-visits-app": "./openmrs-esm-active-visits-app-4.3.1-pre.1435/openmrs-esm-active-visits-app.js",
-    "@openmrs/esm-outpatient-app": "./openmrs-esm-outpatient-app-4.3.1-pre.1435/openmrs-esm-outpatient-app.js",
-    "@openmrs/esm-appointments-app": "./openmrs-esm-appointments-app-4.3.1-pre.1435/openmrs-esm-appointments-app.js",
-    "@openmrs/esm-patient-registration-app": "./openmrs-esm-patient-registration-app-4.3.1-pre.1435/openmrs-esm-patient-registration-app.js",
-    "@openmrs/esm-fast-data-entry-app": "./openmrs-esm-fast-data-entry-app-1.0.1-pre.74/openmrs-esm-fast-data-entry-app.js",
-    "@openmrs/esm-patient-search-app": "./openmrs-esm-patient-search-app-4.3.1-pre.1435/openmrs-esm-patient-search-app.js",
-    "@openmrs/esm-form-builder-app": "./openmrs-esm-form-builder-app-1.0.3-pre.233/openmrs-esm-form-builder-app.js"
+    "@openmrs/esm-patient-chart-app": "./openmrs-esm-patient-chart-app-4.3.1-pre.1352/openmrs-esm-patient-chart-app.js"
+    // ... d’autres modules
   }
 }
 ```
 
-Les clés de cet objet sont les noms des modules individuels, qui sont essentiellement des identifiants uniques, tandis que les valeurs sont les chemins relatifs du module vers les modules frontaux individuels. Le shell de l'application charge cette carte d'importation au moment de l'exécution et parcourt la liste en chargeant et en enregistrant chaque module frontal dans le navigateur via les balises `<script>`. Actuellement, O3 utilise une approche hybride de chargement de modules:
+Les clés de cet objet sont les noms des modules (identifiants uniques) et les valeurs sont des chemins relatifs vers les
+modules frontaux. Le shell lit cette carte à l’exécution et enregistre chaque module dans le navigateur. La plupart des
+modules sont des bundles de fédération de modules, et certains modules historiques sont chargés comme scripts SystemJS.
+Voir la page [Approfondir la coque d'application](/docs/app-shell) pour les détails du chargement.
 
-- Le module frontal `esm-form-entry-app`, une application Angular qui charge le moteur de formulaire AMPATH dans le dossier du patient, est chargé via SystemJS.
-- Tous les autres modules frontaux sont chargés via la fédération de modules Webpack.
+Pour aller plus loin : [Système de configuration](/docs/configuration-system)
 
-Idéalement, il est préférable d'avoir une seule stratégie de chargement des modules, et un travail est [en cours](/docs/roadmap) pour harmoniser ces approches.
+## Comment O3 charge les modules (modèle mental rapide)
 
-## Cadre de base [#core-framework]
+1. L’app shell démarre et précharge la carte d’importation.
+2. Il résout les URLs des modules et enregistre les bundles dans le navigateur.
+3. Il appelle l’activateur de chaque module pour enregistrer routes et extensions.
+4. Le routeur monte les modules au fil de la navigation.
 
-Le framework O3 est packagé comme une bibliothèque JavaScript dans le [registre NPM](https://www.npmjs.com/package/@openmrs/esm-framework). Il regroupe toutes les bibliothèques de base pour l'application OpenMRS 3.0. Ces bibliothèques traitent de questions telles que
+## Si vous devez changer…
 
-- les utilitaires partagés
-- la gestion de l'état global
-- Les fonctions qui permettent le mode hors ligne
-- Événements, variables et utilitaires globaux
-- Système de configuration
-- Documentation API
-- Fonctions de l'API OpenMRS
-- Navigation dans les fils d'Ariane
-- Système d'extension
-- Gestion globale des erreurs
+- **Quels modules chargent (et leurs versions)** → modifiez `spa-assemble-config.json` (source de la carte d’importation).
+- **Comment les modules se chargent globalement** → configuration/comportement de l’app shell.
+- **Ce que fait un module** → dépôt du module (UI, routes, extensions, config).
+
+## Cadre de base
+
+Le framework O3 est packagé comme une bibliothèque JavaScript dans le [registre NPM](https://www.npmjs.com/package/@openmrs/esm-framework). La plupart du code applicatif importe `@openmrs/esm-framework` pour utiliser ces services :
+
+- **Services plateforme :** configuration, routes, état, extensions et indicateurs de fonctionnalité.
+- **Navigation et UX :** navigation, fil d’Ariane et mode hors ligne.
+- **Utilitaires développeur :** helpers API, globals et utilitaires généraux.
+
+Pour aller plus loin : [Référence de l'API du framework](/docs/framework-api-reference)
+
+## Prochaines étapes
+
+Prêt à construire ? Continuez avec [Modules frontend](/docs/frontend-modules/overview) pour voir comment les modules sont
+structurés et chargés.

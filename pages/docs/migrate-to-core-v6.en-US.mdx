@@ -47,7 +47,7 @@ Core `v6.3.1-pre.2986` introduces a significant architectural rework focused on 
 
 The key improvements include:
 
-- \*\*Reliable sequential builds – eliminates memory issues that caused build failures.
+- **Reliable sequential builds** – eliminates memory issues that caused build failures.
 - **5–10× faster core tooling** thanks to Rspack migration for the build system.
 - **~3× faster build times** for applications (sub-1-minute builds).
 - **51% smaller bundle size** – 6.37 MB reduction in total framework size.
@@ -400,8 +400,8 @@ The framework now ships with two sets of mocks:
 
 ```bash
 @openmrs/esm-framework/
-├── mock.ts        # For ES modules (Vitest, modern Jest)
-├── mock-jest.ts   # For CommonJS (traditional Jest)
+├── mock.tsx        # For ES modules (Vitest, modern Jest)
+├── mock-jest.tsx   # For CommonJS (traditional Jest)
 └── package.json   # Automatically picks the right one
 ```
 

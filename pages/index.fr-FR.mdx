@@ -1,40 +1,81 @@
 import AdaptiveLogo from "../components/adaptive-logo";
 
-<div className="pt-20 py-10 m-auto flex-row justify-center text-center max-w-lg md:max-w-xl lg:max-w-4xl text-balance">
+<div className="relative pt-20 pb-12 m-auto flex flex-col justify-center text-center max-w-4xl overflow-hidden">
+  <div
+    aria-hidden="true"
+    className="pointer-events-none absolute inset-0 bg-[radial-gradient(rgba(15,23,42,0.08)_1px,transparent_1px)] [background-size:18px_18px] opacity-60"
+  />
   <AdaptiveLogo />
-  <h1 className="py-10 font-bold tracking-[-0.04em] leading-none text-[40px] md:text-5xl lg:text-[64px]">
-    <span className="leading-none">Le framework frontend pour OpenMRS</span>
+  <h1 className="py-6 font-bold tracking-[-0.01em] leading-[1.25] md:leading-[1.2] lg:leading-[1.15] text-[48px] md:text-6xl lg:text-[72px] text-balance">
+    <span className="block">Le framework frontend pour OpenMRS</span>
   </h1>
-  <span className="text-xl">
-    Découvrez comment O3 exploite les technologies frontend modernes et une architecture modulaire pour permettre à notre
-    communauté de <strong>développer plus rapidement</strong>, <strong>ensemble</strong>.
-  </span>
+  <div className="text-xs md:text-base tracking-[0.2em] uppercase font-mono text-slate-500">
+    Modulaire • Extensible • Open-source
+  </div>
+  <div className="mt-4 text-lg md:text-xl leading-[1.5]">
+    Créez et étendez des interfaces O3 plus vite avec un framework moderne et modulaire.
+  </div>
 </div>
 
-<div className="mx-auto z-50 flex flex-col items-center w-72 max-w-md gap-5 px-6">
-  <div className="flex flex-col w-full gap-3 md:!flex-row">
-    <div className="relative w-full group">
-      <button className="w-full min-w-[120px] text-base font-medium no-underline dark:text-black text-white border-transparent bg-black dark:bg-white rounded-lg md:leading-6 transition-all duration-300 flex items-center justify-center">
-        <a
-          className="text-primary-600 no-underline decoration-from-font text-underline-position:from-font block py-2.5 px-1.5"
-          href="/docs/introduction"
-        >
-          Commencez à apprendre
-        </a>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="feather feather-arrow-right mx-2 h-4 w-4"
-        >
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-          <polyline points="12 5 19 12 12 19"></polyline>
-        </svg>
-      </button>
-    </div>
+<div className="mx-auto flex flex-col items-center w-full max-w-2xl gap-4 px-6">
+  <div className="flex flex-col w-full gap-3 md:flex-row">
+    <a
+      className="w-full min-w-[180px] text-lg font-semibold no-underline text-white bg-black dark:bg-white dark:text-black rounded-none md:leading-6 transition-all duration-300 inline-flex items-center justify-center gap-2 py-3.5 shadow-lg shadow-black/20 hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/30 dark:focus-visible:ring-white/30"
+      href="/docs/introduction"
+    >
+      Commencez à apprendre
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="feather feather-arrow-right h-4 w-4"
+      >
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+        <polyline points="12 5 19 12 12 19"></polyline>
+      </svg>
+    </a>
+    <a
+      className="w-full min-w-[160px] text-base font-medium no-underline text-black dark:text-white border border-black/30 dark:border-white/30 rounded-none md:leading-6 transition-all duration-300 inline-flex items-center justify-center py-3"
+      href="/docs/framework-api-reference"
+    >
+      Référence API
+    </a>
   </div>
+</div>
+
+<div className="mx-auto mt-12 grid w-full max-w-5xl gap-4 px-6 md:grid-cols-3">
+  <a
+    className="rounded-none border border-black/15 dark:border-white/15 p-5 hover:shadow-md transition relative"
+    href="/docs/introduction"
+  >
+    <span className="absolute left-0 top-0 h-2 w-2 border-l border-t border-black/40 dark:border-white/40" />
+    <h3 className="font-semibold text-lg">Bien démarrer</h3>
+    <div className="text-sm opacity-80">
+      Ce qu’est O3, comment il est organisé, et comment créer votre première fonctionnalité.
+    </div>
+  </a>
+  <a
+    className="rounded-none border border-black/15 dark:border-white/15 p-5 hover:shadow-md transition relative"
+    href="/docs/core-concepts"
+  >
+    <span className="absolute left-0 top-0 h-2 w-2 border-l border-t border-black/40 dark:border-white/40" />
+    <h3 className="font-semibold text-lg">Concepts clés</h3>
+    <div className="text-sm opacity-80">
+      Les briques du framework : routage, extensions, workspaces et configuration.
+    </div>
+  </a>
+  <a
+    className="rounded-none border border-black/15 dark:border-white/15 p-5 hover:shadow-md transition relative"
+    href="/docs/recipes/index"
+  >
+    <span className="absolute left-0 top-0 h-2 w-2 border-l border-t border-black/40 dark:border-white/40" />
+    <h3 className="font-semibold text-lg">Recettes</h3>
+    <div className="text-sm opacity-80">
+      Des guides pratiques pour créer, étendre et livrer des fonctionnalités O3.
+    </div>
+  </a>
 </div>

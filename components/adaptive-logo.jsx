@@ -12,34 +12,20 @@ function AdaptiveLogo({ height = 180, width = 350 }) {
     setMounted(true);
   }, []);
 
-  let logoSrc = "";
-
-  switch (theme) {
-    case "light":
-      logoSrc = lightLogo;
-      break;
-    case "dark":
-      logoSrc = darkLogo;
-      break;
-    case "system":
-      logoSrc = resolvedTheme === "dark" ? darkLogo : lightLogo;
-      break;
-    default:
-      logoSrc =
-        "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-      break;
-  }
-
-  if (!mounted) {
-    return null;
-  }
+  const resolvedLogo =
+    theme === "dark" || (theme === "system" && resolvedTheme === "dark")
+      ? darkLogo
+      : lightLogo;
+  const logoSrc = mounted ? resolvedLogo : lightLogo;
 
   return (
     <Image
-      className="mx-auto w-[350px] h-[180px]"
+      className="mx-auto"
+      style={{ width, height }}
       src={logoSrc}
       alt="OpenMRS logo"
-      loading="eager"
+      priority
+      sizes="(max-width: 640px) 220px, (max-width: 1024px) 280px, 350px"
       height={height}
       width={width}
     />

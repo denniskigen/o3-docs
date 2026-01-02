@@ -1,0 +1,111 @@
+# Espaces de travail
+
+Les espaces de travail sont des panneaux latéraux qui glissent depuis le côté droit de l'écran, généralement utilisés pour les formulaires et les vues détaillées dans le dossier patient. Ils fournissent un moyen cohérent d'afficher des informations contextuelles et des formulaires sans naviguer loin de la page actuelle.
+
+- Les formulaires d'espace de travail doivent étendre `DefaultPatientWorkspaceProps` de `@openmrs/esm-patient-common-lib` pour garantir des props et un comportement cohérents :
+
+  ```tsx
+  import { type DefaultPatientWorkspaceProps } from '@openmrs/esm-patient-common-lib';
+
+  interface MyWorkspaceProps extends DefaultPatientWorkspaceProps {
+    // Ajoutez des props spécifiques à l'espace de travail ici
+    itemId?: string;
+  }
+
+  const MyWorkspace: React.FC<MyWorkspaceProps> = ({
+    closeWorkspace,
+    closeWorkspaceWithSavedChanges,
+    patientUuid,
+    promptBeforeClosing,
+    itemId,
+  }) => {
+    // Implémentation de l'espace de travail
+  };
+  ```
+
+- Implémentez toujours `promptBeforeClosing` pour avertir les utilisateurs lorsqu'ils tentent de fermer un espace de travail avec des modifications non enregistrées. Ceci doit être appelé dans un `useEffect` qui surveille l'état sale du formulaire :
+
+  ```tsx
+  const {
+    formState: { isDirty },
+  } = useForm(...);
+
+  useEffect(() => {
+    promptBeforeClosing(() => isDirty);
+  }, [isDirty, promptBeforeClosing]);
+  ```
+
+  Pour les espaces de travail non-formulaires, vous pouvez utiliser n'importe quelle condition qui indique des modifications non enregistrées :
+
+  ```tsx
+  useEffect(() => {
+    promptBeforeClosing(() => hasUnsavedChanges);
+  }, [hasUnsavedChanges, promptBeforeClosing]);
+  ```
+
+- Utilisez `closeWorkspaceWithSavedChanges` lorsque les données sont enregistrées avec succès, et `closeWorkspace` lorsque l'utilisateur annule ou lors de la fermeture sans enregistrer :
+
+  ```tsx
+  const handleSave = async () => {
+    try {
+      await saveData();
+      mutate(); // Mettre à jour le cache SWR
+      closeWorkspaceWithSavedChanges(); // Indique un enregistrement réussi
+      showSnackbar({ title: t('saved', 'Enregistré avec succès') });
+    } catch (error) {
+      showSnackbar({
+        kind: 'error',
+        title: t('errorSaving', 'Erreur lors de l'enregistrement'),
+        subtitle: error?.message,
+      });
+    }
+  };
+
+  // Bouton d'annulation
+  <Button kind="secondary" onClick={() => closeWorkspace()}>
+    {t('cancel', 'Annuler')}
+  </Button>
+  ```
+
+- Les composants d'espace de travail doivent être enregistrés en utilisant `getAsyncLifecycle` pour le code splitting, ou `getSyncLifecycle` s'ils doivent être disponibles immédiatement :
+
+  ```tsx
+  // Async - chargé à la demande
+  export const myWorkspace = getAsyncLifecycle(
+    () => import('./my-workspace.workspace'),
+    options
+  );
+
+  // Sync - inclus dans le bundle principal
+  export const myWorkspace = getSyncLifecycle(
+    MyWorkspaceComponent,
+    options
+  );
+  ```
+
+- Les fichiers d'espace de travail doivent utiliser le suffixe `.workspace.tsx` pour indiquer clairement leur objectif et permettre une extraction correcte des clés de traduction.
+
+- Vous pouvez utiliser des composants `ExtensionSlot` dans les espaces de travail pour permettre à d'autres modules d'étendre l'espace de travail avec des fonctionnalités supplémentaires :
+
+  ```tsx
+  import { ExtensionSlot } from '@openmrs/esm-framework';
+
+  <ExtensionSlot 
+    name="my-workspace-header-slot" 
+    state={{ patientUuid, formData }} 
+  />
+  ```
+
+- Les formulaires d'espace de travail doivent gérer à la fois les modes de création et d'édition lorsque c'est approprié. Utilisez une logique conditionnelle basée sur le fait qu'un ID ou des données existantes sont fournis :
+
+  ```tsx
+  const isEditMode = Boolean(itemId);
+  const existingItem = isEditMode 
+    ? data?.find(item => item.id === itemId)
+    : null;
+
+  const defaultValues = isEditMode && existingItem
+    ? { name: existingItem.name, ...existingItem }
+    : { name: '', ...emptyDefaults };
+  ```
+

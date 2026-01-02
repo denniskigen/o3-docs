@@ -1,0 +1,243 @@
+# Configuration de la gestion des services
+
+Le module de gestion des services vous permet de configurer les cartes de patients des services, les types de services et les paramètres de l'espace de travail. Ce guide couvre toutes les options de configuration du module de gestion des services.
+
+## Aperçu
+
+La gestion des services gère les services et lits de patients hospitalisés. Vous pouvez configurer :
+
+- Éléments de carte patient (observations, éléments en attente, identifiants, adresse, tags, etc.)
+- Types de services pour différents emplacements
+- Paramètres de l'espace de travail
+
+## Éléments de carte patient
+
+Configurez les informations qui apparaissent sur les cartes de patients des services. Chaque élément configuré doit avoir un `id` unique qui correspond au composant React du service utilisé.
+
+### Observations
+
+Affichez les valeurs d'observation sur les cartes de patients :
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "patientCardElements": {
+      "obs": [
+        {
+          "id": "blood-pressure",
+          "conceptUuid": "5085AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "label": "Blood Pressure",
+          "orderBy": "descending",
+          "limit": 1,
+          "onlyWithinCurrentVisit": false
+        }
+      ]
+    }
+  }
+}
+```
+
+**Propriétés** :
+- `id` - Identifiant unique pour cet élément (doit correspondre au composant du service) (requis)
+- `conceptUuid` - UUID du concept pour l'observation (requis)
+- `label` - Libellé personnalisé ou clé de traduction (optionnel, par défaut le nom du concept). Peut être défini comme chaîne vide pour masquer le libellé.
+- `orderBy` - `"ascending"` ou `"descending"` (par défaut : `"descending"`)
+- `limit` - Nombre d'observations à afficher (par défaut : `1`, `0` = illimité)
+- `onlyWithinCurrentVisit` - Limiter à la visite actuelle uniquement (par défaut : `false`)
+
+### Éléments en attente
+
+Affichez les ordonnances et transferts en attente :
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "patientCardElements": {
+      "pendingItems": [
+        {
+          "id": "pending-items",
+          "orders": {
+            "orderTypes": [
+              {
+                "uuid": "52a447d3-a64a-11e3-9aeb-50e549534c5e",
+                "label": "Labs"
+              }
+            ]
+          },
+          "showPendingItems": true
+        }
+      ]
+    }
+  }
+}
+```
+
+**Propriétés** :
+- `id` - Identifiant unique pour cet élément (requis)
+- `orders.orderTypes` - Tableau des types d'ordonnances à afficher
+  - `uuid` - UUID du type d'ordonnance (requis)
+  - `label` - Libellé d'affichage ou clé de traduction (optionnel, par défaut "Orders")
+- `showPendingItems` - S'il faut afficher le nombre d'éléments en attente (optionnel)
+
+### Identifiant patient
+
+Configurez l'affichage de l'identifiant patient :
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "patientCardElements": {
+      "patientIdentifier": [
+        {
+          "id": "patient-identifier",
+          "showIdentifierLabel": false
+        }
+      ]
+    }
+  }
+}
+```
+
+**Propriétés** :
+- `id` - Identifiant unique pour cet élément (requis)
+- `showIdentifierLabel` - Afficher le libellé du type d'identifiant (par ex. "OpenMRS ID") (par défaut : `false`)
+
+Un élément non configuré affiche l'identifiant préféré.
+
+### Adresse patient
+
+Configurez quels champs d'adresse afficher :
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "patientCardElements": {
+      "patientAddress": [
+        {
+          "id": "patient-address",
+          "fields": ["cityVillage", "country"]
+        }
+      ]
+    }
+  }
+}
+```
+
+**Propriétés** :
+- `id` - Identifiant unique pour cet élément (requis)
+- `fields` - Tableau des champs d'adresse à afficher (requis)
+
+**Champs d'adresse disponibles** : `cityVillage`, `stateProvince`, `country`, `postalCode`, `countyDistrict`, `latitude`, `longitude`, `address1` à `address15`.
+
+### Note de demande d'admission
+
+Affichez les notes de demande d'admission :
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "patientCardElements": {
+      "admissionRequestNote": [
+        {
+          "id": "admission-request-note",
+          "conceptUuid": "161011AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        }
+      ]
+    }
+  }
+}
+```
+
+**Propriétés** :
+- `id` - Identifiant unique pour cet élément (requis)
+- `conceptUuid` - UUID du concept pour la note de demande d'admission (requis)
+
+### Tags d'observation colorés
+
+Affichez les observations sous forme de tags colorés (par ex. listes de problèmes) :
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "patientCardElements": {
+      "coloredObsTags": [
+        {
+          "conceptUuid": "1284AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "summaryLabel": "Other Problems",
+          "summaryLabelI18nModule": "",
+          "summaryLabelColor": "gray",
+          "tags": [
+            {
+              "color": "red",
+              "appliedToConceptSets": ["some-concept-set-uuid-1"]
+            },
+            {
+              "color": "orange",
+              "appliedToConceptSets": ["some-concept-set-uuid-2"]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+**Propriétés** :
+- `conceptUuid` - UUID du concept pour les observations (requis)
+- `summaryLabel` - Libellé pour le tag de résumé (affiche le nombre de valeurs non configurées) (optionnel, par défaut le nom du concept)
+- `summaryLabelI18nModule` - Module personnalisé à utiliser pour la traduction du libellé de résumé (optionnel)
+- `summaryLabelColor` - Couleur pour le tag de résumé (optionnel). Voir [Couleurs des tags Carbon Design System](https://react.carbondesignsystem.com/?path=/docs/components-tag--overview) pour les couleurs disponibles.
+- `tags` - Tableau des configurations de tags (optionnel)
+  - `color` - Couleur du tag. Voir [Couleurs des tags Carbon Design System](https://react.carbondesignsystem.com/?path=/docs/components-tag--overview) pour les couleurs disponibles.
+  - `appliedToConceptSets` - Tableau d'UUID d'ensembles de concepts. Les observations avec des valeurs codées qui sont membres de ces ensembles s'afficheront comme des tags individuels avec la couleur spécifiée. Si la valeur d'une observation appartient à plusieurs ensembles de concepts, la première règle correspondante prend la priorité.
+
+**Fonctionnement** : Les observations avec des valeurs dans les ensembles de concepts configurés s'affichent comme des tags colorés individuels. Toutes les valeurs d'observation n'appartenant à aucun ensemble de concepts configuré sont résumées comme un compte dans le tag de résumé.
+
+## Types de services
+
+Configurez différents types de services pour différents emplacements :
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "wards": [
+      {
+        "id": "default-ward",
+        "appliedTo": []
+      },
+      {
+        "id": "maternal-ward",
+        "appliedTo": [
+          {
+            "location": "some-location-uuid"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Propriétés** :
+- `id` - ID du type de service (requis). Prend actuellement en charge `"default-ward"` et `"maternal-ward"`. Cette chaîne sert également de nom d'emplacement d'extension pour la vue du service.
+- `appliedTo` - (Optionnel) Tableau de conditions spécifiant à quels emplacements ce type de service s'applique
+  - Un tableau vide signifie s'applique à tous les emplacements
+  - `location` - UUID de l'emplacement
+
+**Fonctionnement** : Lorsqu'un patient est dans un service, le système vérifie les conditions `appliedTo` pour déterminer quelle configuration de type de service utiliser. Si plusieurs définitions de service correspondent, la première est utilisée.
+
+## Liens des signes vitaux de l'espace de travail
+
+Masquez les liens d'historique des signes vitaux et d'enregistrement des signes vitaux dans l'espace de travail du patient du service :
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "hideWorkspaceVitalsLinks": true
+  }
+}
+```
+
+La valeur par défaut est `false`. Lorsqu'elle est définie sur `true`, les liens d'historique des signes vitaux et d'enregistrement des signes vitaux sont masqués dans l'espace de travail du patient du service.
+

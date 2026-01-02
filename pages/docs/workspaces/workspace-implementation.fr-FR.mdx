@@ -1,0 +1,86 @@
+# Implémentation : sous le capot
+
+> Voici comment fonctionne le système de Workspaces sous le capot. Vous n'avez probablement pas besoin de le savoir !
+
+Les Workspaces sont implémentés à l'aide d'un store global, qui peut être importé ainsi :
+
+```ts
+import { getWorkspaceStore } from "@openmrs/esm-framework";
+
+// Accéder à l'état du store des workspaces
+const store = getWorkspaceStore();
+const state = store.getState();
+```
+
+## Propriétés de la fenêtre de workspace
+
+Le store des workspaces expose les propriétés suivantes, qui définissent la fenêtre de workspace :
+
+1. `context: string | null` - Contexte actuel du workspace (par exemple, UUID du patient)
+2. `openWorkspaces: OpenWorkspace[]` - Liste des workspaces lancés par l'utilisateur
+3. `prompt: Prompt | null` - Prompt affiché à l'utilisateur, généralement pour confirmer une action
+4. `workspaceWindowState: 'normal' | 'maximized' | 'hidden'` - État de la fenêtre de workspace
+5. `workspaceGroup?: WorkspaceGroup` - Informations optionnelles sur le groupe de workspaces
+
+Les propriétés du workspace peuvent être accessibles de deux façons :
+
+1. En utilisant la fonction `getWorkspaceStore`, qui retourne le store des workspaces
+
+```ts copy
+import { getWorkspaceStore } from '@openmrs/esm-framework';
+
+const store = getWorkspaceStore();
+const state = store.getState();
+
+// Pour mettre à jour l'état du store, utilisez `store.setState`
+store.setState({ ... })
+// OU
+store.setState((state) => { ... })
+```
+
+2. Dans un composant React, vous pouvez accéder à l'état via le hook `useWorkspaces`
+
+```ts copy
+import { useWorkspaces, getWorkspaceStore } from "@openmrs/esm-framework";
+
+const MyComponent = () => {
+  const { workspaces, active, prompt, workspaceWindowState, workspaceGroup } = useWorkspaces();
+
+  // Pour mettre à jour l'état du store, utilisez getWorkspaceStore().setState()
+  // Note : Le hook est en lecture seule et ne fournit pas de fonction setState
+  const handleUpdate = () => {
+    const store = getWorkspaceStore();
+    store.setState({ ...store.getState(), workspaceWindowState: 'maximized' });
+  };
+
+  return <div></div>;
+};
+```
+
+Plusieurs workspaces peuvent être ouverts en même temps, mais un seul est visible à la fois : celui du haut. La fenêtre du workspace est rendue dans le coin droit du dossier patient.
+
+## Savoir si un workspace est actif
+
+```ts copy
+import { useWorkspaces } from "@openmrs/esm-framework";
+
+const MyComponent = () => {
+  const { workspaces, active, workspaceWindowState } = useWorkspaces();
+
+  // Vérifier si un workspace est ouvert
+  const hasOpenWorkspace = active;
+
+  // Trouver un workspace spécifique
+  const workspaceIndex = workspaces.findIndex(
+    (workspace) => workspace.name === "my-workspace-name"
+  );
+
+  const workspaceOpened = workspaceIndex >= 0;
+
+  // Vérifier si un workspace spécifique est actif (visible et en haut)
+  const isWorkspaceActive =
+    workspaceWindowState !== "hidden" && workspaceIndex === 0;
+
+  return <div></div>;
+};
+```

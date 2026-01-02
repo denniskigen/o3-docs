@@ -17,13 +17,13 @@ The extension system posits two concepts: `extensions` and `slots`. An `extensio
 
 Extensions get rendered into slots. An extension gets associated with a slot in one of the following ways:
 
-- The extension names the slot in its definition, under slot[s].
+- The extension names the slot in its definition, using the `slot` or `slots` property.
 - A call to the [attach](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#attach) function.
 - A system administrator adds the extension to the slot using the slot’s add array.
 
 ## When to use extensions and slots
 
-The extension system should be thought of as a system for making behavior configurable by administrators. It should not be thought of way to reuse components across modules.
+The extension system should be thought of as a system for making behavior configurable by administrators. It should not be thought of as a way to reuse components across modules.
 
 This key question is: _Am I creating a collection of similar things, such as buttons or tiles, which an administrator might want to re-order or otherwise change?_
 
@@ -39,7 +39,7 @@ Consider exporting the component and using it the normal way.
 
 ## Usage
 
-Extensions are defined in the setupOpenMRS function of a module, in an extensions array. Each element of this array defines an extension, with a name and a load function. It may also specify the names of slots to attach the extension to by default. It may also specify a [number of other things](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/interfaces/ExtensionDefinition.md), some of which will be covered below.
+Extensions are defined in a module's `routes.json` file. This is the required approach for Core v5+ modules. The `setupOpenMRS` function was used in Core v4 and earlier but is no longer supported in Core v5+. Modules must migrate to `routes.json` to work with Core v5+. Each extension definition includes a name and a component reference. It may also specify the names of slots to attach the extension to by default, required privileges for role-based access control, connectivity requirements, and a [number of other things](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/interfaces/ExtensionDefinition.md), some of which will be covered below.
 
 Slots are components. There is an [ExtensionSlot](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#extensionslot) React component. If you are working in a different framework and would like to create an extension slot, please get in touch with the OpenMRS Frontend 3.0 team on Slack.
 
@@ -101,17 +101,129 @@ A slot can apply styles to an extension with the following CSS selector:
 
 ### Extension configurability
 
-The beautiful thing about configurability in the extension system is that you don’t need to think about it. Extensions and slots have a standard configuration interface that allows administrators to add, remove, and re-order extensions, as well as specific configuration specific to an extension within a particular slot.
+The beautiful thing about configurability in the extension system is that you don't need to think about it. Extensions and slots have a standard configuration interface that allows administrators to add, remove, and re-order extensions, as well as configure extension-specific settings within a particular slot.
 
 You can use `useConfig` as usual within an extension.
 
 The schema for an extension can be specified using `defineExtensionConfigSchema`. If no schema is defined specifically for your extension, the extension will inherit the configuration of the module that contains it.
 
+#### Role-based access control (RBAC)
+
+Extensions support role-based access control (RBAC) through privileges. You can declare required privileges directly in the extension definition in `routes.json`, and administrators can override or refine these requirements via configuration.
+
+**Declaring privileges in `routes.json`:**
+
+```json
+{
+  "extensions": [
+    {
+      "name": "vitals-widget",
+      "component": "vitals",
+      "slot": "patient-header-slot",
+      "privileges": ["View Vitals"]
+    }
+  ]
+}
+```
+
+The `privileges` property can be a single string or an array of strings. If an array is provided, the user must have **all** of the specified privileges to see the extension. If a single string is provided, the user must have that specific privilege. If the user doesn't have the required privileges, the extension will not be rendered. Note: Users with the "System Developer" role bypass privilege checks.
+
+**Overriding privileges via configuration:**
+
+Administrators can override the extension's default privilege requirements using the `Display conditions` configuration object (described in the next section). This allows fine-tuning access control without modifying code.
+
+#### Display conditions
+
+Every extension automatically has a `Display conditions` configuration object available, which allows administrators to control when extensions are displayed without modifying code. Display conditions are evaluated during the filtering phase before extensions are rendered. This is particularly useful for fine-tuning the role-based access control requirements set in `routes.json` or implementing implementation-specific access policies.
+
+The `Display conditions` object supports the following properties:
+
+- **`privileges`** (array of strings): Overrides the extension's default privileges requirement declared in `routes.json`. If specified, the user must have **all** of these privileges to see the extension. If not specified, the extension's default `privileges` property from its definition is used. This allows administrators to customize access control per implementation without code changes. Note: Users with the "System Developer" role bypass privilege checks.
+
+- **`expression`** (string): A boolean JavaScript expression that must evaluate to `true` for the extension to display. The expression has access to a `session` object containing:
+  - `session.authenticated` - whether the user is authenticated
+  - `session.user` - the logged-in user object (with properties like `uuid`, `username`, `systemId`, `privileges`, `roles`, etc.)
+  - `session.sessionLocation` - the current session location
+  - `session.currentProvider` - the current provider
+  - `session.locale` - the current locale
+
+- **`online`** (boolean): Overrides whether the extension displays when the browser is online. If not specified, the extension's default `online` property is used.
+
+- **`offline`** (boolean): Overrides whether the extension displays when the browser is offline. If not specified, the extension's default `offline` property is used.
+
+**Example configuration:**
+
+```json
+{
+  "@openmrs/esm-patient-chart": {
+    "extensionSlots": {
+      "patient-header-slot": {
+        "configure": {
+          "vitals-widget": {
+            "Display conditions": {
+              "privileges": ["View Vitals", "Manage Vitals"],
+              "expression": "session.user.systemId !== 'admin' && session.sessionLocation?.uuid === 'some-location-uuid'",
+              "online": true,
+              "offline": false
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+This configuration would:
+- Require the user to have both "View Vitals" and "Manage Vitals" privileges
+- Hide the extension for users with systemId "admin"
+- Only show the extension when the session location matches a specific UUID
+- Only display when online
+
+#### UI Editor
+
+The Implementer Tools app includes a **UI Editor** feature that provides a visual interface for configuring extensions. When enabled, it displays overlays on extension slots and extensions throughout the application, allowing administrators to:
+
+- Click on slots to configure which extensions appear in them
+- Click on extensions to configure their settings within a specific slot
+- Visually identify where extensions are rendered
+- See extension counts and metadata at a glance
+
+The UI Editor uses the `data-extension-slot-name` and `data-extension-id` attributes that are automatically added to slot and extension DOM elements. The `position: relative` styling on extension containers enables the UI Editor to position its overlay elements correctly.
+
+To enable the UI Editor, open the Implementer Tools (usually via a keyboard shortcut or menu) and toggle the "UI editor" switch in the configuration panel.
+
 ### State
 
 Sometimes, extensions are not as independent as we might wish they were, and have to expect some state from the slot in which they are mounted. Most commonly, extensions that pertain to a specific patient will accept a `patientUuid` parameter which can be used to fetch relevant patient information.
 
-State is provided as a parameter to the `ExtensionSlot` or `Extension` components, and recieved as a prop by the extension.
+State is provided as a parameter to the `ExtensionSlot` or `Extension` components, and received as a prop by the extension.
+
+**Using the `Extension` component:**
+
+When you provide custom children to `ExtensionSlot` (either as a React node or a function), you must use the `<Extension />` component to mark where each extension should be rendered. The `Extension` component is a React helper that renders a single extension instance within a slot.
+
+```tsx
+import { ExtensionSlot, Extension } from "@openmrs/esm-react-utils";
+
+// With custom wrapper
+<ExtensionSlot name="patient-header-slot">
+  <div className="custom-wrapper">
+    <Extension />
+  </div>
+</ExtensionSlot>
+
+// With function children
+<ExtensionSlot name="dashboard-slot">
+  {(extension) => (
+    <div className={`widget-${extension.meta?.size}`}>
+      <Extension state={{ patientUuid: "123" }} />
+    </div>
+  )}
+</ExtensionSlot>
+```
+
+If you don't provide children to `ExtensionSlot`, the `Extension` component is automatically rendered for each extension.
 
 See the [ExtensionSlot API docs](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#extensionslot) for more.
 
@@ -119,21 +231,205 @@ See the [ExtensionSlot API docs](https://github.com/openmrs/openmrs-esm-core/blo
 
 Sometimes, extensions might want to pass information to the slot that receives them. This is used, for example, by patient chart widgets. Dashboards render these widgets into a grid format. When a dashboard receives a widget, the widget informs the dashboard (which is a slot) how many grid columns it would like to take up. This happens using `meta`.
 
-Meta is provided by extensions in their definition in the `setupOpenMRS` function.
+Meta is provided by extensions in their definition in `routes.json`. (In Core v4 and earlier, this was done in the `setupOpenMRS` function, but that approach is no longer supported in Core v5+.)
 
 Slots can access meta through the extension system API, such as by using [useExtensionSlotMeta](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#useextensionslotmeta).
 
-### Offline Support
-
-For information about offline support, please see [Offline Mode](https://o3-dev.docs.openmrs.org/#/offline/offline).
-
 ### Order
 
-By default, extensions will render into slots in the order that they are declared or attached. Extensions which are added by an administrator come last.
+By default, extensions render in the order they are declared or attached. The final order is determined by a priority system with three tiers:
 
-Extensions can provide an `order` index in their definition to influence the order in which they are rendered. This works like [z-index](https://developer.mozilla.org/en-US/docs/Web/CSS/z-index) in CSS—similarly, it is a way of setting relative order among elements that don’t officially know about each other.
+1. **Configured order** (highest priority): Extensions listed in the slot's `order` configuration array appear first, in the order specified in that array.
+2. **Registered order**: Extensions with an `order` property in their `routes.json` definition appear next, sorted by their order value (offset by 1000 to ensure they come after configured extensions).
+3. **Attached order** (lowest priority): Extensions without any order specification appear last, in the order they were attached (offset by 2000 to ensure they come after all ordered extensions).
 
-Administrators can also override the order of extensions within any slot by modifying the `order` configuration parameter of that slot.
+Extensions added by administrators via the `add` array follow the same ordering rules.
+
+Extensions can provide an `order` index in their definition to influence the order in which they are rendered. This works like [z-index](https://developer.mozilla.org/en-US/docs/Web/CSS/z-index) in CSS—similarly, it is a way of setting relative order among elements that don't officially know about each other.
+
+Administrators can also override the sort order using the `order` array alongside `add`/`remove` arrays in the slot configuration. The runtime automatically processes these configuration changes to determine the final order of extensions.
+
+### Feature flags
+
+Extensions can be conditionally rendered based on feature flags. This allows you to gradually roll out new features or enable experimental functionality for specific implementations.
+
+**Declaring feature flags in `routes.json`:**
+
+```json
+{
+  "extensions": [
+    {
+      "name": "experimental-widget",
+      "component": "experimental",
+      "slot": "dashboard-slot",
+      "featureFlag": "experimental-feature"
+    }
+  ]
+}
+```
+
+If the `featureFlag` property is specified, the extension will only render when that feature flag is enabled. Feature flags can be toggled directly from the Implementer Tools app, which provides a visual interface for enabling and disabling feature flags. Once a feature flag is registered (via `registerFeatureFlag`), it automatically appears in the Implementer Tools with a toggle switch, allowing administrators to enable or disable it without code changes.
+
+### Advanced slot rendering
+
+The `ExtensionSlot` component supports advanced rendering patterns for customizing how extensions are displayed.
+
+**Filtering extensions with the `select` prop:**
+
+You can filter which extensions are rendered using the `select` prop, which accepts a function that receives the array of assigned extensions and returns a filtered array:
+
+```tsx
+<ExtensionSlot 
+  name="patient-header-slot"
+  select={(extensions) => extensions.filter(ext => ext.meta?.priority === 'high')}
+/>
+```
+
+**Custom rendering with function children:**
+
+You can customize how each extension is rendered by passing a function as children. The function receives the extension object and any state passed to the slot:
+
+```tsx
+<ExtensionSlot name="dashboard-slot">
+  {(extension, state) => (
+    <div className={`widget widget-${extension.meta?.size || 'medium'}`}>
+      <Extension state={state} />
+    </div>
+  )}
+</ExtensionSlot>
+```
+
+The extension object (of type `AssignedExtension`) includes properties like `name`, `id`, `meta`, `moduleName`, `config`, `online`, `offline`, and `featureFlag`, allowing you to create sophisticated layouts based on extension metadata.
+
+**Accessing extension context:**
+
+Each extension receives an `_extensionContext` prop containing:
+- `extensionId`: The unique identifier for this extension instance
+- `extensionSlotName`: The name of the slot this extension is rendered in
+- `extensionSlotModuleName`: The module that owns the slot
+- `extensionModuleName`: The module that provides the extension
+
+This context is useful for debugging, logging, or conditional logic that depends on where an extension is rendered.
+
+### Dynamic slot management
+
+While most extensions are attached to slots declaratively via `routes.json` or administrator configuration, you can also manage slot attachments programmatically at runtime.
+
+**Attaching extensions dynamically:**
+
+```ts
+import { attach } from "@openmrs/esm-framework";
+
+// Attach an extension to a slot at runtime
+attach("patient-header-slot", "vitals-widget");
+
+// Attach the same extension multiple times with different IDs
+attach("patient-header-slot", "vitals-widget#instance1");
+attach("patient-header-slot", "vitals-widget#instance2");
+```
+
+Extension IDs can include an optional `#` suffix to distinguish multiple instances of the same extension within a slot. For example, `"vitals-widget#primary"` and `"vitals-widget#secondary"` are two distinct instances of the `"vitals-widget"` extension.
+
+This is useful for:
+- Dynamic slots that are created at runtime (e.g., workspace slots)
+- Implementation-specific logic that conditionally shows extensions
+- Temporary extensions that should only appear under certain conditions
+- Rendering the same extension multiple times in the same slot with different configurations
+
+**Detaching extensions:**
+
+<Callout emoji="⚠️" type="warning">
+  **Deprecated**: The `detach` and `detachAll` functions are deprecated. Extension attachments should be considered declarative. Use configuration (`remove` array) or avoid attaching extensions in the first place rather than detaching them at runtime.
+</Callout>
+
+```ts
+import { detach, detachAll } from "@openmrs/esm-framework";
+
+// Detach a specific extension from a slot (deprecated)
+detach("patient-header-slot", "vitals-widget");
+
+// Detach all extensions from a slot (deprecated)
+detachAll("patient-header-slot");
+```
+
+**Querying assigned extensions:**
+
+You can programmatically get the list of extensions assigned to a slot:
+
+```ts
+import { getAssignedExtensions } from "@openmrs/esm-framework";
+
+const extensions = getAssignedExtensions("patient-header-slot");
+// Returns an array of AssignedExtension objects with properties:
+// - id: unique extension instance ID (may include # suffix)
+// - name: extension name
+// - moduleName: the module that provides the extension
+// - meta: extension metadata object
+// - config: extension configuration (null until slot is mounted)
+// - online, offline: connectivity flags
+// - featureFlag: optional feature flag name
+```
+
+This is useful for building custom slot implementations or debugging extension assignments.
+
+### How slots and extensions register themselves
+
+Behind the scenes, slots call `registerExtensionSlot(moduleName, slotName)` when they mount (the React-friendly `<ExtensionSlot>` helper does this for you). This tells the runtime which module owns the slot and seeds the internal store (`registerExtensionSlot` lives in `@openmrs/esm-extensions`).
+
+Extensions declared in `routes.json` are registered via `registerExtension`. (The `setupOpenMRS()` approach from Core v4 and earlier is no longer supported in Core v5+.) Attaching `slot`/`slots` fields in the same definition is the declarative way to populate `attachedIds`; calling `attach(slotName, extensionId)` gives you imperative control (useful for dynamic slots or implementation-specific tweaks). Once registered/attached, the runtime merges administrator config, feature flags, privileges, and `online`/`offline` constraints before rendering the assigned extensions.
+
+### Meta and slot APIs
+
+Slots can read `meta` through `useExtensionSlotMeta()` and use it to adjust layouts—dashboards read column requests, patient headers read badge sizes, etc. Because `meta` is just another part of the definition, it’s merged with slot config overrides through the same `getAssignedExtensionsFromSlotData` logic.
+
+For hooks into slot state if the default helpers are not enough, consult `registerExtensionSlot`, `renderExtension`, and `getAssignedExtensions` in `@openmrs/esm-extensions`, and `useExtensionSlotMeta` in `@openmrs/esm-react-utils`, so you understand how the stores, configs, and connectivity checks interact.
+
+## Troubleshooting
+
+If your extension isn’t showing up:
+
+- Double-check `routes.json` — the `component` name must match the named export from `src/index.ts`.
+- Confirm the target slot exists and is rendered (look for `<ExtensionSlot name="..." />` in the host module).
+- Unless you explicitly need runtime control, bind the slot in `routes.json` rather than using `attach`.
+- Slot configuration can override order: administrators can reorder entries via the slot’s `order` array.
+
+## Worked example
+
+1. Export the extension component in `src/index.ts`:
+
+   ```ts
+   import { getSyncLifecycle } from "@openmrs/esm-react-utils";
+   import { createLeftPanelLink } from "./left-panel-link";
+
+   export const patientListLink = getSyncLifecycle(
+     createLeftPanelLink({ name: "patient-lists" }),
+     {
+       featureName: "patient-lists-link",
+       moduleName: "@openmrs/esm-patient-lists",
+     }
+   );
+   ```
+
+   Note: The `getSyncLifecycle` wrapper is required to convert your React component into an extension-compatible lifecycle. The options object must include `featureName` and `moduleName`.
+
+2. Add an entry to `routes.json`:
+
+   ```json
+   {
+     "extensions": [
+       {
+         "component": "patientListLink",
+         "slot": "patient-lists-dashboard-slot",
+         "name": "patient-lists-home-link",
+         "order": 4
+       }
+     ]
+   }
+   ```
+
+3. Ensure a host renders the slot, e.g., `<ExtensionSlot name="patient-lists-dashboard-slot" />`.
+4. Admins can later tweak the slot's `order` array or use `add`/`remove` arrays via the configuration system to control which extensions appear and in what order.
+5. To reuse the same extension in another slot, either call `attach("another-slot", "patient-lists-home-link")` at runtime, or add the extension to the other slot's `add` array in the configuration.
 
 ## Additional Resources
 
@@ -144,6 +440,8 @@ Short introductory videos:
 - [Introductory presentation: Quick Guide to Slots](https://docs.google.com/presentation/d/1mQxh7qAYLD-gc9sh0I58t4o_XNndPcu6hAJmTZQZ_fo/edit#slide=id.gbe34f6b087_0_34)
 
 For a terse technical description of the extension system, see the [Extensions RFC](https://github.com/openmrs/openmrs-rfc-frontend/pull/27/files).
+
+See the [App shell deep dive](https://github.com/openmrs/openmrs-esm-core/tree/main/docs/app-shell-deep-dive) for the runtime wiring that powers slot registration, extension rendering, and the parcel lifecycle.
 
 ## Workshop
 
@@ -171,55 +469,68 @@ For (1), extensions are implemented using single-spa [parcels](https://single-sp
 
 For (2) you can use the `registerExtensionSlot()` function together with `renderExtension()`. For frameworks such as React, helper components may exist (e.g., `ExtensionSlot`).
 
-For (3) you can define an extension in your application's `routes.json` file. An example for this:
+For (3), you define extensions in your application's `routes.json` file (recommended for Core v5+). An example:
 
 ```json
 {
-  extensions: [
+  "extensions": [
     {
-      id: "foo",
-      // fooComponent is the name of the export defined in `index.ts`
-      component: "fooComponent"
-    },
+      "name": "foo",
+      "component": "fooComponent"
+    }
   ]
 }
 ```
 
-As a shorthand for (4) you could already specify a target slot via the `slot` property in the previous code snippet. Without that convenience way you’d still be able to register it programmatically using `attach`:
+Note: `fooComponent` is the name of the export defined in `src/index.ts`.
+
+As a shorthand for (4), you can specify a target slot via the `slot` property in the extension definition. Alternatively, you can attach extensions programmatically using `attach`:
 
 ```ts
 // attaches an extension "foo" to a slot "foo-slot"
 attach("foo-slot", "foo");
 ```
 
-Generally, though this is either done at initialization time as a default, or explicitly via a user-provided configuration. The only exception can be found with “dynamic” (or “special”) slots. One example in this area is the workspace of the patient chart frontend module.
+Generally, slot assignment is done at initialization time as a default (via the `slot` property in `routes.json`), or explicitly via administrator configuration. The exception is "dynamic" slots that are created at runtime, such as workspace slots in the patient chart module.
 
 ### Extensions and Slots
 
 An extension can be in any of the following four states with respect to an extension slot:
 
-- _attached_ (set via code using `attach` and `detach`)
-- _configured_ (set via configuration using: `add` and `remove`)
-- _assigned_ (computed from attached and configured)
-- _connected_ (computed from assigned using connectivity and `online` / `offline`)
+- **attached**: Set via code using `attach()` (or declaratively via the `slot`/`slots` property in `routes.json`). Note: `detach()` is deprecated.
+- **configured**: Set via administrator configuration using the `add` and `remove` arrays
+- **assigned**: Computed by merging attached and configured extensions, then filtering based on privileges, feature flags, and connectivity (`online`/`offline` flags)
+- **connected**: (Deprecated term) This is the same as "assigned" after filtering—extensions that are actually rendered
+
+The runtime uses the "assigned" state to determine which extensions to render. The filtering happens automatically based on user privileges, enabled feature flags, and connectivity state.
 
 ### Rendering
 
-Extensions are rendered by following their exported lifecycle functions. The `getAsyncLifecycle` function from `@openmrs/esm-react-utils` is a convenience layer that already exports these lifecycle functions wired together with `single-spa-react`.
+Extensions are rendered by following their exported lifecycle functions. The `getAsyncLifecycle` and `getSyncLifecycle` functions from `@openmrs/esm-react-utils` are convenience layers that export these lifecycle functions wired together with `single-spa-react`. Use `getAsyncLifecycle` for components that need to be lazy-loaded, and `getSyncLifecycle` for components that are already available synchronously.
 
 In a nutshell:
 
-1. When the component should be rendered the `load` function is evaluated - in case of a `Promise` (via the asynchronously loaded `import` function) this first waits for the component to be available.
-2. The component is placed into its lifecycle functions provided by `single-spa-react`.
-3. The lifecycle functions bootstrap. mount. unmount, and update are exported.
+1. When the component should be rendered, the `load` function is evaluated. If it returns a `Promise` (via an asynchronously loaded `import()`), the system waits for the component to be available.
+2. The component is wrapped with lifecycle functions provided by `single-spa-react`.
+3. The lifecycle functions (`bootstrap`, `mount`, `unmount`, and `update`) are exported and managed by Single-SPA.
 
 These lifecycle functions are not magic - theoretically you could write them on your own, however, since the single-spa ecosystem already provides convenience wrappers such as `single-spa-react` for many frameworks we don’t recommend it.
 
-To actually render also two more things need to be considered:
+Before rendering, two additional factors are evaluated:
 
-1. Does the extension render in `offline` or `online` mode, and which mode is the browser in?
-2. What properties should be passed to the component which is rendered?
+1. **Connectivity mode**: Whether the extension should render based on the current online/offline state
+2. **Component props**: What data and services should be passed to the rendered component
 
-The answer to (1) is found in `navigator.onLine`. Only if `offline` was set to `true` or some object the component renders in offline mode. Likewise, if `online: false` was supplied the component will not render in online mode.
+**Connectivity mode** is determined by checking the browser's connectivity status via `isOnline()` from `@openmrs/esm-utils`. This function first checks if `window.offlineEnabled` is true; if not, it assumes the app is always online. If offline mode is enabled, it then checks `navigator.onLine` to determine the actual connectivity state.
 
-The answer to (2) are the `meta` properties along with the extension’s context (e.g., what slot it is rendered to) and its injected services. The injected services are defined via `online` or `offline`. In case of `true`, no services are injected. In case of an object the provided key-value pairs are interpreted as services, which should be injected depending on the connectivity case.
+The extension's `online` and `offline` flags control whether it renders in each mode:
+- If `online: false`, the extension will not render when the browser is online
+- If `offline: true`, the extension will render when the browser is offline
+- By default, extensions render online (`online: true`) and do not render offline (`offline: false`)
+
+Note: While the type system allows `online` and `offline` to be objects, this feature is not currently implemented in the rendering logic. Use boolean values.
+
+**Component props** include:
+- `_meta`: The extension's metadata object
+- `_extensionContext`: Information about the extension and its slot (extension ID, slot name, module names)
+- Any additional props passed to the `ExtensionSlot` component (via the `state` prop)

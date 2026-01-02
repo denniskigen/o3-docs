@@ -1,0 +1,243 @@
+# Configuring Ward Management
+
+The Ward Management module allows you to configure ward patient cards, ward types, and workspace settings. This guide covers all configuration options for the Ward Management module.
+
+## Overview
+
+Ward Management handles inpatient wards and beds. You can configure:
+
+- Patient card elements (observations, pending items, identifiers, address, tags, etc.)
+- Ward types for different locations
+- Workspace settings
+
+## Patient Card Elements
+
+Configure what information appears on ward patient cards. Each configured element must have a unique `id` that matches the ward React component being used.
+
+### Observations
+
+Display observation values on patient cards:
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "patientCardElements": {
+      "obs": [
+        {
+          "id": "blood-pressure",
+          "conceptUuid": "5085AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "label": "Blood Pressure",
+          "orderBy": "descending",
+          "limit": 1,
+          "onlyWithinCurrentVisit": false
+        }
+      ]
+    }
+  }
+}
+```
+
+**Properties**:
+- `id` - Unique identifier for this element (must match the ward component) (required)
+- `conceptUuid` - Concept UUID for the observation (required)
+- `label` - Custom label or translation key (optional, defaults to concept name). Can be set to empty string to hide label.
+- `orderBy` - `"ascending"` or `"descending"` (default: `"descending"`)
+- `limit` - Number of observations to show (default: `1`, `0` = unlimited)
+- `onlyWithinCurrentVisit` - Limit to current visit only (default: `false`)
+
+### Pending Items
+
+Display pending orders and transfers:
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "patientCardElements": {
+      "pendingItems": [
+        {
+          "id": "pending-items",
+          "orders": {
+            "orderTypes": [
+              {
+                "uuid": "52a447d3-a64a-11e3-9aeb-50e549534c5e",
+                "label": "Labs"
+              }
+            ]
+          },
+          "showPendingItems": true
+        }
+      ]
+    }
+  }
+}
+```
+
+**Properties**:
+- `id` - Unique identifier for this element (required)
+- `orders.orderTypes` - Array of order types to display
+  - `uuid` - Order type UUID (required)
+  - `label` - Display label or translation key (optional, defaults to "Orders")
+- `showPendingItems` - Whether to show pending items count (optional)
+
+### Patient Identifier
+
+Configure patient identifier display:
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "patientCardElements": {
+      "patientIdentifier": [
+        {
+          "id": "patient-identifier",
+          "showIdentifierLabel": false
+        }
+      ]
+    }
+  }
+}
+```
+
+**Properties**:
+- `id` - Unique identifier for this element (required)
+- `showIdentifierLabel` - Show identifier type label (e.g., "OpenMRS ID") (default: `false`)
+
+An unconfigured element displays the preferred identifier.
+
+### Patient Address
+
+Configure which address fields to display:
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "patientCardElements": {
+      "patientAddress": [
+        {
+          "id": "patient-address",
+          "fields": ["cityVillage", "country"]
+        }
+      ]
+    }
+  }
+}
+```
+
+**Properties**:
+- `id` - Unique identifier for this element (required)
+- `fields` - Array of address fields to display (required)
+
+**Available address fields**: `cityVillage`, `stateProvince`, `country`, `postalCode`, `countyDistrict`, `latitude`, `longitude`, `address1` through `address15`.
+
+### Admission Request Note
+
+Display admission request notes:
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "patientCardElements": {
+      "admissionRequestNote": [
+        {
+          "id": "admission-request-note",
+          "conceptUuid": "161011AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        }
+      ]
+    }
+  }
+}
+```
+
+**Properties**:
+- `id` - Unique identifier for this element (required)
+- `conceptUuid` - Concept UUID for the admission request note (required)
+
+### Colored Observation Tags
+
+Display observations as colored tags (e.g., problem lists):
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "patientCardElements": {
+      "coloredObsTags": [
+        {
+          "conceptUuid": "1284AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "summaryLabel": "Other Problems",
+          "summaryLabelI18nModule": "",
+          "summaryLabelColor": "gray",
+          "tags": [
+            {
+              "color": "red",
+              "appliedToConceptSets": ["some-concept-set-uuid-1"]
+            },
+            {
+              "color": "orange",
+              "appliedToConceptSets": ["some-concept-set-uuid-2"]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+**Properties**:
+- `conceptUuid` - Concept UUID for the observations (required)
+- `summaryLabel` - Label for the summary tag (shows count of unconfigured values) (optional, defaults to concept name)
+- `summaryLabelI18nModule` - Custom module to use for translation of the summary label (optional)
+- `summaryLabelColor` - Color for the summary tag (optional). See [Carbon Design System Tag colors](https://react.carbondesignsystem.com/?path=/docs/components-tag--overview) for available colors.
+- `tags` - Array of tag configurations (optional)
+  - `color` - Tag color. See [Carbon Design System Tag colors](https://react.carbondesignsystem.com/?path=/docs/components-tag--overview) for available colors.
+  - `appliedToConceptSets` - Array of concept set UUIDs. Observations with coded values that are members of these sets will display as individual tags with the specified color. If an observation's value belongs to multiple concept sets, the first matching rule takes precedence.
+
+**How it works**: Observations with values in the configured concept sets display as individual colored tags. Any observation values not belonging to any configured concept sets are summarized as a count in the summary tag.
+
+## Ward Types
+
+Configure different ward types for different locations:
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "wards": [
+      {
+        "id": "default-ward",
+        "appliedTo": []
+      },
+      {
+        "id": "maternal-ward",
+        "appliedTo": [
+          {
+            "location": "some-location-uuid"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Properties**:
+- `id` - Ward type ID (required). Currently supports `"default-ward"` and `"maternal-ward"`. This string also serves as the extension slot name for the ward view.
+- `appliedTo` - (Optional) Array of conditions specifying which locations this ward type applies to
+  - Empty array means applies to all locations
+  - `location` - UUID of the location
+
+**How it works**: When a patient is in a ward, the system checks the `appliedTo` conditions to determine which ward type configuration to use. If multiple ward definitions match, the first one is used.
+
+## Workspace Vitals Links
+
+Hide vital history and record vital links in the ward patient workspace:
+
+```json
+{
+  "@openmrs/esm-ward-app": {
+    "hideWorkspaceVitalsLinks": true
+  }
+}
+```
+
+The default is `false`. When set to `true`, the vital history and record vital links are hidden in the ward patient workspace.
+

@@ -1,15 +1,13 @@
 import { Callout, Steps } from "nextra-theme-docs";
-
-<Callout emoji="⚠️" type="warning">
-  CECI N'EST PLUS LA SOURCE DE VÉRITÉ ACTIVEMENT MAINTENUE POUR LA DOCUMENTATION DE DÉVELOPPEMENT O3. Cet effort a été
-  déplacé vers le Wiki OpenMRS à https://openmrs.atlassian.net/wiki/x/K4L-C
-</Callout>
+import DeprecationWarning from "../../../components/deprecation-warning";
 
 # Tests unitaires et d'intégration
 
 De manière générale, en ce qui concerne les tests des composants dans O3, il existe trois catégories de tests:
 
-1. **Tests unitaires** - vérifient que des éléments individuels et isolés de fonctionnalité fonctionnent ensemble comme prévu.
+<DeprecationWarning href="https://openmrs.atlassian.net/wiki/x/K4L-C" locale="fr-FR" />
+
+1. **Tests unitaires** - vérifient que des éléments individuels et isolés de fonctionnalité fonctionnent comme prévu.
 2. **Tests d'intégration** - vérifient que plusieurs unités fonctionnent ensemble en harmonie.
 3. **Tests de bout en bout (e2e)** - un robot assistant qui se comporte comme un utilisateur pour cliquer dans l'application et vérifier qu'elle fonctionne correctement.
 
@@ -23,6 +21,22 @@ Lors du travail avec un module frontend, ses tests unitaires (et parfois d'inté
   **Philosophie de test**: Plus vos tests ressemblent à la façon dont votre logiciel est utilisé, plus ils peuvent vous
   donner confiance.
 </Callout>
+
+## Migration du test runner
+
+Nous sommes en train de migrer de **Jest** vers **Vitest**, et ce changement se déploie progressivement dans les modules frontend.
+
+Justification de la migration :
+
+- Exécutions plus rapides des tests et meilleur mode watch.
+- Meilleure compatibilité avec ESM et l’écosystème Vite.
+- Expérience développeur plus fluide à mesure que le nombre de modules frontend augmente.
+
+## Exécuter les tests et fichiers de setup
+
+Les commandes de test varient selon le module, donc vérifiez le `package.json` du module pour connaître les scripts exacts. Les modèles courants incluent `yarn test` et `yarn test:watch`.
+
+Les fichiers de setup s’appellent généralement `setupTests.ts` ou `setup-tests.ts`, et ils sont déclarés dans la configuration du runner de test (Jest ou Vitest). Si vous devez ajouter des mocks globaux ou des utilitaires de test, c’est l’endroit approprié.
 
 ## Exemple: Tester un module frontend
 
@@ -221,23 +235,34 @@ Bien que ce test passe et puisse nous donner une certaine confiance que ce compo
 - Parce que nous ne regardons pas le point de terminaison de l'API et les paramètres de la requête, nous ne pouvons pas dire si l'utilisateur fait la bonne requête.
 - Parce que nous simulons le backend, nous ne pouvons pas prédire avec confiance ce qui se passera si le vrai serveur est en panne, ou s'il renvoie un résultat inattendu.
 
-### Modèles de simulation
+## Modèles de simulation
 
 Lors de l'écriture de tests, vous aurez souvent besoin de simuler des dépendances. Voici quelques modèles que vous pouvez utiliser pour écrire des tests plus efficaces, maintenables et sûrs au niveau du type pour vos modules frontend:
 
-Core exporte un mock de module qui peut être utilisé pour tester les fonctionnalités dans `@openmrs/esm-framework`. Vous aurez généralement un fichier de configuration Jest qui configure le mock pour vous comme ceci:
+Core exporte un mock de module qui peut être utilisé pour tester les fonctionnalités dans `@openmrs/esm-framework`. La configuration dépend du runner de test utilisé dans le dépôt (Jest ou Vitest).
 
-```js filename="jest.config.js"
+**Exemple Jest :**
+
+```js {4}
 module.exports = {
-  "@openmrs/esm-framework": "@openmrs/esm-framework/mock",
+  // ... autres propriétés de configuration
+  moduleNameMapper: {
+    "@openmrs/esm-framework": "@openmrs/esm-framework/mock",
+  },
 };
 ```
 
-Cette ligne indique à Jest d'utiliser le module mock pour toutes les importations de `@openmrs/esm-framework`. C'est utile car cela vous permet de tester votre module de manière isolée sans avoir à vous soucier du framework.
+**Exemple Vitest (dans `setup-tests.ts`) :**
+
+```ts
+vi.mock('@openmrs/esm-framework', () => import('@openmrs/esm-framework/mock'));
+```
+
+Ces approches indiquent au runner de test d'utiliser le module mock pour toutes les importations de `@openmrs/esm-framework`. C'est utile car cela vous permet de tester votre module de manière isolée sans avoir à vous soucier du framework.
 
 Le mock du framework agrège des stubs pour toutes les APIs du framework que votre module pourrait utiliser. Si une fonctionnalité est manquante, vous devriez d'abord l'ajouter au mock. Vous pouvez le faire en étendant l'un des stubs existants ou en en ajoutant de nouveaux.
 
-#### Vous ne devriez pas avoir besoin d'utiliser des mocks partiels
+### Vous ne devriez pas avoir besoin d'utiliser des mocks partiels
 
 Le mock du framework devrait être suffisant pour tester votre module. Si vous vous retrouvez à devoir simuler des fonctions ou des classes individuelles, il est probable que le mock du framework manque de fonctionnalités. Vous avez peut-être vu un modèle comme celui-ci dans le passé:
 
@@ -264,7 +289,7 @@ beforeEach(() => {
 // Vos tests vont ici...
 ```
 
-#### Annoter les mocks avec des informations de type
+### Annoter les mocks avec des informations de type
 
 Dans la mesure du possible, préférez utiliser la fonction `jest.mocked` pour obtenir des informations de type pour vos mocks. Cela vous aidera à détecter les erreurs de type tôt et rendra vos tests plus robustes. Vous avez peut-être vu ce modèle dans le passé:
 
@@ -291,7 +316,7 @@ import type { PatientRegistrationConfig } from "../config-schema";
 const mockUseConfig = jest.mocked(useConfig<PatientRegistrationConfig>);
 ```
 
-#### Annoter les mocks useConfig avec des informations de type
+### Annoter les mocks useConfig avec des informations de type
 
 Le hook `useConfig` est un cas particulier car il prend un paramètre générique qui spécifie la forme de l'objet de configuration. En plus d'annoter le mock avec le type de l'objet de configuration, vous devriez également fournir un objet de configuration par défaut que vos tests peuvent utiliser. Voici un exemple:
 
@@ -320,7 +345,7 @@ beforeEach(() => {
 });
 ```
 
-#### Points clés à retenir
+### Points clés à retenir
 
 - Utilisez le mock du framework pour tester votre module de manière isolée.
 - Étendez le mock du framework en ajoutant des stubs pour les fonctionnalités manquantes. N'utilisez pas de mocks partiels pour ajouter des fonctionnalités manquantes.

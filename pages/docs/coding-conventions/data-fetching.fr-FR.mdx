@@ -1,0 +1,233 @@
+import { Callout } from "nextra-theme-docs";
+
+# Récupération des données
+
+- Colocalisez votre logique de récupération de données dans un fichier suffixé avec `.resource`. Par exemple, `user.resource.ts` contient la logique de récupération de données pour le composant User.
+- Dans la mesure du possible, préférez abstraire votre récupération de données dans un hook personnalisé plutôt que de [récupérer avec des effets](https://react.dev/reference/react/useEffect#fetching-data-with-effects). La récupération de données avec des effets présente de nombreux [inconvénients](https://react.dev/reference/react/useEffect#fetching-data-with-effects) et doit être évitée. Préférez plutôt l'utilisation de hooks [SWR](https://swr.vercel.app/).
+- Utilisez les hooks [SWR](https://swr.vercel.app/) pour récupérer les données du backend. Utilisez [useSWRImmutable](https://swr.vercel.app/docs/revalidation.en-US#disable-automatic-revalidations) pour les ressources qui ne sont pas censées changer souvent, telles que les concepts ou les configurations backend. Alternativement, vous pouvez utiliser [useOpenmrsSWR](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-react-utils/src/useOpenmrsSWR.ts) qui est un wrapper autour de `useSWR` qui gère automatiquement les contrôleurs d'abandon et s'intègre avec `openmrsFetch`.
+- Placez le hook SWR dans un fichier de ressource et exportez-le en tant que fonction. Cela nous permet de réutiliser le même hook dans plusieurs composants.
+- Mémorisez la valeur de retour de votre hook SWR en utilisant `useMemo` pour éviter des rerenders inutiles. Ceci est particulièrement important si le hook est utilisé dans un composant qui est rendu plusieurs fois, comme une ligne de tableau. Lors de la création de hooks personnalisés qui encapsulent SWR, mémorisez toujours l'objet de retour :
+
+  ```tsx
+  // Bon - valeur de retour mémorisée
+  export function usePatient(patientUuid?: string) {
+    const { data: patient, error, isValidating } = useSWR(...);
+    
+    return useMemo(
+      () => ({
+        isLoading: isValidating && !error && !patient,
+        patient,
+        patientUuid,
+        error,
+      }),
+      [isValidating, error, patient, patientUuid],
+    );
+  }
+  ```
+- Les hooks de récupération de données doivent suivre la convention de nommage `use<resource>`. Par exemple, `useUser` est le hook pour récupérer les données utilisateur.
+- Utilisez [openmrsFetch](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-api/src/openmrs-fetch.ts) pour récupérer les données du backend. `openmrsFetch` est un wrapper autour de l'API `fetch` qui ajoute des en-têtes d'authentification et d'autorisation et gère les erreurs. Passez-le aux hooks SWR comme argument `fetcher`.
+- Utilisez les propriétés `error`, `isLoading`, `isValidating` et `mutate` du hook SWR pour gérer les erreurs, les états de chargement et les mutations. Ne recréez pas ces propriétés manuellement.
+- Utilisez le modèle de [récupération conditionnelle de données de SWR](https://swr.vercel.app/docs/conditional-fetching) lorsque la requête dépend d'une condition. Par exemple, si la requête dépend d'une prop, ne faites la requête que si la prop est vraie.
+
+  ```tsx
+  // Ne récupérer les données utilisateur que si userId est fourni
+  const url = userId ? `/ws/rest/v1/user/${userId}` : null;
+  const { data, error, isLoading, isValidating, mutate } = useSWR<User>(url, openmrsFetch);
+  ```
+
+## Contrats : rendre les états explicites
+
+Les hooks de récupération de données doivent rendre les états de chargement, d'erreur et de succès explicites et faciles à gérer.
+
+- Ne retournez pas "peut-être des données" sans retourner les indicateurs d'état SWR associés.
+- Les composants consommant les hooks doivent gérer :
+  - le chargement (`isLoading` / `isValidating`),
+  - l'erreur (`error`),
+  - le succès vide (chargé mais aucun résultat).
+
+Cela empêche les bugs d'"hypothèses implicites" (par exemple, le rendu avec des données non définies).
+
+<Callout emoji="⚠️" type="warning">
+  **Rendre les invariants visibles** : Toujours retourner une forme cohérente avec `{ data, error, isLoading }` et exiger que l'interface utilisateur gère explicitement les trois états.
+</Callout>
+
+  ```tsx
+  // Bon - gestion explicite des états
+  const { data, error, isLoading } = usePatient(patientUuid);
+  
+  if (isLoading) {
+    return <InlineLoading />;
+  }
+
+  if (error) {
+    return <ErrorState error={error} />;
+  }
+
+  if (!data) {
+    return <EmptyState />;
+  }
+   
+  return <PatientBanner patient={data} />;
+  ```
+
+## Comportement borné : éviter les nouvelles tentatives/polling non bornés
+
+Les nouvelles tentatives et les boucles de rafraîchissement non bornées causent une latence et une charge imprévisibles.
+
+- Les nouvelles tentatives doivent être bornées et intentionnelles :
+  - Pas de nouvelles tentatives infinies
+  - Nouvelle tentative uniquement sur les échecs transitoires
+- Le polling/rafraîchissement doit être borné :
+  - Préférez la revalidation sur focus / reconnexion lorsque c'est approprié
+  - Si le polling est requis, définissez un intervalle explicite et documentez pourquoi
+
+<Callout emoji="🔒" type="warning">
+  **Comportement borné** : Politique de nouvelle tentative standard (nombre max de tentatives, backoff, quand *ne pas* réessayer), limites de polling, valeurs par défaut de pagination.
+</Callout>
+
+  ```tsx
+  // Bon - politique de nouvelle tentative explicite
+  const { data } = useSWR(url, fetcher, {
+    errorRetryCount: 3,
+    errorRetryInterval: 1000,
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    refreshInterval: 0, // Désactiver explicitement le polling
+  });
+  ```
+
+## Préférer les hooks étroits aux hooks génériques
+
+Concevez les hooks pour qu'ils soient difficiles à utiliser incorrectement :
+
+- Préférez les hooks spécifiques à une ressource (`usePatientVisits(patientUuid)`) aux hooks "faire n'importe quoi".
+- Préférez des paramètres typés et contraints aux sacs d'options qui permettent des combinaisons invalides.
+
+<Callout emoji="🎯" type="info">
+  **Concevoir les API pour les mauvais usages** : Décourager le "hook de récupération générique qui fait n'importe quoi" ; préférer les hooks spécifiques à une ressource avec des paramètres étroits.
+</Callout>
+
+  ```tsx
+  // Bon - hook étroit et spécifique
+  export function usePatientVisits(patientUuid: string) {
+    const url = patientUuid ? `/ws/rest/v1/visit?patient=${patientUuid}` : null;
+    const { data, error, isLoading } = useSWR(url, openmrsFetch);
+    return {
+      visits: data ?? [],
+      error,
+      isLoading
+    }
+  }
+
+  // À éviter - trop générique, facile à mal utiliser
+  export function useGenericFetch(url: string, options?: any) {
+    return useSWR(url, options?.fetcher, options);
+  }
+  ```
+
+## Observabilité : inclure le contexte avec les échecs
+
+Lors de l'exposition des erreurs :
+
+- Conservez l'objet d'erreur original.
+- Attachez suffisamment de contexte pour déboguer (nom de la ressource + entrées clés, pas de secrets).
+- Assurez-vous que l'interface utilisateur affiche des états d'erreur significatifs ; évitez le repli silencieux vers une interface utilisateur vide.
+
+<Callout emoji="🔍" type="info">
+  **Observabilité** : Exiger des erreurs contextuelles (point de terminaison + paramètres + ID de corrélation si disponible) et une interface utilisateur d'erreur cohérente pour l'utilisateur.
+</Callout>
+
+  ```tsx
+  // Bon - l'erreur inclut le contexte
+  if (error) {
+    console.error('Échec de la récupération des visites du patient', {
+      patientUuid,
+      endpoint: '/ws/rest/v1/visit',
+      error: error.message,
+    });
+    
+    return (
+      <ErrorState
+        error={error}
+        headerTitle={t('errorLoadingVisits', 'Erreur lors du chargement des visites')}
+      />
+    );
+  }
+  ```
+
+## Valeurs par défaut (recommandées)
+
+Si un hook choisit un comportement SWR non par défaut, il doit être explicite dans le hook :
+
+- Politique de nouvelle tentative (nombre + conditions)
+- Stratégie de rafraîchissement (focus/reconnexion/polling)
+- Stratégie de déduplication/stale
+
+Ces décisions appartiennent au hook (la limite de ressource), pas dispersées dans les composants.
+
+<Callout emoji="⚙️" type="info">
+  **Valeurs par défaut** : Le délai d'attente, le nombre de tentatives, l'intervalle de déduplication, la stratégie stale et la politique de pagination doivent être explicites dans les hooks.
+</Callout>
+
+  ```tsx
+  // Bon - les valeurs par défaut sont explicites dans le hook
+  export function usePatientVisits(patientUuid: string) {
+    const url = patientUuid ? `/ws/rest/v1/visit?patient=${patientUuid}` : null;
+    
+    return useSWR(url, openmrsFetch, {
+      // Politique de nouvelle tentative explicite
+      errorRetryCount: 3,
+      errorRetryInterval: 1000,
+      
+      // Stratégie de rafraîchissement explicite
+      revalidateOnFocus: false, // Les visites ne changent pas fréquemment
+      revalidateOnReconnect: true,
+      refreshInterval: 0, // Pas de polling
+    });
+  }
+  ```
+
+- Filtrez les données invalides (null, undefined ou enregistrements incomplets) au niveau du hook plutôt que dans les composants. Cela garantit que tous les consommateurs reçoivent des données propres et valides et empêche les erreurs lors de l'accès aux propriétés imbriquées :
+
+  ```tsx
+  // Bon - filtrage au niveau du hook
+  export function usePatients(patientUuids: string[]) {
+    const { data, error, isLoading } = useSWR(...);
+    
+    const validPatients = useMemo(
+      () => data?.filter((patient): patient is Patient => 
+        patient !== null && patient.person !== null
+      ) ?? null,
+      [data]
+    );
+    
+    return { data: validPatients, error, isLoading };
+  }
+  ```
+
+- Lors de l'utilisation de représentations personnalisées dans les appels API, définissez-les comme constantes au niveau du module pour la réutilisabilité :
+
+  ```tsx
+  // Bon - représentation personnalisée réutilisable
+  const patientProperties = [
+    'patientId',
+    'uuid',
+    'identifiers',
+    'person:(gender,age,birthdate,personName)',
+  ];
+  
+  const patientSearchCustomRepresentation = `custom:(${patientProperties.join(',')})`;
+  
+  // Utiliser dans le hook
+  const url = `${restBaseUrl}/patient?v=${patientSearchCustomRepresentation}`;
+  ```
+
+- Lors de l'utilisation de `useSWRInfinite`, envisagez de définir `initialSize` en fonction de la longueur attendue des données pour optimiser le chargement initial :
+
+  ```tsx
+  const { data, setSize, size } = useSWRInfinite(getKey, fetcher, {
+    keepPreviousData: true,
+    initialSize: patientUuids ? Math.min(resultsToFetch, patientUuids.length) : 0,
+  });
+  ```
+

@@ -1,42 +1,93 @@
+import PathCards from "../../components/path-cards";
+
 # Introduction
 
-O3 est un framework frontend qui exploite les technologies frontend modernes pour permettre aux développeurs de créer collaborativement de meilleures expériences utilisateur pour les implémentations OpenMRS.
+O3 est un framework frontend modulaire et extensible pour OpenMRS. Il fournit des composants, des API et des modèles
+partagés afin que les équipes puissent créer des interfaces plus rapidement.
 
-O3 fournit une large gamme d'outils, de composants, d'API et de modèles qui peuvent être exploités pour créer des applications frontend pour OpenMRS. Il est conçu pour être modulaire, permettant aux développeurs de choisir les composants dont ils ont besoin pour créer leurs applications frontend. O3 est également conçu pour être extensible, permettant aux développeurs d'étendre le framework avec leurs propres composants et API.
+## Parcours d’apprentissage recommandés
+
+<PathCards
+  paths={[
+    {
+      audience: "Pour les développeurs",
+      title: "Parcours développeur",
+      steps: [
+        "Concepts clés",
+        "Modules frontend (mise en place, développement, tests, publication)",
+        "Système d’extensions",
+        "Workspaces",
+        "Référence API du framework",
+      ],
+    },
+    {
+      audience: "Pour les implémenteurs",
+      title: "Parcours implémenteur",
+      steps: [
+        "Concepts clés",
+        "Système de configuration",
+        "Configurer O3",
+        "Feature flags",
+        "Forms in O3",
+        "Recettes",
+      ],
+    },
+  ]}
+/>
 
 ## Principes directeurs
 
 O3 est guidé par les principes suivants:
 
-- **Réutilisation du code** et **réduction des efforts dupliqués** - composants, API et modèles réutilisables.
-- **Architecture modulaire** - permet l'ajout, la suppression ou la mise à jour facile des modules pour étendre les fonctionnalités ou adapter le système à des besoins spécifiques.
-- **Configuration d'abord** - chaque module frontend peut spécifier ses propriétés de configuration.
-- **Utilisabilité** - IU optimisée pour le point de soins, la réactivité et les dossiers de soins arbitrairement complexes.
-- **IU améliorée** - IU plus intuitive, conviviale et attrayante visuellement.
-- **Technologies modernes** - plus attrayant pour un pool de talents de développeurs mondial.
-- **Interopérabilité améliorée** - prise en charge de FHIR et d'autres normes.
+- **Réutiliser plutôt que refaire** - composants, API et modèles partagés pour réduire les efforts dupliqués.
+- **Modulaire par conception** - ajouter, retirer ou mettre à jour des modules sans reconstruire le système.
+- **Configuration d'abord** - chaque module frontend déclare ses propriétés de configuration.
+- **Utilisabilité d'abord** - IU optimisée pour le point de soins et des dossiers cliniques complexes.
+- **Stack moderne** - accessible à une communauté mondiale de développeurs.
+- **Interopérable** - conçu pour fonctionner avec FHIR et d'autres normes.
 
 ## Ce qu'O3 n'est pas
 
-O3 n'est **pas** une nouvelle version de plateforme d'OpenMRS. O3 est un framework frontend que vous pouvez exécuter par-dessus votre base de données existante. Il communique avec la même API REST et l'API FHIR avec laquelle communique l'IU O2. Bien qu'O3 nécessite une version de plateforme minimale et des versions minimales de divers modules backend pour s'exécuter, vous n'avez pas besoin de refondre votre backend existant pour exécuter O3. Si vous êtes intéressé par l'exécution d'O3 par-dessus votre installation existante, suivez cette [recette](/docs/recipes/set-up-o3-instance) pour configurer une instance d'O3.
+O3 n'est **pas** une nouvelle version de plateforme d'OpenMRS. Il s'exécute sur votre base de données existante et
+utilise les mêmes API REST et FHIR que l'IU O2. Bien qu'O3 nécessite des versions minimales de la plateforme et de
+certains modules backend, vous n'avez pas besoin de refondre votre backend pour l'utiliser. Pour exécuter O3 sur une
+installation existante, suivez cette [recette](/docs/recipes/set-up-o3-instance).
 
 ## Stack technologique
 
-O3 utilise les technologies suivantes:
+### Frontend
 
 - [React](https://react.dev) - bibliothèque JavaScript pour la construction d'interfaces utilisateur
 - [TypeScript](https://typescriptlang.org) - sur-ensemble fortement typé de JavaScript qui ajoute des annotations de type optionnelles à JavaScript, ce qui permet une vérification de type statique et un meilleur support d'outils.
 - [Système de conception Carbon](https://carbondesignsystem.com) - un système de conception open source d'IBM.
 - [Single SPA](https://single-spa.js.org) - routeur JavaScript pour les microservices frontend.
 - [Webpack](https://webpack.js.org) - emballeur de modules pour applications JavaScript.
-- API backend [OpenMRS REST](https://rest.openmrs.org) et [FHIR](https://om.rs/fhir).
+
+### API backend
+
+- [OpenMRS REST](https://rest.openmrs.org)
+- [FHIR](https://om.rs/fhir)
 
 ## Ressources importantes
 
-- [Documentation O3](https://om.rs/o3docs)
+### Docs et dépôts
+
+- [Guide pour les nouveaux et les curieux](https://openmrs.atlassian.net/wiki/spaces/docs/pages/25477628/Guide+for+the+New+and+Curious)
+- [Docs O3 sur le Wiki OpenMRS (source de vérité)](https://om.rs/o3docs)
+- [Dépôts clés](/docs/key-repositories)
+
+### Design
+
 - [Espace de travail Zeplin O3](https://om.rs/styleguide)
 - [Documents de conception O3](https://om.rs/o3ui)
 - [Documents d'intégration des designers](https://om.rs/o3design)
+
+### Communauté
+
 - [Tableau de bord des équipes O3](https://wiki.openmrs.org/display/projects/Squad+Dashboard)
 - [Appel d'équipe hebdomadaire O3 chaque jeudi à 16h00 EAT](https://om.rs/zoommf)
-- [Dépôts clés](/docs/key-repositories)
+
+### Apprentissage
+
+- [OpenMRS Academy](https://openmrs.org/academy/)
+- [Cours OpenMRS Fundamentals](https://openmrs.org/courses/openmrs-fundamentals-academy-2/)

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Steps } from "nextra-theme-docs";
+import { Callout, Steps } from "nextra-theme-docs";
 
 # Adding links to the home page left panel
 
@@ -54,62 +54,59 @@ This `BrowserRouter` configuration will allow us to navigate to the Patient List
 
 ### Step 2: Add a `Patient lists` link to the left panel
 
-We'll begin by adding a named export to the Patient Lists app `index.ts` file that resembles the following:
+We'll begin by creating a dashboard metadata file and a helper function to create the dashboard link. First, create a `dashboard.meta.ts` file:
 
-```ts {5-14} filename="index.ts"
-import { createLeftPanelLink } from "./left-panel.component";
-import { getSyncLifecycle } from "@openmrs/esm-framework";
-import rootComponent from './root.component';
+```ts filename="src/dashboard.meta.ts"
+export const dashboardMeta = {
+  path: 'patient-lists',
+  slot: 'patient-lists-dashboard-slot',
+  title: 'Patient lists',
+  basePath: `${window.spaBase}/home`,
+} as const;
+```
 
-export const root = getSyncLifecycle(rootComponent), options);
+Next, create a `createDashboardLink.tsx` file:
 
-export const patientListLeftPanelLink = getSyncLifecycle(
-  createLeftPanelLink({
-    name: "patient-lists",
-    title: "Patient lists",
-    slot: "patient-lists-dashboard-slot",
-  }),
-  options
+```tsx filename="src/createDashboardLink.tsx"
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { DashboardExtension, type DashboardExtensionProps, type IconId } from '@openmrs/esm-framework';
+
+export const createDashboardLink = (config: Omit<DashboardExtensionProps, 'icon'> & { icon?: IconId }) => () => (
+  <BrowserRouter>
+    <DashboardExtension path={config.path} title={config.title} basePath={config.basePath} icon={config.icon} />
+  </BrowserRouter>
 );
 ```
 
-Whereas `left-panel-link.component` looks like this:
+<Callout emoji="ℹ️" type="info">
+  **Note**: The `icon` property is optional. If provided, it should be a valid Carbon icon name (e.g., `"Calendar"`, `"User"`, `"List"`). The icon will be displayed next to the link text in the left panel.
+</Callout>
 
-```ts filename="left-panel-link.component.tsx"
-import React, { useMemo } from "react";
-import last from "lodash-es/last";
-import { BrowserRouter, useLocation } from "react-router-dom";
-import { ConfigurableLink } from "@openmrs/esm-framework";
+Now, add a named export to the Patient Lists app `index.ts` file:
 
-export interface LinkConfig {
-  name: string;
-  title: string;
-}
+```ts filename="src/index.ts"
+import { getSyncLifecycle, getAsyncLifecycle } from "@openmrs/esm-framework";
+import { createDashboardLink } from "./createDashboardLink";
+import { dashboardMeta } from "./dashboard.meta";
 
-function LinkExtension({ config }: { config: LinkConfig }) {
-  const { name, title } = config;
-  const location = useLocation();
-  const spaBasePath = window.getOpenmrsSpaBase() + "home";
+const moduleName = '@openmrs/esm-patient-list-management-app';
 
-  const urlSegment = useMemo(() => decodeURIComponent(last(location.pathname.split("/"))), [location.pathname]);
+const options = {
+  featureName: 'patient list',
+  moduleName,
+};
 
-  return (
-    <ConfigurableLink
-      to={spaBasePath + "/" + name}
-      className={`cds--side-nav__link ${name === urlSegment && "active-left-nav-link"}`}
-    >
-      {title}
-    </ConfigurableLink>
-  );
-}
+// Use getAsyncLifecycle for code splitting in production
+export const root = getAsyncLifecycle(() => import('./root.component'), options);
 
-export const createLeftPanelLink = (config: LinkConfig) => () =>
-  (
-    <BrowserRouter>
-      <LinkExtension config={config} />
-    </BrowserRouter>
-  );
+// Dashboard links typically use getSyncLifecycle since they're lightweight
+export const patientListDashboardLink = getSyncLifecycle(createDashboardLink(dashboardMeta), options);
 ```
+
+<Callout emoji="ℹ️" type="info">
+  **Note**: In production apps, the `root` component typically uses `getAsyncLifecycle` for code splitting and better performance. The dashboard link uses `getSyncLifecycle` since it's a lightweight component. The guide shows a simplified example; your actual `index.ts` may also include other exports, `startupApp()` function, and `importTranslation` setup.
+</Callout>
 
 ### Step 3: Wire up the `Patient lists` link extension to the home page left panel
 
@@ -123,19 +120,19 @@ Next, we'll need to wire up the `Patient lists` link extension to the left panel
   },
   "extensions": [
     {
-      "component": "patientListLeftPanelLink",
-      "name": "patient-lists-home-left-panel-link",
+      "name": "patient-lists-dashboard-link",
+      "component": "patientListDashboardLink",
       "slot": "homepage-dashboard-slot",
       "meta": {
         "name": "patient-lists",
-        "title": "Patient lists",
-        "slot": "patient-lists-app-slot"
+        "slot": "patient-lists-dashboard-slot",
+        "title": "Patient lists"
       }
     },
     {
+      "name": "patient-lists-dashboard",
       "component": "root",
-      "name": "patient-lists-root",
-      "slot": "patient-lists-app-slot"
+      "slot": "patient-lists-dashboard-slot"
     }
     // ...
   ]
@@ -144,13 +141,15 @@ Next, we'll need to wire up the `Patient lists` link extension to the left panel
 
 Some things to note:
 
-- The `component` property is set to `patientListLeftPanelLink`, which is the named export that we defined in the previous step.
-- The `name` property is set to `patient-lists-left-panel-link`, which is the name of the extension.
+- The `component` property is set to `patientListDashboardLink`, which is the named export that we defined in the previous step.
+- The `name` property is set to `patient-lists-dashboard-link`, which is the name of the extension.
 - The `slot` property is set to `homepage-dashboard-slot`, which is the name of the slot that we want to add the extension to. This slot is where the links that are displayed on the left panel of the O3 home page are rendered.
-- The `meta` property is set to the object that we passed to `createLeftPanelLink` the previous step. This object contains the `name`, `slot`, and `title` properties that are required by the `patientListLeftPanelLink` component.
+- The `meta` property contains the dashboard configuration:
+  - The `name` property is set to `patient-lists`, which is the path segment used in the URL.
+  - The `slot` property is set to `patient-lists-dashboard-slot`, which is the name of the slot where the Patient Lists app dashboard content will be rendered.
+  - The `title` property is set to `Patient lists`, which is the display text for the link.
 
-  - The `name` property is set to `patient-lists`, which is the name of the app.
-  - The `slot` property is set to `patient-lists-dashboard-slot`, which is the name of the slot that we want to add the extension to. This slot is where the links that are displayed on the left panel of the Patient Lists app landing screen are rendered.
+The second extension definition registers the `root` component to render in the `patient-lists-dashboard-slot` when the Patient Lists app is active.
 
 ### Step 4: Profit!
 

@@ -5,12 +5,16 @@ function NavLogo(props) {
     <svg
       viewBox="0 0 36 36"
       xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="OpenMRS logo"
+      focusable="false"
       fillRule="evenodd"
       clipRule="evenodd"
       strokeLinejoin="round"
       strokeMiterlimit={2}
       height="32px"
       width="32px"
+      {...props}
     >
       <path
         d="M9.592 9.606A11.433 11.433 0 0117.7 6.249a11.429 11.429 0 018.092 3.342l.008-7.636A17.633 17.633 0 0017.701 0c-2.92 0-5.69.794-8.118 2.046l.009 7.56z"

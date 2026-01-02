@@ -1,0 +1,82 @@
+# Gestionnaires d'événements
+
+- Assurez-vous que vos gestionnaires d'événements définissent correctement leur logique de nettoyage. Les gestionnaires d'événements dans les callbacks useEffect doivent _toujours retourner_ une fonction de nettoyage pour éviter un comportement inattendu. Par exemple, faites ceci :
+
+  ```tsx {8-10}
+  useEffect(() => {
+    const handleClick = () => {
+      // ... gérer l'événement de clic
+    };
+
+    document.addEventListener("click", handleClick);
+
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  }, []);
+  ```
+
+  Au lieu de ceci :
+
+  ```tsx {9}
+  useEffect(() => {
+    const handleClick = () => {
+      // ... gérer l'événement de clic
+    };
+
+    document.addEventListener("click", handleClick);
+
+    // Nettoyage incorrect : S'exécute immédiatement, pas lorsque le composant est démonté
+    document.removeEventListener("click", handleClick);
+  }, []);
+  ```
+
+  Ceci est important car un nettoyage incorrect peut conduire à des fuites mémoire et à un comportement inattendu.
+
+- Les props de gestionnaires d'événements doivent être préfixées avec `on` et utiliser camelCase :
+
+  ```tsx
+  // Bon
+  <button onClick={handleClick} onMouseEnter={handleMouseEnter}>
+
+  // Évitez
+  <button clickHandler={handleClick} mouseenter={handleMouseEnter}>
+  ```
+
+- Les fonctions de gestion elles-mêmes doivent utiliser le préfixe `handle` :
+
+  ```tsx
+  // Bon
+  const handleSubmit = (event) => { ... }
+  const handleInputChange = (event) => { ... }
+
+  // Évitez
+  const submit = (event) => { ... }
+  const inputChanged = (event) => { ... }
+  ```
+
+- Soyez explicite avec les paramètres d'événement :
+
+  ```tsx
+  // Bon
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => { ... }
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => { ... }
+
+  // Évitez
+  const handleChange = (e) => { ... }
+  const handleClick = (x) => { ... }
+  ```
+
+- Tapez correctement vos gestionnaires d'événements :
+
+  ```tsx
+  type ButtonProps = {
+    onClick: (event: MouseEvent<HTMLButtonElement>) => void;
+    children: ReactNode;
+  };
+
+  const Button = ({ onClick, children }: ButtonProps) => (
+    <button onClick={onClick}>{children}</button>
+  );
+  ```
+

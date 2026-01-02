@@ -5,7 +5,7 @@
 Workspaces are implemented using global store, which can be imported as:
 
 ```ts
-import { getWorkspaceStore } from "@openmrs/esm-patient-common-lib";
+import { getWorkspaceStore } from "@openmrs/esm-framework";
 
 // Accessing the state of the workspace store
 const store = getWorkspaceStore();
@@ -16,17 +16,18 @@ const state = store.getState();
 
 Workspace store has the following properties, defining the workspace window:
 
-1. `patientUuid: string` - Current patient's UUID
-2. `openWorkspaces: OpenWorkspaces[]` - The list of workspaces launched by the user
-3. `prompt: Prompt` - The prompt to be shown to the user, usually for confirming an action
+1. `context: string | null` - Current workspace context (e.g., patient UUID)
+2. `openWorkspaces: OpenWorkspace[]` - The list of workspaces launched by the user
+3. `prompt: Prompt | null` - The prompt to be shown to the user, usually for confirming an action
 4. `workspaceWindowState: 'normal' | 'maximized' | 'hidden'` - The state of the workspace window
+5. `workspaceGroup?: WorkspaceGroup` - Optional workspace group information
 
 The workspace properties can be accessed by either 2 ways:
 
 1. Using the `getWorkspaceStore` function, which returns the workspace store
 
 ```ts copy
-import { getWorkspaceStore } from '@openmrs/esm-patient-common-lib';
+import { getWorkspaceStore } from '@openmrs/esm-framework';
 
 const store = getWorkspaceStore();
 const state = store.getState();
@@ -40,12 +41,18 @@ store.setState((state) => { ... })
 2. For react components, you can access the workspace state from the `useWorkspaces` hook
 
 ```ts copy
-import { useWorkspaces } from "@openmrs/esm-patient-common-lib";
+import { useWorkspaces, getWorkspaceStore } from "@openmrs/esm-framework";
 
 const MyComponent = () => {
-  const { workspaces, prompt, workspaceWindowState } = useWorkspaces();
+  const { workspaces, active, prompt, workspaceWindowState, workspaceGroup } = useWorkspaces();
 
-  // To update the state of the workspace store, use the `setState`
+  // To update the state of the workspace store, use getWorkspaceStore().setState()
+  // Note: The hook is read-only and doesn't provide a setState function
+  const handleUpdate = () => {
+    const store = getWorkspaceStore();
+    store.setState({ ...store.getState(), workspaceWindowState: 'maximized' });
+  };
+
   return <div></div>;
 };
 ```
@@ -55,15 +62,22 @@ Multiple workspaces can be opened at the same time but only one visible at a tim
 ## To know whether a workspace is active or not:
 
 ```ts copy
-const MyComponent = () => {
-  const { workspaces, workspaceWindowState } = useWorkspaces();
+import { useWorkspaces } from "@openmrs/esm-framework";
 
+const MyComponent = () => {
+  const { workspaces, active, workspaceWindowState } = useWorkspaces();
+
+  // Check if any workspace is open
+  const hasOpenWorkspace = active;
+
+  // Find a specific workspace
   const workspaceIndex = workspaces.findIndex(
     (workspace) => workspace.name === "my-workspace-name"
   );
 
   const workspaceOpened = workspaceIndex >= 0;
 
+  // Check if a specific workspace is active (visible and at the top)
   const isWorkspaceActive =
     workspaceWindowState !== "hidden" && workspaceIndex === 0;
 

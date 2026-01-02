@@ -1,0 +1,201 @@
+# Annotations de type
+
+- Suivez les lignes directrices décrites dans [React TypeScript Cheatsheets](https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/basic_type_example/).
+- Annotez toujours vos paramètres de fonction avec des types. Cela facilite la compréhension de ce que fait la fonction et exprime explicitement les contrats de la fonction.
+
+  ```tsx
+  // Préférez
+  const myFunction = (a: number, b: number) => { ... }
+
+  // À
+  const myFunction = (a, b) => { ... }
+  ```
+
+- Comptez sur l'inférence de type de TypeScript pour des choses comme l'initialisation de variables et de tableaux, et dans certains cas, les types de retour de fonction. L'objectif du système de type n'est pas d'annoter chaque variable avec un type, mais plutôt de s'assurer que les parties importantes de votre code sont type-safe. Lisez-en plus sur l'inférence de type [ici](https://www.typescriptlang.org/docs/handbook/type-inference.html).
+
+  ```tsx
+  // Bons exemples de laisser TypeScript inférer les types
+  const numbers = [1, 2, 3];  // TypeScript infère number[]
+  const user = {
+    name: "John",
+    age: 30
+  };  // TypeScript infère { name: string; age: number }
+
+  // Le type de retour de fonction peut souvent être inféré
+  const addNumbers = (a: number, b: number) => a + b;  // Le type de retour number est inféré
+
+  // Cependant, tapez explicitement les paramètres et le type de retour pour les API publiques
+  function calculateTotal(items: number[]): number {
+    return items.reduce((sum, item) => sum + item, 0);
+  }
+  ```
+
+- Les `interface` TypeScript et les alias `type` peuvent être étendus, mais ils ont des caractéristiques différentes :
+  - `interface` supporte la fusion de déclaration, vous permettant d'ajouter de nouveaux champs à une interface existante
+  - Les alias `type` sont plus flexibles pour les types complexes et les unions
+  - Les deux peuvent être étendus, mais avec une syntaxe différente :
+
+  ```ts
+  // Extension d'interface
+  interface Animal {
+    name: string;
+  }
+  interface Dog extends Animal {
+    bark(): void;
+  }
+
+  // Extension de type
+  type Animal = {
+    name: string;
+  }
+  type Dog = Animal & {
+    bark(): void;
+  }
+
+  // Fusion de déclaration d'interface (seulement possible avec les interfaces)
+  interface User {
+    name: string;
+  }
+  interface User {
+    age: number;
+  }
+  // Résulte en User ayant à la fois name et age
+
+  // Les types complexes sont souvent plus clairs avec les alias de type
+  type Status = "loading" | "error" | "success";
+  type NumberOrString = number | string;
+  ```
+
+- Choisissez entre eux en fonction de vos besoins :
+  - Utilisez `interface` lorsque :
+    - Vous définissez des formes d'objet qui pourraient avoir besoin de fusion de déclaration
+    - Vous créez des API publiques que d'autres pourraient avoir besoin d'étendre
+  - Utilisez `type` lorsque :
+    - Vous avez besoin de créer des types union ou intersection
+    - Vous travaillez avec des types complexes qui combinent plusieurs types
+    - Vous voulez vous assurer que personne ne peut ajouter de champs via la fusion de déclaration
+
+
+- N'utilisez pas `any` sauf si vous devez absolument le faire. Utiliser `any` abandonne complètement le système de type TypeScript et est la source de nombreux bugs. Utilisez plutôt `unknown` ou `never` pour exprimer le fait que vous ne connaissez pas le type d'une variable ou qu'une fonction ne retourne jamais.
+
+  ```ts
+  // Mauvais - utiliser 'any' perd toute sécurité de type
+  function processData(data: any) {
+    data.nonExistentMethod(); // Pas d'erreurs TypeScript, mais échouera à l'exécution
+  }
+
+  // Mieux - utiliser 'unknown' nécessite une vérification de type
+  function processData(data: unknown) {
+    if (typeof data === 'string') {
+      return data.toUpperCase(); // OK - nous avons vérifié que c'est une chaîne
+    }
+    if (Array.isArray(data)) {
+      return data.length; // OK - nous avons vérifié que c'est un tableau
+    }
+    throw new Error('Type de données non supporté');
+  }
+
+  // Utiliser 'never' pour les fonctions qui ne retournent jamais
+  function throwError(message: string): never {
+    throw new Error(message);
+  }
+
+  // Utiliser 'never' pour les cas impossibles dans les vérifications exhaustives
+  type Shape = Circle | Square;
+
+  function getArea(shape: Shape) {
+    if ('radius' in shape) {
+      return Math.PI * shape.radius ** 2;
+    }
+    if ('width' in shape) {
+      return shape.width ** 2;
+    }
+    // TypeScript s'assurera que nous avons géré tous les cas
+    const exhaustiveCheck: never = shape;
+  }
+
+  // Si vous devez utiliser 'any', envisagez d'utiliser 'unknown' avec des assertions de type
+  function legacyCode(data: unknown) {
+    // Mieux que 'any' car c'est explicite sur l'assertion de type
+    const userInput = data as string;
+    return userInput.toLowerCase();
+  }
+  ```
+
+- Dans la mesure du possible, utilisez la syntaxe `import type` lors de l'importation de types. Cela empêche le type d'être importé à l'exécution, ce qui réduit la taille du bundle. Par exemple :
+
+  ```tsx
+  // Préférez
+  import type { User } from "@openmrs/esm-user-management";
+
+  // Au lieu de
+  import { User } from "@openmrs/esm-user-management";
+  ```
+
+- [Préférez les types union aux énumérations de statut](https://fettblog.eu/tidy-typescript-avoid-enums/). Les types union offrent une meilleure sécurité de type, ne génèrent pas de code d'exécution et sont plus idiomatiques en TypeScript. Ils rendent également impossible l'assignation de valeurs invalides, alors que les énumérations peuvent parfois conduire à un comportement inattendu avec des valeurs numériques ou lorsqu'elles sont utilisées avec la coercition de type JavaScript.
+
+  ```ts
+  // Préférez ceci
+  type Status = "loading" | "error" | "success";
+  let status: Status = "loading"; // Seules ces trois chaînes sont autorisées
+  
+  // À ceci
+  enum Status { Loading, Error, Success }
+  let status = Status.Loading; // Compile en un nombre (0) à l'exécution
+  ```
+
+- Utilisez l'utilitaire `jest.mocked` pour préserver les informations de type lors du mock de fonctions dans les tests. Par exemple :
+
+  Préférez :
+
+  ```tsx
+  const mockedShowSnackbar = jest.mocked(showSnackbar); // Toutes les informations de type sont préservées
+  ```
+
+  À :
+
+  ```tsx
+  const mockedShowSnackbar = showSnackbar as jest.Mock;
+  ```
+
+- Utilisez les types utilitaires intégrés de TypeScript lorsque c'est possible. Des exemples courants incluent :
+
+  ```tsx
+  // Rendre toutes les propriétés optionnelles
+  type PartialUser = Partial<User>;
+
+  // Rendre toutes les propriétés requises
+  type RequiredUser = Required<User>;
+
+  // Choisir des propriétés spécifiques
+  type UserName = Pick<User, 'firstName' | 'lastName'>;
+
+  // Omettre des propriétés spécifiques
+  type UserWithoutPassword = Omit<User, 'password'>;
+
+  // Extraire le type de retour d'une fonction
+  type ReturnValue = ReturnType<typeof myFunction>;
+  ```
+
+- Préférez utiliser les `const assertions` pour les types littéraux :
+
+  ```tsx
+  // Ce tableau a le type readonly ["error", "success", "loading"]
+  const statusLiterals = ["error", "success", "loading"] as const;
+  type Status = typeof statusLiterals[number]; // "error" | "success" | "loading"
+  ```
+
+- Préférez les types de props explicites pour les composants React :
+
+  ```tsx
+  // Préférez
+  interface ButtonProps {
+    variant: 'primary' | 'secondary';
+    onClick: () => void;
+    children: React.ReactNode;
+  }
+
+  // À
+  const Button = (props: any) => { ... }
+  ```
+

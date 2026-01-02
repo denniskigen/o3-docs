@@ -1,14 +1,11 @@
 import { Callout, Steps } from "nextra-theme-docs";
-
-<Callout emoji="⚠️" type="warning">
-  THIS IS NO LONGER THE ACTIVELY MAINTAINED SOURCE OF TRUTH FOR O3 DEV DOCS.
-  This effort has been moved to the OpenMRS Wiki at
-  https://openmrs.atlassian.net/wiki/x/94ABCQ
-</Callout>
+import DeprecationWarning from "../../../components/deprecation-warning";
 
 # Setting up an instance of O3
 
 This guide is intended for developers who want to set up an instance of O3. Broadly speaking, there are two approaches for setting up an instance of O3:
+
+<DeprecationWarning href="https://openmrs.atlassian.net/wiki/x/94ABCQ" />
 
 - Using the `OpenMRS SDK`
 - Using `Docker`
@@ -171,11 +168,9 @@ To run the O3 Docker image on top of an existing database, do the following:
 <Steps>
 ### Step 1
 
-Working from the [standard Docker compose file](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/docker-compose.yml), remove the `db` service (lines 47-62 highlighted below) and the `db-data` volume (line 66).
+Working from the [standard Docker compose file](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/docker-compose.yml), remove the `db` service (lines 44-60 highlighted below) and the `db-data` volume (line 64).
 
-```yml {47-62, 66} filename="docker-compose.yml"
-version: "3.7"
-
+```yml {44-60, 64} filename="docker-compose.yml"
 services:
   gateway:
     image: openmrs/openmrs-reference-application-3-gateway:${TAG:-qa}
@@ -192,7 +187,7 @@ services:
     environment:
       SPA_PATH: /openmrs/spa
       API_URL: /openmrs
-      SPA_CONFIG_URLS:
+      SPA_CONFIG_URLS: /openmrs/spa/config-core_demo.json
       SPA_DEFAULT_LOCALE:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/"]
@@ -211,8 +206,8 @@ services:
       OMRS_CONFIG_CREATE_TABLES: "true"
       OMRS_CONFIG_CONNECTION_SERVER: db
       OMRS_CONFIG_CONNECTION_DATABASE: openmrs
-      OMRS_CONFIG_CONNECTION_USERNAME: ${OPENMRS_DB_USER:-openmrs}
-      OMRS_CONFIG_CONNECTION_PASSWORD: ${OPENMRS_DB_PASSWORD:-openmrs}
+      OMRS_CONFIG_CONNECTION_USERNAME: ${OMRS_DB_USER:-openmrs}
+      OMRS_CONFIG_CONNECTION_PASSWORD: ${OMRS_DB_PASSWORD:-openmrs}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/openmrs"]
       timeout: 5s
@@ -221,11 +216,11 @@ services:
 
   # MariaDB
   db:
-    image: mariadb:10.8.2
+    image: mariadb:10.11.7
     restart: "unless-stopped"
-    command: "mysqld --character-set-server=utf8 --collation-server=utf8_general_ci"
+    command: "mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci"
     healthcheck:
-      test: 'mysql --user=${OMRS_DB_USER:-openmrs} --password=${OMRS_DB_PASSWORD:-openmrs} --execute "SHOW DATABASES;"'
+      test: "mysql --user=${OMRS_DB_USER:-openmrs} --password=${OMRS_DB_PASSWORD:-openmrs} --execute \"SHOW DATABASES;\""
       interval: 3s
       timeout: 1s
       retries: 5
@@ -244,11 +239,11 @@ volumes:
 
 ### Step 2
 
-In the `backend` service, change the `OMRS_CONFIG_CONNECTION_SERVER` server variable to the hostname of the database server and the `OMRS_CONFIG_CONNECTION_SERVER` to the name of the existing database (leaving it alone probably works for 99% of installs).
+In the `backend` service, change the `OMRS_CONFIG_CONNECTION_SERVER` variable to the hostname of the database server and the `OMRS_CONFIG_CONNECTION_DATABASE` variable to the name of the existing database (leaving it alone probably works for 99% of installs).
 
 ### Step 3
 
-Create a `.env` file in the same folder with `OPENMRS_DB_USER` and `OPENMRS_DB_PASSWORD` set to the appropriate values for the existing database.
+Create a `.env` file in the same folder with `OMRS_DB_USER` and `OMRS_DB_PASSWORD` set to the appropriate values for the existing database.
 
 ### Step 4
 
@@ -262,7 +257,7 @@ Run `docker compose up -d` and, assuming everything is filled out correctly, it 
 
 - If you're running into an issue on Windows about your WSL version being too low to support running the dockerized build, follow the directions in the error message to update your WSL version. Once done, make sure to restart Docker Desktop or the Docker daemon.
 
-- If you're encountering permission errors after running `docker compose up, you might be dealing with orphaned volumes left by a previous Docker Compose run. This is a known issue with Docker volumes. Run the following command to delete all orphaned volumes:
+- If you're encountering permission errors after running `docker compose up`, you might be dealing with orphaned volumes left by a previous Docker Compose run. This is a known issue with Docker volumes. Run the following command to delete all orphaned volumes:
 
   ```sh
   docker compose down -v --remove-orphans
@@ -335,7 +330,7 @@ By default, the RefApp is configured to use the `next` tagged versions of [front
 
 ### Step 1: Update frontend module versions
 
-Update the versions of the frontend modules in your instance from `next` to `latest` by editing the `frontend/spa-assemble-config.json` file as follows:
+Update the versions of the frontend modules in your instance from `next` to `latest` by editing the `frontend/spa-assemble-config.json` file as follows. For more information about this file, see the [Configuration overview](/docs/configure-o3/overview#spa-assemble-configjson) guide:
 
 ```json filename="frontend/spa-assemble-config.json"
 {
@@ -351,7 +346,7 @@ This ensures that the application will use the most recent stable versions of th
 
 ### Step 2: Update the app shell version
 
-Update the the app shell version in the frontend Dockerfile by changing the value of the `APP_SHELL_VERSION` argument to `latest`:
+Update the app shell version in the frontend Dockerfile by changing the value of the `APP_SHELL_VERSION` argument to `latest`:
 
 ```txt filename="frontend/Dockerfile"
   ...
@@ -371,20 +366,20 @@ Once you've set up your O3 instance, there are various things you might want to 
 
 - Changing the default language of your instance. You can do this by navigating to the `Administration` section of the legacy OpenMRS UI and changing the default locale.
 
-- Customizing O3. You can tweak your branding, tweak your import map to add or remove widgets from your distribution, and more.
+- Customizing O3. You can tweak your branding, configure modules, and more. See the [Configuration overview](/docs/configure-o3/overview) guide for details.
 
 - Ensuring that your modules are working correctly (this is relevant only if you're setting up O3 on top of an existing database). You can use the `Manage modules` page in the legacy admin interface to see whether modules are running correctly.
 
 - Testing various features - try registering a patient and launching their chart. Look out for any console errors or any errors in the UI, You might also want to look out for errors in the browser's devtools network tab. If you don't have the `fhir` module running, you should expect to see problems with rendering the patient banner and most other widgets in the chart because things in the chart depend on a valid `patient UUID` being available, and the patient object gets fetched via a FHIR endpoint,
 
-- Thinking about how to set up your forms in O3. Forms in O3 are built using JSON and conform to this [standard schema](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). If your existing forms were built using HTML Form Entry, you'll need to convert them into JSON schemas. Check out the embedded form builder in O3 for an idea of what this format looks like. The schema editor can allow you to build a new form using a dummy schema scaffold. To learn more about forms in O3, read the `Building forms in O3` recipe.
+- Thinking about how to set up your forms in O3. Forms in O3 are built using JSON and conform to this [standard schema](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). If your existing forms were built using HTML Form Entry, you'll need to convert them into JSON schemas. Check out the embedded form builder in O3 for an idea of what this format looks like. The schema editor can allow you to build a new form using a dummy schema scaffold. To learn more about forms in O3, read the [Building forms using the O3 form builder](/docs/forms-in-o3/build-forms-with-o3-form-builder) recipe.
 
   <Callout emoji="ℹ️" type="info">
     An OpenMRS module exists for converting HTML Form Entry schemas into JSON
     schemas compatible with the O3 standard schema at
     https://github.com/openmrs/hfe-o3-form-schema-converter. Currently, work is
     ongoing to improve the tool. Go through the repo's README to learn what's
-    possible.
+    possible. See also the [Convert HTML form entry forms to O3](/docs/forms-in-o3/convert-html-form-entry-forms) guide.
   </Callout>
 
 ## Useful links

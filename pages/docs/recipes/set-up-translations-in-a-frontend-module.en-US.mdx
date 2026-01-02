@@ -3,10 +3,10 @@
 Internationalization is the process of designing software applications to be adapted easily for different languages and regions without requiring significant engineering changes. The goal of internationalization is to make the application locale-aware, meaning that it can be easily adapted to different locales or regions without requiring any changes to the codebase.
 We use [react-i18next](https://react.i18next.com/) to internationalize frontend module content.
 
-In order to internationalize your frontend module, add this line in the index.ts file to tell the app shell where to find the translation files.
+In order to internationalize your frontend module, add this line in the `src/index.ts` file to tell the app shell where to find the translation files. This must be exported so the app shell can access it.
 
 ```ts
-const importTranslation = require.context("../translations", false, /.json$/, "lazy");
+export const importTranslation = require.context("../translations", false, /.json$/, "lazy");
 ```
 
 All translations are added in the `translations` directory which is at the top level of the package. The source file for translations is the `en.json` which contains english translations of all hardcoded text.

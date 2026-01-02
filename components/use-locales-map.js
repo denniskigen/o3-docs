@@ -11,11 +11,11 @@ export default function useLocalesMap(localesMap) {
     throw new Error("Locales map must be an object");
   }
 
-  if (!localesMap.hasOwnProperty(defaultLocale)) {
+  if (!Object.prototype.hasOwnProperty.call(localesMap, defaultLocale)) {
     throw new Error(`Locales map must contain default locale "${defaultLocale}"`);
   }
 
-  if (localesMap.hasOwnProperty(locale) && typeof localesMap[locale] !== typeof localesMap[defaultLocale]) {
+  if (Object.prototype.hasOwnProperty.call(localesMap, locale) && typeof localesMap[locale] !== typeof localesMap[defaultLocale]) {
     throw new Error(`Invalid locales map: Shape of "${locale}" must be the same as "${defaultLocale}"`);
   }
 
@@ -23,7 +23,7 @@ export default function useLocalesMap(localesMap) {
     return localesMap[locale] || localesMap[defaultLocale];
   }
 
-  const target = JSON.parse(JSON.stringify(localesMap[defaultLocale]));
+  const target = mergeDeep({}, localesMap[defaultLocale]);
   return mergeDeep(target, localesMap[locale]);
 }
 

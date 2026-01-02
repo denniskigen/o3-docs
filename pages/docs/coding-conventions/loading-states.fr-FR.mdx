@@ -1,0 +1,96 @@
+# États de chargement
+
+- Lors de la création de hooks personnalisés qui encapsulent SWR, mémorisez la valeur de retour en utilisant `useMemo` pour éviter des rerenders inutiles. Ceci est particulièrement important lors du retour d'un objet avec plusieurs propriétés :
+
+  ```tsx
+  // Bon - valeur de retour mémorisée
+  export function usePatient(patientUuid?: string) {
+    const { data: patient, error, isValidating } = useSWR(...);
+    
+    return useMemo(
+      () => ({
+        isLoading: isValidating && !error && !patient,
+        patient,
+        patientUuid,
+        error,
+      }),
+      [isValidating, error, patient, patientUuid],
+    );
+  }
+  ```
+
+- Calculez l'état de chargement en utilisant `isValidating && !error && !data` plutôt que de s'appuyer uniquement sur la propriété `isLoading` de SWR. Cela garantit que le chargement n'est vrai que lorsque les données sont activement récupérées et qu'il n'y a pas d'erreur :
+
+  ```tsx
+  // Bon - calcul de chargement explicite
+  const { data, error, isValidating } = useSWR(url, fetcher);
+  const isLoading = isValidating && !error && !data;
+
+  // Moins idéal - s'appuie sur isLoading de SWR qui peut ne pas tenir compte de tous les cas
+  const { data, error, isLoading } = useSWR(url, fetcher);
+  ```
+
+- Utilisez les composants de chargement de Carbon pour fournir un retour visuel pendant la récupération de données :
+  - Utilisez `InlineLoading` pour les indicateurs de chargement inline dans les formulaires ou les petits composants
+  - Utilisez `SkeletonText` ou `SkeletonPlaceholder` pour les placeholders de chargement qui correspondent à la mise en page du contenu final
+
+  ```tsx
+  import { InlineLoading, SkeletonText } from '@carbon/react';
+
+  // Indicateur de chargement inline
+  {isLoading && (
+    <InlineLoading description={t('loading', 'Chargement')} />
+  )}
+
+  // Placeholder skeleton pour le contenu
+  {isLoading ? (
+    <SkeletonText heading width="60%" />
+  ) : (
+    <div>{data?.content}</div>
+  )}
+  ```
+
+- Gérez les données null ou undefined avec élégance en utilisant l'enchaînement optionnel et la coalescence nulle :
+
+  ```tsx
+  // Bon - accès sécurisé aux données
+  const patientName = data?.patient?.name ?? t('unknownPatient', 'Patient inconnu');
+  const totalCount = data?.total ?? 0;
+
+  // Bon - rendu conditionnel
+  {data?.results?.length > 0 ? (
+    <DataTable data={data.results} />
+  ) : (
+    <EmptyState />
+  )}
+  ```
+
+- Lorsque les données peuvent être undefined pendant le chargement initial, utilisez le rendu conditionnel pour éviter les erreurs :
+
+  ```tsx
+  // Bon - gère les données undefined
+  {data && (
+    <PatientBanner patient={data} />
+  )}
+
+  // Également bon - utilisation de l'enchaînement optionnel
+  {data?.patient && (
+    <PatientBanner patient={data.patient} />
+  )}
+  ```
+
+- Utilisez les gardes de type TypeScript dans les fonctions de filtrage pour garantir la sécurité de type lors du filtrage des données invalides :
+
+  ```tsx
+  // Bon - la garde de type garantit que le tableau filtré a le bon type
+  const validPatients = data?.filter(
+    (patient): patient is Patient => 
+      patient !== null && patient.person !== null
+  ) ?? [];
+
+  // TypeScript sait maintenant que validPatients est Patient[], pas (Patient | null)[]
+  validPatients.forEach(patient => {
+    console.log(patient.person.name); // Accès type-safe
+  });
+  ```
+

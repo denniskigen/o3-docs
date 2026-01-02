@@ -1,0 +1,205 @@
+# Forms
+
+- Use [React Hook Form](https://react-hook-form.com/) with [Zod](https://zod.dev/) for form validation. This combination provides type-safe validation and excellent performance:
+
+  ```tsx
+  import { useForm, Controller } from 'react-hook-form';
+  import { zodResolver } from '@hookform/resolvers/zod';
+  import { z } from 'zod';
+
+  // Define validation schema
+  const formSchema = z.object({
+    name: z.string({
+      required_error: t('nameRequired', 'Name is required'),
+    }).min(1, t('nameRequired', 'Name is required')),
+    email: z.string().email(t('invalidEmail', 'Invalid email address')),
+    age: z.number().min(18, t('ageMustBe18', 'Age must be at least 18')),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t('passwordsDoNotMatch', 'Passwords do not match'),
+    path: ['confirmPassword'],
+  });
+
+  // Use in component
+  const {
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      age: 18,
+    },
+  });
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      await saveData(data);
+      showSnackbar({ title: t('saved', 'Saved successfully') });
+    } catch (error) {
+      showSnackbar({
+        kind: 'error',
+        title: t('errorSaving', 'Error saving'),
+        subtitle: error?.message,
+      });
+    }
+  };
+  ```
+
+- Use `Controller` from React Hook Form when integrating with Carbon components that don't follow standard HTML input patterns:
+
+  ```tsx
+  <Controller
+    name="status"
+    control={control}
+    render={({ field }) => (
+      <Select
+        {...field}
+        id="status"
+        labelText={t('status', 'Status')}
+        items={statusOptions}
+      />
+    )}
+  />
+  ```
+
+- Handle form submission errors appropriately. Display validation errors inline and show snackbars for server errors:
+
+  ```tsx
+  const onSubmit = async (data: FormData) => {
+    try {
+      setIsSubmitting(true);
+      await saveFormData(data);
+      showSnackbar({ title: t('formSaved', 'Form saved successfully') });
+      closeWorkspace();
+    } catch (error) {
+      // Server errors shown via snackbar
+      showSnackbar({
+        kind: 'error',
+        title: t('errorSavingForm', 'Error saving form'),
+        subtitle: error?.message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  ```
+
+- Use loading states during form submission to prevent duplicate submissions:
+
+  ```tsx
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  <Button
+    type="submit"
+    disabled={isSubmitting}
+    renderIcon={isSubmitting ? InlineLoading : Save}
+  >
+    {isSubmitting ? t('saving', 'Saving...') : t('save', 'Save')}
+  </Button>
+  ```
+
+- When creating Zod schemas that include translated error messages, create the schema using a function that accepts the translation function as a parameter. This ensures schemas are properly localized and can be memoized:
+
+  ```tsx
+  import type { TFunction } from 'i18next';
+
+  // Good - schema factory function
+  const createFormSchema = (t: TFunction) =>
+    z.object({
+      name: z.string().min(1, t('nameRequired', 'Name is required')),
+      email: z.string().email(t('invalidEmail', 'Invalid email address')),
+    });
+
+  // Use in component with useMemo
+  const { t } = useTranslation();
+  const formSchema = useMemo(() => createFormSchema(t), [t]);
+  
+  const { control, handleSubmit } = useForm({
+    resolver: zodResolver(formSchema),
+  });
+  ```
+
+- For workspace forms, use `DefaultPatientWorkspaceProps` from `@openmrs/esm-patient-common-lib` to ensure consistent props across all patient workspace forms:
+
+  ```tsx
+  import { type DefaultPatientWorkspaceProps } from '@openmrs/esm-patient-common-lib';
+
+  interface MyFormProps extends DefaultPatientWorkspaceProps {
+    // Add any additional props specific to your form
+  }
+
+  const MyForm: React.FC<MyFormProps> = ({
+    closeWorkspace,
+    closeWorkspaceWithSavedChanges,
+    patientUuid,
+    promptBeforeClosing,
+  }) => {
+    // Form implementation
+  };
+  ```
+
+- Use `promptBeforeClosing` to warn users when they try to close a workspace with unsaved changes. This should be called in a `useEffect` that watches the form's `isDirty` state:
+
+  ```tsx
+  const {
+    formState: { isDirty },
+  } = useForm(...);
+
+  useEffect(() => {
+    promptBeforeClosing(() => isDirty);
+  }, [isDirty, promptBeforeClosing]);
+  ```
+
+- Use `closeWorkspaceWithSavedChanges` when the form is successfully submitted, and `closeWorkspace` when the user cancels:
+
+  ```tsx
+  const onSubmit = async (data: FormData) => {
+    try {
+      await saveData(data);
+      mutate(); // Update SWR cache
+      closeWorkspaceWithSavedChanges(); // Use this on success
+      showSnackbar({ title: t('saved', 'Saved successfully') });
+    } catch (error) {
+      showSnackbar({
+        kind: 'error',
+        title: t('errorSaving', 'Error saving'),
+        subtitle: error?.message,
+      });
+    }
+  };
+
+  // Cancel button
+  <Button kind="secondary" onClick={() => closeWorkspace()}>
+    {t('cancel', 'Cancel')}
+  </Button>
+  ```
+
+- Display form-level errors using Carbon's `InlineNotification` component. Consider separate error states for create vs update operations:
+
+  ```tsx
+  const [errorCreating, setErrorCreating] = useState(null);
+  const [errorUpdating, setErrorUpdating] = useState(null);
+
+  {errorCreating && (
+    <InlineNotification
+      role="alert"
+      kind="error"
+      lowContrast
+      title={t('errorCreating', 'Error creating')}
+      subtitle={errorCreating?.message}
+    />
+  )}
+
+  {errorUpdating && (
+    <InlineNotification
+      role="alert"
+      kind="error"
+      lowContrast
+      title={t('errorUpdating', 'Error updating')}
+      subtitle={errorUpdating?.message}
+    />
+  )}
+  ```
+

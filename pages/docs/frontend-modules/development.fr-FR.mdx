@@ -19,27 +19,27 @@ Typiquement, vous voudrez exécuter un module frontend spécifique dans une mono
 yarn start --sources 'packages/esm-patient-conditions-app'
 ```
 
-Notez que l'argument qui suit packages dans la commande doit être le chemin complet du module frontend. Il est également possible de passer plusieurs arguments à `yarn start --sources`. Cela vous permet d'exécuter plusieurs modules frontaux simultanément. Imaginez une situation où vous avez besoin d'apporter un changement aux widgets "vitals" et "biométriques" dans le dossier du patient. Pour les faire fonctionner simultanément, vous devez lancer arn start --sources`:
+Notez que l'argument qui suit packages dans la commande doit être le chemin complet du module frontend. Il est également possible de passer plusieurs arguments à `yarn start --sources`. Cela vous permet d'exécuter plusieurs modules frontaux simultanément. Imaginez une situation où vous avez besoin d'apporter un changement aux widgets "vitals" et "biométriques" dans le dossier du patient. Pour les faire fonctionner simultanément, vous devez lancer `yarn start --sources`:
 
 ```sh
 yarn start --sources 'packages/esm-patient-biometrics-app' 'packages/esm-patient-vitals-app'
 ```
 
-Cette commande lance un serveur de développement dans votre navigateur par défaut. Par défaut, ce serveur fonctionnera sur le port 8080. Si vous souhaitez faire tourner le serveur sur un autre port, vous pouvez le spécifier en passant l'argument `--port`. Par exemple, si vous exécutez la commande ci-dessus, les données biométriques et vitales seront envoyées depuis http://localhost:8080/openmrs/spa. Si vous voulez ensuite exécuter, par exemple, le module frontal de recherche de patients à partir de la monorepo de gestion des patients, vous pouvez spécifier un numéro de port différent. Vous l'exécuteriez alors comme suit:
+Cette commande lance un serveur de développement dans votre navigateur par défaut. Par défaut, ce serveur fonctionnera sur le port 8080. Si vous souhaitez faire tourner le serveur sur un autre port, vous pouvez le spécifier en passant l'argument `--port`. Par exemple, si vous exécutez la commande ci-dessus, les données biométriques et vitales seront envoyées depuis http://localhost:8080/openmrs/spa. Si vous voulez ensuite exécuter, par exemple, le module frontal de recherche de patients à partir de la monorepo de gestion des patients, vous pouvez spécifier un numéro de port différent. Vous lanceriez alors le module ainsi:
 
 ```sh
 yarn start --sources 'packages/esm-patient-chart-app' --port=7000
 ```
 
-Cela devrait permettre d'activer un serveur de développement local à l'adresse suivante `http://localhost:7000/openmrs/spa`.
+Cela devrait permettre d'activer un serveur de développement local à l'adresse suivante `http://localhost:7000/openmrs/spa`. Le module sera servi sur le port suivant disponible (généralement `http://localhost:7001`).
 
-Lorsque vous lancez un serveur de développement de cette manière, plusieurs choses se produisent sous le capot. Si vous regardez la section `scripts` d'un fichier manifest (`package.json`) dans un module frontend, vous devriez voir un script `start` qui ressemble à quelque chose comme:
+Lorsque vous lancez un serveur de développement de cette manière, plusieurs choses se produisent sous le capot. Si vous regardez la section `scripts` d'un fichier manifeste (`package.json`) dans un module frontend, vous devriez voir un script `start` qui ressemble à quelque chose comme:
 
 ```json
-“start”: "openmrs develop"
+"start": "openmrs develop"
 ```
 
-Cela signifie que l'exécution de `yarn start` invoque la commande `develop` de l'outillage `openmrs`. Cette commande démarre une nouvelle session de développement frontale en utilisant l'app shell d'OpenMRS. L'outil met en place la carte d'importation, ajoute des entrées pour les applications principales à partir de l'app shell et remplace les entrées pour les modules fonctionnant localement. En fin de compte, le corollaire est que vous pouvez apporter des modifications aux modules frontaux dans votre environnement local et que ces modifications se propagent au serveur de développement dans votre navigateur. L'outillage vous permet de faire d'autres choses intéressantes, telles que:
+Cela signifie que l'exécution de `yarn start` invoque la commande `develop` de l'outillage `openmrs`. Cette commande compile l’application shell et la lance contre un backend OpenMRS. L'outil met en place la carte d'importation, ajoute des entrées pour les applications principales à partir de l’application shell et remplace les entrées pour les modules fonctionnant localement. En fin de compte, le corollaire est que vous pouvez apporter des modifications aux modules frontaux dans votre environnement local et que ces modifications se propagent au serveur de développement dans votre navigateur. L'outillage vous permet de faire d'autres choses intéressantes, telles que:
 
 - Spécifier un autre serveur backend (autre que le serveur communautaire dev3) et y envoyer les requêtes par proxy.
 - Spécifier un chemin alternatif pour le serveur cible (par défaut `/openmrs/spa`).
@@ -48,7 +48,7 @@ Cela signifie que l'exécution de `yarn start` invoque la commande `develop` de 
 
 ## Exécuter l'application shell localement
 
-La plupart du temps, c'est tout ce qu'un développeur doit faire pour faire fonctionner un serveur de développement local. Une exception notable, cependant, est l'exécution du `app shell`. Vous devrez exécuter le shell directement si vous le souhaitez:
+La plupart du temps, c'est tout ce qu'un développeur doit faire pour faire fonctionner un serveur de développement local. Une exception notable, cependant, est l'exécution de l’application shell. Vous devrez exécuter le shell directement si vous le souhaitez:
 
 - Apporter des modifications au module frontal `styleguide` et les tester localement.
 - Testez les changements apportés aux applications suivantes:
@@ -59,15 +59,15 @@ La plupart du temps, c'est tout ce qu'un développeur doit faire pour faire fonc
   - `offline tools` - le tableau de bord des outils hors ligne.
   - `primary navigation` - le menu de navigation.
 
-Pour lancer l'app shell, vous devrez `cd` dans la monorepo `esm-core` et lancer:
+Pour lancer l’application shell, vous devrez `cd` dans la monorepo `esm-core` et lancer:
 
 ```sh
 yarn run:shell
 ```
 
-Cette commande va démarrer un serveur de développement à `http://localhost:8080/openmrs/spa`. Vous pouvez alors naviguer vers l'app shell à `http://localhost:8080/openmrs/spa/shell`. De là, vous pouvez naviguer vers les applications que vous voulez tester.
+Cette commande va démarrer un serveur de développement à `http://localhost:8080/openmrs/spa`. Vous pouvez alors naviguer vers l’application shell à `http://localhost:8080/openmrs/spa/shell`. De là, vous pouvez naviguer vers les applications que vous voulez tester.
 
-Parce que ces applications résident dans le répertoire `apps` de la monorepo `esm-core`, les exécuter dans le contexte de l'app shell rend beaucoup plus facile le test des changements. Cependant, une chose à noter lors de l'utilisation de cette approche est que pour que vos changements se propagent sur votre serveur local, vous devrez peut-être reconstruire votre module frontend. Pour ce faire, exécutez:
+Parce que ces applications résident dans le répertoire `apps` de la monorepo `esm-core`, les exécuter dans le contexte de l’application shell rend beaucoup plus facile le test des changements. Cependant, une chose à noter lors de l'utilisation de cette approche est que pour que vos changements se propagent sur votre serveur local, vous devrez peut-être reconstruire votre module frontend. Pour ce faire, exécutez:
 
 ```sh
 yarn turbo build
@@ -86,6 +86,24 @@ Il n'y a pas de corrélation simple entre les modules frontaux, les pages et le 
 
 Il n'existe pas de règles strictes pour déterminer où apporter des changements. La meilleure approche consiste à essayer différentes choses et à voir ce qui fonctionne pour vous. Plus vous travaillerez sur la base de code, plus vous vous familiariserez avec elle et plus il vous sera facile de déterminer où apporter des modifications. Si vous avez fait tout ce qui précède et que vous n'avez toujours pas trouvé le code que vous cherchez, n'hésitez pas à demander dans le [#openmrs-helpme channel](https://openmrs.slack.com/archives/C02UNMKFH8V) sur Slack.
 
+## Travailler sur un ticket (flux pratique)
+
+Si vous prenez un ticket et souhaitez aller au bout rapidement, ce flux fonctionne généralement :
+
+1. **Trouver le bon dépôt/module** grâce aux techniques ci‑dessus.
+2. **Lancer le module en local** et reproduire le problème ou vérifier le besoin.
+3. **Faire le changement** en respectant les [conventions de code](/docs/coding-conventions/introduction).
+4. **Valider localement** (contrôle UI + tests pertinents).
+5. **Mettre à jour les traductions** si vous ajoutez ou modifiez des chaînes visibles par l’utilisateur.
+6. **Ouvrir une PR** avec un résumé clair et des captures si l’UI a changé.
+
+Blocages fréquents à surveiller :
+
+- **Accès au backend / authentification :** Vous aurez besoin d’un backend OpenMRS (dev3 ou local). Si la connexion échoue, vérifiez les identifiants de l’environnement.
+- **Overrides d’import map :** Si un changement n’apparaît pas, vérifiez les overrides dans les devtools et faites un hard refresh pour vider le cache.
+- **URLs attendues :** L’app shell tourne sur `/openmrs/spa` et votre module local peut être servi sur un autre port.
+- **Feature flags :** Si vous ne voyez pas une nouvelle UI, vérifiez si elle est derrière un feature flag dans le menu des feature flags des Implementer Tools.
+
 ## Comment puis-je développer dans un environnement restreint
 
 En général, vous pouvez développer contre un autre environnement en utilisant le drapeau `--backend`. Si l'autre environnement est protégé, par exemple par une restriction d'IP ou de réseau, alors c'est quelque chose dont vous devez vous occuper sur votre machine locale. Dans le cas où l'environnement surveillé est restreint par un mécanisme SSO utilisant un cookie, vous pouvez utiliser l'option `--add-cookie` pour y parvenir. A titre d'exemple, regardez l'accès à un serveur de développement du ICRC:
@@ -98,17 +116,17 @@ Le cookie doit être obtenu par vous et dépend fortement du backend utilisé.
 
 ## Dois-je rédiger des tests?
 
-Oui, absolument! Nous avons une suite de tests pour les modules frontaux dans la monorepo. Nous utilisons [Jest](https://jestjs.io/) pour les tests. Nous utilisons également [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) pour tester les composants React. Nous avons un [guide de test](/docs/frontend-modules/testing) auquel vous pouvez vous référer pour plus d'informations sur la façon d'écrire des tests. Nous ajoutons la prise en charge des [Playwright e2e tests](https://playwright.dev/) dans nos dépôts. Envisagez également d'ajouter des tests e2e pour vos modifications. La lecture du guide des tests ainsi que des tests dans la base de code devrait vous donner une bonne idée de la façon d'écrire des tests.
+Oui, absolument! Nous avons une suite de tests pour les modules frontaux dans la monorepo. Selon le dépôt, nous utilisons [Jest](https://jestjs.io/) ou [Vitest](https://vitest.dev/), ainsi que [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) pour les composants React. Vérifiez le `package.json` du module pour connaître le runner configuré. Consultez le [guide des tests unitaires et d'intégration](/docs/frontend-modules/unit-and-integration-testing) et le [guide des tests end-to-end](/docs/frontend-modules/end-to-end-testing) pour en savoir plus. Envisagez également d’ajouter des tests E2E pour vos modifications. La lecture des guides de test ainsi que des tests dans la base de code devrait vous donner une bonne idée de la façon d'écrire des tests.
 
 ## Pousser vos modifications vers GitHub
 
-Une fois que vous avez terminé de travailler sur une fonctionnalité ou un correctif, vous devez transférer vos modifications sur GitHub et déposer un PR. Pour ce faire, compilez vos modifications dans un commit. Nous avons des directives pour écrire des messages de validation dans notre [guide de contribution](https://o3-dev.docs.openmrs.org/#/getting_started/contributing).
+Une fois que vous avez terminé de travailler sur une fonctionnalité ou un correctif, vous devez transférer vos modifications sur GitHub et déposer un PR. Pour ce faire, compilez vos modifications dans un commit. Nous avons des directives pour écrire des messages de validation dans notre [guide de contribution](/docs/frontend-modules/contributing).
 
 La création d'un commit devrait déclencher des hooks de pré-commit. Typiquement, une partie du travail de ces hooks consiste à exécuter `yarn run extract-translations`. Cette tâche lance `turborepo` et exécute la tâche `extract-translations` dans chaque paquet de la monorepo. Cette tâche extrait les clés et les chaînes de traduction et met à jour le fichier de traduction de la locale par défaut, `en.json` dans le répertoire `translations` de votre module frontal. Ceci est utile pour l'internationalisation. Après l'exécution des hooks de pre-commit, vous voulez pousser vos changements sur GitHub. Cela déclenchera un hook `pre-push` qui exécutera typiquement les tâches suivantes en parallèle en utilisant `turborepo`:
 
 - `typescript` - vérifie les types de votre application.
 - `lint` - exécute une vérification lint en utilisant Prettier.
-- `test` - exécute des tests en utilisant Jest et React Testing Library.
+- `test` - exécute les tests (Jest ou Vitest selon le dépôt).
 
 Si l'une de ces tâches échoue, la poussée doit échouer. Le terminal doit afficher le(s) message(s) d'erreur à l'origine de l'échec de la poussée. Vous devrez corriger l'erreur ou les erreurs et pousser à nouveau. Une fois que la poussée a réussi, vous pouvez aller sur le repo GitHub lié à votre paquet et déposer une demande d'extraction (pull request).
 
@@ -138,7 +156,7 @@ Si vous utilisez Linux, il se peut que vous voyiez l'erreur suivante la premièr
 
 ### Je ne vois pas la dernière version de @openmrs/esm-framework. Comment mettre à jour la dépendance?
 
-Si vous remarquez que votre application cesse soudainement de fonctionner, cela peut être dû au fait qu'une bibliothèque principale a été modifiée dans le shell de l'application sur le serveur sur lequel vous développez. Les principales dépendances partagées par tous les modules frontaux d'OpenMRS sont `openmrs` et `@openmrs/esm-framework`. Elles peuvent être mises à jour comme suit:
+Si vous remarquez que votre application cesse soudainement de fonctionner, cela peut être dû au fait qu'une bibliothèque principale a été modifiée dans l’application shell sur le serveur sur lequel vous développez. Les principales dépendances partagées par tous les modules frontaux d'OpenMRS sont `openmrs` et `@openmrs/esm-framework`. Elles peuvent être mises à jour comme suit:
 
 ```sh
 # Mise à jour des bibliothèques de base
@@ -209,7 +227,7 @@ git checkout HEAD yarn.lock && yarn
 
 ### La tâche `verify` échoue sur GitHub Actions pour mon PR
 
-Vous avez probablement une erreur de lint ou de typecript dans votre code. ESLint est configuré pour échouer lorsqu'il signale des avertissements. Exécutez `yarn turbo lint` localement pour l'erreur lint spécifique dans votre IDE. Pour les erreurs TypeScript, vous devriez voir l'erreur dans le journal de CI. Si ce n'est pas le cas, lancez `yarn turbo typescript` localement.
+Vous avez probablement une erreur de lint ou de TypeScript dans votre code. ESLint est configuré pour échouer lorsqu'il signale des avertissements. Exécutez `yarn turbo lint` localement pour l'erreur lint spécifique dans votre IDE. Pour les erreurs TypeScript, vous devriez voir l'erreur dans le journal de CI. Si ce n'est pas le cas, lancez `yarn turbo typescript` localement.
 
 ### J'obtiens des erreurs `502` en essayant de récupérer la session lors de l'exécution d'un serveur de développement local.
 

@@ -1,0 +1,404 @@
+# Configuration des files d'attente de service
+
+Les files d'attente de service sont l'un des modules les plus configurables d'O3, vous permettant de personnaliser les tableaux de files d'attente, les priorités, les statuts, les signes vitaux, les biométries, etc. Ce guide couvre toutes les options de configuration du module Files d'attente de service.
+
+## Aperçu
+
+Le module Files d'attente de service gère les files d'attente de patients dans les établissements ambulatoires. Vous pouvez configurer :
+
+- Titre du tableau de bord et file d'attente de service par défaut
+- Tags de priorité avec couleurs et styles
+- Colonnes et mises en page des tableaux de files d'attente (par file/statut)
+- UUID de concepts pour les signes vitaux, les diagnostics et autres données cliniques
+- Configuration des signes vitaux et biométries
+- Numéros de file d'attente de visite
+- URLs du dossier patient
+- Types de visite recommandés
+
+## Titre du tableau de bord
+
+Configurez le titre affiché sur le tableau de bord des files d'attente de service :
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "dashboardTitle": {
+      "key": "serviceQueues",
+      "value": "Service queues"
+    }
+  }
+}
+```
+
+- `key` - Clé de traduction pour le titre
+- `value` - Texte par défaut si la traduction n'est pas trouvée
+
+## File d'attente de service par défaut
+
+Définissez la file d'attente de service sélectionnée par défaut lors de l'ouverture du formulaire de début de visite :
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "defaultInitialServiceQueue": "Outpatient Triage"
+  }
+}
+```
+
+La valeur par défaut est `"Outpatient Triage"`.
+
+## Configuration des priorités
+
+Configurez les tags de priorité avec des couleurs et des styles :
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "priorityConfigs": [
+      {
+        "conceptUuid": "04f6f7e0-e3cb-4e13-a133-4479f759574e",
+        "color": "red",
+        "style": null
+      },
+      {
+        "conceptUuid": "f4620bfa-3625-4883-bd3f-84c2cce14470",
+        "color": "green",
+        "style": null
+      },
+      {
+        "conceptUuid": "dc3492ef-24a5-4fd9-b58d-4fd2acf7071f",
+        "color": "orange",
+        "style": null
+      }
+    ]
+  }
+}
+```
+
+**Couleurs disponibles** : `red`, `magenta`, `purple`, `blue`, `teal`, `cyan`, `gray`, `orange`, `green`, `warm-gray`, `cool-gray`, `high-contrast`, `outline`
+
+**Styles disponibles** : `bold` (ou `null` pour aucun style spécial)
+
+- `conceptUuid` - UUID du concept de priorité à configurer
+- `color` - Couleur du tag de priorité
+- `style` - Style à appliquer (actuellement uniquement `bold` ou `null`)
+
+## UUID de concepts
+
+Configurez les UUID de concepts utilisés dans tout le module des files d'attente de service :
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "concepts": {
+      "defaultPriorityConceptUuid": "f4620bfa-3625-4883-bd3f-84c2cce14470",
+      "defaultStatusConceptUuid": "51ae5e4d-b72b-4912-bf31-a17efb690aeb",
+      "defaultTransitionStatus": "ca7494ae-437f-4fd0-8aae-b88b9a2ba47d",
+      "emergencyPriorityConceptUuid": "04f6f7e0-e3cb-4e13-a133-4479f759574e",
+      "systolicBloodPressureUuid": "5085AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "diastolicBloodPressureUuid": "5086AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "pulseUuid": "5087AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "temperatureUuid": "5088AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "oxygenSaturationUuid": "5092AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "heightUuid": "5090AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "weightUuid": "5089AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "respiratoryRateUuid": "5242AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "generalPatientNoteConceptUuid": "162169AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "problemListConceptUuid": "1284AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "visitDiagnosesConceptUuid": "159947AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "historicalObsConceptUuid": ["161643AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"]
+    }
+  }
+}
+```
+
+**Concepts clés** :
+- `defaultPriorityConceptUuid` - Priorité par défaut (par ex. "Pas urgent")
+- `defaultStatusConceptUuid` - Statut par défaut (par ex. "En attente")
+- `defaultTransitionStatus` - Statut lors de la prise en charge du service (par ex. "En service")
+- `emergencyPriorityConceptUuid` - Priorité la plus élevée (par ex. "Urgence")
+- Concepts de signes vitaux (tension artérielle systolique/diastolique, pouls, température, saturation en oxygène, taille, poids, fréquence respiratoire)
+- `generalPatientNoteConceptUuid` - Champ de note texte libre
+- `problemListConceptUuid` - Concept de liste de problèmes
+- `visitDiagnosesConceptUuid` - Concept de diagnostics de visite
+- `historicalObsConceptUuid` - Observations affichées dans la modale de visite précédente (tableau)
+
+## Tableaux de files d'attente
+
+Configurez les colonnes et mises en page des tableaux de files d'attente. Il s'agit d'une fonctionnalité puissante qui vous permet de personnaliser les colonnes des tableaux par file et statut.
+
+### Définitions de colonnes
+
+Définissez des colonnes personnalisées ou remplacez les colonnes intégrées :
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "queueTables": {
+      "columnDefinitions": [
+        {
+          "id": "patient-name",
+          "columnType": "patient-name",
+          "header": "Patient Name"
+        },
+        {
+          "id": "custom-identifier",
+          "columnType": "patient-identifier",
+          "header": "National ID",
+          "config": {
+            "identifierTypeUuid": "f85081e2-b4be-4e48-b3a4-7994b69bb101"
+          }
+        },
+        {
+          "id": "status",
+          "columnType": "status",
+          "header": "Status",
+          "config": {
+            "statusConfigs": [
+              {
+                "conceptUuid": "51ae5e4d-b72b-4912-bf31-a17efb690aeb",
+                "iconComponent": "Group"
+              },
+              {
+                "conceptUuid": "ca7494ae-437f-4fd0-8aae-b88b9a2ba47d",
+                "iconComponent": "InProgress"
+              }
+            ]
+          }
+        },
+        {
+          "id": "actions",
+          "columnType": "actions",
+          "config": {
+            "actions": {
+              "buttons": ["call"],
+              "overflowMenu": ["move", "transition", "edit", "remove", "undo"]
+            }
+          }
+        },
+        {
+          "id": "queue-number",
+          "columnType": "queue-number",
+          "config": {
+            "visitQueueNumberAttributeUuid": "c61ce16f-272a-41e7-9924-4c555d3f18b5"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+**Types de colonnes intégrés** :
+- `patient-name` - Nom du patient
+- `patient-identifier` - Identifiant du patient (nécessite `identifierTypeUuid` dans la config)
+- `patient-age` - Âge du patient
+- `coming-from` - D'où vient le patient
+- `priority` - Tag de priorité
+- `status` - Statut avec icônes (nécessite `statusConfigs` dans la config)
+- `queue` - Nom de la file
+- `queue-number` - Numéro de file (nécessite `visitQueueNumberAttributeUuid`)
+- `visit-start-time` - Heure de début de visite
+- `wait-time` - Temps d'attente
+- `actions` - Boutons d'action (nécessite la config `actions`)
+
+**Icônes de statut** : `Group`, `InProgress`
+
+**Types d'action** : `move`, `call`, `edit`, `transition`, `remove`, `delete`, `undo`
+
+**Options de configuration des colonnes** :
+- `id` - Identifiant unique de la colonne
+- `columnType` - Type de colonne (si différent de l'ID)
+- `header` - Texte d'en-tête (sera traduit s'il s'agit d'une clé de traduction valide)
+- `config` - Configuration spécifique à la colonne :
+  - Pour `patient-identifier` : `identifierTypeUuid` - UUID du type d'identifiant
+  - Pour `status` : `statusConfigs` - Tableau des configurations d'icônes de statut
+  - Pour `actions` : `actions.buttons` et `actions.overflowMenu` - Tableaux de types d'action
+  - Pour `queue-number` : `visitQueueNumberAttributeUuid` - UUID de l'attribut de visite contenant le numéro de file
+
+### Définitions de tableaux
+
+Définissez quelles colonnes apparaissent dans quels tableaux :
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "queueTables": {
+      "tableDefinitions": [
+        {
+          "columns": [
+            "patient-name",
+            "coming-from",
+            "priority",
+            "status",
+            "queue",
+            "wait-time",
+            "actions"
+          ],
+          "appliedTo": [
+            {
+              "queue": "",
+              "status": ""
+            }
+          ]
+        },
+        {
+          "columns": [
+            "patient-name",
+            "custom-identifier",
+            "priority",
+            "status",
+            "actions"
+          ],
+          "appliedTo": [
+            {
+              "queue": "some-queue-uuid",
+              "status": "some-status-uuid"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+- `columns` - Tableau d'IDs de colonnes (depuis `columnDefinitions` ou colonnes intégrées)
+- `appliedTo` - (Optionnel) Tableau de conditions spécifiant à quelles files/statuts ce tableau s'applique
+  - Si omis, s'applique à tous les tableaux
+  - Une chaîne `queue` ou `status` vide signifie "toutes les files" ou "tous les statuts"
+  - Si plusieurs définitions de tableau correspondent, la première est utilisée
+
+**Exemple** : La première définition de tableau s'applique à toutes les files et statuts (par défaut). La seconde s'applique uniquement à une combinaison file/statut spécifique.
+
+## Attribut de numéro de file d'attente de visite
+
+Configurez l'attribut de visite qui contient le numéro de file :
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "visitQueueNumberAttributeUuid": "c61ce16f-272a-41e7-9924-4c555d3f18b5"
+  }
+}
+```
+
+**Note** : Ceci doit être défini si vous utilisez une colonne `queue-number` dans une définition de tableau (sauf si défini par colonne dans `columnDefinitions`).
+
+## Types d'identifiants par défaut
+
+Configurez les types d'identifiants affichés dans les tableaux de files :
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "defaultIdentifierTypes": [
+      "05ee9cf4-7242-4a17-b4d4-00f707265c8a",
+      "f85081e2-b4be-4e48-b3a4-7994b69bb101"
+    ]
+  }
+}
+```
+
+Ces types d'identifiants sont affichés sur les pages de résultats de recherche de patients.
+
+## Type d'attribut de contact
+
+Configurez le type d'attribut de personne pour les informations de contact (par ex. "Détails de contact du proche") :
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "contactAttributeType": "some-attribute-type-uuid"
+  }
+}
+```
+
+## URL du dossier patient
+
+Configurez où les utilisateurs sont redirigés lors du clic sur un nom de patient :
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "customPatientChartUrl": "${openmrsSpaBase}/patient/${patientUuid}/chart"
+  }
+}
+```
+
+Le modèle d'URL prend en charge :
+- `${openmrsSpaBase}` - URL de base pour le SPA
+- `${patientUuid` - UUID du patient
+- `${openBase}` - URL de base (également disponible)
+
+## Configuration des signes vitaux
+
+Configurez les paramètres du formulaire de signes vitaux :
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "vitals": {
+      "formUuid": "a000cb34-9ec1-4344-a1c8-f692232f6edd",
+      "encounterTypeUuid": "67a71486-1a54-468f-ac3e-7091a9a79584"
+    }
+  }
+}
+```
+
+- `formUuid` - UUID du formulaire de signes vitaux
+- `encounterTypeUuid` - UUID du type de rencontre pour les rencontres de signes vitaux
+
+## Configuration des biométries
+
+Configurez l'affichage des biométries :
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "biometrics": {
+      "bmiUnit": "kg / m²"
+    }
+  }
+}
+```
+
+- `bmiUnit` - Unité pour l'affichage de l'IMC (par défaut : `"kg / m²"`)
+
+## Types de visite recommandés
+
+Activez l'onglet des types de visite recommandés :
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "showRecommendedVisitTypeTab": true,
+    "visitTypeResourceUrl": "/etl-latest/etl/patient/"
+  }
+}
+```
+
+- `showRecommendedVisitTypeTab` - S'il faut afficher l'onglet des types de visite recommandés
+- `visitTypeResourceUrl` - URL personnalisée pour charger les ressources des types de visite recommandés (requis si `showRecommendedVisitTypeTab` est `true`)
+
+## Statuts de rendez-vous
+
+Configurez les statuts de rendez-vous (partagés avec l'application de rendez-vous) :
+
+```json
+{
+  "@openmrs/esm-service-queues-app": {
+    "appointmentStatuses": [
+      "Requested",
+      "Scheduled",
+      "CheckedIn",
+      "Completed",
+      "Cancelled",
+      "Missed"
+    ]
+  }
+}
+```
+
+Les statuts par défaut sont : `Requested`, `Scheduled`, `CheckedIn`, `Completed`, `Cancelled`, `Missed`.
+

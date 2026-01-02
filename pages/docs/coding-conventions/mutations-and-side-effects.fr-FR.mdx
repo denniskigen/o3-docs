@@ -1,0 +1,105 @@
+# Mutations et effets secondaires
+
+- Utilisez les API [mutate](https://swr.vercel.app/docs/mutation#mutate) globales et liées de SWR pour muter les données dans le cache lorsque l'utilisateur effectue une action qui change l'état du backend. Cela garantit que le cache est mis à jour de manière cohérente dans toute l'application et évite le besoin de recharger la page pour voir les changements.
+
+  Il y a deux approches principales pour la mutation avec SWR :
+
+  1. Utilisation de la fonction [mutate liée](https://swr.vercel.app/docs/mutation.en-US#bound-mutate) de `useSWR` :
+  
+  ```tsx
+  // Utilisation de mutate liée pour mettre à jour une ressource spécifique
+  const { data, mutate } = useSWR<Patient>(`/ws/rest/v1/patient/${patientUuid}`);
+
+  const handleSave = async (updates) => {
+    try {
+      const result = await savePatient(updates);
+      mutate(result);
+      showSnackbar({ title: t('patientSaved', 'Patient enregistré avec succès') });
+      closeWorkspace();
+    } catch (error) {
+      showSnackbar({ 
+        kind: 'error',
+        title: t('errorSavingPatient', 'Erreur lors de l'enregistrement du patient') 
+      });
+    }
+  };
+  ```
+
+  2. Utilisation de la fonction [mutate globale](https://swr.vercel.app/docs/mutation.en-US#global-mutate) pour des mises à jour de cache plus larges :
+
+  ```tsx
+  import { mutate } from 'swr';
+
+  // Utilisation de mutate globale pour mettre à jour toutes les instances d'une ressource
+  const handleDeleteVisit = async (visitUuid: string) => {
+    try {
+      await deleteVisit(visitUuid);
+      
+      // Mettre à jour toutes les listes de visites en cache
+      mutate('/ws/rest/v1/visit');
+      
+      // Mettre à jour les données de la visite spécifique
+      mutate(`/ws/rest/v1/visit/${visitUuid}`);
+      
+      showSnackbar({ title: t('visitDeleted', 'Visite supprimée avec succès') });
+    } catch (error) {
+      showSnackbar({ 
+        kind: 'error',
+        title: t('errorDeletingVisit', 'Erreur lors de la suppression de la visite'),
+        subtitle: error?.message
+      });
+    }
+  };
+  ```
+
+- Lors de la mutation de données qui apparaissent à plusieurs endroits dans votre application, assurez-vous de mettre à jour toutes les entrées de cache pertinentes. Vous pouvez utiliser la fonction `mutate` avec un matcher de clé pour cibler des entrées de cache spécifiques. Voici un exemple de mise à jour des données d'adhésion à une cohorte :
+
+  ```tsx
+  const getCohortMembershipUrl = (patientUuid: string) => 
+    `${restBaseUrl}/cohortm/cohortmember?patient=${patientUuid}&v=custom:(uuid,patient:ref,cohort:(uuid,name,startDate,endDate))`;
+
+  // Fonction mémorisée pour mettre à jour le cache d'adhésion à la cohorte
+  const useMutateCohortMembers = (patientUuid: string) => {
+    return useCallback(() => {
+      const key = getCohortMembershipUrl(patientUuid);
+      return mutate(
+        // Ne muter que les entrées de cache qui correspondent exactement à cette clé
+        (cacheKey) => typeof cacheKey === 'string' && cacheKey === key
+      );
+    }, [patientUuid]);
+  };
+  ```
+
+  Et voici un exemple d'utilisation du hook mutate dans un gestionnaire de soumission :
+
+  ```tsx
+  const handleSubmit = useCallback(() => {
+    Promise.all(
+      selected.map((selectedId) => {
+        const patientList = data.find((list) => list.id === selectedId);
+        if (!patientList) return Promise.resolve();
+
+        return patientList
+          .addPatient()
+          .then(async () => {
+            // Mettre à jour les données d'adhésion à la cohorte
+            await mutateCohortMembers();
+            showSnackbar({
+              title: t('successfullyAdded', 'Ajouté avec succès'),
+              kind: 'success',
+              isLowContrast: true,
+              subtitle: `${t('successAddPatientToList', 'Patient ajouté à la liste')}: ${patientList.displayName}`,
+            });
+          })
+          .catch(() => {
+            showSnackbar({
+              title: t('error', 'Erreur'),
+              kind: 'error',
+              subtitle: `${t('errorAddPatientToList', 'Patient non ajouté à la liste')}: ${patientList.displayName}`,
+            });
+          });
+      }),
+    ).finally(closeModal);
+  }, [data, selected, closeModal, t, patientUuid]);
+  ```
+

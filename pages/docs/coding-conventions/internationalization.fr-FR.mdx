@@ -1,0 +1,95 @@
+# Internationalisation
+
+Nous utilisons [i18next](https://www.i18next.com/) et [react-i18next](https://react.i18next.com/) pour gérer l'i18n dans O3. Chaque module frontend a ses propres fichiers de traduction spécifiques à la locale dans le répertoire `src/translations`. Les chaînes dans la base de code sont traduites en utilisant la fonction `t` exportée par `react-i18next`. La fonction `t` prend une clé et une valeur par défaut optionnelle. Ces clés et chaînes sont extraites automatiquement en utilisant le script `extract-translations` chaque fois qu'un commit est créé. Ceci utilise la bibliothèque [i18next-parser](https://github.com/i18next/i18next-parser) sous le capot. Par défaut, le fichier `en.json` est utilisé comme source de vérité pour les clés de traduction dans la base de code. Nous nous appuyons ensuite sur l'intégration avec [Transifex](https://www.transifex.com/) pour gérer les fichiers de traduction pour chaque locale. Vous pouvez lire plus sur la façon dont l'i18n est implémenté dans OpenMRS [ici](https://om.rs/translate).
+
+Voici quelques lignes directrices à suivre lors de la gestion de l'i18n dans O3 :
+
+- Ne modifiez pas manuellement les fichiers de traduction spécifiques à la locale dans le répertoire `translations`. Exécutez plutôt le script `extract-translations` pour garder le fichier `en.json` synchronisé avec les clés de traduction dans la base de code. L'intégration Transifex mettra automatiquement à jour les fichiers de traduction pour chaque locale via des pull requests automatisées.
+- Utilisez le hook [useTranslation](https://react.i18next.com/latest/usetranslation-hook) pour traduire les chaînes dans vos composants.
+
+  ```tsx
+  import { useTranslation } from "react-i18next";
+
+  const AddVitalsButton = () => {
+    const { t } = useTranslation();
+    return (
+        <Button
+          kind="ghost"
+          renderIcon={Add}
+          iconDescription="Add vitals"
+          onClick={launchVitalsBiometricsForm}
+      >
+        // Le deuxième argument est la valeur par défaut si la clé n'est pas trouvée dans les fichiers de traduction
+        {t("add", "Add")}
+      </Button>
+    );
+  };
+  ```
+
+  Les clés et chaînes correspondantes pour le code ci-dessus devraient ressembler à ceci :
+
+  ```json filename="en.json"
+  "add": "Add"
+  ```
+
+- Utilisez le composant [Trans](https://react.i18next.com/latest/trans-component) pour traduire les chaînes qui contiennent des balises HTML.
+
+  ```tsx
+  import { Trans } from "react-i18next";
+
+  const VitalsHeader = () => {
+    const { t } = useTranslation();
+    return (
+      // autre code omis pour la brièveté
+      <Trans i18nKey="overOneWeekOldVitals">
+        <span>
+          These vitals are <strong>over one week old</strong>
+        </span>
+      </Trans>
+    );
+  };
+  ```
+
+  Les clés et chaînes correspondantes pour le code ci-dessus devraient ressembler à ceci :
+
+  ```json filename="en.json"
+  "overOneWeekOldVitals": "<0>These vitals are <1>over one week old</1></0>",
+  ```
+
+- Pour gérer la pluralisation, utilisez le modèle suivant :
+
+  ```tsx
+  // S'il n'y a qu'un seul drapeau de risque, la chaîne "1 risk flag" est affichée.
+  // S'il y a plusieurs drapeaux de risque, la chaîne "{{count}} risk flags" est affichée
+  // par exemple "3 risk flags".
+  <span className={styles.flagText}>
+    {t("flagCount", "{{count}} risk flag", {
+      count: riskFlags.length,
+    })}
+  </span>
+  ```
+
+  Les clés et chaînes correspondantes pour le code ci-dessus devraient ressembler à ceci :
+
+  ```json
+  "flagCount_one": "{{ count }} risk flag",
+  "flagCount_other": "{{ count }} risk flags"
+  ```
+
+- Pour interpoler des variables dans une chaîne, utilisez le modèle suivant :
+
+  ```tsx
+  // Utilisation de variables dans les traductions
+  const WelcomeMessage = ({ patientName }) => {
+    const { t } = useTranslation();
+    return (
+      <p>{t("welcome", "Welcome, {{name}}!", { name: patientName })}</p>
+    );
+  };
+  ```
+
+  La clé de traduction correspondante devrait ressembler à :
+  ```json filename="en.json"
+  "welcome": "Welcome, {{name}}!"
+  ```
+

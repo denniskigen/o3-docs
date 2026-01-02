@@ -1,4 +1,4 @@
-# Prerequisite knowledge [#prerequisite-knowledge]
+# Prerequisite knowledge
 
 Before jumping into building with O3, you should be familiar with HTML, CSS, and JavaScript. If you're totally new to frontend development, it's especially important that you develop a good grasp of the fundamentals. Below is a list of the technologies we use in O3 and some recommended resources to learn them.
 
@@ -49,7 +49,7 @@ Most of our code is written in TypeScript. We recommend going through the follow
 
 ## JavaScript tooling
 
-- [yarn](https://yarnpkg.com/) - we use yarn as our package manager. Generally, if the repository you're looking at has a `yarn.lock` file at its root, it uses yarn. We leverage yarn's [workspaces](https://yarnpkg.com/features/workspaces) for versioning and publishing packages within our monorepos.
+- [yarn](https://yarnpkg.com/) - many OpenMRS repos use yarn as the package manager. If a repository has a `yarn.lock`, it uses yarn. We leverage yarn's [workspaces](https://yarnpkg.com/features/workspaces) for versioning and publishing packages within our monorepos.
 - [turbo](https://turbo.build/repo) - we use `turbo` to run scripts during local development and our continuous integration processes.
 - [swc](https://swc.rs/) - we use SWC to compile our JavaScript and TypeScript code into a format all major browsers support.
 - [webpack](https://webpack.js.org) - we use webpack to bundle our code for production. We use [webpack 5](https://webpack.js.org/blog/2020-10-10-webpack-5-release/), which is the latest version of webpack at the time of writing.
@@ -63,14 +63,15 @@ It is imperative that you keep your code in a version control system. OpenMRS us
 - [Dangit, Git](https://dangitgit.com/en)
 - [OpenMRS Guide to using Git](https://wiki.openmrs.org/display/docs/Using+Git)
 
-## OpenMRS
+## OpenMRS APIs and data model
 
-OpenMRS provides various APIs through which the frontend can request data. We recommend acquainting yourself with the documentation of these APIs as well as the OpenMRS data model. Find the relevant links below:
+OpenMRS provides APIs the frontend uses to request data. We recommend getting familiar with these APIs and the OpenMRS
+data model. Find the relevant links below:
 
 - [OpenMRS data model](https://devmanual.openmrs.org/technology/datamodel/)
 - [REST API](https://rest.openmrs.org/)
-- [FHIR wiki](https://om.rs/fhir)
+- [FHIR API](https://om.rs/fhir)
 
 ## Next steps
 
-Ready to jump in? It's time to learn about the key repositories in the O3 ecosystem and how they work together. Head over to the next section to learn more.
+Ready to jump in? Start with the [Core concepts](/docs/core-concepts) to understand how O3 is structured.

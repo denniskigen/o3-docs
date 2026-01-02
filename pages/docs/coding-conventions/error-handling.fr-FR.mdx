@@ -1,0 +1,104 @@
+# Gestion des erreurs
+
+- Utilisez des blocs `try/catch` pour gérer les erreurs qui pourraient survenir pendant l'exécution. Affichez une snackbar d'erreur à l'utilisateur avec un message d'erreur descriptif lorsqu'une erreur se produit.
+
+  ```tsx
+  try {
+    await savePatientData(patient);
+    showSnackbar({ title: t('patientSaved', 'Données du patient enregistrées avec succès') });
+  } catch (error) {
+    showSnackbar({
+      title: t('errorSavingPatient', 'Erreur lors de l'enregistrement du patient'),
+      kind: 'error',
+      subtitle: error?.message ?? t('unknownError', 'Une erreur inconnue s'est produite'),
+    });
+  }
+  ```
+
+- Ne vérifiez pas le statut de réponse d'une requête pour déterminer s'il faut afficher une snackbar de succès. Au lieu de cela, affichez toujours une snackbar de succès après qu'une requête soit réussie. `openmrsFetch` lancera une erreur si la requête échoue, donc vous n'avez pas besoin de vérifier le statut de réponse pour déterminer s'il faut afficher une snackbar de succès ou d'erreur.
+
+  ```tsx
+  // Ne faites pas ceci
+  saveVisit(visitPayload).then((response) => {
+    if (response.status === 201) {
+      // Gérer le cas de succès
+    } else {
+      // Gérer le cas d'erreur
+    }
+  });
+  ```
+
+  ```tsx
+  // Au lieu de cela, faites ceci :
+  saveVisit(visitPayload).then(() => {
+    // Gérer le cas de succès
+  }).catch((error) => {
+    // Gérer le cas d'erreur
+  });
+  ```
+
+  Alternativement, vous pouvez utiliser la syntaxe `async/await` pour gérer les cas de succès et d'erreur :
+
+  ```tsx
+  try {
+    await saveVisit(visitPayload);
+    // Gérer le cas de succès
+  } catch (error) {
+    // Gérer le cas d'erreur
+  }
+  ```
+
+- Lors de la gestion des erreurs dans les fonctions async, préférez `async/await` aux chaînes de promesses pour une meilleure lisibilité et clarté de la gestion des erreurs. Par exemple :
+
+  ```tsx
+  // Évitez les chaînes de promesses
+  savePatientData(patient)
+    .then((response) => {
+      showSnackbar({ kind: 'success', title: t('patientSaved', 'Données du patient enregistrées avec succès') });
+      return response;
+    })
+    .then(processPatientData)
+    .catch((error) => {
+      showSnackbar({
+        title: t('errorSavingPatient', 'Erreur lors de l'enregistrement du patient'),
+        kind: 'error',
+        description: error?.message
+      });
+    });
+
+  // Préférez async/await
+  async function handleSavePatient(patient) {
+    try {
+      await savePatientData(patient);
+      showSnackbar({ kind: 'success', title: t('patientSaved', 'Données du patient enregistrées avec succès') });
+    } catch (error) {
+      showSnackbar({
+        title: t('errorSavingPatient', 'Erreur lors de l'enregistrement du patient'),
+        kind: 'error',
+        subtitle: error?.message
+      });
+    }
+  }
+  ```
+
+  L'approche `async/await` :
+  - Rend le flux de code plus lisible et séquentiel.
+  - Simplifie la gestion des erreurs avec un seul bloc try/catch.
+  - Facilite le débogage car les stack traces sont plus significatives.
+  - Permet une gestion plus facile de plusieurs opérations async.
+
+  Utilisez un bloc `finally` pour exécuter le code de nettoyage qui doit s'exécuter indépendamment de si l'opération a réussi ou échoué :
+
+  ```tsx
+  async function handleSavePatient(patient) {
+    try {
+      // ...
+    } catch (error) {
+      // Gérer le cas d'erreur
+    } finally {
+      // Faire tout travail de nettoyage supplémentaire
+      closeModal();
+    }
+  }
+  ```
+

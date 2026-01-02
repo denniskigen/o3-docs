@@ -1,0 +1,70 @@
+# Siderail et navigation basse
+
+Le Siderail et la navigation basse sont les versions desktop et tablette d'une même fonctionnalité de navigation. Ils contiennent des boutons qui ouvrent différents onglets dans le Workspace. Une fois ouvert, le Workspace reste persistant à travers les différents tableaux de bord du Dossier patient. Les designs de ces éléments se trouvent dans le [OpenMRS Styleguide](https://zeroheight.com/23a080e38/p/948cf1-siderail-and-bottom-nav).
+
+## Ajouter un nouveau bouton de navigation
+
+Le Siderail et la navigation basse contiennent un slot d'extension, `action-menu-patient-chart-items-slot`. Les nouveaux boutons de navigation peuvent être encapsulés dans des extensions et attachés à ce slot.
+
+En reprenant l'exemple de la page [Créer des workspaces](./creating-workspaces), supposons que nous ayons enregistré un workspace nommé `gastrodynamics-form`.
+
+```json copy
+// routes.json
+{
+  "extensions": [
+    {
+      "name": "gastrodynamics-form-button",
+      "component": "gastrodynamicsFormButton",
+      "slot": "action-menu-patient-chart-items-slot",
+      "order": 4
+    }
+  ]
+}
+```
+
+```ts copy
+// index.ts
+import { getAsyncLifecycle } from '@openmrs/esm-framework';
+
+const moduleName = '@myorg/esm-gastrodynamics-app';
+
+const options = {
+  featureName: 'gastrodynamics',
+  moduleName,
+};
+
+export const gastrodynamicsFormButton = getAsyncLifecycle(
+  () => import('./gastrodynamics-form-button.extension'),
+  options,
+);
+```
+
+```ts copy
+// gastrodynamics-form-button.extension.tsx
+import React, { type ComponentProps } from "react";
+import { useTranslation } from "react-i18next";
+import { ActionMenuButton, IntestinesIcon } from "@openmrs/esm-framework";
+import { useLaunchWorkspaceRequiringVisit } from "@openmrs/esm-patient-common-lib";
+
+export default function GastrodynamicsFormButton() {
+  const { t } = useTranslation();
+  const launchGastrodynamicsForm = useLaunchWorkspaceRequiringVisit("gastrodynamics-form");
+
+  return (
+    <ActionMenuButton
+      name={"gastrodynamics-form-button"}
+      getIcon={(props: ComponentProps<typeof IntestinesIcon>) => <IntestinesIcon {...props} />}
+      label={t("gastrodynamics", "Gastrodynamics")}
+      iconDescription={t("gastrodynamics", "Gastrodynamics")}
+      handler={launchGastrodynamicsForm}
+      type={"form"}
+    />
+  );
+}
+```
+
+## Comportement du Siderail et de la navigation basse
+
+Le Siderail et la navigation basse sont implémentés comme un seul composant. Si l'écran est de largeur desktop, le Siderail est affiché ; si l'écran est plus petit, la navigation basse est affichée.
+
+Chaque `ActionMenuButton` a un `type`, qui doit correspondre au workspace qu'il ouvre. Si un workspace correspondant est visible à l'écran, le bouton sera mis en évidence comme "actif". Si un workspace du même type a été ouvert mais n'est pas actuellement visible (il est minimisé ou derrière un autre workspace), le bouton affiche un petit badge d'avertissement rouge, indiquant que le workspace est en état « interrompu ».

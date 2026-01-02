@@ -10,7 +10,7 @@
   - `.workspace` for components that render forms in the workspace e.g. [order-basket.workspace.tsx](https://github.com/openmrs/openmrs-esm-patient-chart/blob/main/packages/esm-patient-orders-app/src/order-basket/order-basket.workspace.tsx#L4) for the `Order Basket` workspace.
 - Unit and integration test files should contain the `.test` suffix in their name (e.g. `user.test.tsx`). Do not include the word `component` in the test file name.
 - Playwright e2e tests should contain the `.spec` suffix in their name (e.g. `user.spec.ts`).
-- Stylesheets should not contain `.component` suffix in their name (e.g. `user.component.scss`). This is because stylesheets are not components, and are not translated by the translation system. Instead, stylesheets should be named after the component they are styling (e.g. `user.scss`).
+- Stylesheets should not contain `.component` suffix in their name. This is because stylesheets are not components, and are not translated by the translation system. Instead, stylesheets should be named after the component they are styling and use the `.module.scss` extension for CSS modules (e.g. `user.module.scss` for a component named `user.component.tsx`).
 - Resource files that encapsulate data fetching logic should contain the `.resource` suffix in their name (e.g. `user.resource.ts`). This is to distinguish them from other files such as components, stylesheets, and tests.
 - Use appropriate extensions for TypeScript files:
   - Use the `.tsx` extension for files that contain JSX.
@@ -37,7 +37,7 @@
 - Use the file name as the component name. For example, `user.component.tsx` should contain a component named `UserComponent`. This makes it easier to find the component in the codebase.
 - Avoid using DOM component prop names for different purposes. For example, avoid using the `style` prop to pass configuration options. Instead, use a descriptive prop name that matches its purpose, such as `config` or `options`.
 - Use `camelCase` for prop names. This is consistent with the naming convention for variables, functions, and methods.
-- Translation keys should be in `camelCase` whereas translation strings should be in `sentence case`. For example, `firstName` is a translation key whereas `First name` is it's corresponding translation string.
+- Translation keys should be in `camelCase` whereas translation strings should be in `sentence case`. For example, `firstName` is a translation key whereas `First name` is its corresponding translation string.
 - Frontend modules in monorepos should have names that start with the `esm-` prefix. The name of the module should describe what the module does. For example, `esm-user-management` is a good name for a frontend module handling user management concerns and `esm-patient-chart` is a good name for a frontend module handling patient chart concerns.
 - Event handler props should be named after they event they handle `e.g. onClick` for a click handler. By convention, event handler props should start with the `on` prefix, followed by a capital letter.
 - State updater functions should be named after the state they update. For example, `setFirstName` is a good name for a state updater function that updates the `firstName` state.

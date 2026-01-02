@@ -90,17 +90,26 @@ Définir le schéma Zod pour les données du formulaire:
 ```tsx
 import { z } from "zod";
 
-const oldPasswordValidation = z.string().min(1, {
-  message: t("oldPasswordRequired", "Old password is required"),
-});
+const oldPasswordValidation = z
+  .string({
+    required_error: t('oldPasswordRequired', 'Old password is required'),
+  })
+  .trim()
+  .min(1, t('oldPasswordRequired', 'Old password is required'));
 
-const newPasswordValidation = z.string().min(1, {
-  message: t("newPasswordRequired", "New password is required"),
-});
+const newPasswordValidation = z
+  .string({
+    required_error: t('newPasswordRequired', 'New password is required'),
+  })
+  .trim()
+  .min(1, t('newPasswordRequired', 'New password is required'));
 
-const passwordConfirmationValidation = z.string().min(1, {
-  message: t("passwordConfirmationRequired", "Password confirmation is required"),
-});
+const passwordConfirmationValidation = z
+  .string({
+    required_error: t('passwordConfirmationRequired', 'Password confirmation is required'),
+  })
+  .trim()
+  .min(1, t('passwordConfirmationRequired', 'Password confirmation is required'));
 
 const schema = z
   .object({
@@ -114,7 +123,7 @@ const schema = z
   });
 ```
 
-Ce schéma définit les règles de validation pour les champs du formulaire. Chaque champ est défini comme une chaîne de caractères qui ne doit pas être vide. Si le champ est vide, un message d'erreur personnalisé est fourni en utilisant la fonction de traduction `t()`. De plus, une règle de raffinement est ajoutée pour vérifier si le `newPassword` correspond à la `passwordConfirmation`. Si elles ne correspondent pas, un message d'erreur est affiché.
+Ce schéma définit les règles de validation pour les champs du formulaire. Chaque champ est défini comme une chaîne de caractères qui ne doit pas être vide. Nous tronquons la chaîne pour supprimer les espaces en début et en fin. Si le champ est vide, un message d'erreur personnalisé est fourni en utilisant la fonction de traduction `t()`. De plus, une règle de raffinement est ajoutée pour vérifier si le `newPassword` correspond à la `passwordConfirmation`. Si elles ne correspondent pas, un message d'erreur est affiché. Ces règles de validation sont assez basiques - elles garantissent uniquement que chaque champ n'est pas vide. Elles n'imposent pas d'autres règles, telles que la complexité du mot de passe ou la longueur minimale.
 
 ### Étape 3
 
@@ -122,36 +131,53 @@ Créer un résolveur personnalisé pour React Hook Form qui utilise Zod pour la 
 
 ```tsx
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 
 const {
   handleSubmit,
   control,
   formState: { errors },
-} = useForm({
+} = useForm<z.infer<typeof schema>>({
   resolver: zodResolver(schema),
   defaultValues: {
     oldPassword: "",
     newPassword: "",
     passwordConfirmation: "",
+  },
 });
 ```
 
-Ce code crée un résolveur personnalisé en utilisant `zodResolver` de `@hookform/resolvers`. Le résolveur utilise le schéma Zod défini à l'étape 2 pour valider les données du formulaire.
+Ce code crée un résolveur personnalisé en utilisant `zodResolver` de `@hookform/resolvers`. Le résolveur utilise le schéma Zod défini à l'étape 2 pour valider les données du formulaire. La propriété `defaultValues` est optionnelle mais recommandée pour s'assurer que les champs du formulaire sont initialisés avec des chaînes vides. Le paramètre de type générique `<z.infer<typeof schema>>` fournit l'inférence de type pour les données du formulaire.
 
 ### Étape 4
 
 Ajouter la fonction `handleSubmit` à votre formulaire:
 
 ```tsx
-const onSubmit = (data) => {
-  setIsChangingPassword(true);
+import type { SubmitHandler } from "react-hook-form";
 
-  const { oldPassword, newPassword, passwordConfirmation } = data;
+const onSubmit: SubmitHandler<z.infer<typeof schema>> = async (data) => {
+  const { oldPassword, newPassword } = data;
 
-  // Handle form submission
+  try {
+    setIsChangingPassword(true);
+    await changePassword(oldPassword, newPassword);
+    // Gérer le succès (par exemple, afficher un message de succès, fermer la modale)
+  } catch (error) {
+    // Gérer l'erreur (par exemple, afficher un message d'erreur)
+    console.error(error);
+  } finally {
+    setIsChangingPassword(false);
+  }
+};
+
+// Optionnel: Gérer les erreurs de validation
+const onError = () => {
+  setIsChangingPassword(false);
 };
 ```
+
+Le type `SubmitHandler` de React Hook Form offre une meilleure sécurité de type et garantit que le gestionnaire reçoit le bon type de données. Le callback `onError` est optionnel mais utile pour gérer les cas où la validation échoue.
 
 ### Étape 5
 
@@ -160,7 +186,7 @@ Ajouter les composants `Form` et `Controller` à votre formulaire:
 ```tsx
 import { Controller } from "react-hook-form";
 
-<Form onSubmit={handleSubmit(onSubmit)}>
+<Form onSubmit={handleSubmit(onSubmit, onError)}>
   <Controller
     name="oldPassword"
     control={control}
@@ -208,6 +234,8 @@ import { Controller } from "react-hook-form";
 ```
 
 Dans cet extrait de code, le composant `Controller` est utilisé pour connecter les champs du formulaire à React Hook Form. La prop `name` spécifie le nom du champ, la prop `control` spécifie le contrôle du formulaire, et la prop `render` spécifie le composant de saisie à rendre. Les props `invalid` et `invalidText` sont utilisées pour afficher les erreurs de validation pour chaque champ.
+
+La fonction `handleSubmit` accepte deux callbacks: `onSubmit` (appelé lorsque la validation réussit) et `onError` (appelé lorsque la validation échoue). Cela vous permet de gérer à la fois les soumissions réussies et les erreurs de validation de manière appropriée.
 
 ### Étape 6
 

@@ -1,0 +1,113 @@
+# Modales
+
+Les modales sont des boîtes de dialogue qui apparaissent au-dessus de la page actuelle, généralement utilisées pour les confirmations, les actions rapides ou les interactions ciblées qui nécessitent l'attention de l'utilisateur.
+
+- Les composants modaux doivent utiliser le suffixe `.modal.tsx` pour indiquer clairement leur objectif et permettre une extraction correcte des clés de traduction.
+
+- Utilisez les composants `Modal` de Carbon (`ModalHeader`, `ModalBody`, `ModalFooter`) pour une structure modale cohérente :
+
+  ```tsx
+  import { ModalHeader, ModalBody, ModalFooter } from '@carbon/react';
+
+  const DeleteModal: React.FC<DeleteModalProps> = ({ closeModal, itemId }) => {
+    return (
+      <>
+        <ModalHeader closeModal={closeModal} title={t('deleteItem', 'Supprimer l'élément')} />
+        <ModalBody>
+          <p>{t('deleteConfirmation', 'Êtes-vous sûr de vouloir supprimer cet élément ?')}</p>
+        </ModalBody>
+        <ModalFooter>
+          <Button kind="secondary" onClick={closeModal}>
+            {t('cancel', 'Annuler')}
+          </Button>
+          <Button kind="danger" onClick={handleDelete}>
+            {t('delete', 'Supprimer')}
+          </Button>
+        </ModalFooter>
+      </>
+    );
+  };
+  ```
+
+- Utilisez les états de chargement dans les boutons d'action modaux pour fournir un retour pendant les opérations asynchrones :
+
+  ```tsx
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  <Button 
+    kind="danger" 
+    onClick={handleDelete} 
+    disabled={isDeleting}
+  >
+    {isDeleting ? (
+      <InlineLoading description={t('deleting', 'Suppression') + '...'} />
+    ) : (
+      <span>{t('delete', 'Supprimer')}</span>
+    )}
+  </Button>
+  ```
+
+- Les modales doivent gérer les erreurs avec élégance et les afficher en utilisant des snackbars. Préférez `async/await` aux chaînes de promesses pour une meilleure lisibilité :
+
+  ```tsx
+  const handleDelete = useCallback(async () => {
+    setIsDeleting(true);
+    try {
+      await deleteItem(itemId);
+      mutate(); // Mettre à jour le cache SWR
+      closeModal();
+      showSnackbar({
+        isLowContrast: true,
+        kind: 'success',
+        title: t('itemDeleted', 'Élément supprimé'),
+      });
+    } catch (error) {
+      showSnackbar({
+        kind: 'error',
+        title: t('errorDeletingItem', 'Erreur lors de la suppression de l'élément'),
+        subtitle: error?.message,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [itemId, closeModal, mutate, t]);
+  ```
+
+- Utilisez `showModal` de `@openmrs/esm-framework` pour lancer des modales programmatiquement :
+
+  ```tsx
+  import { showModal } from '@openmrs/esm-framework';
+
+  const handleOpenModal = () => {
+    const dispose = showModal('my-modal-name', {
+      itemId: '123',
+      closeModal: () => dispose(),
+    });
+  };
+  ```
+
+- Les composants modaux doivent être enregistrés en utilisant `getAsyncLifecycle` pour le code splitting :
+
+  ```tsx
+  export const deleteItemModal = getAsyncLifecycle(
+    () => import('./delete-item.modal'),
+    options
+  );
+  ```
+
+- Utilisez les types de boutons appropriés pour les actions modales :
+  - `danger` pour les actions destructives (supprimer, retirer)
+  - `primary` pour les confirmations principales
+  - `secondary` pour les actions d'annulation
+
+  ```tsx
+  <ModalFooter>
+    <Button kind="secondary" onClick={closeModal}>
+      {t('cancel', 'Annuler')}
+    </Button>
+    <Button kind="danger" onClick={handleDelete}>
+      {t('delete', 'Supprimer')}
+    </Button>
+  </ModalFooter>
+  ```
+

@@ -1,10 +1,130 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
 # Creating a Distribution
 
 One of the reasons for choosing this kind of modularization in the frontend space is to allow maximum flexibility for creating your own distribution. That way, you can use what you find useful and drop what you don't like to see in your distribution.
 
 This concept is transported to almost all areas including, but not limited to, the available frontend modules, the delivered app shell, and the method of serving the application.
 
-In this section we look at some considerations when creating a distribution. Specifically, we investigate what options we provide and how you can leverage these for your use case.
+This guide walks you through creating an O3 distribution from start to finish, including building, testing, and deploying it.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- **Node.js** version 16.17 (LTS) or later installed. We recommend using [nvm](https://github.com/nvm-sh/nvm) or [fnm](https://github.com/Schniz/fnm) to manage Node.js versions.
+- **npm** (comes with Node.js) - You'll use this to run the `openmrs` CLI tool via `npx`
+- **An OpenMRS backend** - You'll need a running OpenMRS backend to connect your distribution to (for testing and production)
+
+## Installation
+
+The `openmrs` CLI tool can be run without installation using `npx` (which comes with npm):
+
+```bash
+npx openmrs --help
+```
+
+Alternatively, you can install it globally:
+
+```bash
+npm install -g openmrs
+```
+
+Then you can run commands directly without `npx`:
+
+```bash
+openmrs --help
+```
+
+For CI/CD environments, it's recommended to use `npx --legacy-peer-deps openmrs@${APP_SHELL_VERSION:-next}` to ensure consistent versions.
+
+## Quick Start: Complete Workflow
+
+Here's a complete step-by-step workflow to create your first distribution:
+
+<Steps>
+
+### Step 1: Create your project directory
+
+Create a new directory for your distribution:
+
+```bash
+mkdir my-o3-distribution
+cd my-o3-distribution
+```
+
+### Step 2: Create the assemble configuration
+
+Create a `spa-assemble-config.json` file that defines which frontend modules to include:
+
+```json filename="spa-assemble-config.json"
+{
+  "publicUrl": ".",
+  "frontendModules": {
+    "@openmrs/esm-patient-chart-app": "latest",
+    "@openmrs/esm-patient-registration-app": "latest",
+    "@openmrs/esm-home-app": "latest"
+  },
+  "frontendModuleExcludes": []
+}
+```
+
+### Step 3: Create the build configuration
+
+Create a `spa-build-config.json` file that configures runtime properties:
+
+```json filename="spa-build-config.json"
+{
+  "spaPath": "/openmrs/spa/",
+  "apiUrl": "/openmrs/",
+  "configUrls": [],
+  "defaultLocale": "en",
+  "importmap": "./spa/importmap.json",
+  "routes": "./spa/routes.registry.json",
+  "supportOffline": false
+}
+```
+
+### Step 4: Assemble frontend modules
+
+Run the assemble command to gather all frontend module assets:
+
+```bash
+npx openmrs assemble --manifest --mode config --config spa-assemble-config.json --target ./spa
+```
+
+This creates the `importmap.json` and `routes.registry.json` files in the `./spa` directory.
+
+### Step 5: Build the app shell
+
+Run the build command to create the distributable app shell:
+
+```bash
+npx openmrs build --build-config spa-build-config.json --target ./spa
+```
+
+Verify the build succeeded by checking that `./spa/index.html` exists.
+
+### Step 6: Test locally
+
+Test your distribution using a simple HTTP server:
+
+```bash
+cd ./spa
+python3 -m http.server 8080
+```
+
+Then open `http://localhost:8080/openmrs/spa/` in your browser (adjust the path based on your `spaPath` configuration).
+
+**Note**: For the SPA to fully function, you'll need to:
+- Serve it behind a proxy that forwards API requests to your OpenMRS backend
+- Or configure CORS on your backend to allow requests from `http://localhost:8080`
+
+### Step 7: Deploy
+
+Deploy the `./spa` directory contents to your web server. See the [Serving Your Distribution](#serving-your-distribution) section below for detailed deployment options.
+
+</Steps>
 
 ## Local Build vs CI Setup
 
@@ -16,14 +136,32 @@ To build your own distribution a simple Node.js tool called `openmrs` was create
 - build a new app shell to host frontend modules (`openmrs build`)
 - start a debugging session of the shell and a frontend module (`openmrs debug`)
 - start a debugging session of a frontend module in the shell (`openmrs develop`)
-- starts the default app shell locally (`openmrs start`)
+- start the default app shell locally (`openmrs start`)
 
-For creating a distribution we recommend doing two things:
+For creating a distribution you need to complete two steps **in order**:
 
-1. Build the app shell (`openmrs build`) with the configuration you want to see.
-2. Use `openmrs assemble` to get a custom configuration for your import map.
+1. **Assemble** the import map (`openmrs assemble`) - This gathers all frontend module assets and creates the import map and routes registry.
+2. **Build** the app shell (`openmrs build`) - This builds the app shell that will host your frontend modules, using the import map and routes from step 1.
 
-The import map is used to define what frontend modules are included and where these frontend modules are located.
+The import map is used to define what frontend modules are included and where these frontend modules are located. The build step requires the output from the assemble step.
+
+Here's a complete example workflow:
+
+```bash
+# Step 1: Assemble frontend modules and create import map
+openmrs assemble --manifest --mode config --config spa-assemble-config.json --target ./spa
+
+# Step 2: Build the app shell
+openmrs build --build-config spa-build-config.json --target ./spa
+```
+
+<Callout emoji="ℹ️" type="info">
+  **Note**: In CI/CD environments (like Docker), you may want to use `npx --legacy-peer-deps openmrs@${APP_SHELL_VERSION:-next}` instead of just `openmrs` to ensure consistent versions. The `--manifest` flag outputs version information, and `--mode config` explicitly uses config file mode (though it's the default when `--config` is provided).
+</Callout>
+
+<Callout emoji="⚠️" type="warning">
+  **Important**: The `assemble` step must run before `build`, and both commands should use the same `--target` directory. The build step reads the `importmap.json` and `routes.registry.json` files created by the assemble step.
+</Callout>
 
 ## Customizing the Import Map
 
@@ -33,25 +171,44 @@ An import map can also be specified as an URL. For instance, for the development
 
 A custom import map can be created using the `openmrs assemble` command. If run directly the command will open a command line survey, guiding you through the different options. It will list all OpenMRS frontend modules that can be found on the NPM registry.
 
-For CI/CD purposes we encourage you to use a configuration file `spa-build-config.json` instead. This file then defines the wanted frontend modules and configures the whole process.
+For CI/CD purposes we encourage you to use a configuration file `spa-assemble-config.json` instead. This file defines the wanted frontend modules and configures the whole process. Note that `spa-assemble-config.json` is different from `spa-build-config.json`, which is used for runtime configuration properties (see the [Configuration overview](/docs/configure-o3/overview#spa-build-configjson) guide for details).
 
-The file may looks as follows:
+To use the configuration file, run:
 
-```json
+```bash
+openmrs assemble --config spa-assemble-config.json
+```
+
+You can also specify additional options:
+- `--target <directory>`: The target directory where the gathered artifacts will be stored (default: `dist`)
+- `--fresh`: Clean the output directory before the run
+- `--manifest`: Output a manifest file with version information
+- `--mode config`: Use config file mode (default when `--config` is provided)
+
+The file may look as follows:
+
+```json filename="spa-assemble-config.json"
 {
   "publicUrl": ".",
   "frontendModules": {
     "@openmrs/esm-patient-chart-app": "latest",
     "@openmrs/esm-patient-registration-app": "3.0.0"
-  }
+  },
+  "frontendModuleExcludes": []
 }
 ```
+
+The `frontendModuleExcludes` array allows you to exclude specific modules that might be included as dependencies of other modules. This is useful when you want to remove a module that would otherwise be included automatically.
+
+<Callout emoji="ℹ️" type="info">
+  **Note**: Some distributions may use `excludedFrontendModules` instead of `frontendModuleExcludes`. Both are supported, but `frontendModuleExcludes` is the canonical property name used by the `openmrs` CLI tool.
+</Callout>
 
 The `publicUrl` may be important for later. If the gathered resources are placed (and served) in the same folder as the SPA resources then `.` is good. If they are uploaded to say a CDN, then the (base) URL of the CDN should be defined.
 
 Example:
 
-```json
+```json filename="spa-assemble-config.json"
 {
   "publicUrl": "https://openmrs-cdn-example.com/mf",
   "frontendModules": {
@@ -73,6 +230,135 @@ In this case the resulting `import-map.json` could look as follows:
 ```
 
 Either way the assemble command makes sure to have all assets made available properly.
+
+## Building the App Shell
+
+After assembling your frontend modules, you need to build the app shell. The build process requires a `spa-build-config.json` file that configures runtime properties for your distribution.
+
+The `spa-build-config.json` file should include:
+
+```json filename="spa-build-config.json"
+{
+  "spaPath": "/openmrs/spa/",
+  "apiUrl": "/openmrs/",
+  "configUrls": ["/openmrs/spa/config.json"],
+  "defaultLocale": "en",
+  "importmap": "./spa/importmap.json",
+  "routes": "./spa/routes.registry.json",
+  "supportOffline": false
+}
+```
+
+**Key properties**:
+- `spaPath`: The path where the SPA will be served (e.g., `/openmrs/spa/`)
+- `apiUrl`: The URL of the OpenMRS backend API
+- `configUrls`: Array of URLs to frontend configuration JSON files
+- `defaultLocale`: Default language code (e.g., `en`, `fr`)
+- `importmap`: Path to the import map file created by `assemble` (relative to build target)
+- `routes`: Path to the routes registry file created by `assemble` (relative to build target)
+- `supportOffline`: Whether to enable offline support via service worker
+
+You can also use environment variables in the config file (they will be interpolated at build time):
+
+```json filename="spa-build-config.json"
+{
+  "spaPath": "$SPA_PATH",
+  "apiUrl": "$API_URL",
+  "configUrls": ["$SPA_CONFIG_URLS"],
+  "defaultLocale": "$SPA_DEFAULT_LOCALE",
+  "importmap": "$SPA_PATH/importmap.json",
+  "routes": "$SPA_PATH/routes.registry.json",
+  "supportOffline": false
+}
+```
+
+To build the app shell, run:
+
+```bash
+openmrs build --build-config spa-build-config.json --target ./spa
+```
+
+Additional build options:
+- `--target <directory>`: The target directory (should match the assemble target)
+- `--fresh`: Clean the output directory before building
+- `--support-offline`: Enable offline support (can override config file)
+
+After a successful build, your `./spa` directory will contain:
+- `index.html` - The main HTML file for the SPA
+- `importmap.json` - The import map created by the assemble step
+- `routes.registry.json` - The routes registry created by the assemble step
+- JavaScript bundles and other assets needed to run the application
+
+<Callout emoji="✅" type="success">
+  **Build verification**: After running the build command, check that `./spa/index.html` exists. If it doesn't, the build failed. Check the build logs for errors.
+</Callout>
+
+**Important**: If you're using `configUrls` in your `spa-build-config.json`, you'll also need to ensure those configuration JSON files are available and served alongside your built files. For example, if your config references `/openmrs/spa/config.json`, that file must be accessible at that URL when the SPA loads.
+
+## Serving Your Distribution
+
+After building your distribution, you need to serve the built files using a web server. The built files are static assets that can be served by any web server (nginx, Apache, etc.).
+
+### Basic Setup
+
+The simplest way to serve your distribution is using a static file server. The built files should be served at the path specified in your `spaPath` configuration (e.g., `/openmrs/spa/`).
+
+**Important considerations:**
+
+1. **Config files**: If you're using `configUrls` in your `spa-build-config.json`, make sure those configuration JSON files are also accessible via HTTP/HTTPS at the specified URLs. The SPA will fetch them at runtime.
+
+2. **Backend connection**: Ensure your web server can proxy API requests to your OpenMRS backend, or configure CORS on your backend to allow requests from your frontend domain.
+
+3. **Path configuration**: The `spaPath` in your build config must match the path where you serve the files. For example, if `spaPath` is `/openmrs/spa/`, your web server should serve the files at that path.
+
+### Example: Using nginx
+
+Here's a basic nginx configuration to serve your distribution:
+
+```nginx
+server {
+    listen 80;
+    server_name localhost;
+
+    # Serve the SPA at /openmrs/spa/
+    location /openmrs/spa/ {
+        alias /usr/share/nginx/html/;
+        try_files $uri $uri/ /openmrs/spa/index.html;
+    }
+
+    # Proxy API requests to OpenMRS backend
+    location /openmrs/ {
+        proxy_pass http://backend:8080/openmrs/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+### Testing Locally
+
+To test your distribution locally, you can:
+
+1. **Use a simple HTTP server**:
+   ```bash
+   cd ./spa
+   python3 -m http.server 8080
+   ```
+   Then access it at `http://localhost:8080/openmrs/spa/` (adjust the path based on your `spaPath` configuration).
+
+2. **Use the `openmrs start` command** for development (though this uses a default import map, not your custom one).
+
+3. **Use Docker** with nginx, similar to the reference distribution setup.
+
+### Deployment
+
+For production deployments:
+
+- **Docker**: Copy the built `./spa` directory into an nginx container (see the reference distribution's Dockerfile for an example)
+- **Static hosting**: Upload the `./spa` directory contents to your static hosting service (CDN, S3, etc.)
+- **Traditional web server**: Copy the files to your web server's document root
+
+Remember to also deploy any configuration JSON files referenced in your `configUrls` and ensure they're accessible at the specified URLs.
 
 ## Canary vs Stable
 

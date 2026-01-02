@@ -4,25 +4,154 @@ import { Callout } from "nextra-theme-docs";
 
 There are various approaches implementers can use to configure their O3 instances. These include:
 
-- Metadata configuration
+- Backend metadata and configuration (via Initializer)
 - Configuring individual frontend modules
 - Distro-level configuration
 
-## Configuring metadata
+## Configuring metadata and backend settings
 
-Metadata configurations get loaded through the [initializer module](https://github.com/mekomsolutions/openmrs-module-initializer) in O3. The initializer module, or Iniz for short, is a module that allows implementers to load metadata into their OpenMRS instances through JSON files. The various configuration files that ship with O3 are located in the `distro/configuration` directory of the [distro reference application config](https://github.com/openmrs/openmrs-distro-referenceapplication/tree/main/distro/configuration) repository. The initializer module supports loading a wide variety of data and metadata types, including but not limited to:
+Backend metadata and configuration settings get loaded through the [initializer module](https://github.com/mekomsolutions/openmrs-module-initializer) in O3. The initializer module, or Iniz for short, is a module that allows implementers to load metadata (concepts, locations, forms, etc.) and configuration settings (global properties) into their OpenMRS instances through configuration files.
 
-- Concepts
-- Locations
-- Person attribute types
-- Global properties
-- Encounter types
-- Visit types
-- Programs
-- Program workflows
-- Program workflow states
+<Callout emoji="🎥" type="info">
+  **New to Initializer?** Watch this [introductory video](https://www.youtube.com/watch?v=Nerhs2ANq98) that explains what Initializer config files are, why to use them, and walks through practical examples for locations, drugs, forms, and translations.
+</Callout>
 
-For more information on how to configure your O3 instance using the initializer module, read the Iniz repository's [README](https://github.com/mekomsolutions/openmrs-module-initializer#openmrs-initializer-module).
+**Why use Initializer config files?**
+
+Using Initializer configuration files instead of configuring everything through the admin UI provides several benefits:
+- **Stability** - Configuration is defined in files rather than relying on manual UI setup
+- **Version control** - Config files can be tracked in Git, making changes auditable and reversible
+- **Reusability** - The same configuration can be easily deployed across multiple sites in a distribution
+- **Automation** - Metadata is automatically loaded on startup, reducing manual setup work
+
+**Important**: The Initializer module supports multiple file formats depending on the domain:
+- **CSV files** - Used for most metadata types (concepts, locations, drugs, person attribute types, etc.)
+- **JSON files** - Used for forms, Bahmni forms, form translations, and some other domains
+- **XML files** - Used for global properties and some legacy formats
+
+Metadata can be provided in three ways:
+
+1. **Content packages** - Maven artifacts that bundle metadata as configuration files. These are referenced in `distro.properties` and loaded automatically when the backend starts. Content packages can include both backend metadata (loaded by the Initializer module) and frontend configuration files (located in `configuration/frontend_configuration/config.json`). The reference application uses two content packages:
+   - [`openmrs-content-referenceapplication`](https://github.com/openmrs/openmrs-content-referenceapplication) - Core baseline metadata required to run O3 (e.g., "Login Location" tag, CIEL concept sets)
+   - [`openmrs-content-referenceapplication-demo`](https://github.com/openmrs/openmrs-content-referenceapplication-demo) - Optional demo/starter kit metadata (labs, diagnoses, drugs, etc.) useful for demos and quick starts. This package also includes frontend configuration for extension slot setup.
+
+2. **Distro configuration directory** - Configuration files in the `distro/configuration` directory of your distro repository. These files are packaged into the backend WAR during build and loaded by Initializer at runtime. Files are organized by domain (e.g., `configuration/concepts/`, `configuration/locations/`). The reference application's configuration files are located [here](https://github.com/openmrs/openmrs-distro-referenceapplication/tree/main/distro/configuration).
+
+3. **Application data directory** - Configuration files placed in OpenMRS' application data directory (typically `/openmrs/data/configuration/` or `~/.OpenMRS/configuration/`). This allows runtime updates without rebuilding. The Initializer module processes files from this directory if it exists, making it useful for post-deployment metadata updates.
+
+**Loading order and precedence**:
+1. **Content packages** are loaded first (in the order specified in `distro.properties`)
+2. **Distro configuration directory** files are loaded next (can override content packages)
+3. **Application data directory** files are loaded last (can override both content packages and distro configuration)
+
+**Important**: 
+- Changes to files in `distro/configuration` require rebuilding the backend WAR to take effect
+- Changes to files in the application data directory take effect on the next backend restart (no rebuild needed)
+- The Initializer module uses checksums to track file changes—files are only reprocessed if their checksum changes, improving performance
+
+**Docker-specific note**: In Docker deployments, `distro/configuration` files are baked into the backend Docker image during build. To update metadata without rebuilding, you can:
+- Mount the application data directory as a volume and place configuration files there
+- Or rebuild the backend image (see the [Setting up an O3 instance](/docs/recipes/set-up-o3-instance#updating-metadata) guide)
+
+SDK deployments can update either `distro/configuration` (requires WAR rebuild) or the application data directory (requires restart only).
+
+The initializer module supports loading a wide variety of data and metadata types, including but not limited to:
+
+- **Locations** - Define facility hierarchy, login locations, and location tags
+- **Drugs** - Create formulary entries with concepts, forms (tablet, injection, etc.), and strengths
+- **Concepts** - Load concept dictionaries and concept sets
+- **Forms** - Deploy form definitions (including forms built in Form Builder) as JSON files
+- **Form translations** - Provide translations for form labels in multiple languages
+- **Person attribute types** - Define custom patient attributes
+- **Global properties** - Set system-wide configuration values
+- **Encounter types** - Define types of clinical encounters
+- **Visit types** - Configure visit classifications
+- **Programs** - Set up patient programs (e.g., HIV care, TB treatment)
+- **Program workflows** - Define program workflow states
+- **Roles and privileges** - Configure user roles and permissions
+
+### Configuring Global Properties
+
+Global properties are **configuration settings** (not metadata) that are stored in the OpenMRS database as key-value pairs. They allow you to configure system-wide settings without modifying code. They function similarly to environment variables, enabling dynamic adjustments to system behavior.
+
+**Note**: While global properties are loaded via the Initializer module (the same mechanism used for metadata), they are configuration settings rather than metadata. Metadata represents clinical data structures (concepts, locations, forms), while global properties control system behavior and module configuration.
+
+**Common uses of global properties**:
+- **System configuration** - Adjust default encounter types, patient identifier formats, and other system-wide parameters
+- **Module behavior** - Configure the behavior of specific backend modules
+- **Performance tuning** - Optimize system performance by modifying properties related to search behaviors, caching, and other performance-related settings
+- **Integration settings** - Configure external system integrations and API endpoints
+
+**How to configure global properties**:
+
+Global properties are configured using XML files in the Initializer module. Place your global properties XML file in one of these locations:
+
+1. **Content packages** - In `configuration/globalproperties/` directory
+2. **Distro configuration directory** - In `distro/configuration/globalproperties/` directory
+3. **Application data directory** - In `/openmrs/data/configuration/globalproperties/` or `~/.OpenMRS/configuration/globalproperties/`
+
+**XML file format**:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<globalProperties>
+  <globalProperty>
+    <property>property.name.here</property>
+    <value>property value</value>
+    <description>Description of what this property does</description>
+  </globalProperty>
+  <globalProperty>
+    <property>another.property.name</property>
+    <value>another value</value>
+  </globalProperty>
+</globalProperties>
+```
+
+**Example global properties**:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<globalProperties>
+  <globalProperty>
+    <property>patientmatching.strategy</property>
+    <value>probabilistic</value>
+    <description>Patient matching strategy (probabilistic or deterministic)</description>
+  </globalProperty>
+  <globalProperty>
+    <property>default.encounter.type</property>
+    <value>67a71486-1a54-468f-ac3e-7091a9a79584</value>
+    <description>Default encounter type UUID</description>
+  </globalProperty>
+</globalProperties>
+```
+
+**Important notes**:
+- Global properties can be updated at runtime through the OpenMRS Administration UI (Advanced Settings), but using Initializer files ensures they're version-controlled and automatically applied on deployment
+- Changes to global properties in `distro/configuration` require rebuilding the backend WAR
+- Changes to global properties in the application data directory take effect on the next backend restart (no rebuild needed)
+- For a comprehensive list of available global properties, see the [OpenMRS Global Properties documentation](https://wiki.openmrs.org/display/docs/Global+Properties) or check the documentation for specific modules
+
+<Callout emoji="💡" type="info">
+  **Concept dictionary management**: The recommended approach for managing concept dictionaries in OpenMRS is to set up your own organization and resources in [Open Concept Lab (OCL)](https://app.openconceptlab.org/). This allows you to standardize concept management across your implementation, create and maintain your own concept sets, and export them as ZIP files for inclusion in content packages. The [CIEL dictionary](https://app.openconceptlab.org/#/orgs/CIEL/sources/CIEL/) is the standard concept dictionary containing thousands of clinical concepts—you can reference CIEL concepts in your OCL resources or create organization-specific concepts. When configuring drugs, forms, or other metadata, you can search OCL to find concept UUIDs and manage your concept sets through your OCL organization.
+</Callout>
+
+**File organization**: Configuration files are organized by domain in subdirectories (e.g., `configuration/concepts/`, `configuration/locations/`, `configuration/drugs/`, `configuration/ampathforms/`). Each domain has specific file format requirements and naming conventions documented in the Initializer README. Files can be organized in nested directory structures, and Initializer will process them in alphabetical order if no explicit order is specified.
+
+**Practical examples**:
+- **Locations CSV** - Each row defines a location with UUID, name, description, parent location, and flags (e.g., whether it's a login location)
+- **Drugs CSV** - Each row creates a drug entry with UUID, name, concept UUID (from CIEL/OCL), form concept, and strength (e.g., "Paracetamol 500mg tablet")
+- **Forms JSON** - Forms built in Form Builder can be exported as JSON and placed in the forms configuration directory
+- **Form translations** - Separate translation files map form label texts to translated strings for different languages
+
+**Runtime control**: The Initializer module provides runtime properties that allow you to:
+- Enable or disable specific domains during initialization
+- Control loading behavior (e.g., fail-fast vs. continue on errors)
+- Configure logging verbosity
+- Filter files using wildcard patterns
+
+For detailed information on file formats, naming conventions, domain-specific requirements, and runtime properties, see the [Initializer module's README](https://github.com/mekomsolutions/openmrs-module-initializer#openmrs-initializer-module). The README includes specific sub-documentation for each config file type (e.g., drugs CSV, locations, form translations).
+
+**Getting help**: If you have questions or encounter issues with Initializer configuration, the OpenMRS community recommends posting on the [OpenMRS Talk forum](https://talk.openmrs.org/) and tagging your topic with "initializer" so community members can help.
 
 ## Configuring individual frontend modules
 
@@ -54,13 +183,130 @@ The properties specified in the config schema allow implementers to tailor the b
 
 Implementers can make changes to frontend module configurations through the built-in implementer tools panel. Once you log into O3, clicking the caret arrow centered at the bottom of the screen will pull up the implementer tools. Alternatively, you can click on the cog icon in the navbar. Once open, you can look up configuration properties by searching through the configuration and modify them on the fly. Note that any tweaks made to the configuration through the implementer tools will be lost once you refresh the page. To make permanent changes to the configuration, you will need to commit those changes to your distro's configuration. The implementer tools allow you to download a temporary config file containing your changes by clicking the `Download config` button.
 
-Typically, you're going to need to make multiple configuration overrides to various frontend modules. The canonical way to do this is to create a JSON configuration file that lives on your server. You can then point your SPA to this configuration file by specifying its URL in the SPA build configuration file. An example of such a config file is the [Ozone Cambodia config file](https://github.com/mekomsolutions/ozone-distro-cambodia/blob/main/base/configs/openmrs/frontend_config/ozone-frontend-config.json). Each key in the config file corresponds to a frontend module. The value of each key is an object containing the configuration properties that you want to override for that module. These properties correspond to whatever properties are defined in the module's config schema.
+Typically, you'll need to make multiple configuration overrides to various frontend modules. The standard approach is to create a JSON configuration file that is accessible via HTTP/HTTPS on your server. You can then point your SPA to this configuration file by specifying its URL in the `configUrls` array of the SPA build configuration file (`spa-build-config.json`). Alternatively, you can include frontend configuration in content packages (see "Content package frontend configuration" below).
+
+**Critical distinction**: 
+- **Changing `spa-build-config.json`** requires rebuilding the frontend SPA
+- **Changing config files referenced by `configUrls`** does NOT require rebuilding—just update the file and refresh the browser
+
+This means you can update module configurations at runtime without rebuilding, as long as the config files are accessible via HTTP/HTTPS. 
+
+**Configuration file structure:**
+
+Each key in the config file corresponds to a frontend module name (e.g., `@openmrs/esm-patient-chart-app`). The value of each key is an object containing the configuration properties that you want to override for that module. These properties correspond to whatever properties are defined in the module's config schema.
+
+**Example configuration file:**
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "showRecommendedVisitTypeTab": true,
+    "showAllEncountersTab": false
+  },
+  "@openmrs/esm-primary-navigation-app": {
+    "logo": {
+      "src": "${openmrsSpaBase}/assets/my-logo.svg",
+      "alt": "My Organization Logo"
+    }
+  }
+}
+```
+
+**Example config files:**
+- The reference application includes an example config file at `frontend/config-core_demo.json` (see [here](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/config-core_demo.json)). This file is copied into the frontend Docker image and served at `/openmrs/spa/config-core_demo.json` by default.
+- Another example of a real-world config file is the [Ozone Cambodia config file](https://github.com/mekomsolutions/ozone-distro-cambodia/blob/main/base/configs/openmrs/frontend_config/ozone-frontend-config.json).
+
+**How configuration files are loaded:**
+
+Configuration files specified in `configUrls` are fetched at runtime (when the SPA loads), not during the build process. They are loaded sequentially in the order specified in the array. When merging configurations, later files override earlier ones—so the last file in the array has the highest precedence among config files. If a configuration file fails to load, an error is logged to the console, but the application continues to run with the remaining configuration files and defaults.
+
+**Content package frontend configuration:**
+
+Content packages can include frontend configuration files at `configuration/frontend_configuration/config.json`. These files provide distro-level configuration overrides. Currently, these files need to be manually extracted from content packages and made accessible via HTTP/HTTPS (either by serving them from your web server or adding their URLs to `configUrls`). In the future, the backend may automatically extract and serve these files.
+
+**Note**: The demo content package (`openmrs-content-referenceapplication-demo`) includes a frontend configuration file that configures extension slots. To use it, extract `configuration/frontend_configuration/config.json` from the content package and serve it via HTTP/HTTPS, then add its URL to `configUrls` in `spa-build-config.json`.
+
+**Configuration precedence** (highest to lowest):
+1. **Temporary config** (from Implementer Tools) — highest precedence, overrides all other sources
+2. **Content package frontend configs** (from `configuration/frontend_configuration/config.json` in content packages, when manually extracted and added to `configUrls`)
+3. **Config files** (from `configUrls`, loaded sequentially—last file in the array overrides earlier files)
+4. **Schema defaults** (`_default` values in config schemas) — lowest precedence, used when no other source provides a value
+
+**Note on content package frontend configs**: Content package frontend configs (from `configuration/frontend_configuration/config.json`) must currently be manually extracted and added to `configUrls` to be used. When added to `configUrls`, they are treated as regular config files and follow the same precedence rules—place them earlier in the array to be overridden by other config files, or later to override other config files. The intended design is for content package frontend configs to be automatically loaded with higher precedence than regular config files, but this feature is not yet implemented.
+
+**Feature flags configuration:**
+
+Feature flags can be enabled via configuration files (in addition to toggling them in the Implementer Tools UI). To enable feature flags for all users, add them to the app shell configuration:
+
+```json
+{
+  "@openmrs/esm-app-shell": {
+    "Enabled feature flags": ["feature-flag-name-1", "feature-flag-name-2"]
+  }
+}
+```
+
+Feature flags configured this way are enabled for all users, unlike the Implementer Tools toggle which only affects the current user's browser session. Note that feature flags must first be registered by the module that defines them (via `registerFeatureFlag` in code) before they can be enabled via configuration.
+
+**Important**: Config files must be accessible via HTTP/HTTPS. The SPA will attempt to fetch them using `fetch()`, so they must be served by a web server (nginx, Apache, etc.) or a CDN. Local file paths will not work.
+
+**Docker-specific considerations:**
+
+If you're using Docker, there are several ways to serve config files:
+
+1. **Volume mounts** (recommended for easy updates): Mount config files as volumes in your `docker-compose.yml`. This allows you to update config files without rebuilding containers:
+   ```yaml
+   frontend:
+     volumes:
+       - ./config/my-config.json:/usr/share/nginx/html/config/my-config.json
+   ```
+   Then reference it in `spa-build-config.json` as `${openmrsSpaBase}/config/my-config.json`.
+
+2. **Copy into container** (requires rebuild): Copy config files into the frontend container during build using the Dockerfile `COPY` command. This embeds the config in the image.
+
+3. **Gateway/nginx serving**: Serve config files from the gateway container (nginx), which can proxy requests to config files stored elsewhere.
+
+4. **Environment variables**: Set `SPA_CONFIG_URLS` in your `docker-compose.yml` environment section to override config URLs at runtime without rebuilding. For example:
+   ```yaml
+   frontend:
+     environment:
+       SPA_CONFIG_URLS: /openmrs/spa/config-core_demo.json
+   ```
+
+For SDK deployments, config files are typically served from the same Tomcat server or placed in the webapp directory.
 
   <Callout emoji="ℹ️" type="info">
     O3 loads frontend modules on demand. This means you'll only see a module's configuration properties in the implementer tools if the module itself has been loaded. If you're only seeing default keys like "Display conditions" and "Translation overrides" in a module config schema in the implementer tools, it means the relevant module likely hasn't loaded yet.
 
     To view configuration for modules related to a specific feature, like the order basket, navigate to that section of the application (e.g., the Patient Chart). Once the module loads, you'll see all its configurable properties in the implementer tools.
   </Callout>
+
+**Extension configuration:**
+
+Extensions can also have their own configuration schemas (separate from their parent module) and can be configured per extension slot. This allows administrators to customize extension behavior differently for each slot where it appears. 
+
+**Important**: Extension slot configuration is specified under the **module that owns the slot**, not the extension's module. Extension configuration is specified using the `extensionSlots` object in your configuration file:
+
+```json
+{
+  "@openmrs/esm-my-module": {
+    "extensionSlots": {
+      "my-slot": {
+        "add": ["extension-id"],
+        "remove": ["other-extension-id"],
+        "order": ["extension-1", "extension-2"],
+        "configure": {
+          "extension-id": {
+            "customSetting": "value"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+For more details on extension configuration, see the [Extension System](/docs/extension-system) guide.
 
 ## Distro-level configuration
 
@@ -72,21 +318,71 @@ The `distro.properties` file is a configuration file that describes the backend 
 
 - `war.openmrs` - the version of Core being used.
 - For each module, we'll usually have an entry stylized as `omod.[module-id] = [module-version]`. For example, `omod.referenceapplication = 2.11.0`.
+- Content packages are referenced using the `content.` prefix. For example, `content.referenceapplication = 1.5.0-SNAPSHOT` references the core metadata content package, and `content.referenceapplication-demo = 1.7.0-SNAPSHOT` references the optional demo content package.
 
-Typically, you'll only want to modify the `distro.properties` file if you want to specify additional backend modules that you want to include in your distro. If you want to remove a backend module from your distro, you can do so by removing its entry from the `distro.properties` file.
+**Important**: Changes to `distro.properties` require rebuilding the backend WAR to take effect.
+
+Typically, you'll only want to modify the `distro.properties` file if you want to specify additional backend modules or content packages that you want to include in your distro. If you want to remove a backend module from your distro, you can do so by removing its entry from the `distro.properties` file.
+
+#### Backend Dependencies
+
+Frontend modules declare their backend dependencies in their `routes.json` files using `backendDependencies` and `optionalBackendDependencies`. These declarations specify which backend modules are required (or optionally required) for the frontend module to function properly.
+
+**Required dependencies** (`backendDependencies`): Backend modules that must be installed for the frontend module to work. If a required dependency is missing or has an incompatible version, the frontend module may not function correctly.
+
+**Optional dependencies** (`optionalBackendDependencies`): Backend modules that enable additional functionality if present. Optional dependencies can also enable feature flags when installed.
+
+**Checking for missing dependencies**: The Implementer Tools automatically checks backend dependencies and displays warnings if:
+- Required backend modules are missing
+- Installed backend modules have incompatible versions
+- Optional backend modules that enable features are missing
+
+To check backend dependencies:
+1. Open the Implementer Tools (click the caret icon at the bottom of the screen or the cog icon in the navbar)
+2. Navigate to the "Backend Modules" tab
+3. Review the list of modules and their dependency status
+
+If you see warnings about missing dependencies, you'll need to add the required backend modules to your `distro.properties` file and rebuild your backend WAR. The Implementer Tools will show you which modules are missing and what versions are required.
+
+### spa-assemble-config.json
+
+The SPA assemble configuration file defines which frontend modules are included in your distro and their versions. This file is used by the `assemble` command to generate the import map that determines which modules are loaded at runtime. The file is located in the `frontend` directory of your distro. The reference application's spa-assemble-config file lives [here](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/spa-assemble-config.json).
+
+**Important**: Changes to `spa-assemble-config.json` require rebuilding the frontend SPA to take effect. The `frontendModules` object is the source of truth for which modules are loaded—only modules listed here will be available in your application.
+
+The SPA assemble configuration file contains:
+
+- `frontendModules` - an object that describes all the apps that make up your distro and their specific versions (as published on an NPM registry). Keys are module names (e.g., `@openmrs/esm-patient-chart-app`) and values are version strings (e.g., `"4.3.1"` or `"next"` for pre-release versions).
+- `excludedFrontendModules` - (optional) an array of module names to exclude from the distro.
+
+If you want to add a new module to your distro, add it to the `frontendModules` object. To remove a frontend module, remove its entry from the `frontendModules` object.
 
 ### spa-build-config.json
 
-The SPA build configuration is a JSON file that allows you to specify various configuration properties that get passed to the frontend modules during the build process. The SPA build configuration file is located in the `frontend` directory of your distro. The reference application spa-build-config file lives [here](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/spa-build-config.json).
+The SPA build configuration file specifies runtime configuration properties for your frontend application. These properties are embedded into the built application during the build process. The file is located in the `frontend` directory of your distro. The reference application's spa-build-config file lives [here](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/spa-build-config.json).
 
-The SPA build configuration file is used to specify the following properties:
+**Important**: Changes to `spa-build-config.json` require rebuilding the frontend SPA to take effect. However, many properties can be overridden at runtime using environment variables (see Docker-specific notes below).
 
-- `frontendModules` - describes all the apps that make up your distro and their specific versions (as published on an NPM registry).
-- `spaPath` - the URL path which your SPA will be served from. 
-- `apiURL` - the URL of the OpenMRS backend that your SPA will be communicating with. Defaults to `/openmrs`.
-- `configUrls` - an array of URLs pointing to JSON configuration files that will be loaded into your SPA during the build process. 
-- `defaultLocale` - the default locale that your SPA will be served in. Defaults to `en-GB`.
+The SPA build configuration file can specify the following properties:
+
+- `spaPath` - the URL path which your SPA will be served from (can be overridden via `SPA_PATH` environment variable).
+- `apiUrl` - the URL of the OpenMRS backend that your SPA will be communicating with (can be overridden via `API_URL` environment variable). Defaults to `/openmrs`.
+- `configUrls` - an array of URLs pointing to JSON configuration files that will be loaded into your SPA at runtime (can be overridden via `SPA_CONFIG_URLS` environment variable). These URLs can use template variables like `${openmrsSpaBase}` or `${openmrsBase}` which will be interpolated at runtime using the `interpolateUrl()` function. For example, `${openmrsSpaBase}/config.json` will resolve to `/openmrs/spa/config.json`.
+- `defaultLocale` - the default locale that your SPA will be served in (can be overridden via `SPA_DEFAULT_LOCALE` environment variable). Defaults to `en_GB` (note: uses underscore, not hyphen).
 - `supportOffline` - boolean value that determines whether or not your SPA will be able to function offline. Defaults to `false`.
 - `pageTitle` - the default page title that will be used by your SPA. Defaults to `OpenMRS`.
+- `importmap` - URL or path to the import map (typically `$SPA_PATH/importmap.json`).
+- `routes` - URL or path to the routes registry (typically `$SPA_PATH/routes.registry.json`).
 
-Typically the things you'll want to customize in the SPA build configuration are the `frontendModules`, `configUrls`, and the `defaultLocale`. Most other things have the same defaults that you won't need to change. If you want to add a new module to your distro, you can do so by adding it to the `frontendModules` array. Similarly, if you want to remove a frontend module from your distro, you can do so by removing its entry from the `frontendModules` object.
+**Docker-specific note**: The reference application uses environment variable substitution in `spa-build-config.json` (e.g., `$SPA_PATH`, `$SPA_CONFIG_URLS`). These are processed at container startup by the `startup.sh` script, allowing runtime overrides without rebuilding. You can set these in your `docker-compose.yml` environment section.
+
+## Additional configuration guides
+
+For specific configuration tasks, see these detailed guides:
+
+- **[Configure branding](/docs/configure-o3/configure-branding)** - Customize logos, colors, and favicon
+- **[Configure translations](/docs/configure-o3/configure-translations)** - Override translations and add new locales
+- **[Configure the patient chart](/docs/configure-o3/configure-the-patient-chart)** - Customize patient chart features and extensions
+- **[Configure patient management](/docs/configure-o3/configure-patient-management)** - Customize patient registration, search, appointments, queues, wards, and more
+- **[Configure service queues](/docs/configure-o3/configure-service-queues)** - Detailed guide for service queue configuration
+- **[Configure ward management](/docs/configure-o3/configure-ward-management)** - Detailed guide for ward management configuration

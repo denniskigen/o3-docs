@@ -13,21 +13,21 @@ Pour utiliser le système de modale, votre application doit d'abord enregistrer 
 `ModalHeader` et `ModalBody` doivent être au niveau supérieur du composant modale et enveloppés dans un `React.Fragment`.
 
 ```tsx
-const ModalComponent = ({ onClose, props }) => {
+const ModalComponent = ({ closeModal }) => {
 	return (
 		<React.Fragment>
-			<ModalHeader closeModal={onClose} >
+			<ModalHeader closeModal={closeModal}>
 				{contenu de l'en-tête ici}
 			</ModalHeader>
- 			<ModalBody>
+			<ModalBody>
 				{corps de la modale ici}
 			</ModalBody>
 			<ModalFooter>
 				{pied de la modale ici}
 			</ModalFooter>
 		</React.Fragment>
-	)
-}
+	);
+};
 ```
 
 <Callout>
@@ -41,7 +41,7 @@ Enregistrez la modale par son nom dans la propriété `modals` du fichier `route
 ```json filename="routes.json"
 "modals": [
 	{
-	  "name": "nom-de-votre-modale",
+	  "name": "nom-de-votre-modale-modal",
 	  "component": "nomDuComposantModale"
 	}
 ]
@@ -58,11 +58,11 @@ export const nomDuComposantModale = getAsyncLifecycle(
 
 ### Déclenchement de la modale
 
-Enfin, vous pouvez déclencher votre modale en appelant `showModal` avec tous les props que vous devez passer dans le composant modale. Dans l'exemple ci-dessous, nous avons passé `onClose` comme prop au composant modale. La fonction dispose qui est retournée par `showModal` peut être appelée pour "disposer" ou forcer la fermeture de la modale.
+Enfin, vous pouvez déclencher votre modale en appelant `showModal` avec tous les props que vous devez passer dans le composant modale. Dans l'exemple ci-dessous, nous avons passé `closeModal` comme prop au composant modale. La fonction dispose qui est retournée par `showModal` peut être appelée pour "disposer" ou forcer la fermeture de la modale.
 
 ```ts 
-const dispose = showModal('nom-de-votre-modale', {
-	onClose: () => dispose(),
-	//props à passer dans le composant modale
+const dispose = showModal('nom-de-votre-modale-modal', {
+	closeModal: () => dispose(),
+	// autres props à passer dans le composant modale
 });
 ```

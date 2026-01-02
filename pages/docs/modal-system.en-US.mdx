@@ -13,25 +13,25 @@ To use the modal system, first your application must register the modal as descr
 The `ModalHeader` and `ModalBody` should be at the top level of the modal component and wrapped in a `React.Fragment`.
 
 ```tsx
-const ModalComponent = ({ onClose, props }) => {
+const ModalComponent = ({ closeModal }) => {
 	return (
 		<React.Fragment>
-			<ModalHeader closeModal={onClose} >
+			<ModalHeader closeModal={closeModal}>
 				{header content goes here}
 			</ModalHeader>
- 			<ModalBody>
+			<ModalBody>
 				{modal body goes here}
 			</ModalBody>
 			<ModalFooter>
 				{modal footer goes here}
 			</ModalFooter>
 		</React.Fragment>
-	)
-}
+	);
+};
 ```
 
 <Callout>
-	Failing to wrap your modal in a React Fragment would cause the 	modal body to not vertical-scroll properly.
+	Failing to wrap your modal in a React Fragment would cause the modal body to not vertical-scroll properly.
 </Callout>
 
 ### Registering the modal
@@ -41,7 +41,7 @@ Register the modal by name in the `modals` property in `routes.json` and export 
 ```json filename="routes.json"
 "modals": [
 	{
-	  "name": "your-modal-name",
+	  "name": "your-modal-name-modal",
 	  "component": "modalComponentName"
 	}
 ]
@@ -58,11 +58,67 @@ export const modalComponentName = getAsyncLifecycle(
 
 ### Triggering the modal
 
-Finally, you can trigger your modal by calling `showModal` along with all the props you need to pass into the modal. In the example below, we've passed in `onClose` as a prop to the modal component. The dispose function that is returned by `showModal` can be called to "dispose" or force close the modal.
+Finally, you can trigger your modal by calling `showModal` along with all the props you need to pass into the modal. The function returned by `showModal` can be called to "dispose" or force close the modal. In the example below, we pass `closeModal` as a prop to the modal component, which calls the dispose function when the modal should be closed.
 
 ```ts 
-const dispose = showModal('your-modal-name', {
-	onClose: () => dispose(),
-	//props to pass in to the modal component
+const dispose = showModal('your-modal-name-modal', {
+	closeModal: () => dispose(),
+	// other props to pass in to the modal component
 });
 ```
+
+<Callout type="info">
+	Note: The framework automatically adds a `close` prop to your modal component's props. However, it's common practice to explicitly pass `closeModal` (as shown above) to make the prop name consistent with Carbon's `ModalHeader` component API.
+</Callout>
+
+## Important considerations
+
+### Modal stacking
+
+The modal system supports stacking multiple modals. When a new modal is opened while another is already displayed, the new modal appears on top while the previous one remains in the stack (hidden). Closing the top modal reveals the one beneath it. This allows for nested modal workflows without losing context.
+
+### The `onClose` callback
+
+The `showModal` function accepts an optional third parameter `onClose` callback that is called when the modal is closed:
+
+```ts
+const dispose = showModal('your-modal-name-modal', {
+	closeModal: () => dispose(),
+	// other props
+}, () => {
+	// This callback is called when the modal is closed
+	console.log('Modal was closed');
+});
+```
+
+### Modal size
+
+You can control the modal size by passing a `size` prop. Available sizes are `'xs'`, `'sm'`, `'md'` (default), and `'lg'`:
+
+```ts
+const dispose = showModal('your-modal-name-modal', {
+	closeModal: () => dispose(),
+	size: 'sm', // or 'xs', 'md', 'lg'
+});
+```
+
+### Error handling
+
+If you attempt to show a modal that hasn't been registered, the framework will report an error to the console but won't throw an exception. Make sure your modal is properly registered in `routes.json` before calling `showModal`.
+
+### Automatic behaviors
+
+The modal system automatically handles several behaviors for you:
+
+- **Body scroll locking**: When a modal is open, the page body scroll is automatically locked to prevent background scrolling
+- **ESC key handling**: Pressing the ESC key closes the topmost modal
+- **Focus management**: Focus is automatically managed to ensure accessibility
+
+### The `close` vs `closeModal` props
+
+The framework automatically adds a `close` prop to your modal component. This is the dispose function returned by `showModal`. You can use either:
+
+- `close` - The automatically provided dispose function
+- `closeModal` - A custom prop you pass (commonly used to match Carbon's API)
+
+Both will close the modal, but `closeModal` is more commonly used since it matches Carbon Design System's `ModalHeader` component API.

@@ -1,38 +1,40 @@
 # Breadcrumbs
 
-Breadcrumbs are a user interface design pattern that helps users understand their current location within a website or application. They are a navigational aid that displays a hierarchical trail of links from the homepage to the current page. Breadcrumbs are commonly displayed horizontally near the top of the page and use the greater than symbol `/` to indicate hierarchy.
+Breadcrumbs are a user interface design pattern that helps users understand their current location within a website or application. They are a navigational aid that displays a hierarchical trail of links from the homepage to the current page. Breadcrumbs are commonly displayed horizontally near the top of the page and use separators (typically chevrons) to indicate hierarchy.
 
-In OpenMRS breadcrumbs are implemented in the `index.ts` file using the `registerBreadCrumbs` function exported by `@openmrs/esm-framework` package.
-The registerBreadcrumb function takes an object with two properties: `path` and `title`. The `path` property is the URL path of the page, and the `title` property is the text that will be displayed in the breadcrumb. When a user navigates to the registered page, the breadcrumb will be displayed with the specified title.
+In OpenMRS, breadcrumbs are implemented in the `index.ts` file using the `registerBreadcrumb` or `registerBreadcrumbs` functions exported by the `@openmrs/esm-framework` package.
 
-Here is an example of a simple breadcrumb for a page:
+The `registerBreadcrumb` function takes an object with the following properties:
+- `path` (required): The URL path of the page
+- `title` (required): The text that will be displayed in the breadcrumb. This can be a string, a function that returns a string, or a function that returns a Promise resolving to a string. Functions receive route parameters as an argument.
+- `parent` (optional): The path of the parent breadcrumb to create a hierarchical trail
+- `matcher` (optional): A string or RegExp that determines whether the breadcrumb should be displayed. If omitted, the `path` value is used as the matcher. Useful for dynamic routes with parameters (e.g., `/patient/:patientUuid`)
+
+When a user navigates to a registered page, the breadcrumb system automatically displays the appropriate breadcrumb trail based on the current path.
+
+Here is an example of a simple breadcrumb for a page (Core v5+):
 
 ```ts
 import { registerBreadcrumb } from "@openmrs/esm-framework";
 
-function setupOpenmrs() {
+export function startupApp() {
   registerBreadcrumb({
     path: `${window.spaBase}/myPage`,
     title: "My First Page",
   });
-
-  return {
-    // specify your pages or extensions
-  };
 }
 ```
 
-The breadcrumb will be displayed to the user as `My First Page`
+When a user navigates to `/myPage`, the breadcrumb will display: **My First Page**
 
-Breadcrumbs can also represent a trail of hieracical links from the site homepage to sub pages. To implement this, use the `parent` property to indicate what should
-be the parent breadcrumb.
+Breadcrumbs can also represent a trail of hierarchical links from the site homepage to sub pages. To implement this, use the `parent` property to indicate what should be the parent breadcrumb.
 
-Here is an example of a breadcrumb with ancestors/sub pages:
+Here is an example of breadcrumbs with ancestors/sub pages (Core v5+):
 
 ```ts
 import { registerBreadcrumbs } from "@openmrs/esm-framework";
 
-function setupOpenmrs() {
+export function startupApp() {
   registerBreadcrumbs([
     {
       path: `${window.spaBase}/myPage`,
@@ -49,19 +51,77 @@ function setupOpenmrs() {
       parent: `${window.spaBase}/myPage`,
     },
   ]);
-
-  return {
-    // specify your pages or extensions
-  };
 }
 ```
 
-The breadcrumb will be displayed to the user as `My First Page` `My First Page / Subpage 1` `My First Page / Subpage 2 `
+When a user navigates to different pages, the breadcrumbs will display:
+- On `/myPage`: **My First Page**
+- On `/myPage/subpage1`: **My First Page** > **Subpage 1**
+- On `/myPage/subpage2`: **My First Page** > **Subpage 2**
 
-Here is an example of how to use breadcrumbs in your component:
+## Dynamic breadcrumbs with route parameters
+
+You can create dynamic breadcrumbs that use route parameters. The `title` function receives an array of matched route parameters. For example, to show a patient UUID in the breadcrumb:
 
 ```ts
-<ExtensionSlot name={slotName} />
+import { registerBreadcrumb } from "@openmrs/esm-framework";
+
+export function startupApp() {
+  registerBreadcrumb({
+    path: `${window.spaBase}/patient/:patientUuid`,
+    matcher: `${window.spaBase}/patient/:patientUuid`, // Optional: explicitly define the matcher
+    title: (params) => {
+      // params is an array of matched route parameters
+      // For /patient/:patientUuid, params[0] would be the patientUuid value
+      return `Patient ${params[0]}`;
+    },
+    parent: `${window.spaBase}/patients`,
+  });
+}
 ```
 
-Breadcrumbs are implemented as an extension provided by the app-shell.
+For more complex scenarios, you can fetch data asynchronously:
+
+```ts
+import { registerBreadcrumb } from "@openmrs/esm-framework";
+
+export function startupApp() {
+  registerBreadcrumb({
+    path: `${window.spaBase}/patient/:patientUuid`,
+    title: async (params) => {
+      const patientUuid = params[0];
+      // Fetch patient data and return the patient name
+      const patient = await fetchPatient(patientUuid);
+      return patient.name;
+    },
+    parent: `${window.spaBase}/patients`,
+  });
+}
+```
+
+## Using breadcrumbs in your component
+
+Breadcrumbs are automatically rendered by the app shell as an extension in the `breadcrumbs-slot`. To display breadcrumbs in your page component, simply include the extension slot:
+
+```tsx
+import { ExtensionSlot } from "@openmrs/esm-framework";
+
+export default function MyPage() {
+  return (
+    <>
+      <ExtensionSlot name="breadcrumbs-slot" />
+      {/* Your page content */}
+    </>
+  );
+}
+```
+
+The breadcrumbs extension is automatically registered by the app shell, so you don't need to register it yourself. Just include the `<ExtensionSlot>` component in your page to display the breadcrumb trail.
+
+## Breadcrumb behavior
+
+- Breadcrumbs are automatically filtered based on the current path - only breadcrumbs matching the current route are displayed
+- The breadcrumb trail follows the parent hierarchy, showing all ancestors up to the current page
+- If there are more than 4 breadcrumbs in the trail, the middle ones are collapsed and replaced with "..." to keep the display compact
+- Breadcrumb titles that are functions will show a loading indicator while the title is being resolved
+- Breadcrumbs are clickable links that navigate to their respective paths

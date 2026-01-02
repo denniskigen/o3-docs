@@ -1,6 +1,6 @@
 # O3 Docs
 
-**⚠️ NOTE: THIS IS NO LONGER THE ACTIVELY MAINTAINED SOURCE OF TRUTH FOR O3 DEV DOCS. This effort has been moved to the OpenMRS Wiki at https://openmrs.atlassian.net/wiki/x/94ABCQ**
+**⚠️ NOTE: THIS IS NO LONGER THE ACTIVELY MAINTAINED SOURCE OF TRUTH FOR O3 DEV DOCS. This effort has been moved to the [OpenMRS Wiki](https://openmrs.atlassian.net/wiki/x/94ABCQ)**
 
 Documentation site for O3, the frontend framework for OpenMRS. This documentation is intended to enable developers to develop and deploy custom UI features for OpenMRS.
 
@@ -20,7 +20,7 @@ Documentation site for O3, the frontend framework for OpenMRS. This documentatio
 
 ## Deployment
 
-Each merged commit gets automatically deployed on https://o3-docs.openmrs.org.
+Each merged commit gets automatically deployed on [o3-docs.openmrs.org](https://o3-docs.openmrs.org).
 
 ## Stack
 

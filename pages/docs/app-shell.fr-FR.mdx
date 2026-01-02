@@ -12,7 +12,7 @@ Dans O3, l'app shell fait référence au code contenu dans le paquetage `esm-app
 - Une balise `<link>` qui est une référence à un registre de toutes les pages et extensions agrégées à partir de tous les modules frontaux.
 - Une balise `<script>` pour le registre des routes.
 
-The template also contains a reference to `openmrs.js` that is the main file generated from the Webpack bundle. It creates a function called `initializeSpa` and appends it to the window object, making it available to the global scope. This function is called from the `index.ejs` template and is responsible for bootstrapping the application. The template also includes:
+Le template contient aussi une référence à `openmrs.js`, le fichier principal généré par le bundle Webpack. Il crée une fonction `initializeSpa` et l’attache à l’objet `window`, la rendant disponible dans le scope global. Cette fonction est appelée depuis le template `index.ejs` et s’occupe d’initialiser l’application. Le template inclut aussi :
 
 - `<div>`s where containers for modals, inline notifications, toast notifications get rendered in the UI.
 - A loading spinner that gets rendered when frontend modules are getting loaded by the app shell.
@@ -20,33 +20,33 @@ The template also contains a reference to `openmrs.js` that is the main file gen
 
 ## initializeSpa
 
-The `initializeSpa` function among other things:
+La fonction `initializeSpa` :
 
 - Appends some useful global variables to the window object, e.g. `openmrsSpaBase`, `spaBase`, `spaBasePath` and `spaVersion`.
 - Initializes the module loading mechanism by invoking the `run` function.
 
 ### run()
 
-The `run` function is responsible for:
+La fonction `run` est responsable de :
 
-- Displaying the loading spinner. This spinner gets shown until modules finish loading.
+- Afficher le spinner de chargement. Ce spinner s’affiche jusqu’à ce que les modules aient fini de se charger.
 - Setting up breakpoints in the UI for `tablet`, `small-desktop` and `large-desktop` viewports.
 - Connecter les abonnements aux endroits appropriés dans le shell de l'application pour les toasts, les notifications en ligne et les modals.
 - Appeler `setupApiModule` pour initialiser le schéma de configuration.
 - Appeler `registerCoreExtensions` qui implémente la fonctionnalité de breadcrumbs.
-- Calling `setupApps` which actually handles the loading of modules.
+- Appeler `setupApps`, qui gère réellement le chargement des modules.
 
 ### setupApps()
 
-The `setupApps` function loads all of the routes from the routes registry and then invokes `registerApp()` on each module and it's module definition (the backend dependencies, pages, and extensions it provides). `registerApp()` then:
+La fonction `setupApps` charge toutes les routes depuis le registre des routes puis invoque `registerApp()` pour chaque module et sa définition (dépendances backend, pages et extensions qu’il fournit). `registerApp()` :
 
-- Registers an implicit configuration schema for the application.
-- Iterates through the extensions and registers them with the extension registry.
-- Pages get added to a global variable where they can be ordered based on the `order` property which determines the order in which pages get rendered in the DOM. We create a `<div>` for each page and append it to the DOM. This allows us to ensure that the DOM order matches the order of the pages. For example, we want the navbar to be the first thing that gets rendered in the DOM, so it has an order of 0. This happens in the `finishRenderingAllApps` function which gets invoked after all the frontend modules have finished loading.
+- Enregistre un schéma de configuration implicite pour l’application.
+- Parcourt les extensions et les enregistre dans le registre des extensions.
+- Ajoute les pages à une variable globale, où elles sont ordonnées via la propriété `order`, qui détermine l’ordre de rendu dans le DOM. Nous créons un `<div>` pour chaque page et l’ajoutons au DOM. Cela garantit que l’ordre du DOM correspond à l’ordre des pages. Par exemple, la barre de navigation doit être rendue en premier, donc elle a un ordre de 0. Cela se fait dans la fonction `finishRenderingAllApps`, appelée après le chargement de tous les modules frontaux.
 
-Pages and extensions are implemented as Single Spa objects, which are essentially JavaScript objects that define three lifecycle functions:
+Les pages et les extensions sont implémentées comme des objets Single‑spa, qui sont essentiellement des objets JavaScript définissant trois fonctions de cycle de vie :
 
-- `bootstrap` - This function is called once (and only once) when the application is first loaded. It's responsible for loading any dependencies the application needs.
+- `bootstrap` - Cette fonction est appelée une seule fois lors du premier chargement de l’application. Elle est responsable du chargement des dépendances nécessaires.
 - `mount` - Cette fonction est appelée lorsque la page est chargée pour la première fois. Elle est responsable du rendu de la page. Sous le capot, elle appelle typiquement `ReactDOM.createRoot()` et rend l'arbre React dans l'élément DOM qui correspond à la page.
 - `unmount` - Cette fonction est appelée lorsque la page est déchargée. Elle est responsable du nettoyage des ressources utilisées par la page.
 
@@ -58,10 +58,17 @@ Les pages et les extensions utilisent la fonction `getLoader()` qui prend la dé
 - Mettre en place un système de suspension pour le composant qui prend par défaut la valeur `null`.
 - Rendre le composant.
 
-When you define a `page`, the page definition can have a `route` property or a `routeRegex` property. Single spa uses the location referenced by the `route` or `routeRegex` to determine the pages that get rendered into that location via the `getActivityFn` function. Pages in O3 are essentially single-spa applications with a pretermined `<div>` tag that they get rendered into. Extensions leverage the single-spa `parcel` concept - they have the exact same lifecycles as single-spa applications, expect that they don't have an `getActivityFn`. This means single-spa will never mount or unmount a parcel. Instead, you have to manually tell it when to mount or unmount a parcel. The extension system exists to determine when an extension should be loaded (and subsequently invoke the `mount` function on it) and unloaded (and subsequently invoke the `unmount` function on it). Every extension is mounted through the `Extension` component defined in the framework. This component essentially renders the extension (by invoking single-spa's `mount` function) and unmounts the parcel when the component is unmounted. It defines a `<div>` with a `data-extension-id` property into which React renders the parcel into. The key thing to note about pages and extensions is that once `<div>`s get created for them, React takes over and renders the page or extension into the DOM.
+Quand vous définissez une `page`, sa définition peut inclure une propriété `route` ou `routeRegex`. Single‑spa utilise l’emplacement indiqué par `route` ou `routeRegex` pour déterminer quelles pages rendre à cet endroit via la fonction `getActivityFn`. Dans O3, les pages sont essentiellement des applications single‑spa rendues dans un `<div>` prédéterminé. Les extensions utilisent le concept de `parcel` de single‑spa : elles ont les mêmes cycles de vie que les applications single‑spa, sauf qu’elles n’ont pas de `getActivityFn`. Cela signifie que single‑spa ne montera ou ne démontera jamais un parcel automatiquement. À la place, il faut lui indiquer manuellement quand monter ou démonter un parcel. Le système d’extensions existe pour déterminer quand une extension doit être chargée (et donc appeler `mount`) et déchargée (et donc appeler `unmount`). Chaque extension est montée via le composant `Extension` défini dans le framework. Ce composant rend l’extension (en appelant `mount`) et démonte le parcel quand il est démonté. Il définit un `<div>` avec un attribut `data-extension-id` dans lequel React rend le parcel. Le point clé : une fois que les `<div>` sont créés pour les pages et extensions, React prend le relais et rend le contenu dans le DOM.
 
 ## Chargement des modules
 
-Les modules frontaux dans O3 sont chargés dynamiquement dans le shell de l'application en utilisant [Webpack Module Federation (MF)](https://webpack.js.org/concepts/module-federation/). Nous avons un système de "conteneurs dynamiques à distance". Le point d'entrée de l'application est `@openmrs-esm-app-shell`. La liste des télécommandes à charger est fournie par des cartes d'importation. Nos cartes d'importation ne sont pas traitées par le navigateur ou SystemJS, mais sont utilisées en interne pour résoudre les noms de modules en URLs.
+O3 charge les modules frontaux via les import maps SystemJS et la fédération de modules. L’app shell injecte une
+`systemjs-importmap` dans `index.ejs`, précharge la carte d’importation, puis l’utilise pour résoudre les URLs des
+modules.
 
-Chaque module (un `remote`) est fourni sous la forme d'un nom et d'une URL. Pour chaque URL, un élément `<script>` est ajouté au DOM. Parce que ces scripts ont un `webpack library type` de `var`, quand ils sont chargés, ils créent une nouvelle variable globale qui a l'interface du conteneur Webpack pour ce module: les méthodes `init` et `get`. Nous les utilisons pour obtenir les exportations réelles du module.
+La plupart des modules sont construits comme des bundles de fédération de modules. Pour chaque URL, l’app shell ajoute
+une balise `<script>`. Quand le script est chargé, il expose un conteneur Webpack (`init`/`get`) que l’app shell utilise
+pour obtenir les exports du module.
+
+Certains modules historiques ne sont pas des bundles de fédération de modules ; dans ce cas, l’app shell les charge comme
+des modules SystemJS via la carte d’importation.

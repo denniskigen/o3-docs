@@ -61,7 +61,17 @@ The following are some general guidelines for search inputs:
 
   We're using the `debouncedSearchTerm` from the snippet above to filter the list of forms. We're also using the `extract` option to tell fuzzy how to extract the search term from the form. In this case, we're extracting the search term from the form's name and version. This is because we want to match forms that contain the search term in their name or version. Finally, we're sorting the results by score, which is a measure of how closely the search term matches the form.
 
-- When doing data fetching based on continuous user action, such as real-time search when typing in a search input, keeping the previous search results in the UI until the new search results are fetched and displayed can improve the user experience a lot. SWR hooks have a [keepPreviousData](https://swr.vercel.app/docs/advanced/understanding.en-US#return-previous-data-for-better-ux) option that can be used to achieve this. This approach prevents the UI from flashing empty when the new search results are fetched, which can be jarring to the user.
+- When doing data fetching based on continuous user action, such as real-time search when typing in a search input, keeping the previous search results in the UI until the new search results are fetched and displayed can improve the user experience significantly. SWR hooks have a [keepPreviousData](https://swr.vercel.app/docs/advanced/understanding.en-US#return-previous-data-for-better-ux) option that can be used to achieve this. This approach prevents the UI from flashing empty when the new search results are fetched, which can be jarring to the user.
+
+  ```tsx
+  // Using keepPreviousData with useSWRInfinite for search
+  const { data, isLoading } = useSWRInfinite(getKey, fetcher, {
+    keepPreviousData: true,
+    initialSize: 1,
+  });
+  ```
+
+  This is especially important for search inputs where users are typing continuously, as it provides a smoother experience by maintaining previous results while new ones load.
 
   ```tsx
   function Search() {

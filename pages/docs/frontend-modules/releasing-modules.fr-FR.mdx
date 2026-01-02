@@ -1,13 +1,13 @@
 # Publication des modules frontend
 
-Après avoir atteint un seuil raisonnable de commits, ou après un certain temps, vous voudrez probablement publier votre logiciel sur le registre NPM afin que les consommateurs puissent obtenir vos dernières versions stables.
+Après avoir atteint un seuil raisonnable de commits, ou après un certain temps, vous voudrez probablement publier votre logiciel sur le registre npm afin que les consommateurs puissent obtenir vos dernières versions stables.
 
-Nous travaillons avec un rythme de publication bi-hebdomadaire de O3, ce qui signifie que nous publions de nouvelles versions de nos modules frontend toutes les deux semaines. Ce rythme est susceptible de changer à mesure que nous acquérons plus d'expérience avec le processus.
+Nous travaillons avec un rythme de publication mensuel ou bimestriel pour O3, ce qui signifie que nous publions de nouvelles versions de nos modules frontend sur un cycle mensuel ou tous les deux mois. Ce rythme est susceptible de changer à mesure que nous acquérons plus d'expérience avec le processus.
 
 La publication d'une version O3 implique deux étapes:
 
 1. Augmenter vos versions de package local et pousser ces changements sur GitHub. Cette étape déclenchera le travail `pre-release` du CI.
-2. Couper une version en utilisant l'interface utilisateur des versions Github. Cette étape déclenche le travail `release` du CI.
+2. Couper une version en utilisant l'interface utilisateur des versions GitHub. Cette étape déclenche le travail `release` du CI.
 
 Si vous voulez publier une version de votre module, vous devez d'abord réfléchir à quelques points, notamment:
 
@@ -38,38 +38,63 @@ Nous avons établi une convention au sein de O3 où les titres des PR contiennen
 - `(chore)` pour les tâches ménagères, comme la gestion des dépendances, la configuration des choses ou la mise à jour des workflows CI
 - `(BREAKING)` pour les modifications d'API incompatibles avec les versions précédentes.
 
-L'examen du journal des modifications généré avec ces types de commit à l'esprit devrait vous donner une bonne idée de l'augmentation de version sémantique que votre version devrait créer. À ce stade, vous pouvez passer à votre IDE pour lancer le processus de publication. En général, nous utilisons yarn pour versionner les modules frontend. Exécutez la commande suivante à la racine de votre monorepo pour déclencher une augmentation de version:
+L'examen du journal des modifications généré avec ces types de commit à l'esprit devrait vous donner une bonne idée de l'augmentation de version sémantique que votre version devrait créer.
 
-```sh
-yarn workspaces foreach --worktree --topological --exclude [nom-du-monorepo] version [type-de-version]
+### Augmenter les versions
+
+À ce stade, vous pouvez passer à votre IDE pour lancer le processus de publication. En général, nous utilisons yarn pour versionner les modules frontend.
+
+#### Monorepos
+
+Pour les monorepos, on utilise généralement le script `release` défini dans le `package.json` racine:
+
+```json
+"release": "yarn workspaces foreach --all --topological version"
 ```
 
-Par exemple, si vous voulez faire une version `major` dans esm-patient-management, vous exécuteriez:
+Pour une version `major`, par exemple:
 
 ```sh
-yarn workspaces foreach --worktree --exclude @openmrs/esm-patient-management version major
+yarn release major
 ```
 
 Cette commande:
 
 - Exécute la commande `version` contre tous les packages de l'espace de travail et les fait passer à une version majeure. Par exemple, si la version actuelle est `1.0.0`, elle serait augmentée à `2.0.0`.
 - Indique à yarn de trier les packages avant d'exécuter les commandes afin qu'elles soient exécutées sur les packages dans l'ordre topologique (c'est-à-dire que les packages qui dépendent d'autres packages sont exécutés plus tard).
-- Indique à yarn d'exclure le versioning pour le monorepo sélectionné afin que le package.json dans le répertoire racine ne soit pas affecté. Le `package.json` racine n'a pas besoin d'une version pour des raisons de publication car il n'est jamais publié.
+- Si vous devez éviter de versionner le `package.json` racine, ajoutez un `--exclude` explicite pour le nom du package racine.
 
-Une fois ce processus terminé, vous devriez voir une diff dans votre éditeur qui inclut une augmentation de version pour tous les packages de votre monorepo. Exécutez `yarn` ou `yarn install` pour mettre à jour votre fichier `yarn.lock`. Validez ces changements avec le titre `(chore) Release vx.x.x` où x.x.x est un espace réservé pour le numéro de version. Voir un exemple de [ce commit](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1279) qui fait passer `Patient Chart` à `v5.0.0`.
+#### Dépôts mono-package
 
-Une fois que votre commit de version est fusionné, le travail `pre-release` du workflow CI est déclenché et initie une augmentation de version pour la version correspondante taguée `latest` sur NPM. C'est cette version que les consommateurs obtiennent lorsqu'ils installent votre module frontend.
+Pour les dépôts qui ne sont pas des monorepos, utilisez directement `version`:
+
+```sh
+yarn version major
+```
+
+Une fois ce processus terminé, vous devriez voir une diff dans votre éditeur qui inclut une augmentation de version pour tous les packages de votre monorepo. Exécutez `yarn` ou `yarn install` pour mettre à jour votre fichier `yarn.lock`. Validez ces changements avec le titre `(chore) Release vX.X.X` où `X.X.X` est un espace réservé pour le numéro de version. Voir un exemple de [ce commit](https://github.com/openmrs/openmrs-esm-patient-chart/pull/1279) qui fait passer `Patient Chart` à `v5.0.0`.
+
+Une fois que votre commit de version est fusionné, le travail `pre-release` du workflow CI est déclenché et publie une version préliminaire taguée `next` sur npm. Cela permet de tester avant de publier `latest`. En coulisse, ce travail exécute le script `ci:publish-next`.
 
 Vous pouvez ensuite passer à votre navigateur et revenir à la page des versions du dépôt avec lequel vous travaillez. Examinez les notes de version générées par GitHub, puis mettez à jour le numéro de version et les tags de manière appropriée. Une fois que vous êtes satisfait que tout semble correct, cliquez sur le bouton `Publish release`. Cette étape devrait déclencher le workflow CI et, notamment, le travail `release`.
 
 En coulisse, ce travail exécute le script suivant:
 
 ```json
-"ci:prepublish": "yarn workspaces foreach --all --topological npm publish --access public --tag next",
+"ci:publish": "yarn workspaces foreach --all --topological npm publish --access public --tag latest",
 ```
 
-Cette commande publie un nouveau package tagué `next`. C'est la version que les consommateurs obtiendront lorsqu'ils installeront votre module frontend avec le tag `next`. Ceci est utile pour tester de nouvelles fonctionnalités avant qu'elles ne soient publiées sur le tag `latest`.
+Cette commande publie un nouveau package tagué `latest`. C'est la version installée par défaut par les consommateurs.
 
-En termes généraux, lorsqu'un PR est fusionné, un travail `pre-release` dans notre workflow principal GitHub actions CI est déclenché. Ce travail publie une version du module frontend sur son registre npm correspondant tagué `latest`. C'est cette version que les consommateurs obtiendront lorsqu'ils installeront votre module frontend.
+En termes généraux, lorsqu'un PR est fusionné, un travail `pre-release` dans notre workflow principal GitHub Actions CI est déclenché. Ce travail publie une version du module frontend sur son registre npm correspondant tagué `next`.
 
-Pour voir à quelle version le tag `latest` correspond pour un module frontend, allez à sa page de registre NPM et cliquez sur le tag `version`. Recherchez la version la plus récente taguée `latest`.
+Pour voir à quelle version le tag `latest` correspond pour un module frontend, allez à sa page de registre npm et cliquez sur le tag `version`. Recherchez la version la plus récente taguée `latest`.
+
+### Différences selon les dépôts
+
+Tous les dépôts ne câblent pas les releases de la même manière. Avant de publier, vérifiez:
+
+- Le `package.json` pour les scripts `release`, `ci:publish`, `ci:publish-next`, ou `ci:prepublish`.
+- `.github/workflows/ci.yml` pour voir quels tags sont publiés sur `push` vs `release`.
+
+Suivez toujours les scripts définis dans le dépôt, même si les noms diffèrent de ce guide.

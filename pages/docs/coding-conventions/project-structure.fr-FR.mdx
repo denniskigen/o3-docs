@@ -1,0 +1,56 @@
+# Structure du projet
+
+O3 comprend à la fois des monorepos et des dépôts autonomes. Les monorepos sont utilisés pour regrouper des packages spécifiques à un domaine qui sont liés les uns aux autres. Par exemple, les préoccupations de gestion des patients telles que l'enregistrement et la recherche vivent dans le monorepo [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management). Les dépôts autonomes sont utilisés pour des packages à usage unique qui ne sont pas liés à d'autres packages. Par exemple, le package [Form Builder](https://github.com/openmrs/openmrs-esm-form-builder) est un dépôt autonome qui contient des fonctionnalités pour créer et gérer des schémas de formulaires.
+
+- Les monorepos doivent contenir des packages spécifiques à un domaine qui sont liés les uns aux autres. Par exemple, les préoccupations de gestion des patients telles que l'enregistrement et la recherche vivent dans le monorepo `openmrs-esm-patient-management`.
+- Les fichiers de configuration partagés doivent généralement exister à la racine du répertoire monorepo. Ceux-ci incluent :
+  - `.eslintignore` - Fichier d'ignore ESLint
+  - `.eslintrc` - Fichier de configuration ESLint
+  - `.prettier.config.js` - Fichier de configuration Prettier
+  - `.prettierignore` - Fichier d'ignore Prettier
+  - `.yarnrc.yml` - Fichier de configuration Yarn
+  - `tsconfig.json` - Fichier de configuration TypeScript racine
+  - `turbo.json` - Fichier de configuration Turbo
+  - `package.json` - Fichier manifest du package racine. Ceci :
+    - Définit les scripts au niveau du workspace pour le monorepo
+    - Définit la propriété `private: true` qui empêche le monorepo d'être accidentellement publié dans le registre npm.
+    - Déclare les dépendances partagées pour le monorepo dans les propriétés `peerDependencies` et `dependencies`.
+    - Définit la propriété `workspaces` qui indique à Yarn comment trouver les workspaces dans le monorepo.
+
+  Une convention typique consiste à placer les fichiers de configuration pour le parser i18next, les utilitaires de test et le fichier de configuration de test Jest dans un répertoire `tools` à la racine du monorepo :
+
+  - `tools/i18next-parser.config.js` - Fichier de configuration du parser i18next
+  - `tools/setupTests.ts` - Fichier de configuration de test Jest
+  - `tools/test-utils.tsx` - Utilitaires de test
+
+  Les fichiers de configuration que vous vous attendez à trouver à la racine de chaque package dans le monorepo incluent :
+
+  - `package.json` - Fichier manifest pour le package. C'est là que vous devriez mettre les scripts pour le package. Important, ce fichier n'a pas la propriété `private`, ce qui signifie que le package peut être publié dans le registre npm.
+  - `tsconfig.json` - Fichier de configuration TypeScript qui étend le fichier de configuration TypeScript racine.
+  - `jest.config.ts` - Fichier de configuration Jest qui étend le fichier de configuration Jest racine.
+  - `webpack.config.js` - Fichier de configuration Webpack qui étend le fichier de configuration Webpack racine.
+
+- Placez les tests e2e dans le répertoire `e2e/specs` à la racine de votre dépôt.
+- Placez les mocks de test dans le répertoire `__mocks__` de niveau supérieur à la racine de votre dépôt. Les mocks doivent être nommés d'après le module qu'ils mockent. Par exemple, si vous avez un mock avec des données pour le module `@openmrs/esm-patient-allergies`, votre mock doit être nommé `allergies.mock.ts`. Le fichier de configuration TypeScript de niveau racine récupérera automatiquement tous les mocks dans le répertoire `__mocks__` grâce à la configuration `paths` dans le fichier `tsconfig.json` racine :
+
+  ```json
+  "paths": {
+    "__mocks__": ["./__mocks__"],
+    "tools": ["./tools"]
+  },
+  ```
+
+  Cela signifie que vous pouvez importer le mock dans vos tests en utilisant un alias de chemin :
+
+  ```tsx
+  // TypeScript résoudra automatiquement le chemin vers le mock
+  import { mockAllergy } from '__mocks__';
+  ```
+
+  TypeScript résout automatiquement le chemin vers le répertoire `tools` de niveau supérieur en utilisant le même mécanisme. Cela signifie que vous pouvez également importer les utilitaires de test depuis le répertoire `tools` en utilisant un alias de chemin :
+
+  ```tsx
+  // TypeScript résoudra automatiquement le chemin vers le répertoire tools
+  import { waitForLoadingToFinish } from 'tools';
+  ```
+

@@ -24,7 +24,7 @@ Si la date est aujourd'hui, alors `Today` est produit à la place du jour réel 
 
 Lorsque l'option time est définie à true, l'heure est ajoutée avec une virgule et un espace, par exemple `16-May-2023, 08:21`. Ce format correspond à la sortie de Date.prototype.toLocaleString pour la plupart des langues.
 
-Voici un exemple d'utilisation de `formaDate` avec un exemple de date au format omrs `1684387260000`
+Voici un exemple d'utilisation de `formatDate` avec un exemple de date au format omrs `1684387260000`
 
 ```ts
 import { formatDate } from "@openmrs/esm-framework";
@@ -34,18 +34,18 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) 
 };
 ```
 
-The returned value will be a string in this format `18-May-2023`
+La valeur retournée sera une chaîne au format `18-May-2023`.
 
 ### formatDatetime
 
-This utility function accepts a `date` input and returns a `string`.
-It formats the input date to display both the date and time, separated by a comma, according to the current locale and the given options.
+Cette fonction utilitaire accepte une entrée `date` et renvoie une `string`.
+Elle formate la date pour afficher la date et l’heure, séparées par une virgule, selon la locale courante et les options fournies.
 
 ```ts
   formatDatetime(date: Date, options?: { mode?: "standard" | "wide" }): string
 ```
 
-Here's an example of how to use `formaDatetime` given a sample date in the omrs format `1684387260000`
+Voici un exemple d’utilisation de `formatDatetime` avec une date d’exemple au format omrs `1684387260000`.
 
 ```ts
 import { formatDatetime } from "@openmrs/esm-framework";
@@ -55,17 +55,17 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) 
 };
 ```
 
-The returned value will be `18-May-2023, 08:21`
+La valeur retournée sera `18-May-2023, 08:21`.
 
 ### formatTime
 
-This utility function accepts a date input and returns a string. It formats the time according to the current locale using the 12- or 24-hour format.
+Cette fonction utilitaire accepte une entrée `date` et renvoie une chaîne. Elle formate l’heure selon la locale courante en utilisant le format 12 ou 24 heures.
 
 ```ts
   formatTime(date: Date): string
 ```
 
-Here's an example of how to use `formatTime` given a sample date in the omrs format `1684387260000`
+Voici un exemple d’utilisation de `formatTime` avec une date d’exemple au format omrs `1684387260000`.
 
 ```ts
 import { formatTime } from "@openmrs/esm-framework";
@@ -75,12 +75,12 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment }) 
 };
 ```
 
-The returned value will be `08:21`
+La valeur retournée sera `08:21`.
 
 ### isOmrsDateStrict
 
-Cet utilitaire est STRICTE sur le fait de vérifier si une chaîne de date est au format openmrs. Le format doit être `YYY-MM-DDTHH:mm:ss.SSSZZ`.
-Elle accepte une chaîne `omrsPayloadString` et retourne un `bolean`.
+Cet utilitaire est STRICTE sur le fait de vérifier si une chaîne de date est au format openmrs. Le format doit être `YYYY-MM-DDTHH:mm:ss.SSSZZ`.
+Elle accepte une chaîne `omrsPayloadString` et retourne un `boolean`.
 
 ```ts
   isOmrsDateStrict(omrsPayloadString: string) :boolean
@@ -120,11 +120,13 @@ Cette fonction utilitaire convertit un objet en un objet date s'il est une chaî
 
 ### toOmrsIsoString
 
-Cette fonction utilitaire formate la `date` d'entrée en une `chaîne` en utilisant le format `YYY-MM-DDTHH:mm:ss.SSSZZ`. Il est principalement utilisé pour formater les dates avant de soumettre les données dans les payloads.
+Cette fonction utilitaire formate la `date` d'entrée en une `chaîne` en utilisant le format `YYYY-MM-DDTHH:mm:ss.SSSZZ`. Il est principalement utilisé pour formater les dates avant de soumettre les données dans les payloads.
 
 ```ts
-  toOmrsIsoString(omrsDateString, Date): string
+  toOmrsIsoString(date: DateInput, toUTC?: boolean): string
 ```
+
+Le paramètre `toUTC` est optionnel et vaut `false` par défaut. Lorsqu'il est défini à `true`, la date sera convertie en UTC avant le formatage.
 
 Voici un exemple d'utilisation de `toOmrsIsoString` dans un payload:
 
@@ -132,7 +134,7 @@ Voici un exemple d'utilisation de `toOmrsIsoString` dans un payload:
 body: {
   visit: visitUuid,
   patientUuid: patientUuid,
-  startedAt: toDateObjectStrict(toOmrsIsoString(new Date())),
+  startedAt: toOmrsIsoString(new Date()),
 }
 ```
 

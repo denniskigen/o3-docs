@@ -4,9 +4,9 @@ The Siderail and Bottom Nav are desktop and tablet versions of the same navigati
 
 ## Adding a New Navigation Button
 
-The Siderail and Bottom Nav contain an extension slot, `action-menu-chart-items-slot`. New navigation buttons may be wrapped in extensions and attached to this slot.
+The Siderail and Bottom Nav contain an extension slot, `action-menu-patient-chart-items-slot`. New navigation buttons may be wrapped in extensions and attached to this slot.
 
-Continuing our example from [Registering Workspaces](./registering-workspaces), let's assume we have registered a workspace called `gastrodynamics-form`.
+Continuing our example from [Creating Workspaces](./creating-workspaces), let's assume we have registered a workspace called `gastrodynamics-form`.
 
 ```json copy
 // routes.json
@@ -15,7 +15,7 @@ Continuing our example from [Registering Workspaces](./registering-workspaces), 
     {
       "name": "gastrodynamics-form-button",
       "component": "gastrodynamicsFormButton",
-      "slot": "action-menu-chart-items-slot",
+      "slot": "action-menu-patient-chart-items-slot",
       "order": 4
     }
   ]
@@ -24,6 +24,15 @@ Continuing our example from [Registering Workspaces](./registering-workspaces), 
 
 ```ts copy
 // index.ts
+import { getAsyncLifecycle } from '@openmrs/esm-framework';
+
+const moduleName = '@myorg/esm-gastrodynamics-app';
+
+const options = {
+  featureName: 'gastrodynamics',
+  moduleName,
+};
+
 export const gastrodynamicsFormButton = getAsyncLifecycle(
   () => import('./gastrodynamics-form-button.extension'),
   options,
@@ -32,34 +41,29 @@ export const gastrodynamicsFormButton = getAsyncLifecycle(
 
 ```ts copy
 // gastrodynamics-form-button.extension.tsx
-import React from "react";
+import React, { type ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
-import { Tag } from "@carbon/react";
-import { Intestines } from "@carbon/react/icons"; // this is not a real icon, unfortunately
-import {
-  useLaunchWorkspaceRequiringVisit,
-  SiderailNavButton,
-} from "@openmrs/esm-patient-common-lib";
+import { ActionMenuButton, IntestinesIcon } from "@openmrs/esm-framework";
+import { useLaunchWorkspaceRequiringVisit } from "@openmrs/esm-patient-common-lib";
 
 export default function GastrodynamicsFormButton() {
   const { t } = useTranslation();
   const launchGastrodynamicsForm = useLaunchWorkspaceRequiringVisit("gastrodynamics-form");
 
   return (
-    <SiderailNavButton
-      name={"gastrodynamics-form-button"}
-      getIcon={(props) => <Intestines {...props} />}
+    <ActionMenuButton
+      getIcon={(props: ComponentProps<typeof IntestinesIcon>) => <IntestinesIcon {...props} />}
       label={t("gastrodynamics", "Gastrodynamics")}
       iconDescription={t("gastrodynamics", "Gastrodynamics")}
       handler={launchGastrodynamicsForm}
       type={"form"}
     />
   );
-};
+}
 ```
 
 ## Siderail and Bottom Nav Behavior
 
 The Siderail and Bottom Nav are implemented as a single component. If the screen is desktop-width, the Siderail is rendered; if it is smaller then the Bottom Nav is rendered.
 
-Each `SiderailNavButton` has a `type`, which should correspond to the workspace that it opens. Given a `SiderailNavButton`, if a workspace is visible on the screen that matches its type, then that button will be highlighted as "active." If a workspace with a matching type has been opened but is not presently visible on the screen (it is minimized, or behind another workspace), then the button will show a little red warning badge, signifying that the workspace is in the "interrupted" state.
+Each `ActionMenuButton` has a `type`, which should correspond to the workspace that it opens. Given an `ActionMenuButton`, if a workspace is visible on the screen that matches its type, then that button will be highlighted as "active." If a workspace with a matching type has been opened but is not presently visible on the screen (it is minimized, or behind another workspace), then the button will show a little red warning badge, signifying that the workspace is in the "interrupted" state.

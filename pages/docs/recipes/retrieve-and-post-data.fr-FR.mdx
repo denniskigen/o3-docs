@@ -1,11 +1,6 @@
 # Récupération et affichage des données
 
-Les modules frontaux interagissent avec le serveur OpenMRS via les API exposées par ses modules.
-par ses modules. En général, la plupart des points de terminaison que nous utilisons sont fournis par le [FHIR Module](+101%3A+OpenMRS+Strategy).
-par le [FHIR Module](https://wiki.openmrs.org/display/projects/FHIR+101%3A+OpenMRS+Strategy%2C+Tools%2C+FHIR+API%2C+et+Help).
-La plupart des autres éléments sont fournis par le
-[REST Module](https://wiki.openmrs.org/display/docs/REST+Module), qui est documenté [ici](https://wiki.openmrs.org/display/docs/REST+Module), qui est documenté [ici](https://wiki.openmrs.org/display/docs/REST+Module).
-documenté [ici](https://rest.openmrs.org/).
+Les modules frontaux interagissent avec le serveur OpenMRS via les API exposées par ses modules. En général, la plupart des points de terminaison que nous utilisons sont fournis par le [FHIR Module](https://wiki.openmrs.org/display/projects/FHIR+101%3A+OpenMRS+Strategy%2C+Tools%2C+FHIR+API%2C+et+Help). La plupart des autres éléments sont fournis par le [REST Module](https://wiki.openmrs.org/display/docs/REST+Module), qui est documenté [ici](https://rest.openmrs.org/).
 
 Les points de terminaison du module FHIR devraient toujours être préférés, lorsqu'ils sont
 disponibles. FHIR est une norme d'interopérabilité qu'OpenMRS prend en charge.
@@ -117,7 +112,7 @@ Voici un exemple qui démontre l'envoi de données de session au serveur.
 import { openmrsFetch } from "@openmrs/esm-framework";
 
 const abortController = new AbortController();
-abortController.abort();
+
 openmrsFetch("/ws/rest/v1/session", {
   method: "POST",
   body: {

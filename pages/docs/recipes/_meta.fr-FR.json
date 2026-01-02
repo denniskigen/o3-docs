@@ -1,4 +1,5 @@
 {
+  "index": "Recettes",
   "set-up-o3-instance": "Mise en place d'une instance d'O3",
   "create-a-frontend-module": "Création d'un module frontend",
   "create-a-distribution": "Création d'une distribution",

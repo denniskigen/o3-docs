@@ -25,7 +25,7 @@ If the date is today, then `Today` is produced instead of the actual day (in the
 
 When the time option is set to true, the time is appended with a comma and a space, e.g. `16-May-2023, 08:21`. This format agrees with the output of Date.prototype.toLocaleString for most locales.
 
-Here's an example of how to use `formaDate` given a sample date in the omrs format `1684387260000`
+Here's an example of how to use `formatDate` given a sample date in the omrs format `1684387260000`
 
 ```ts
 import { formatDate } from "@openmrs/esm-framework";
@@ -46,7 +46,7 @@ It formats the input date to display both the date and time, separated by a comm
   formatDatetime(date: Date, options?: { mode?: "standard" | "wide" }): string
 ```
 
-Here's an example of how to use `formaDatetime` given a sample date in the omrs format `1684387260000`
+Here's an example of how to use `formatDatetime` given a sample date in the omrs format `1684387260000`
 
 ```ts
 import { formatDatetime } from "@openmrs/esm-framework";
@@ -121,11 +121,13 @@ This utility function converts an object to a date object if it is a valid ISO d
 
 ### toOmrsIsoString
 
-This utility function formats the input `date` time to a `string` using the format `YYYY-MM-DDTHH:mm:ss.SSSZZ`. It is mostly used to format dates before submitting data in payloads.
+This utility function formats the input `date` to a `string` using the format `YYYY-MM-DDTHH:mm:ss.SSSZZ`. It is mostly used to format dates before submitting data in payloads.
 
 ```ts
-  toOmrsIsoString(omrsDateString, Date): string
+  toOmrsIsoString(date: DateInput, toUTC?: boolean): string
 ```
+
+The `toUTC` parameter is optional and defaults to `false`. When set to `true`, the date will be converted to UTC before formatting.
 
 Here's an example of how to use `toOmrsIsoString` in a payload:
 
@@ -133,6 +135,6 @@ Here's an example of how to use `toOmrsIsoString` in a payload:
 body: {
   visit: visitUuid,
   patientUuid: patientUuid,
-  startedAt: toDateObjectStrict(toOmrsIsoString(new Date())),
+  startedAt: toOmrsIsoString(new Date()),
 }
 ```

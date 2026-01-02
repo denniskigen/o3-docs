@@ -12,7 +12,7 @@
 
   const handleSave = async (updates) => {
     try {
-      await savePatient(updates);
+      const result = await savePatient(updates);
       mutate(result);
       showSnackbar({ title: t('patientSaved', 'Patient saved successfully') });
       closeWorkspace();

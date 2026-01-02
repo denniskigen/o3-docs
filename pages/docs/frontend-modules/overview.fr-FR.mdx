@@ -8,18 +8,49 @@ import { FileTree } from "nextra/components";
   Des changements significatifs dans l'architecture de l'app shell concernant la façon dont les modules frontend sont chargés ont été introduits dans [Core v5](/docs/changelog). Si vous n'avez pas migré vos modules frontend pour tirer parti de ces nouvelles capacités, suivez le [Guide de migration](/docs/migrate-to-core-v5) pour une explication détaillée de comment faire.
 </Callout>
 
-Les modules frontend sont le bloc de construction fondamental pour créer des applications dans O3. Ce sont des morceaux de fonctionnalité autonomes qui peuvent être chargés dans O3 par l'[app shell](/docs/app-shell). Par exemple, vous pourriez avoir un module frontend qui gère les préoccupations de rendu liées aux signes vitaux et aux biométriques. Ce module pourrait inclure ce qui suit:
+Les modules frontend sont les blocs de construction fondamentaux pour créer des applications dans O3. Ce sont des morceaux de fonctionnalité autonomes qui peuvent être chargés dans O3 par l'[app shell](/docs/app-shell). Par exemple, vous pourriez avoir un module frontend qui gère les préoccupations de rendu liées aux signes vitaux et aux biométriques. Ce module pourrait inclure ce qui suit:
 
 - Une page qui affiche un aperçu tabulaire des signes vitaux et des biométriques d'un patient
 - Une page qui affiche des visualisations de graphiques des signes vitaux et des biométriques d'un patient.
 - Un formulaire qui permet à un utilisateur d'enregistrer un nouvel ensemble de lectures de signes vitaux et de biométriques.
 - Un en-tête de signes vitaux qui affiche les lectures les plus récentes des signes vitaux et des biométriques d'un patient.
 
-Ce module frontend pourrait alors être chargé dans l'app shell et affiché dans le dossier du patient. Les modules frontend dans O3 sont généralement construits en utilisant React, mais parce que nous utilisons [single-spa](https://single-spa.js.org/) sous le capot, ils peuvent être construits en utilisant n'importe quel framework frontend que single-spa supporte. Par exemple, le module frontend [Angular form engine](/docs/key-repositories#angular-form-engine) est écrit en Angular et est un wrapper autour du [AMPATH form engine](https://ampath-forms.vercel.app/). Donc, en ce sens, l'app shell est agnostique du framework. En pratique, les fonctionnements de bas niveau de l'app shell ont été abstraits de telle manière que les ingénieurs frontend peuvent se concentrer sur la construction de modules frontend sans avoir à se soucier du framework sous-jacent.
+Ce module frontend pourrait alors être chargé dans l'app shell et affiché dans le dossier du patient. Les composants exportés depuis `src/index.ts` sont enregistrés par l'app shell et peuvent être utilisés dans l'application. Les modules frontend dans O3 sont généralement construits en utilisant React. Comme nous utilisons [single-spa](https://single-spa.js.org/) sous le capot, d'autres frameworks sont possibles, mais ils sont moins courants. Par exemple, le module frontend [Angular form engine](/docs/key-repositories#angular-form-engine) est écrit en Angular et est un wrapper autour du [AMPATH form engine](https://ampath-forms.vercel.app/). En ce sens, l'app shell est agnostique du framework. En pratique, les fonctionnements de bas niveau de l'app shell ont été abstraits de telle manière que les ingénieurs frontend peuvent se concentrer sur le comportement des modules plutôt que sur le framework.
 
-Les modules frontend sont généralement organisés en [monorepos](https://monorepo.tools/#what-is-a-monorepo) spécifiques à un domaine. Par exemple, les modules frontend concernant la gestion des patients existent dans le monorepo [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management).
+## Concepts critiques (à ne pas manquer)
 
-Dans cette structure, vous aurez typiquement un répertoire `packages` à la racine de votre monorepo. Ce répertoire contient tous vos modules frontaux. Par exemple, la monorepo de gestion des patients a la structure suivante:
+Voici trois concepts clés qu’on oublie facilement :
+
+1. **Câblage de la distro (ce qui se charge réellement) :** `spa-assemble-config.json` définit quels modules frontend et quelles versions sont inclus dans votre distro. Ce fichier génère l’import map, et l’app shell ne charge que ce que l’import map contient. Si un module n’est pas dans l’import map, il ne se chargera pas.
+2. **Flux d’enregistrement (pourquoi pages/extensions s’affichent) :** `src/index.ts` et `routes.json` fonctionnent ensemble. L’app shell lit `routes.json` et les exports nommés de `index.ts`, puis enregistre les pages et les extensions. S’ils ne correspondent pas, rien ne s’affiche.
+3. **Tags de version (pourquoi vos changements ne sont pas visibles) :** `latest` et `next` sont différents. Votre distro ne charge que le tag indiqué dans `spa-assemble-config.json`.
+
+## Modèle mental (comment les modules frontend fonctionnent réellement)
+
+Si vous débutez avec O3, voici le modèle mental à garder en tête:
+
+1. **Un module frontend est un package npm.** Chaque module est publié indépendamment et possède son propre `package.json`, `src/index.ts` et `routes.json`.
+2. **L’app shell décide quoi charger.** Il lit l’import map de la distribution (générée depuis `spa-assemble-config.json`) et charge les modules listés.
+3. **Les modules déclarent ce qu’ils fournissent à deux endroits:**
+   - **`src/index.ts`** exporte les *métadonnées dynamiques* (pages/extensions en exports nommés + logique de démarrage).
+   - **`routes.json`** déclare les *métadonnées statiques* (routes/pages, dépendances backend, etc.).
+4. **Pages et extensions ne sont pas la même chose.**
+   - **Pages** = routes complètes (ex. `/patient/123/vitals`).
+   - **Extensions** = fragments UI branchés sur des *extension slots* appartenant à d’autres modules.
+5. **Les slots vivent dans l’UI hôte.** Un module hôte expose des slots, d’autres modules y enregistrent des extensions. C’est le cœur de la modularité d’O3.
+6. **L’import map est la source de vérité.** Elle mappe noms de modules → URLs et contrôle les versions.
+7. **En dev local, on remplace l’import map.** Devtools peut substituer une version locale sans changer `spa-assemble-config.json`.
+
+Les modules frontend sont généralement organisés en dépôts spécifiques à un domaine. Par exemple, les modules frontend concernant la gestion des patients existent dans le monorepo [Patient Management](https://github.com/openmrs/openmrs-esm-patient-management). Certains modules vivent dans des monorepos, d'autres dans des dépôts autonomes, selon la portée. Quelle que soit l'organisation, chaque module est construit et publié comme un paquet npm indépendant afin d'être référencé dans l'import map de votre distribution.
+
+Dans cette structure, vous aurez typiquement un répertoire `packages` à la racine du monorepo. Ce répertoire contient tous vos modules frontend. Par exemple, le monorepo de gestion des patients a la structure suivante:
+
+Anatomie rapide (en un coup d'œil):
+
+- `package.json` - métadonnées et dépendances du module
+- `src/index.ts` - point d'entrée du module
+- `routes.json` - métadonnées statiques des routes (pages/extensions et leurs routes)
+- `config-schema.ts` - où vivent les propriétés de configuration du module
 
 <FileTree>
   <FileTree.Folder name="packages" defaultOpen>
@@ -41,20 +72,44 @@ Dans cette structure, vous aurez typiquement un répertoire `packages` à la rac
   <FileTree.File name="yarn.lock" />
 </FileTree>
 
-Chaque module frontal a son propre fichier `package.json` séparé du fichier `package.json` au niveau de la racine. C'est parce que chaque module frontal est un paquet NPM séparé. Cela signifie que chaque module frontal peut avoir ses propres scripts et dépendances. De plus, chaque module frontal a un répertoire `src` qui contient le code source du module frontal. Le répertoire `src` contient également deux fichiers importants du point de vue de l'app shell - `index.ts` et `routes.json`. Ces deux fichiers définissent les métadonnées dynamiques et statiques du module frontend, respectivement. Ils sont discutés plus en détail ci-dessous.
+Chaque module frontend est un paquet npm indépendant avec:
 
-Les modules frontaux sont aussi appelés `microfrontends` dans O3. Ils sont livrés dans le format de module ES, ce qui explique le préfixe `esm-` dans leur nomenclature. Ils peuvent avoir un suffixe `-app` dans leur nom, mais ce n'est pas nécessaire. Dans O3, les modules frontaux sont généralement constitués de composants React, mais ce n'est pas une obligation. Ils peuvent être écrits dans n'importe quel framework frontal que [single-spa](https://single-spa.js.org/) supporte. Par exemple, le module frontal [Angular form engine] est écrit en Angular et est une enveloppe autour du [AMPATH form engine](https://ampath-forms.vercel.app/). En ce sens, l'app shell est agnostique. En pratique, le fonctionnement de bas niveau de l'app shell a été abstrait de manière à ce que les ingénieurs frontaux puissent se concentrer sur l'écriture de modules frontaux sans avoir à se préoccuper du cadre sous-jacent.
+- Son propre fichier `package.json` (séparé du fichier `package.json` à la racine). Ce fichier définit les dépendances et les métadonnées du module.
+- Un répertoire `src` qui contient le code source du module. Ce répertoire contient les fichiers suivants:
+  - Un fichier `config-schema.ts` qui définit le schéma de configuration du module
+  - Un fichier `declarations.d.ts` qui définit les déclarations TypeScript du module
+  - Un fichier `index.ts` qui définit le point d'entrée du module
+  - Un fichier `routes.json` qui définit les métadonnées statiques du module (routes, pages, dépendances backend)
 
-Les modules frontaux sont chargés dans l'application sur la base d'un fichier JSON spécial appelé [import map](http://localhost:3001/docs/core-concepts#import-map). Pour plus de détails sur le chargement des modules frontaux, consultez les guides [App shell](/docs/app-shell) et [Module loading](/docs/frontend-modules/loading-modules).
+Les modules frontend sont aussi appelés `microfrontends` dans O3. Ils ont les caractéristiques suivantes:
+
+- Ils suivent la convention de nommage `esm-`, même si le chargement se fait au runtime via des bundles Module Federation.
+- Ils ont une partie descriptive qui indique la fonctionnalité du module. Par exemple, `esm-patient-search-app` gère la recherche de patients.
+- Ils peuvent avoir un suffixe `-app` dans leur nom, mais ce n'est pas obligatoire.
+
+## Versions des modules frontend expliquées
+
+Chaque module frontend est un package npm, généralement avec un nom se terminant par `-app`. Les ESM d'OpenMRS sont publiés avec trois
+étiquettes différentes : "next", "latest" et un numéro de version. Voici ce que chaque étiquette signifie :
+
+- 🔴⚠️🚧 **"next" = Pré-version, en développement.** La plus récente, à la pointe, encore en construction. "next" se réfère toujours à la version la plus récente mais pas encore publiée d'un ESM (par exemple, 3.2.1-pre.1067). _Les versions étiquetées "next" ne sont pas recommandées pour une utilisation en production_ car elles sont considérées comme des travaux en cours instables et n'ont souvent pas subi de tests d'intégration.
+- 🟡 **"latest" = Dernière version publiée.** "latest" se réfère toujours à la version la plus récente publiée d'un ESM (par exemple, 3.2.0). Bien que vous puissiez utiliser la version "latest" de n'importe quel ESM, vous avez plus de contrôle en spécifiant le numéro de version exact de chaque ESM que vous utilisez.
+- 🟢✅ **vX.X.X = Une version spécifique.** Un numéro de version se réfère toujours à une version spécifique de chaque ESM. Par exemple, 3.2.0 ou 3.2.1-pre.1067 sont des versions spécifiques de l'ESM @openmrs/esm-api, bien que cette dernière soit une pré-version.
+
+Ces tags sont choisis dans votre `spa-assemble-config.json`, qui alimente l'import map de votre distribution.
+
+En d’autres termes: **le tag de version choisi dans `spa-assemble-config.json` devient la version chargée par l’app shell**.
+
+Les modules frontend sont chargés dans l'application sur la base d'un fichier JSON spécial appelé [import map](/docs/core-concepts#import-map). L'app shell s'appuie sur cette import map (générée depuis `spa-assemble-config.json`) pour décider quels modules charger. Pour plus de détails sur le chargement des modules frontend, consultez les guides [App shell](/docs/app-shell) et [Module loading](/docs/frontend-modules/loading-modules).
 
 <br />
 <Image src="/o3-execution.png" alt="O3 architecture" width={600} height={600} />
 
-Ce diagramme décrit ce qui se passe lorsque l'application est exécutée. Le shell de l'application charge les fichiers de configuration, la carte d'importation spécifie où les modules frontaux sont récupérés, et [charge les modules frontaux](/docs/frontend-modules/module-loading).
+Ce diagramme décrit ce qui se passe lorsque l'application est exécutée. Le shell de l'application charge les fichiers de configuration, la carte d'importation spécifie où les modules frontend sont récupérés, et [charge les modules frontend](/docs/frontend-modules/loading-modules).
 
 ## Anatomie d'un module frontend
 
-Chaque composant doit avoir:
+Chaque module frontend doit avoir:
 
 - Un fichier manifeste package.json qui définit les dépendances et les métadonnées du module
 - Un fichier src/index.ts qui définit le point d'entrée du module
@@ -63,7 +118,7 @@ Chaque composant doit avoir:
 
 ### Fichier manifeste (package.json)
 
-Chaque module frontal a un fichier `package.json` de niveau racine qui définit ses dépendances et ses métadonnées. Voici un extrait du fichier `package.json` du module frontend form builder:
+Chaque module frontend a un fichier `package.json` de niveau racine qui définit ses dépendances et ses métadonnées. Voici un extrait du fichier `package.json` du module frontend form builder:
 
 ```json
 {
@@ -88,7 +143,7 @@ Chaque module frontal a un fichier `package.json` de niveau racine qui définit 
     "coverage": "yarn test --coverage --passWithNoTests",
     "postinstall": "husky install",
     "extract-translations": "i18next 'src/**/*.component.tsx' --config ./i18next-parser.config.js",
-    "ci:bump-form-engine-lib": "yarn up @openmrs/openmrs-form-engine-lib@next".
+    "ci:bump-form-engine-lib": "yarn up @openmrs/openmrs-form-engine-lib@next"
   }
 }
 ```
@@ -96,17 +151,17 @@ Chaque module frontal a un fichier `package.json` de niveau racine qui définit 
 Voici quelques éléments clés à retenir de l'examen de ce fichier:
 
 - La propriété `name` qui définit le nom du module. Cette propriété est utilisée comme identifiant unique du module dans la [import map](/docs/core-concepts#import-map).
-- La propriété `browser` qui pointe vers le point d'entrée du bundle webpack.
+- La propriété `browser` qui pointe vers le point d'entrée du bundle construit (ce que l'app shell charge au runtime).
 - La propriété `main` qui définit le [point d'entrée](#the-application-entry-point-indexts) du code source du module frontend, qui est typiquement `src/index.ts`.
 
 ### Le point d'entrée de l'application (`index.ts`)
 
-Les modules frontaux ont leur [point d'entrée](https://webpack.js.org/concepts/entry-points/) défini dans `src/index.ts`.
+Les modules frontend définissent leur point d'entrée dans `src/index.ts`.
 
 ```ts
 import { defineConfigSchema, getSyncLifecycle, registerBreadcrumbs } from "@openmrs/esm-framework";
 import { configSchema } from "./config-schema";
-import rootComponent from ""./root.component";
+import rootComponent from "./root.component";
 import systemAdministrationFormBuilderCardLinkComponent from "./form-builder-admin-card-link.component";
 
 const moduleName = "@openmrs/esm-form-builder-app";
@@ -148,18 +203,19 @@ export const systemAdministrationFormBuilderCardLink = getSyncLifecycle(
 );
 ```
 
-Ce fichier est le point d'entrée du module frontal. C'est le premier fichier qui est exécuté lorsque le module frontal est chargé. Il est responsable de la mise en place du module frontal et de l'exportation de la configuration du module. Plus précisément, dans cet exemple:
+Ce fichier est le point d'entrée du module frontend. C'est le premier fichier qui est exécuté lorsque le module frontend est chargé. Il est responsable de la mise en place du module frontend et de l'exportation de la configuration du module. Plus précisément, dans cet exemple:
 
 - Il exporte une fonction `importTranslation` qui est utilisée pour charger les traductions du module.
-- Il exporte également deux exportations nommées, `root` et `systemAdministrationFormBuilderCardLink`. Ce sont des exportations nommées pour une page et une extension, respectivement. Elles sont utilisées pour indiquer au shell de l'application comment charger le contenu du module frontal.
-- Il exporte également une fonction `startupApp` qui est utilisée pour configurer le module frontal. Dans ce cas, le schéma de configuration du module frontal est défini ici, ainsi que les fils d'Ariane du module.
+- Il exporte également deux exportations nommées, `root` et `systemAdministrationFormBuilderCardLink`. Ce sont des exportations nommées pour une page et une extension, respectivement. Elles sont utilisées pour indiquer au shell de l'application comment charger le contenu du module frontend.
+- Il exporte également une fonction `startupApp` qui est utilisée pour configurer le module frontend. Dans ce cas, le schéma de configuration du module frontend est défini ici, ainsi que les fils d'Ariane du module.
 
 #### La fonction `startupApp` (démarrage)
 
-Chaque module frontal définit une fonction nommée `startupApp`. Cette fonction effectue toute configuration qui doit être effectuée au moment où le module est chargé. Elle renvoie un objet qui communique la façon dont l'application shell doit charger le module. La fonction startupApp est l'endroit où:
+Chaque module frontend définit une fonction nommée `startupApp`. Cette fonction effectue toute configuration qui doit être effectuée au moment où le module est chargé. La fonction startupApp est l'endroit où:
 
-- définit le schéma de configuration
-- enregistrer breadcrumbs
+- définir le schéma de configuration
+- enregistrer les breadcrumbs
+- relier les métadonnées dynamiques (exports) aux métadonnées statiques de `routes.json`
 
 #### La fonction `importTranslation`
 
@@ -167,7 +223,7 @@ Elle est nécessaire pour que les traductions fonctionnent. Elle indique à l'ap
 
 ### Métadonnées statiques dans `routes.json`
 
-Le fichier `routes.json` est utilisé pour configurer les métadonnées statiques du module frontal. Celles-ci incluent:
+Le fichier `routes.json` est utilisé pour configurer les métadonnées statiques du module frontend. Celles-ci incluent:
 
 - Les `extensions` que le module frontend fournit
 - Les `pages` que le module frontend fournit
@@ -175,30 +231,56 @@ Le fichier `routes.json` est utilisé pour configurer les métadonnées statique
 
 La structure de ce fichier statique est dictée par le standard OpenMRS Routes [JSON schema](https://json.openmrs.org/routes.schema.json).
 
-### Création d'une page
+### Extensions et extension slots (comment les modules s’assemblent)
 
-Pour créer une nouvelle page, vous devrez généralement suivre les étapes suivantes:
+L’UI d’O3 se compose en *branchant des extensions dans des slots*. Voici le flux:
 
-- Créez un nouveau composant React qui sera le point d'entrée de la page.
-- Ajouter une exportation nommée pour la page dans le fichier `index.ts`. Par exemple, voici comment une page nommée `root` est exportée depuis le fichier `index.ts`:
+1. **Un module hôte déclare un extension slot** dans son UI (par exemple, un slot pour les widgets du dossier patient).
+2. **D’autres modules enregistrent des extensions** pour ce slot (par exemple, un widget “Signes vitaux”).
+3. **L’app shell résout et rend** les extensions dans les slots au runtime.
 
-  ```ts
-  import rootComponent from ""./root.component";
+Cela permet d’ajouter, retirer ou remplacer des fragments UI sans modifier le module hôte. C’est l’un des piliers de la modularité d’O3.
 
-  export const root = getSyncLifecycle(rootComponent, options);
-  ```
+Les extensions peuvent aussi être activées, désactivées et configurées via le [guide du système de configuration](/docs/configuration-system).
 
-- Ajouter une définition de page pour la nouvelle page au tableau `pages` du fichier `routes.json`:
+### Du code à l’écran (cycle complet)
 
-```json
-{
-  "pages": [
-    {
-      "component": "root", // maps to the named export in `index.ts`
-      "route": "form-builder",
-      "online": true,
-      "offline": true
-    }
-  ]
-}
-```
+Voici le cycle complet, étape par étape:
+
+1. **Vous construisez et publiez** un module sur npm.
+2. **Vous l’ajoutez à `spa-assemble-config.json`** (ou mettez à jour son tag).
+3. **La distribution génère une import map** depuis `spa-assemble-config.json`.
+4. **L’app shell charge l’import map** au runtime.
+5. **L’app shell charge votre module** via l’URL de l’import map.
+6. **Votre `startupApp` s’exécute**, en enregistrant pages/extensions et schémas de config.
+7. **Les routes se résolvent** (pages) et **les slots se remplissent** (extensions).
+
+Si votre module n’apparaît pas, l’échec se trouve presque toujours dans l’une de ces étapes.
+
+### Dépannage quand un module n’apparaît pas
+
+Utilisez cette checklist pour localiser rapidement le problème:
+
+1. **Le module est-il dans l’import map ?**  
+   Ouvrez `/openmrs/spa/importmap.json` et confirmez que le nom du module existe et pointe vers la bonne URL.
+2. **L’URL est-elle accessible ?**  
+   Ouvrez l’URL de l’import map dans le navigateur. Vous devez voir un bundle JS, pas une page HTML/404.
+3. **Le module exporte-t-il ce que l’app shell attend ?**  
+   Vérifiez que `src/index.ts` exporte les pages/extensions nommées déclarées dans `routes.json`.
+4. **Les noms de route correspondent-ils aux exports ?**  
+   Si `routes.json` déclare un composant `"root"`, `index.ts` doit exporter `root`.
+5. **Visez-vous le bon extension slot ?**  
+   Le nom du slot dans votre extension doit correspondre exactement au slot exposé par l’UI hôte.
+6. **Y a‑t‑il un override d’import map en dev ?**  
+   Vérifiez Devtools et localStorage. Un override obsolète peut masquer vos changements.
+
+## Concepts clés (à connaître tôt)
+
+Si vous construisez ou dépannez des modules, ces notions vous feront gagner du temps:
+
+- **Schéma de configuration** – `config-schema.ts` définit les options configurables du module. L’app shell charge et fusionne la config au runtime, ce qui contrôle le comportement côté implémentation. Voir le [guide du système de configuration](/docs/configuration-system).
+- **Traductions** – Les modules fournissent les traductions via `importTranslation` dans `src/index.ts`, généralement à partir d’un dossier `translations/`. Si c’est absent ou mal configuré, la localisation ne fonctionne pas.
+- **Lifecycles sync vs async** – `getSyncLifecycle` embarque le code dans le bundle principal, tandis que `getAsyncLifecycle` charge à la demande. Utilisez‑les selon les besoins de performance. Voir [Tests unitaires et d’intégration](/docs/frontend-modules/unit-and-integration-testing) et les notes de performance dans [Conventions de codage](/docs/coding-conventions/performance).
+- **Dépendances backend** – `routes.json` peut déclarer des dépendances et versions de modules backend. Si elles ne sont pas satisfaites, O3 alerte les administrateurs.
+- **Overrides Devtools** – Le dev local repose souvent sur les overrides de l’import map. Voir [Développement](/docs/frontend-modules/development#import-map-overrides).
+- **Stratégie de version** – `latest` est la dernière version stable, `next` est une pré‑version. Épinglez des versions en production, utilisez `next` pour tester.

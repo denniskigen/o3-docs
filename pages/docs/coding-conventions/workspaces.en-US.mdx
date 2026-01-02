@@ -1,0 +1,111 @@
+# Workspaces
+
+Workspaces are side panels that slide in from the right side of the screen, typically used for forms and detailed views in the patient chart. They provide a consistent way to display contextual information and forms without navigating away from the current page.
+
+- Workspace forms should extend `DefaultPatientWorkspaceProps` from `@openmrs/esm-patient-common-lib` to ensure consistent props and behavior:
+
+  ```tsx
+  import { type DefaultPatientWorkspaceProps } from '@openmrs/esm-patient-common-lib';
+
+  interface MyWorkspaceProps extends DefaultPatientWorkspaceProps {
+    // Add workspace-specific props here
+    itemId?: string;
+  }
+
+  const MyWorkspace: React.FC<MyWorkspaceProps> = ({
+    closeWorkspace,
+    closeWorkspaceWithSavedChanges,
+    patientUuid,
+    promptBeforeClosing,
+    itemId,
+  }) => {
+    // Workspace implementation
+  };
+  ```
+
+- Always implement `promptBeforeClosing` to warn users when they try to close a workspace with unsaved changes. This should be called in a `useEffect` that watches the form's dirty state:
+
+  ```tsx
+  const {
+    formState: { isDirty },
+  } = useForm(...);
+
+  useEffect(() => {
+    promptBeforeClosing(() => isDirty);
+  }, [isDirty, promptBeforeClosing]);
+  ```
+
+  For non-form workspaces, you can use any condition that indicates unsaved changes:
+
+  ```tsx
+  useEffect(() => {
+    promptBeforeClosing(() => hasUnsavedChanges);
+  }, [hasUnsavedChanges, promptBeforeClosing]);
+  ```
+
+- Use `closeWorkspaceWithSavedChanges` when data is successfully saved, and `closeWorkspace` when the user cancels or when closing without saving:
+
+  ```tsx
+  const handleSave = async () => {
+    try {
+      await saveData();
+      mutate(); // Update SWR cache
+      closeWorkspaceWithSavedChanges(); // Indicates successful save
+      showSnackbar({ title: t('saved', 'Saved successfully') });
+    } catch (error) {
+      showSnackbar({
+        kind: 'error',
+        title: t('errorSaving', 'Error saving'),
+        subtitle: error?.message,
+      });
+    }
+  };
+
+  // Cancel button
+  <Button kind="secondary" onClick={() => closeWorkspace()}>
+    {t('cancel', 'Cancel')}
+  </Button>
+  ```
+
+- Workspace components should be registered using `getAsyncLifecycle` for code splitting, or `getSyncLifecycle` if they need to be available immediately:
+
+  ```tsx
+  // Async - loaded on demand
+  export const myWorkspace = getAsyncLifecycle(
+    () => import('./my-workspace.workspace'),
+    options
+  );
+
+  // Sync - included in main bundle
+  export const myWorkspace = getSyncLifecycle(
+    MyWorkspaceComponent,
+    options
+  );
+  ```
+
+- Workspace files should use the `.workspace.tsx` suffix to clearly indicate their purpose and enable proper translation key extraction.
+
+- You can use `ExtensionSlot` components within workspaces to allow other modules to extend the workspace with additional functionality:
+
+  ```tsx
+  import { ExtensionSlot } from '@openmrs/esm-framework';
+
+  <ExtensionSlot 
+    name="my-workspace-header-slot" 
+    state={{ patientUuid, formData }} 
+  />
+  ```
+
+- Workspace forms should handle both create and edit modes when appropriate. Use conditional logic based on whether an ID or existing data is provided:
+
+  ```tsx
+  const isEditMode = Boolean(itemId);
+  const existingItem = isEditMode 
+    ? data?.find(item => item.id === itemId)
+    : null;
+
+  const defaultValues = isEditMode && existingItem
+    ? { name: existingItem.name, ...existingItem }
+    : { name: '', ...emptyDefaults };
+  ```
+

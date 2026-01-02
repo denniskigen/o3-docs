@@ -2,10 +2,10 @@ import { Callout } from "nextra-theme-docs";
 
 # Styling
 
-- We use CSS modules for styling. This means that all styles are scoped to the component that defines them. This is important because it helps to prevent unintended side effects and makes the codebase easier to maintain.
+- We use CSS modules for styling. This means that all styles are scoped to the component that defines them. This is important because it helps to prevent unintended side effects and makes the codebase easier to maintain. Stylesheets should use the `.module.scss` extension to enable CSS module functionality.
 
   ```scss
-    // styles.scss
+  // user.module.scss
   .container {
     display: flex;
     gap: 1rem;
@@ -13,8 +13,8 @@ import { Callout } from "nextra-theme-docs";
   ```
 
   ```tsx
-  // component.tsx
-  import styles from './styles.scss';
+  // user.component.tsx
+  import styles from './user.module.scss';
   
   // The class name will be automatically transformed to something like "container_abc123"
   return <div className={styles.container}>...</div>;

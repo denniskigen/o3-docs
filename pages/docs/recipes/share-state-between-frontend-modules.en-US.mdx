@@ -69,7 +69,7 @@ this method is by far the simplest.
 If your directory structure allows, you can also pass stores around explicitly:
 
 ```ts filename="bookStore.ts"
-export bookStore = createGlobalStore("books", {
+export const bookStore = createGlobalStore("books", {
   books: [],
 });
 ```

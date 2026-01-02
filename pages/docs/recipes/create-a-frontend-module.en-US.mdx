@@ -19,7 +19,7 @@ The process for doing that would be as follows:
 
 ### Step 1
 
-Go to the Github repository for the [Template](https://github.com/openmrs/openmrs-esm-template-app) seed app and click the `Use this template` button. Click `Create a new repository` and follow the instructions to create a new repository. Clone the new repository to your local machine. In this case, we'll name the new repository `openmrs-esm-active-prescriptions`. Click the `Create repository from template` button and then clone the new repository to your local machine.
+Go to the GitHub repository for the [Template](https://github.com/openmrs/openmrs-esm-template-app) seed app and click the `Use this template` button. Choose `Create a new repository` and follow the instructions to create a new repository. In this case, we'll name the new repository `openmrs-esm-active-prescriptions`. Once created, clone the new repository to your local machine.
 <Callout emoji="ℹ️" type="info">
   Why the `esm` prefix?
   Frontend modules have a convention of being prefixed with `esm`. See the note about [frontend modules](/docs/frontend-modules/overview).
@@ -41,8 +41,9 @@ You'll notice that the code for the home page and the login page is not actually
 The data is fetched from the hosted dev server, if you want to connect it to a different backend, you can append the suffix `--backend https://your-backend-url` to the `yarn start` command.
 
 TLDR; the `yarn start` command actually runs `openmrs develop` which according to some configuration sets it all up (read more about [configuration](/docs/configuration-system)).
-<Callout emoji="" type="info">
-  To learn more about how `openmrs develop` works, check out how [`runDevelop`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/tooling/openmrs/src/commands/develop.ts).
+
+<Callout emoji="ℹ️" type="info">
+  To learn more about how `openmrs develop` works, check out [`runDevelop`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/tooling/openmrs/src/commands/develop.ts). Note that the Template repository is already set up for Core v5+ and uses `routes.json` and `startupApp()` for module registration. If you're migrating an older module, see the [migration guide](/docs/migrate-to-core-v5).
 </Callout>
 
 ### Step 3
@@ -53,12 +54,13 @@ Next, we'll follow the steps in the README to adapt the code to our needs. That'
 - Update the app entry point at `src/index.ts` as appropriate, including the following:
 
   - Change the `moduleName` to `@openmrs/esm-active-prescriptions-app`.
-  - Change the featureName from `root-world` to a blank string. You'll change this to a more useful value later on.
+  - Change the `featureName` from `root-world` to a blank string. You'll change this to a more useful value later on.
+  - Ensure you have a `startupApp()` function that calls `defineConfigSchema()` if your module has configuration. For Core v5+ modules, this is required for configuration schemas to be registered properly.
 
 - Update the route to the frontend module.
 
-  - We need a route url to access the frontend module. This is specified in `routes.json` in the `pages` property. You would see that a component `root` has the route `root`, this is our `root.component.tsx`.
-  ```json
+  - We need a route URL to access the frontend module. This is specified in `src/routes.json` in the `pages` property. You would see that a component `root` has the route `root`, this is our `root.component.tsx`.
+  ```json filename="src/routes.json"
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {
     "fhir2": ">=1.2",
@@ -119,5 +121,4 @@ Once you've created a frontend module, you'll want to integrate it into your app
 First, publish your frontend module package to NPM. At the end, your package should be visible on npm.js,
 such as [`@openmrs/esm-login-app`](https://www.npmjs.com/package/@openmrs/esm-login-app).
 
-Then, you'll need to integrate this package into your distribution. Information about that can be found in the Implementer Documentation on
-[Deployment](https://wiki.openmrs.org/pages/viewpage.action?pageId=224527013).
+Then, you'll need to integrate this package into your distribution. Add your module to the `frontendModules` object in your distro's `spa-assemble-config.json` file. For more information, see the [Creating a distribution](/docs/recipes/create-a-distribution) guide and the [Configuration overview](/docs/configure-o3/overview#spa-assemble-configjson) guide.

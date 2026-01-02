@@ -1,16 +1,26 @@
-# Système de configuration
+import { Callout } from "nextra-theme-docs";
+
+# Le Système de Configuration
+
+Introduit par [RFC-14](https://github.com/openmrs/openmrs-rfc-frontend/blob/master/text/0014-configuration.md), le système de configuration fournit un cadre pour rendre les modules frontaux configurables par les implémenteurs sans nécessiter de modifications de code. Il permet aux développeurs de définir des schémas qui spécifient quelles options de configuration sont disponibles, leurs types, leurs valeurs par défaut et leurs règles de validation.
+
+<Callout emoji="ℹ️" type="info">
+  **Pour les implémenteurs** : Si vous cherchez à configurer une instance O3 existante (changer les logos, les traductions, les paramètres des modules, etc.), consultez plutôt le guide [Configurer O3](/docs/configure-o3). Ce guide est destiné aux **développeurs** qui souhaitent rendre leurs modules configurables.
+</Callout>
 
 ## Utilisation du système de configuration
 
 Un cadre est fourni pour faciliter la configuration pour les développeurs et la configuration pour les implémenteurs.
 
-Pour savoir comment configurer votre distro, consultez la [Documentation pour l'implémentation](https://wiki.openmrs.org/pages/viewpage.action?pageId=224527013#O3ImplementerDocumentation:SetUp,Configure&Deploy-Part2:ConfigureYourO3Application).
+**Pour les implémenteurs** : Pour savoir comment configurer votre instance O3, consultez le guide [Configurer O3](/docs/configure-o3), qui couvre les tâches pratiques de configuration comme le branding, les traductions et les paramètres spécifiques aux modules.
 
 ### Comment rendre un module frontal configurable
 
 Vous devez utiliser l'OpenMRS Frontend Framework pour rendre les modules configurables.
 
 La tâche principale est de créer un schéma de configuration pour votre module. Le schéma de configuration indique au framework à quoi doivent ressembler les fichiers de configuration, y compris les valeurs par défaut et les validations.
+
+**Note** : Les schémas de configuration sont optionnels. Si votre module n'a pas besoin d'options de configuration (par exemple, s'il s'agit d'un module bibliothèque comme le [React Form Engine](https://github.com/openmrs/openmrs-form-engine-lib) qui reçoit toute sa configuration via des props ou des paramètres de fonction), vous n'avez pas besoin de définir un schéma. Le système de configuration fonctionnera toujours—les modules sans schémas auront simplement un objet de configuration vide (ou un contenant uniquement les clés de schéma implicites comme `Translation overrides`).
 
 #### Conception d'un schéma
 
@@ -42,7 +52,7 @@ Dans la section suivante, nous verrons comment écrire un schéma de configurati
 Nous allons commencer par le premier élément de configuration imbriqué, `hologram.color`. Nous devons fournir des valeurs par défaut pour toutes les valeurs - dans OpenMRS Frontend 3.0, toute la configuration est optionnelle. Tous les modules doivent faire quelque chose de raisonnable dès le départ.
 
 ```ts
-import { defineConfigSchema, Type } from "@openmrs/esm-framework"
+import { defineConfigSchema, Type } from "@openmrs/esm-framework";
 
 defineConfigSchema("@openmrs/esm-hologram-doctor", {
   hologram: {
@@ -52,7 +62,7 @@ defineConfigSchema("@openmrs/esm-hologram-doctor", {
       _description: "Whether the hologram supports color display."
     }
   }
-}
+});
 ```
 
 Notez que chaque élément de configuration doit avoir un objet pour une valeur, et que cet objet doit définir les propriétés de cet élément. Ne faites pas ceci:
@@ -67,6 +77,14 @@ Notez que chaque élément de configuration doit avoir un objet pour une valeur,
 
 Les mots préfixés par `_` sont des mots-clés de schéma. Ne préfixez pas les noms de vos éléments de configuration avec des underscores. En particulier, n'utilisez pas un mot-clé de schéma comme nom d'élément de configuration.
 
+**Clés de configuration réservées :**
+
+Les clés suivantes sont réservées et ne peuvent pas être utilisées comme noms d'éléments de configuration :
+- `Display conditions` - Utilisé par le système d'extension pour le contrôle de visibilité des extensions
+- `Translation overrides` - Utilisé pour les remplacements de traduction par langue
+
+Ces clés sont automatiquement incluses dans le schéma implicite de chaque module et provoqueront des erreurs de validation si vous essayez de les utiliser comme clés de configuration personnalisées.
+
 ```ts
 ❌ // e faites pas ça!
 ❌ defineConfigSchema("@openmrs/esm-hologram-doctor",
@@ -80,6 +98,17 @@ Les mots préfixés par `_` sont des mots-clés de schéma. Ne préfixez pas les
 #### Typage
 
 Bien que ce ne soit pas strictement nécessaire dans la version actuelle, vous devriez fournir un type pour chaque élément de configuration que vous définissez. Le mot-clé `_type` accepte les valeurs de l'enum Type.
+
+Les types disponibles sont :
+- `Type.String` - Valeurs de chaîne
+- `Type.Number` - Valeurs numériques
+- `Type.Boolean` - Valeurs booléennes (true/false)
+- `Type.Array` - Tableaux (nécessite `_elements` pour spécifier le schéma des éléments du tableau)
+- `Type.Object` - Valeurs d'objet
+- `Type.UUID` - Chaînes UUID
+- `Type.ConceptUuid` - Chaînes UUID de concept
+- `Type.PersonAttributeTypeUuid` - Chaînes UUID de type d'attribut de personne
+- `Type.PatientIdentifierTypeUuid` - Chaînes UUID de type d'identifiant de patient
 
 Ces types sont utilisés à la fois pour valider les entrées et pour supporter un comportement spécial dans les outils d'implémentation.
 
@@ -104,15 +133,17 @@ robot: {
 
 Un validateur peut être créé en utilisant la fonction `validator`, comme ci-dessus.
 
-Le premier argument est une fonction qui prend la valeur de la configuration comme seul argument. Si la fonction retourne quelque chose de [vrai](https://developer.mozilla.org/en-US/docs/Glossary/Truthy), la validation passe. Si la fonction renvoie quelque chose de [falsy](https://developer.mozilla.org/en-US/docs/Glossary/Falsy), une erreur est levée avec le second argument comme explication.
+Le premier argument est une fonction qui prend la valeur de la configuration comme seul argument. Si la fonction retourne quelque chose de [vrai](https://developer.mozilla.org/en-US/docs/Glossary/Truthy), la validation passe. Si la fonction retourne une chaîne, cette chaîne est traitée comme un message d'erreur et la validation échoue.
+
+**Important** : Lorsque la validation échoue, l'erreur est enregistrée dans la console du navigateur, mais l'application continue de fonctionner. Les valeurs de configuration invalides sont toujours utilisées—les erreurs de validation servent d'avertissements pour aider les implémenteurs à identifier et corriger les problèmes de configuration, plutôt que d'empêcher l'application de démarrer.
 
 Vous pouvez même valider des objets imbriqués:
 
 ```ts
 colorPicker: {
-  options: { _default: ["green", "red", "blue"] }
+  options: { _default: ["green", "red", "blue"] },
   initial: { _default: "green" },
-  _description: "The color picker for lightsabers",
+  _description: "Le sélecteur de couleur des sabres laser",
   _validators: [
     validator(o => o.options.includes(o.initial),
       "Initial must be one of the options")
@@ -131,15 +162,15 @@ virtualProvider: {
   name: {
     given: {
       _type: Type.Array,
-      _default: ["Obi", "Wan"]
+      _default: ["Obi", "Wan"],
       _elements: {
-        _type: Type.String
+        _type: Type.String,
         _validators: [validator(n => n.length < 30, "Must be less than 30 characters")]
       }
     },
-    _description: "The name of the avatar. Does not have to be the name of the actual provider"
+    _description: "Le nom de l'avatar. Il ne doit pas forcément être celui du praticien réel"
   },
-  _description: "The avatar of the medical practitioner"
+  _description: "L'avatar du praticien"
 }
 ```
 
@@ -152,7 +183,7 @@ robots: {
     { name: "R2-D2", homeworld: "Naboo" },
     { name: "C-3PO", homeworld: "Tatooine" }
   ],
-  _description: "The list of all available robots",
+  _description: "La liste de tous les robots disponibles",
   _elements: {
     name: {
       _type: Type.String,
@@ -187,9 +218,21 @@ async function doctorGreeting() {
 }
 ```
 
+Le contenu de config sera tiré des fichiers de configuration, en revenant aux valeurs par défaut pour les éléments de configuration pour lesquels aucune valeur n'a été fournie.
+
+**Comment les valeurs de configuration sont fusionnées :**
+
+Lorsque plusieurs sources de configuration fournissent des valeurs pour la même clé, elles sont fusionnées avec la priorité suivante (les sources ultérieures remplacent les précédentes) :
+
+1. **Valeurs par défaut** de la définition du schéma
+2. **Fichiers de configuration** (fusionnés dans l'ordre où ils sont chargés)
+3. **Configuration temporaire** de l'interface des outils d'implémentation (priorité la plus élevée)
+
+Cela signifie que si vous définissez une valeur dans un fichier de configuration puis la modifiez en utilisant les outils d'implémentation, la valeur des outils d'implémentation prendra effet. De même, si la même clé apparaît dans plusieurs fichiers de configuration, la valeur du dernier fichier chargé sera utilisée.
+
 #### Support React
 
-Un React Hook est fourni pour masquer l'asynchronicité du chargement de la configuration. Le `moduleName` fourni dans le fichier racine `index.ts` de votre application (aux fonctions `getSyncLifecycle` ou `getAsyncLifecycle`) est utilisé pour rechercher la configuration ailleurs dans l'application.
+Un React Hook est fourni pour masquer l'asynchronicité du chargement de la configuration. Le hook `useConfig` détermine automatiquement quelle configuration de module charger en fonction du `ComponentContext`, qui est défini lorsque vous utilisez `getSyncLifecycle` ou `getAsyncLifecycle` avec un `moduleName`.
 
 ```ts
 export const hologramDoctor = getSyncLifecycle(hologramDoctor, {
@@ -198,22 +241,57 @@ export const hologramDoctor = getSyncLifecycle(hologramDoctor, {
 });
 ```
 
-Vous pouvez ensuite obtenir l'arbre de configuration en tant qu'objet en utilisant le crochet React useConfig
+Vous pouvez ensuite obtenir l'arbre de configuration en tant qu'objet en utilisant le hook React `useConfig` :
 
 ```ts
-import { getConfig } from "@openmrs/esm-framework";
+import { useConfig } from "@openmrs/esm-framework";
 
-async function doctorGreeting() {
-  const config = await getConfig("@openmrs/esm-hologram-doctor");
-  return "Bonjour, mon nom est Dr. " + config.virtualProvider.name.family;
+export default function DoctorGreeting() {
+  const config = useConfig();
+  const greeting = "Bonjour, mon nom est Dr. " + config.virtualProvider.name.family;
+  return <div>{greeting}</div>;
 }
 ```
 
-Le contenu de config sera tiré des fichiers de configuration, en revenant aux valeurs par défaut pour les éléments de configuration pour lesquels aucune valeur n'a été fournie.
+Le hook `useConfig` :
+- Charge automatiquement la configuration du module en fonction du `moduleName` du `ComponentContext`
+- Fusionne la configuration spécifique à l'extension lorsqu'il est utilisé dans un composant d'extension
+- Revient aux valeurs par défaut pour les éléments de configuration pour lesquels aucune valeur n'a été fournie
+
+**Charger la configuration d'un autre module :**
+
+Vous pouvez optionnellement charger la configuration d'un module différent en utilisant l'option `externalModuleName`. Ceci ne devrait être utilisé qu'en cas de nécessité absolue, car cela peut créer un couplage entre les modules :
+
+```ts
+const otherModuleConfig = useConfig({ externalModuleName: "@openmrs/esm-other-module" });
+```
+
+**Enregistrer les schémas de configuration :**
+
+Dans les modules Core v5+, les schémas de configuration doivent être enregistrés dans la fonction `startupApp()` :
+
+```ts
+import { defineConfigSchema } from "@openmrs/esm-framework";
+
+export function startupApp() {
+  defineConfigSchema(moduleName, configSchema);
+}
+```
+
+Cela garantit que le schéma est enregistré avant que les composants du module ne soient rendus.
+
+**Fonctionnalités de schéma automatiques :**
+
+Chaque module reçoit automatiquement un schéma implicite qui inclut deux clés de configuration réservées :
+
+- **`Display conditions`** - Utilisé par le système d'extension pour contrôler la visibilité des extensions (pertinent uniquement pour les extensions)
+- **`Translation overrides`** - Utilisé pour les remplacements de traduction par langue. Voir [Configurer les traductions](/docs/configure-o3/configure-translations) pour plus de détails sur la façon dont les implémenteurs utilisent cette fonctionnalité.
+
+Ce schéma implicite est disponible immédiatement, même avant d'appeler `defineConfigSchema()`. Cela permet aux remplacements de traduction d'être chargés tôt, ce qui est important car le système de traduction en a besoin avant que les modules puissent s'initialiser complètement. Lorsque vous définissez votre schéma personnalisé, il est automatiquement fusionné avec le schéma implicite, vous n'avez donc pas besoin de (et ne devriez pas) définir ces clés réservées vous-même.
 
 #### Support dans d'autres frameworks (Angular, Vue, Svelte, etc.)
 
-Cela n'a pas encore été mis en œuvre, mais nous aimerions le faire! Voir le guide de contribution.
+Cela n'a pas encore été mis en œuvre, mais vous êtes les bienvenus pour l'implémenter ! Voir le [guide de contribution](/docs/frontend-modules/contributing).
 
 #### Typage
 
@@ -225,24 +303,73 @@ import { defineConfigSchema, Type } from "@openmrs/esm-framework";
 defineConfigSchema("@openmrs/esm-hologram-doctor", {
   hologram: {
     color: {
-      type: Type.Boolean,
-      par défaut: false,
+      _type: Type.Boolean,
+      _default: false,
       _description: "Whether the hologram supports color display.",
     },
   },
-}) ;
+});
 
 export interface HologramDoctorConfig {
   hologram: {
-    color: boolean ;
-  } ;
+    color: boolean;
+  };
 }
 ```
 
-Vous pouvez ensuite utiliser ces informations de typage en utilisant le mot-clé `as`.
+Vous pouvez ensuite utiliser ces informations de typage lors de l'appel des fonctions de configuration :
 
 ```ts
-const config = useConfig() as HologramDoctorConfig;
+const config = useConfig<HologramDoctorConfig>();
+```
+
+#### Configuration spécifique aux extensions
+
+Les extensions peuvent avoir leurs propres schémas de configuration qui sont séparés de la configuration de leur module parent. Ceci est utile lorsqu'une extension a besoin d'options de configuration qui ne s'appliquent pas au module dans son ensemble.
+
+Pour définir un schéma de configuration spécifique à une extension, utilisez `defineExtensionConfigSchema` :
+
+```ts
+import { defineExtensionConfigSchema } from "@openmrs/esm-framework";
+
+export function startupApp() {
+  defineExtensionConfigSchema("my-extension-name", {
+    customSetting: {
+      _type: Type.String,
+      _default: "default value",
+      _description: "Un paramètre spécifique à cette extension"
+    }
+  });
+}
+```
+
+Le nom de l'extension doit correspondre à la propriété `name` de l'extension telle que définie dans `routes.json`. Lorsqu'une extension a son propre schéma de configuration, `useConfig()` dans cette extension retournera automatiquement la configuration de l'extension plutôt que la configuration du module.
+
+**Comment la configuration de l'extension est résolue :**
+
+Les valeurs de configuration de l'extension sont déterminées en fusionnant plusieurs sources dans cet ordre :
+
+1. **Configuration de base de l'extension** - Valeurs du schéma propre de l'extension (si défini) ou du schéma du module parent
+2. **Remplacements spécifiques au slot** - Valeurs de l'objet `configure` dans la configuration du slot (priorité la plus élevée)
+
+Cette fusion permet aux administrateurs de personnaliser le comportement d'une extension différemment pour chaque slot où elle apparaît. Par exemple, la même extension pourrait avoir des paramètres différents lorsqu'elle est utilisée dans un en-tête de patient par rapport à un tableau de bord.
+
+La configuration de l'extension peut être remplacée par slot en utilisant l'objet `configure` dans la configuration du slot :
+
+```json
+{
+  "@openmrs/esm-my-module": {
+    "extensionSlots": {
+      "my-slot": {
+        "configure": {
+          "my-extension-name": {
+            "customSetting": "slot-specific value"
+          }
+        }
+      }
+    }
+  }
+}
 ```
 
 ## Référence au schéma
@@ -277,7 +404,7 @@ Peut être utilisé n'importe où dans la structure du schéma.
 
 `_elements`
 
-Valable uniquement avec `_type_: Type.Array`. Un `_default` doit également être fourni à ce niveau. La valeur doit être un schéma pour les valeurs contenues dans le tableau.
+Valable uniquement avec `_type: Type.Array`. Un `_default` doit également être fourni à ce niveau. La valeur doit être un schéma pour les valeurs contenues dans le tableau.
 
 ### Documentation de l'API
 

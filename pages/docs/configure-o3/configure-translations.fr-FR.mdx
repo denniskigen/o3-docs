@@ -1,17 +1,163 @@
 # Configuration des traductions
 
-Il y a plusieurs catégories de traductions dans notre projet logiciel:
+O3 prend en charge plusieurs types de traductions, chacun servant des objectifs différents. Ce guide explique comment configurer les traductions pour votre implémentation.
 
-- `Code`: Nous utilisons un outil appelé [Transifex](https://explore.transifex.com/openmrs/) pour extraire automatiquement les mots codés en dur (par exemple "Cliquez ici"), les traduire dans l'interface Transifex, et contribuer ces traductions à la RefApp O3.
-- `Terminologie`: par exemple, le code CIEL 121375 pour l'asthme a plusieurs traductions existantes qui lui sont attachées ([comme vous pouvez le voir ici](https://app.openconceptlab.org/#/orgs/CIEL/sources/CIEL/concepts/121375/)). Si vous utilisiez ce code et souhaitiez une nouvelle option linguistique, vous auriez besoin de l'ajouter en tant que métadonnée sur ce concept.
-- `Formes`: Si vous avez déjà des traductions attachées à des concepts particuliers que vous utilisez, vous pouvez faire apparaître ces traductions dans vos formulaires. Il suffit de ne pas fournir d'étiquette dans le constructeur de formulaire, et le formulaire utilisera automatiquement le nom du concept à la place. Notez qu'en raison des différences entre les moteurs de formulaires, cela apparaîtra comme une question sans étiquette dans le Form Builder, mais cela fonctionnera dans le Angular Engine. En date d'octobre 2023, le moteur de formulaire Angular a une couverture de traduction plus complète que le moteur React (bien que nous prévoyions d'améliorer cela dans les mois à venir). 
-  - Si vous ajoutez une toute nouvelle locale qui n'était pas dans O3 auparavant, notez que le formulaire-entry-app s'attend actuellement à ce que les fichiers de traduction (ex. ar.json) existent, de sorte que vous pouvez voir des problèmes avec le chargement des formulaires. Solution ici: [Problème O3-2492](https://issues.openmrs.org/browse/O3-2492). 
+## Types de traductions
 
-## Remplacements de traduction spécifiques à un module O3 individuel
+Il existe plusieurs catégories de traductions dans O3 :
 
-Vous pouvez utiliser le système de configuration pour fournir des traductions localisées pour les composants O3. C'est utile si, par exemple, vous voulez changer l'étiquette d'un bouton ou renommer un lien. Ce système ne doit pas être utilisé pour traduire des composants dans une nouvelle langue. Au lieu de cela, aidez-nous en ajoutant ces traductions directement dans RefApp en utilisant [Transifex](https://explore.transifex.com/openmrs/).
+### Traductions de code
 
-Par exemple, si vous voulez renommer l'action "Commencer une visite" sur le dossier du patient, vous pouvez utiliser cette configuration:
+Nous utilisons [Transifex](https://explore.transifex.com/openmrs/) pour extraire automatiquement les chaînes codées en dur du code source (par exemple, "Cliquez ici"), les traduire dans l'interface Transifex, et contribuer ces traductions à la RefApp O3.
+
+**Quand l'utiliser** : Pour traduire l'application entière dans une nouvelle langue ou mettre à jour les traductions existantes qui bénéficieront à toute la communauté.
+
+**Comment contribuer** : Utilisez [Transifex](https://explore.transifex.com/openmrs/) pour ajouter ou mettre à jour les traductions pour la RefApp O3. Voir la section "Contribuer aux traductions" ci-dessous pour plus de détails.
+
+**Note** : Les traductions de code sont différentes des remplacements de traduction. Les traductions de code sont contribuées via Transifex et font partie de l'application pour tous les utilisateurs. Les remplacements de traduction (couverts ci-dessous) sont spécifiques à la configuration et ne s'appliquent qu'à votre implémentation.
+
+### Traductions de terminologie
+
+La terminologie clinique (concepts) peut avoir des traductions attachées. Par exemple, le concept CIEL 121375 pour l'asthme a plusieurs traductions ([voir ici](https://app.openconceptlab.org/#/orgs/CIEL/sources/CIEL/concepts/121375/)).
+
+**Quand l'utiliser** : Lorsque vous avez besoin de traductions pour des concepts cliniques (diagnostics, médicaments, etc.).
+
+**Comment ajouter** : Ajoutez des traductions comme métadonnées sur le concept dans Open Concept Lab (OCL) ou via le module Initializer.
+
+### Traductions de formulaires
+
+Si vous avez des traductions attachées aux concepts que vous utilisez dans les formulaires, ces traductions apparaîtront automatiquement dans vos formulaires. Il suffit de ne pas fournir d'étiquette dans le Form Builder, et le formulaire utilisera le nom du concept à la place.
+
+**Note** : En raison des différences entre les moteurs de formulaires, les questions sans étiquette peuvent apparaître dans le Form Builder, mais elles fonctionneront correctement dans le Angular Form Engine.
+
+**Nouvelles locales** : Si vous ajoutez une toute nouvelle locale qui n'était pas dans O3 auparavant, notez que le formulaire-entry-app s'attend à ce que les fichiers de traduction (par ex. `ar.json`) existent. Vous pouvez voir des problèmes avec le chargement des formulaires. Voir [Problème O3-2492](https://issues.openmrs.org/browse/O3-2492) pour une solution de contournement.
+
+## Remplacements de traduction
+
+Vous pouvez utiliser le système de configuration pour remplacer les traductions pour des composants O3 spécifiques. C'est utile pour :
+- Changer les étiquettes de boutons
+- Renommer des liens ou éléments de menu
+- Personnaliser le texte pour votre implémentation
+
+**Important** : Les remplacements de traduction ne doivent **pas** être utilisés pour traduire des composants dans une nouvelle langue. Pour des traductions complètes, veuillez contribuer à la RefApp en utilisant [Transifex](https://explore.transifex.com/openmrs/).
+
+Les remplacements de traduction sont disponibles à plusieurs niveaux de configuration :
+- Niveau module (s'applique à toutes les utilisations du module)
+- Niveau emplacement d'extension (s'applique aux extensions dans un emplacement spécifique)
+- Niveau extension (s'applique à une extension spécifique dans un emplacement spécifique)
+
+### Remplacements au niveau module
+
+Remplacez les traductions pour un module entier :
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "Translation overrides": {
+      "en": {
+        "startVisit": "Check-in",
+        "endVisit": "Check-out"
+      },
+      "fr": {
+        "startVisit": "Enregistrement",
+        "endVisit": "Sortie"
+      }
+    }
+  }
+}
+```
+
+### Remplacements au niveau emplacement d'extension
+
+Remplacez les traductions pour toutes les extensions dans un emplacement spécifique. Ces remplacements s'appliquent à toutes les extensions dans l'emplacement, mais les remplacements spécifiques aux extensions (voir ci-dessous) prennent la priorité.
+
+**Important** : La configuration des emplacements d'extensions est spécifiée sous le **module qui possède l'emplacement**, pas le module de l'extension.
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "extensionSlots": {
+      "action-menu-patient-chart-items-slot": {
+        "configure": {
+          "Translation overrides": {
+            "en": {
+              "addNote": "Add Clinical Note"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Remplacements au niveau extension
+
+Remplacez les traductions pour une extension spécifique dans un emplacement spécifique. Ces remplacements prennent la priorité sur les remplacements au niveau emplacement et module pour cette extension.
+
+```json
+{
+  "@openmrs/esm-patient-chart-app": {
+    "extensionSlots": {
+      "action-menu-patient-chart-items-slot": {
+        "configure": {
+          "my-extension-id": {
+            "Translation overrides": {
+              "en": {
+                "customAction": "Custom Action Label"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Fonctionnement des remplacements de traduction
+
+1. **Fusion et priorité** : Les remplacements de traduction sont fusionnés dans cet ordre (les remplacements ultérieurs prennent la priorité) :
+   - Traductions de base (depuis Transifex)
+   - Remplacements au niveau module
+   - Remplacements au niveau emplacement d'extension
+   - Remplacements au niveau extension
+
+   Si la même clé de traduction est remplacée à plusieurs niveaux, le remplacement le plus spécifique l'emporte. Par exemple, si `"addNote"` est remplacé à la fois au niveau emplacement et au niveau extension, le remplacement au niveau extension sera utilisé pour cette extension spécifique.
+
+2. **Codes de langue** : Les codes de langue doivent suivre le format : `[a-z]{2,3}(-[A-Z]{2,3})?`
+   - Exemples valides : `en`, `fr`, `en-US`, `fr-CA`, `swa`
+   - Exemples invalides : `EN`, `en_us`, `english`
+
+3. **Clés de traduction** : La clé de traduction (par ex. `startVisit`) doit correspondre exactement à ce qui est dans le fichier de traduction du module.
+   - Si vous remplacez une clé qui n'existe pas dans les fichiers de traduction du module, elle sera ignorée (pas d'erreur, mais aucun effet)
+   - Les clés de traduction sont sensibles à la casse
+   - Voir la section "Trouver les clés de traduction" ci-dessous pour obtenir de l'aide pour localiser les clés correctes
+
+4. **Sensibilité à la casse** : La chaîne `"Translation overrides"` doit être écrite exactement comme indiqué (T majuscule, r minuscule, etc.).
+
+### Trouver les clés de traduction
+
+Pour trouver les clés de traduction correctes à remplacer :
+
+1. **Inspecter le code** : Regardez dans le dépôt du module pour les fichiers de traduction (généralement des fichiers JSON dans `src/translations/` ou des répertoires similaires). Le nom du module correspond généralement au nom du package (par ex. `@openmrs/esm-patient-chart-app` → cherchez les fichiers dans le dépôt de ce module).
+
+2. **DevTools du navigateur** : Utilisez la console du navigateur pour inspecter les espaces de noms i18n. D'abord, identifiez l'espace de noms du module (généralement le nom du module sans le préfixe `@openmrs/`), puis :
+   ```javascript
+   // Obtenir toutes les traductions pour un module
+   window.i18next.getResourceBundle('en', 'esm-patient-chart-app')
+   
+   // Ou lister tous les espaces de noms disponibles
+   window.i18next.store.data
+   ```
+
+3. **Documentation du module** : Certains modules documentent leurs clés de traduction dans leur README ou fichiers de documentation.
+
+4. **Outils de mise en œuvre** : Si le module est chargé, vous pouvez voir "Translation overrides" dans l'interface de configuration des outils de mise en œuvre, ce qui peut aider à identifier les clés disponibles.
+
+### Exemple complet
+
+Voici un exemple complet montrant plusieurs niveaux de remplacement :
 
 ```json
 {
@@ -20,9 +166,67 @@ Par exemple, si vous voulez renommer l'action "Commencer une visite" sur le doss
       "en": {
         "startVisit": "Check-in"
       }
+    },
+    "extensionSlots": {
+      "action-menu-patient-chart-items-slot": {
+        "configure": {
+          "Translation overrides": {
+            "en": {
+              "addNote": "Add Clinical Note"
+            }
+          },
+          "vitals-and-biometrics": {
+            "Translation overrides": {
+              "en": {
+                "recordVitals": "Record Vital Signs"
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
 ```
 
-Des substitutions de traduction, comme celle-ci, peuvent être fournies à n'importe quel niveau de configuration, y compris la configuration pour un emplacement particulier ou une extension dans un emplacement. Notez que la chaîne "Translation overrides" doit être exactement dans ce cas, la clé, comme "en" devrait être la locale pour laquelle vous voulez remplacer la traduction et la clé de traduction, par exemple, "startVisit" devrait correspondre à ce qui est dans le fichier de traduction pour la locale que vous voulez remplacer. Plusieurs langues peuvent être spécifiées en ayant plusieurs clés, par exemple, "en" et "fr" vous permettraient de remplacer le texte en anglais et en français.
+Cette configuration démontre :
+- **Niveau module** : `startVisit` est remplacé pour le module patient chart entier (affecte toutes les utilisations de cette clé de traduction dans le module)
+- **Niveau emplacement** : `addNote` est remplacé pour toutes les extensions dans l'emplacement du menu d'action (sauf si remplacé au niveau extension)
+- **Niveau extension** : `recordVitals` est remplacé spécifiquement pour l'extension `vitals-and-biometrics` dans l'emplacement du menu d'action (prend la priorité sur les remplacements au niveau emplacement et module pour cette extension)
+
+**Note** : Si `addNote` était également remplacé au niveau extension pour `vitals-and-biometrics`, ce remplacement au niveau extension prendrait la priorité sur le remplacement au niveau emplacement pour cette extension spécifique.
+
+### Dépannage
+
+**Le remplacement de traduction ne fonctionne pas ?**
+- Vérifiez que la clé de traduction existe dans les fichiers de traduction du module (les clés inexistantes sont silencieusement ignorées)
+- Vérifiez que `"Translation overrides"` est orthographié exactement comme indiqué (sensible à la casse)
+- Assurez-vous que le code de langue suit le format correct (par ex. `en`, pas `EN` ou `en-US` pas `en_us`)
+- Vérifiez que le module est chargé (voir le [guide Aperçu](/docs/configure-o3/overview) pour les détails sur le chargement des modules)
+- Pour les remplacements au niveau extension, assurez-vous que vous configurez sous le module qui possède l'emplacement, pas le module de l'extension
+
+**Impossible de trouver les clés de traduction ?**
+- Utilisez les DevTools du navigateur pour inspecter les traductions chargées (voir "Trouver les clés de traduction" ci-dessus)
+- Vérifiez le dépôt GitHub du module pour les fichiers de traduction
+- Certains modules peuvent utiliser des clés de traduction d'autres modules (vérifiez les dépendances du module)
+
+## Contribuer aux traductions
+
+Si vous souhaitez contribuer aux traductions de la RefApp O3 (plutôt que de simplement les remplacer pour votre implémentation), vous pouvez aider la communauté en ajoutant des traductions via Transifex.
+
+**Pour commencer** :
+1. Visitez [om.rs/translate](https://om.rs/translate) pour le guide de traduction complet
+2. Rejoignez l'équipe de traduction OpenMRS sur [Transifex](https://explore.transifex.com/openmrs/)
+3. Sélectionnez votre langue et commencez à traduire les chaînes
+
+**Support communautaire** :
+- **OpenMRS Talk** : Publiez des questions dans la [catégorie traduction](https://talk.openmrs.org/c/translation/8)
+- **Slack** : Rejoignez le canal `#translation` sur [OpenMRS Slack](https://slack.openmrs.org/)
+- **Documentation** : Consultez le [Guide d'utilisation de Transifex dans OpenMRS](https://wiki.openmrs.org/display/docs/Guide+to+Using+Transifex+in+OpenMRS) pour des instructions détaillées
+
+**Note** : Contribuer aux traductions via Transifex aide toute la communauté OpenMRS. Si vous avez besoin de traductions pour une nouvelle langue ou souhaitez améliorer les traductions existantes, veuillez envisager de contribuer plutôt que d'utiliser uniquement des remplacements pour votre implémentation.
+
+## Documentation connexe
+
+- [Le Système de Configuration](/docs/configuration-system) - Apprenez-en plus sur le système de configuration, y compris comment "Translation overrides" est une clé réservée dans le schéma de chaque module
+- [Système d'Extensions](/docs/extension-system) - Apprenez-en plus sur la configuration des extensions et des emplacements d'extensions

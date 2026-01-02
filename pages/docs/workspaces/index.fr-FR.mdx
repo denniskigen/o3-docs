@@ -1,0 +1,11 @@
+# Vue d'ensemble
+
+Le Workspace est la couche interactive du Dossier patient. Sur ordinateur, il s'ouvre sur le côté droit de l'écran ; sur les plus petits écrans, il s'affiche dans un tiroir. C'est là que se font la saisie de données, le remplissage des formulaires et la passation de commandes. Le design du système de Workspaces est décrit dans le [OpenMRS Styleguide](https://zeroheight.com/23a080e38/p/483a22-workspace).
+
+La zone de l'écran du Dossier patient où s'affichent les Workspaces s'appelle la Workspace Window (fenêtre du Workspace). Les formulaires et le panier de commandes sont des Workspaces, et ils s'ouvrent dans cette fenêtre.
+
+Tout nouveau Workspace doit respecter l'une des trois variantes décrites dans le [OpenMRS Styleguide](https://zeroheight.com/23a080e38/p/483a22-workspace). Ces variantes donnent des indications sur le style et le comportement d'un Workspace.
+
+Un Workspace est essentiellement un composant [enregistré](./creating-workspaces) avec un `name` et un `type`. Le `name` doit être unique, car il est utilisé pour retrouver le composant lors du lancement. Différents Workspaces peuvent partager le même `type`. Le système n'autorise pas plusieurs Workspaces du même type à être ouverts en même temps. Les types existants sont `form`, `clinical-form` (un formulaire spécial), `order` et `patient-lists`. Si vous ajoutez un nouveau [bouton de navigation du Siderail](./siderail-and-bottom-nav), il correspondra à un nouveau type de Workspace. Sinon, vous pouvez créer votre propre type ou utiliser un type existant, selon le comportement souhaité.
+
+Une fois qu'un Workspace est [enregistré](./creating-workspaces), il peut être [lancé](./launching-workspaces) n'importe où dans le Dossier patient.

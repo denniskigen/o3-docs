@@ -1,1 +1,22 @@
-{}
+{
+  "introduction": "Introduction",
+  "project-structure": "Structure du projet",
+  "code-organization": "Organisation du code",
+  "naming": "Nommage",
+  "components": "Composants",
+  "type-annotations": "Annotations de type",
+  "state-management": "Gestion de l'état",
+  "data-fetching": "Récupération des données",
+  "loading-states": "États de chargement",
+  "mutations-and-side-effects": "Mutations et effets secondaires",
+  "event-handlers": "Gestionnaires d'événements",
+  "forms": "Formulaires",
+  "workspaces": "Espaces de travail",
+  "modals": "Modales",
+  "styling": "Styles",
+  "search-inputs": "Champs de recherche",
+  "internationalization": "Internationalisation",
+  "error-handling": "Gestion des erreurs",
+  "testing": "Tests",
+  "performance": "Performance"
+}

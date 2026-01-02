@@ -14,35 +14,51 @@ In O3, the app shell refers to the code inside the `esm-app-shell` package. It h
 
 The template also contains a reference to `openmrs.js` that is the main file generated from the Webpack bundle. It creates a function called `initializeSpa` and appends it to the window object, making it available to the global scope. This function is called from the `index.ejs` template and is responsible for bootstrapping the application. The template also includes:
 
-- `<div>`s where containers for modals, inline notifications, toast notifications get rendered in the UI.
+- `<div>`s where containers for modals, inline notifications, actionable notifications, snackbars, and toast notifications get rendered in the UI.
 - A loading spinner that gets rendered when frontend modules are getting loaded by the app shell.
 - An error state that gets rendered when the application fails to load.
 
 ## initializeSpa
 
-The `initializeSpa` function among other things:
+The `initializeSpa` function:
 
-- Appends some useful global variables to the window object, e.g. `openmrsSpaBase`, `spaBase`, `spaBasePath` and `spaVersion`.
-- Initializes the module loading mechanism by invoking the `run` function.
+- Sets up utility functions (like `copyText` for error messages)
+- Configures global paths and variables on the window object (e.g. `openmrsBase`, `spaBase`, `spaEnv`, `spaVersion`, and `getOpenmrsSpaBase`)
+- Wires up the SPA base path by creating a `<base>` element in the document head
+- Initializes Webpack module sharing
+- Initializes the module loading mechanism by invoking the `run` function
 
 ### run()
 
-The `run` function is responsible for:
+The `run` function orchestrates the complete initialization sequence. It is responsible for:
 
 - Displaying the loading spinner. This spinner gets shown until modules finish loading.
 - Setting up breakpoints in the UI for `tablet`, `small-desktop` and `large-desktop` viewports.
-- Wiring up subscriptions to appropriate places in the app shell for toasts, inline notifications, and modals.
+- Wiring up subscriptions to appropriate places in the app shell for toasts, inline notifications, actionable notifications, snackbars, and modals.
 - Calling `setupApiModule` to initialize the configuration schema.
+- Calling `setupHistory` to set up client-side routing.
 - Calling `registerCoreExtensions` which implements breadcrumbs functionality.
+- Calling `setupCoreConfig` to initialize core configuration.
 - Calling `setupApps` which actually handles the loading of modules.
+- After modules are registered, it calls `finishRegisteringAllApps` to finalize the registration process.
+- If offline mode is enabled, it sets up offline CSS classes and handlers, and registers the service worker.
+- Loading configuration from the provided `configUrls`.
+- Calling `runShell` which starts single-spa and initializes internationalization.
+- Handling initialization failures with `handleInitFailure` if anything goes wrong.
+- Cleaning up obsolete feature flags.
 
 ### setupApps()
 
-The `setupApps` function loads all of the routes from the routes registry and then invokes `registerApp()` on each module and it's module definition (the backend dependencies, pages, and extensions it provides). `registerApp()` then:
+The `setupApps` function loads all of the routes from the routes registry. It reads routes from:
+- `<script type="openmrs-routes">` tags in the HTML (either inline JSON or from a URL)
+- Route overrides stored in `localStorage` (useful for development and debugging)
+
+After loading all routes, it invokes `registerApp()` on each module and its module definition (the backend dependencies, pages, and extensions it provides). `registerApp()` then:
 
 - Registers an implicit configuration schema for the application.
 - Iterates through the extensions and registers them with the extension registry.
-- Pages get added to a global variable where they can be ordered based on the `order` property which determines the order in which pages get rendered in the DOM. We create a `<div>` for each page and append it to the DOM. This allows us to ensure that the DOM order matches the order of the pages. For example, we want the navbar to be the first thing that gets rendered in the DOM, so it has an order of 0. This happens in the `finishRenderingAllApps` function which gets invoked after all the frontend modules have finished loading.
+- Iterates through modals, workspaces, workspace groups, and feature flags and registers them.
+- Pages get added to a global array. After all modules are registered, `finishRegisteringAllApps` sorts pages alphabetically by app name, then creates a `<div>` element for each page in the DOM. The div is created inside the container specified by the page's `containerDomId` property (defaults to `omrs-apps-container`). This ensures that single-spa has a predetermined DOM element to mount each page into, which is required for proper routing behavior.
 
 Pages and extensions are implemented as Single Spa objects, which are essentially JavaScript objects that define three lifecycle functions:
 
@@ -50,7 +66,7 @@ Pages and extensions are implemented as Single Spa objects, which are essentiall
 - `mount` - This function is called when the page is first loaded. It's responsible for rendering the page. Under the hood, this typically calls `ReactDOM.createRoot()` and renders the React tree into the DOM element that corresponds to the page.
 - `unmount` - This function is called when the page is unloaded. It's responsible for cleaning up any resources the page is using.
 
-Both pages and extensions leverage the `getLoader()` function which takes the page or extension's definition and returns a function that can be used to load the page or extension. If you look at a frontend module's entry point (`src/index.ts`), you'll see named exports that invoke either the `getAsyncLifecycle` or `getSyncLifecycle` function. These functions allow us to wrap pages and extensions into a format that can be loaded by the single-spa-react library. Essentially, the React component gets wrapped in an `openmrsComponentDecorator` that allows us the framework to:
+Both pages and extensions are loaded using the `loadLifeCycles()` function which takes the app name and component name and returns a Promise that resolves to the single-spa lifecycle object. If you look at a frontend module's entry point (`src/index.ts`), you'll see named exports that invoke either the `getAsyncLifecycle` or `getSyncLifecycle` function. These functions allow us to wrap pages and extensions into a format that can be loaded by single-spa. Essentially, the React component gets wrapped in an `openmrsComponentDecorator` that allows the framework to:
 
 - Handle errors if the rendering fails catastrophically.
 - Wire up configuration support for the component.
@@ -58,10 +74,72 @@ Both pages and extensions leverage the `getLoader()` function which takes the pa
 - Wire up a Suspense fallback for the component that defaults to `null`.
 - Render the component.
 
-When you define a `page`, the page definition can have a `route` property or a `routeRegex` property. Single spa uses the location referenced by the `route` or `routeRegex` to determine the pages that get rendered into that location via the `getActivityFn` function. Pages in O3 are essentially single-spa applications with a pretermined `<div>` tag that they get rendered into. Extensions leverage the single-spa `parcel` concept - they have the exact same lifecycles as single-spa applications, expect that they don't have an `getActivityFn`. This means single-spa will never mount or unmount a parcel. Instead, you have to manually tell it when to mount or unmount a parcel. The extension system exists to determine when an extension should be loaded (and subsequently invoke the `mount` function on it) and unloaded (and subsequently invoke the `unmount` function on it). Every extension is mounted through the `Extension` component defined in the framework. This component essentially renders the extension (by invoking single-spa's `mount` function) and unmounts the parcel when the component is unmounted. It defines a `<div>` with a `data-extension-id` property into which React renders the parcel into. The key thing to note about pages and extensions is that once `<div>`s get created for them, React takes over and renders the page or extension into the DOM.
+When you define a `page`, the page definition can have a `route` property or a `routeRegex` property. Single-spa uses the location referenced by the `route` or `routeRegex` to determine the pages that get rendered into that location via the `getActivityFn` function. Pages in O3 are essentially single-spa applications with a predetermined `<div>` tag that they get rendered into. Extensions leverage the single-spa `parcel` concept - they have the exact same lifecycles as single-spa applications, except that they don't have a `getActivityFn`. This means single-spa will never automatically mount or unmount a parcel. Instead, you have to manually tell it when to mount or unmount a parcel. The extension system exists to determine when an extension should be loaded (and subsequently invoke the `mount` function on it) and unloaded (and subsequently invoke the `unmount` function on it). Every extension is mounted through the `Extension` component defined in the framework. This component essentially renders the extension (by invoking single-spa's `mount` function) and unmounts the parcel when the component is unmounted. It defines a `<div>` with a `data-extension-id` property into which React renders the parcel. The key thing to note about pages and extensions is that once `<div>`s get created for them, React takes over and renders the page or extension into the DOM.
 
 ## Module loading
 
-Frontend modules in O3 are loaded dynamically into the app shell using [Webpack Module Federation (MF)](https://webpack.js.org/concepts/module-federation/). We have a `dynamic remote containers` system. The `entry point` of the application is `@openmrs-esm-app-shell`. The list of remotes to be loaded is supplied via import maps. Our import maps are not processed by the browser or SystemJS, but are used internally to resolve module names to URLs.
+O3 loads frontend modules using SystemJS import maps and Module Federation. The app shell injects a
+`systemjs-importmap` in `index.ejs`, preloads the import map, and then uses it to resolve module URLs.
 
-Each module (a `remote`) is provided as a name and URL. For each URL, a `<script>` element is appended to the DOM. Because those scripts have a `webpack library type` of `var`, when they are loaded, they create a new global variable which has the Webpack Container Interface for that module: the `init` and `get` methods. We use those to obtain the actual module exports.
+Most modules are built as Module Federation bundles. For each module URL, the app shell appends a `<script>` tag. When the
+script loads, it exposes a Webpack container (`init`/`get`) that the app shell uses to load the module’s exports.
+
+Some legacy modules are not Module Federation bundles; in those cases, the app shell loads them as plain SystemJS
+modules via the import map.
+
+## Initialization sequence
+
+The complete initialization sequence follows this order:
+
+1. **Template rendering**: The `index.ejs` template is rendered with dynamic values injected at build time.
+2. **initializeSpa**: Sets up global variables and paths, then calls `run()`.
+3. **run()**: Orchestrates the initialization:
+   - Sets up UI infrastructure (breakpoints, notifications, modals)
+   - Initializes API module and configuration schema
+   - Sets up routing history
+   - Registers core extensions (breadcrumbs)
+   - Loads and registers all frontend modules via `setupApps()`
+   - Finalizes module registration
+   - Sets up offline support (if enabled)
+   - Loads configuration files
+   - Starts single-spa routing via `runShell()`
+   - Handles any initialization errors
+   - Cleans up obsolete feature flags
+4. **runShell()**: Finalizes the startup by:
+   - Setting up internationalization (i18n)
+   - Registering the default calendar
+   - Starting single-spa with `start()`, which begins routing and rendering pages
+
+## Offline support
+
+When offline mode is enabled (via the `offline` configuration option), the app shell:
+
+- Registers a service worker (`service-worker.js`) for caching and offline functionality
+- Sets up CSS classes (`omrs-online` / `omrs-offline`) on the body element based on connectivity
+- Registers offline handlers for connectivity changes
+- Activates offline capability for data synchronization
+- Sets up static dependency precaching for offline use
+
+## Error handling
+
+If initialization fails at any point, the `handleInitFailure` function:
+
+- Catches the error and displays the error template from `index.ejs`
+- Shows a user-friendly error message with a reload button
+- Logs detailed error information to the console
+- Provides a copy button for the error message
+
+## Route overrides
+
+For development and debugging purposes, you can override routes by storing them in `localStorage` with keys prefixed with `openmrs-routes:`. The app shell will load these overrides and merge them with the routes from the registry. The value can be either:
+- A JSON string containing the routes object for that module
+- A URL string pointing to a routes.json file to fetch
+
+This allows developers to test different module versions or configurations without rebuilding the entire application. For example:
+
+```javascript
+localStorage.setItem('openmrs-routes:@openmrs/esm-my-app', JSON.stringify({
+  pages: [/* ... */],
+  extensions: [/* ... */]
+}));
+```

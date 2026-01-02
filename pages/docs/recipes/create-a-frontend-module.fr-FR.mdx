@@ -19,7 +19,7 @@ Le processus pour cela serait le suivant :
 
 ### Étape 1
 
-Allez sur le dépôt GitHub de l'application seed [Template](https://github.com/openmrs/openmrs-esm-template-app) et cliquez sur le bouton `Use this template`. Cliquez sur `Create a new repository` et suivez les instructions pour créer un nouveau dépôt. Clonez le nouveau dépôt sur votre machine locale. Dans ce cas, nous nommerons le nouveau dépôt `openmrs-esm-active-prescriptions`. Cliquez sur le bouton `Create repository from template` puis clonez le nouveau dépôt sur votre machine locale.
+Allez sur le dépôt GitHub de l'application seed [Template](https://github.com/openmrs/openmrs-esm-template-app) et cliquez sur le bouton `Use this template`. Choisissez `Create a new repository` et suivez les instructions pour créer un nouveau dépôt. Dans ce cas, nous nommerons le nouveau dépôt `openmrs-esm-active-prescriptions`. Une fois créé, clonez le nouveau dépôt sur votre machine locale.
 <Callout emoji="ℹ️" type="info">
   Pourquoi le préfixe `esm`?
   Les modules frontaux ont la convention d'être préfixés par `esm`. Voir la note sur [les modules frontaux](/docs/frontend-modules/overview).
@@ -42,8 +42,9 @@ Vous remarquerez que le code de la page d'accueil et de la page de connexion n'e
 Les données sont récupérées à partir du serveur de développement hébergé. Si vous souhaitez le connecter à un autre backend, vous pouvez ajouter le suffixe `--backend https://your-backend-url` à la commande `yarn start`.
 
 TL;DR : la commande `yarn start` exécute en fait `openmrs develop` qui, selon une certaine configuration, configure le tout (lisez-en plus sur la [configuration](/docs/configuration-system)).
-<Callout emoji="" type="info">
-  Pour en savoir plus sur le fonctionnement de `openmrs develop`, consultez [`runDevelop`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/tooling/openmrs/src/commands/develop.ts).
+
+<Callout emoji="ℹ️" type="info">
+  Pour en savoir plus sur le fonctionnement de `openmrs develop`, consultez [`runDevelop`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/tooling/openmrs/src/commands/develop.ts). Notez que le dépôt Template est déjà configuré pour Core v5+ et utilise `routes.json` et `startupApp()` pour l'enregistrement des modules. Si vous migrez un module plus ancien, consultez le [guide de migration](/docs/migrate-to-core-v5).
 </Callout>
 
 ### Étape 3
@@ -55,11 +56,12 @@ Ensuite, nous suivrons les étapes dans le README pour adapter le code à nos be
 
   - Changer le `moduleName` en `@openmrs/esm-active-prescriptions-app`.
   - Changer le `featureName` de `root-world` à une chaîne vide. Vous le changerez plus tard pour une valeur plus utile.
+  - Assurez-vous d'avoir une fonction `startupApp()` qui appelle `defineConfigSchema()` si votre module a une configuration. Pour les modules Core v5+, cela est requis pour que les schémas de configuration soient correctement enregistrés.
 
 - Mettre à jour la route vers le module frontal.
 
-  - Nous avons besoin d'une URL de route pour accéder au module frontal. Celle-ci est spécifiée dans routes.json dans la propriété pages. Vous verrez qu'un composant `root` a la route `root`, c'est notre `root.component.tsx`.
- ```json
+  - Nous avons besoin d'une URL de route pour accéder au module frontal. Celle-ci est spécifiée dans `src/routes.json` dans la propriété `pages`. Vous verrez qu'un composant `root` a la route `root`, c'est notre `root.component.tsx`.
+ ```json filename="src/routes.json"
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {
     "fhir2": ">=1.2",
@@ -90,8 +92,6 @@ Ensuite, nous suivrons les étapes dans le README pour adapter le code à nos be
   ]
   ```
 
-Nous avons besoin d'une URL de route pour accéder au module frontal. Celle-ci est spécifiée dans `routes.json` dans la propriété `pages`. Vous verrez qu'un composant `root` a la route `root`, c'est notre `root.component.tsx`.
-
 Maintenant que la route est configurée, elle peut être accessible via `http://localhost:8080/openmrs/spa/active-prescriptions`, ce qui afficherait le modèle de l'application template. 
 Le modèle contient des ressources utiles sur les fonctionnalités clés du framework O3 qui vous aideront probablement dans le développement de votre module frontal. Pour commencer à modifier le code du template, vous pouvez suivre les instructions dans le `README.md` du [dépôt template](https://github.com/openmrs/openmrs-esm-template-app/blob/main/README.md). 
 
@@ -121,5 +121,4 @@ Une fois que vous avez créé un module frontal, vous voudrez l'intégrer dans v
 Tout d'abord, publiez votre package de module frontal sur NPM. À la fin, votre package devrait être visible sur npm.js,
 comme [`@openmrs/esm-login-app`](https://www.npmjs.com/package/@openmrs/esm-login-app).
 
-Ensuite, vous devrez intégrer ce package dans votre distribution. Des informations à ce sujet peuvent être trouvées dans la documentation du déploiement des implémentateurs sur
-[Déploiement](https://wiki.openmrs.org/pages/viewpage.action?pageId=224527013).
+Ensuite, vous devrez intégrer ce package dans votre distribution. Ajoutez votre module à l'objet `frontendModules` dans le fichier `spa-assemble-config.json` de votre distribution. Pour plus d'informations, consultez le guide [Créer une distribution](/docs/recipes/create-a-distribution) et le guide [Vue d'ensemble de la configuration](/docs/configure-o3/overview#spa-assemble-configjson).

@@ -1,10 +1,130 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
 # Créer une distribution
 
 L'une des raisons pour lesquelles nous avons choisi ce type de modularisation dans l'espace frontal est de permettre une flexibilité maximale pour créer votre propre distribution. De cette façon, vous pouvez utiliser ce que vous trouvez utile et laisser tomber ce que vous n'aimez pas voir dans votre distribution.
 
 Ce concept s'applique à presque tous les domaines, y compris, mais sans s'y limiter, les modules frontaux disponibles, l'enveloppe de l'application livrée et la méthode de distribution de l'application.
 
-Dans cette section, nous examinons certains aspects à prendre en compte lors de la création d'une distribution. Plus précisément, nous examinons les options que nous proposons et la manière dont vous pouvez les exploiter dans votre cas d'utilisation.
+Ce guide vous explique comment créer une distribution O3 de A à Z, y compris la construction, les tests et le déploiement.
+
+## Prérequis
+
+Avant de commencer, assurez-vous d'avoir:
+
+- **Node.js** version 16.17 (LTS) ou ultérieure installée. Nous recommandons d'utiliser [nvm](https://github.com/nvm-sh/nvm) ou [fnm](https://github.com/Schniz/fnm) pour gérer les versions de Node.js.
+- **npm** (fourni avec Node.js) - Vous l'utiliserez pour exécuter l'outil CLI `openmrs` via `npx`
+- **Un backend OpenMRS** - Vous aurez besoin d'un backend OpenMRS en cours d'exécution pour connecter votre distribution (pour les tests et la production)
+
+## Installation
+
+L'outil CLI `openmrs` peut être exécuté sans installation en utilisant `npx` (qui fait partie de npm):
+
+```bash
+npx openmrs --help
+```
+
+Alternativement, vous pouvez l'installer globalement:
+
+```bash
+npm install -g openmrs
+```
+
+Ensuite, vous pouvez exécuter les commandes directement sans `npx`:
+
+```bash
+openmrs --help
+```
+
+Pour les environnements CI/CD, il est recommandé d'utiliser `npx --legacy-peer-deps openmrs@${APP_SHELL_VERSION:-next}` pour garantir des versions cohérentes.
+
+## Démarrage rapide: Workflow complet
+
+Voici un workflow complet étape par étape pour créer votre première distribution:
+
+<Steps>
+
+### Étape 1: Créer votre répertoire de projet
+
+Créez un nouveau répertoire pour votre distribution:
+
+```bash
+mkdir my-o3-distribution
+cd my-o3-distribution
+```
+
+### Étape 2: Créer la configuration d'assemblage
+
+Créez un fichier `spa-assemble-config.json` qui définit quels modules frontaux inclure:
+
+```json filename="spa-assemble-config.json"
+{
+  "publicUrl": ".",
+  "frontendModules": {
+    "@openmrs/esm-patient-chart-app": "latest",
+    "@openmrs/esm-patient-registration-app": "latest",
+    "@openmrs/esm-home-app": "latest"
+  },
+  "frontendModuleExcludes": []
+}
+```
+
+### Étape 3: Créer la configuration de construction
+
+Créez un fichier `spa-build-config.json` qui configure les propriétés d'exécution:
+
+```json filename="spa-build-config.json"
+{
+  "spaPath": "/openmrs/spa/",
+  "apiUrl": "/openmrs/",
+  "configUrls": [],
+  "defaultLocale": "en",
+  "importmap": "./spa/importmap.json",
+  "routes": "./spa/routes.registry.json",
+  "supportOffline": false
+}
+```
+
+### Étape 4: Assembler les modules frontaux
+
+Exécutez la commande d'assemblage pour rassembler tous les actifs des modules frontaux:
+
+```bash
+npx openmrs assemble --manifest --mode config --config spa-assemble-config.json --target ./spa
+```
+
+Cela crée les fichiers `importmap.json` et `routes.registry.json` dans le répertoire `./spa`.
+
+### Étape 5: Construire le shell de l'application
+
+Exécutez la commande de construction pour créer le shell d'application distribuable:
+
+```bash
+npx openmrs build --build-config spa-build-config.json --target ./spa
+```
+
+Vérifiez que la construction a réussi en vérifiant que `./spa/index.html` existe.
+
+### Étape 6: Tester localement
+
+Testez votre distribution en utilisant un serveur HTTP simple:
+
+```bash
+cd ./spa
+python3 -m http.server 8080
+```
+
+Ensuite, ouvrez `http://localhost:8080/openmrs/spa/` dans votre navigateur (ajustez le chemin en fonction de votre configuration `spaPath`).
+
+**Note**: Pour que la SPA fonctionne pleinement, vous devrez:
+- La servir derrière un proxy qui transfère les requêtes API vers votre backend OpenMRS
+- Ou configurer CORS sur votre backend pour autoriser les requêtes depuis `http://localhost:8080`
+
+### Étape 7: Déployer
+
+Déployez le contenu du répertoire `./spa` sur votre serveur web. Consultez la section [Servir votre distribution](#servir-votre-distribution) ci-dessous pour les options de déploiement détaillées.
+
+</Steps>
 
 ## Construction locale vs configuration CI
 
@@ -15,15 +135,33 @@ Pour construire votre propre distribution, un simple outil Node.js appelé `open
 - créer une carte d'importation avec toutes les ressources pour les modules frontaux contenus (`openmrs assemble`)
 - construire un nouveau shell pour héberger les modules frontaux (`openmrs build`)
 - démarrer une session de débogage du shell et d'un module frontal (`openmrs debug`)
-- démarre une session de débogage d'un module frontal dans le shell (`openmrs develop`)
-- démarre localement le shell de l'application par défaut (`openmrs start`)
+- démarrer une session de débogage d'un module frontal dans le shell (`openmrs develop`)
+- démarrer localement le shell de l'application par défaut (`openmrs start`)
 
-Pour créer une distribution, nous recommandons de faire deux choses:
+Pour créer une distribution, vous devez compléter deux étapes **dans l'ordre**:
 
-1. Construire l'app shell (`openmrs build`) avec la configuration que vous voulez voir.
-2. Utiliser `openmrs assemble` pour obtenir une configuration personnalisée pour votre import map.
+1. **Assembler** la carte d'importation (`openmrs assemble`) - Ceci rassemble tous les actifs des modules frontaux et crée la carte d'importation et le registre des routes.
+2. **Construire** le shell de l'application (`openmrs build`) - Ceci construit le shell de l'application qui hébergera vos modules frontaux, en utilisant la carte d'importation et les routes de l'étape 1.
 
-La carte d'importation est utilisée pour définir quels modules frontaux sont inclus et où ces modules frontaux sont situés.
+La carte d'importation est utilisée pour définir quels modules frontaux sont inclus et où ces modules frontaux sont situés. L'étape de construction nécessite la sortie de l'étape d'assemblage.
+
+Voici un exemple de workflow complet:
+
+```bash
+# Étape 1: Assembler les modules frontaux et créer la carte d'importation
+openmrs assemble --manifest --mode config --config spa-assemble-config.json --target ./spa
+
+# Étape 2: Construire le shell de l'application
+openmrs build --build-config spa-build-config.json --target ./spa
+```
+
+<Callout emoji="ℹ️" type="info">
+  **Note**: Dans les environnements CI/CD (comme Docker), vous pouvez vouloir utiliser `npx --legacy-peer-deps openmrs@${APP_SHELL_VERSION:-next}` au lieu de simplement `openmrs` pour garantir des versions cohérentes. Le drapeau `--manifest` génère des informations de version, et `--mode config` utilise explicitement le mode fichier de configuration (bien que ce soit la valeur par défaut lorsque `--config` est fourni).
+</Callout>
+
+<Callout emoji="⚠️" type="warning">
+  **Important**: L'étape `assemble` doit s'exécuter avant `build`, et les deux commandes doivent utiliser le même répertoire `--target`. L'étape de construction lit les fichiers `importmap.json` et `routes.registry.json` créés par l'étape d'assemblage.
+</Callout>
 
 ## Personnaliser la carte d'importation
 
@@ -33,25 +171,44 @@ Une carte d'importation peut également être spécifiée sous la forme d'une UR
 
 Une carte d'importation personnalisée peut être créée à l'aide de la commande `openmrs assemble`. Si elle est lancée directement, la commande ouvrira une enquête en ligne de commande, vous guidant à travers les différentes options. Elle listera tous les modules frontaux d'OpenMRS qui peuvent être trouvés dans le registre NPM.
 
-Pour des raisons de CI/CD, nous vous encourageons à utiliser un fichier de configuration `spa-build-config.json` à la place. Ce fichier définit alors les modules frontaux souhaités et configure l'ensemble du processus.
+Pour des raisons de CI/CD, nous vous encourageons à utiliser un fichier de configuration `spa-assemble-config.json` à la place. Ce fichier définit les modules frontaux souhaités et configure l'ensemble du processus. Notez que `spa-assemble-config.json` est différent de `spa-build-config.json`, qui est utilisé pour les propriétés de configuration à l'exécution (voir le guide [Vue d'ensemble de la configuration](/docs/configure-o3/overview#spa-build-configjson) pour plus de détails).
+
+Pour utiliser le fichier de configuration, exécutez:
+
+```bash
+openmrs assemble --config spa-assemble-config.json
+```
+
+Vous pouvez également spécifier des options supplémentaires:
+- `--target <répertoire>`: Le répertoire cible où les artefacts rassemblés seront stockés (par défaut: `dist`)
+- `--fresh`: Nettoyer le répertoire de sortie avant l'exécution
+- `--manifest`: Générer un fichier manifeste avec les informations de version
+- `--mode config`: Utiliser le mode fichier de configuration (par défaut lorsque `--config` est fourni)
 
 Le fichier peut ressembler à ce qui suit:
 
-```json
+```json filename="spa-assemble-config.json"
 {
   "publicUrl": ".",
   "frontendModules": {
     "@openmrs/esm-patient-chart-app": "latest",
     "@openmrs/esm-patient-registration-app": "3.0.0"
-  }
+  },
+  "frontendModuleExcludes": []
 }
 ```
+
+Le tableau `frontendModuleExcludes` vous permet d'exclure des modules spécifiques qui pourraient être inclus en tant que dépendances d'autres modules. Ceci est utile lorsque vous souhaitez supprimer un module qui serait autrement inclus automatiquement.
+
+<Callout emoji="ℹ️" type="info">
+  **Note**: Certaines distributions peuvent utiliser `excludedFrontendModules` au lieu de `frontendModuleExcludes`. Les deux sont pris en charge, mais `frontendModuleExcludes` est le nom de propriété canonique utilisé par l'outil CLI `openmrs`.
+</Callout>
 
 Le `publicUrl` peut être important pour plus tard. Si les ressources rassemblées sont placées (et servies) dans le même dossier que les ressources de la SPA, alors `.` est bon. Si elles sont téléchargées vers un CDN, l'URL (de base) du CDN doit être définie.
 
 Exemple:
 
-```json
+```json filename="spa-assemble-config.json"
 {
   "publicUrl": "https://openmrs-cdn-example.com/mf",
   "frontendModules": {
@@ -73,6 +230,135 @@ Dans ce cas, le fichier `import-map.json` résultant pourrait ressembler à ce q
 ```
 
 Dans les deux cas, la commande d'assemblage permet de s'assurer que tous les actifs sont correctement mis à disposition.
+
+## Construire le shell de l'application
+
+Après avoir assemblé vos modules frontaux, vous devez construire le shell de l'application. Le processus de construction nécessite un fichier `spa-build-config.json` qui configure les propriétés d'exécution pour votre distribution.
+
+Le fichier `spa-build-config.json` doit inclure:
+
+```json filename="spa-build-config.json"
+{
+  "spaPath": "/openmrs/spa/",
+  "apiUrl": "/openmrs/",
+  "configUrls": ["/openmrs/spa/config.json"],
+  "defaultLocale": "en",
+  "importmap": "./spa/importmap.json",
+  "routes": "./spa/routes.registry.json",
+  "supportOffline": false
+}
+```
+
+**Propriétés clés**:
+- `spaPath`: Le chemin où la SPA sera servie (par exemple, `/openmrs/spa/`)
+- `apiUrl`: L'URL de l'API backend OpenMRS
+- `configUrls`: Tableau d'URLs vers les fichiers de configuration JSON frontend
+- `defaultLocale`: Code de langue par défaut (par exemple, `en`, `fr`)
+- `importmap`: Chemin vers le fichier de carte d'importation créé par `assemble` (relatif au répertoire cible de construction)
+- `routes`: Chemin vers le fichier de registre des routes créé par `assemble` (relatif au répertoire cible de construction)
+- `supportOffline`: S'il faut activer le support hors ligne via un service worker
+
+Vous pouvez également utiliser des variables d'environnement dans le fichier de configuration (elles seront interpolées au moment de la construction):
+
+```json filename="spa-build-config.json"
+{
+  "spaPath": "$SPA_PATH",
+  "apiUrl": "$API_URL",
+  "configUrls": ["$SPA_CONFIG_URLS"],
+  "defaultLocale": "$SPA_DEFAULT_LOCALE",
+  "importmap": "$SPA_PATH/importmap.json",
+  "routes": "$SPA_PATH/routes.registry.json",
+  "supportOffline": false
+}
+```
+
+Pour construire le shell de l'application, exécutez:
+
+```bash
+openmrs build --build-config spa-build-config.json --target ./spa
+```
+
+Options de construction supplémentaires:
+- `--target <répertoire>`: Le répertoire cible (doit correspondre au répertoire cible d'assemblage)
+- `--fresh`: Nettoyer le répertoire de sortie avant la construction
+- `--support-offline`: Activer le support hors ligne (peut remplacer le fichier de configuration)
+
+Après une construction réussie, votre répertoire `./spa` contiendra:
+- `index.html` - Le fichier HTML principal pour la SPA
+- `importmap.json` - La carte d'importation créée par l'étape d'assemblage
+- `routes.registry.json` - Le registre des routes créé par l'étape d'assemblage
+- Les bundles JavaScript et autres actifs nécessaires pour exécuter l'application
+
+<Callout emoji="✅" type="success">
+  **Vérification de la construction**: Après avoir exécuté la commande de construction, vérifiez que `./spa/index.html` existe. S'il n'existe pas, la construction a échoué. Vérifiez les journaux de construction pour les erreurs.
+</Callout>
+
+**Important**: Si vous utilisez `configUrls` dans votre `spa-build-config.json`, vous devrez également vous assurer que ces fichiers de configuration JSON sont disponibles et servis avec vos fichiers construits. Par exemple, si votre configuration référence `/openmrs/spa/config.json`, ce fichier doit être accessible à cette URL lorsque la SPA se charge.
+
+## Servir votre distribution
+
+Après avoir construit votre distribution, vous devez servir les fichiers construits à l'aide d'un serveur web. Les fichiers construits sont des actifs statiques qui peuvent être servis par n'importe quel serveur web (nginx, Apache, etc.).
+
+### Configuration de base
+
+La façon la plus simple de servir votre distribution est d'utiliser un serveur de fichiers statiques. Les fichiers construits doivent être servis au chemin spécifié dans votre configuration `spaPath` (par exemple, `/openmrs/spa/`).
+
+**Considérations importantes:**
+
+1. **Fichiers de configuration**: Si vous utilisez `configUrls` dans votre `spa-build-config.json`, assurez-vous que ces fichiers de configuration JSON sont également accessibles via HTTP/HTTPS aux URLs spécifiées. La SPA les récupérera à l'exécution.
+
+2. **Connexion backend**: Assurez-vous que votre serveur web peut proxy les requêtes API vers votre backend OpenMRS, ou configurez CORS sur votre backend pour autoriser les requêtes depuis votre domaine frontend.
+
+3. **Configuration du chemin**: Le `spaPath` dans votre configuration de construction doit correspondre au chemin où vous servez les fichiers. Par exemple, si `spaPath` est `/openmrs/spa/`, votre serveur web doit servir les fichiers à ce chemin.
+
+### Exemple: Utiliser nginx
+
+Voici une configuration nginx de base pour servir votre distribution:
+
+```nginx
+server {
+    listen 80;
+    server_name localhost;
+
+    # Servir la SPA à /openmrs/spa/
+    location /openmrs/spa/ {
+        alias /usr/share/nginx/html/;
+        try_files $uri $uri/ /openmrs/spa/index.html;
+    }
+
+    # Proxy des requêtes API vers le backend OpenMRS
+    location /openmrs/ {
+        proxy_pass http://backend:8080/openmrs/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+### Test local
+
+Pour tester votre distribution localement, vous pouvez:
+
+1. **Utiliser un serveur HTTP simple**:
+   ```bash
+   cd ./spa
+   python3 -m http.server 8080
+   ```
+   Puis y accéder à `http://localhost:8080/openmrs/spa/` (ajustez le chemin en fonction de votre configuration `spaPath`).
+
+2. **Utiliser la commande `openmrs start`** pour le développement (bien que cela utilise une carte d'importation par défaut, pas votre carte personnalisée).
+
+3. **Utiliser Docker** avec nginx, similaire à la configuration de la distribution de référence.
+
+### Déploiement
+
+Pour les déploiements en production:
+
+- **Docker**: Copiez le répertoire `./spa` construit dans un conteneur nginx (voir le Dockerfile de la distribution de référence pour un exemple)
+- **Hébergement statique**: Téléchargez le contenu du répertoire `./spa` vers votre service d'hébergement statique (CDN, S3, etc.)
+- **Serveur web traditionnel**: Copiez les fichiers vers la racine des documents de votre serveur web
+
+N'oubliez pas de déployer également tous les fichiers de configuration JSON référencés dans vos `configUrls` et assurez-vous qu'ils sont accessibles aux URLs spécifiées.
 
 ## Canary vs Stable
 

@@ -81,10 +81,12 @@ const userStore = createGlobalStore<UserStore>('userStore', { user: null });
 const user = useStore<UserStore, User | null>(userStore, state => state.user);
 
 // at some other point
-userStore.set((state) => state.user = /* value from somewhere */);
+userStore.setState({ user: /* value from somewhere */ });
+// or using a functional update:
+userStore.setState((state) => ({ ...state, user: /* value from somewhere */ }));
 ```
 
-Updating the store using `set()` will update all variables subscribed to the store, including (like in the example) `user`.
+Updating the store using `setState()` will update all variables subscribed to the store, including (like in the example) `user`.
 
 #### App context
 

@@ -1,0 +1,105 @@
+# Composants
+
+- Ne gardez pas de code inutilisé dans vos composants. Garder du code mort peut causer de la confusion et rendre la base de code plus difficile à maintenir. Ceci inclut :
+  - Blocs de code commentés
+  - Imports inutilisés
+  - Props inutilisées
+  - Variables et fonctions inutilisées
+  - Chemins de code morts
+
+- Validez les props passées à votre composant en utilisant des alias de type ou des interfaces. Cela aide à détecter les bugs tôt et facilite la compréhension de l'utilisation du composant. Par exemple :
+
+  ```tsx
+  // Bon - utilisation d'interfaces TypeScript
+  interface UserComponentProps {
+    name: string;
+    age: number;
+    isAdmin?: boolean;
+  }
+
+  const UserComponent: React.FC<UserComponentProps> = ({ name, age, isAdmin = false }) => {
+    // ...
+  };
+  ```
+
+- Assurez-vous de lire la documentation d'un [composant Carbon](https://react.carbondesignsystem.com/) avant de l'utiliser. Cela vous aide à comprendre les props du composant et comment les utiliser. Cela vous aide également à comprendre le comportement du composant et peut éviter le besoin d'écrire du code personnalisé. Par exemple, voici la [documentation du composant Button](https://react.carbondesignsystem.com/?path=/docs/components-button--default).
+- [Utilisez des clés dans les listes](https://react.dev/learn/rendering-lists). Cela aide React à identifier quels éléments ont changé, été ajoutés ou supprimés. Ceci est particulièrement important si vous rendez une liste de composants qui contiennent un état.
+- [Générez des clés à partir des données elles-mêmes](https://react.dev/learn/rendering-lists#where-to-get-your-key) si possible. Par exemple, si vous rendez une liste de patients depuis la base de données, utilisez l'ID du patient comme clé. Cela garantit que la clé est unique et stable à travers les rendus.
+- [Évitez d'utiliser des effets](https://react.dev/learn/you-might-not-need-an-effect) pour des choses qui n'impliquent pas la synchronisation avec des systèmes externes. La distinction est nuancée et peut être difficile à comprendre. Veuillez lire et internaliser l'article lié avant d'utiliser des effets. Les cas courants où vous **n'avez pas** besoin d'utiliser des effets incluent :
+  - Transformer des données pour le rendu
+  - Gérer les événements utilisateur
+  - Mettre à jour l'interface utilisateur basée sur un état
+  - Mettre à jour l'interface utilisateur basée sur un changement de prop
+
+  Les scénarios où vous **avez** besoin d'utiliser des effets incluent :
+  - Gérer les abonnements ou les connexions WebSocket
+  - Contrôler les widgets non-React qui doivent être initialisés avec un élément DOM
+  - Gérer les API du navigateur que React ne gère pas pour vous (par exemple notifications, accès au microphone, etc.)
+  - Configurer des écouteurs d'événements ou d'autres callbacks sur les objets window ou document
+
+  En cas de doute, demandez-vous : "*Ce code synchronise-t-il avec quelque chose en dehors du contrôle de React ?*" 
+  Si non, vous n'avez probablement pas besoin d'un effet.
+
+- Envisagez d'utiliser des optimisations de performance comme `useMemo` et `useCallback` dans ces situations spécifiques :
+  - Lors de la mémorisation de calculs coûteux.
+  - Lors du passage de callbacks à des composants enfants optimisés qui s'appuient sur l'égalité référentielle pour empêcher des rendus inutiles.
+  - Lors de la création d'objets ou de tableaux référentiellement stables qui sont utilisés comme dépendances dans d'autres hooks.
+  - Lors du travail avec des fournisseurs de contexte où les changements de valeur peuvent déclencher des re-rendus généralisés.
+
+  Ne traitez pas ces hooks comme des optimisations prématurées, mais plutôt comme des outils pour des besoins spécifiques de performance et de stabilité. Lisez [la documentation React sur useMemo](https://react.dev/reference/react/useMemo#when-to-use-usememo) et [useCallback](https://react.dev/reference/react/useCallback#when-to-use-usecallback) pour des conseils détaillés.
+
+- Omettez la valeur d'une prop lorsqu'elle est explicitement `true`. Par exemple :
+
+  ```tsx
+  // Ceux-ci sont équivalents
+  <Button disabled /> // Préféré
+  <Button disabled={true} /> // Plus verbeux, même résultat
+  ```
+
+  ```tsx
+  // Soyez explicite lorsque vous devez marquer une prop comme fausse
+  <Button disabled={false} />
+  ```
+
+  ```tsx
+  // Ce modèle s'applique également aux composants personnalisés
+  <UserComponent isAdmin /> // Préféré
+  <UserComponent isAdmin={true} /> // Plus verbeux, même résultat
+  <UserComponent isAdmin={false} /> // Doit être explicite quand faux
+  ```
+
+  Cela garde le code plus propre et plus maintenable tout en maintenant une fonctionnalité complète.
+
+- [Les clés peuvent être utilisées pour réinitialiser l'état d'un composant](https://react.dev/learn/preserving-and-resetting-state#resetting-a-form-with-a-key). Ce modèle est particulièrement utile lors de la gestion de formulaires. Lorsque React rencontre un composant avec une clé différente, il démontera l'ancienne instance et montera une nouvelle, réinitialisant efficacement tout l'état interne. Des exemples de ceci incluent :
+
+  - Forcer un re-rendu du composant UserProfile lorsque l'utilisateur bascule entre les profils :
+
+  ```tsx
+  // Re-rendu lorsque userId change
+  <UserProfile key={userId} userId={userId} />
+  ```
+
+  - Réinitialiser l'état du formulaire lors du basculement entre les modes d'édition :
+
+  ```tsx
+  // Peut être utilisé pour effacer toutes les entrées de formulaire et les états de validation
+  <Form key={`${itemId}-${isEditMode}`} item={item} />
+  ```
+
+  - Réinitialiser une animation au lieu de transitionner depuis un état précédent :
+  
+  ```tsx
+  // Redémarrer l'animation lorsque count change
+  <AnimatedNumber key={count} value={count} />
+  ```
+
+  Le principe clé est : lorsque la clé change, React le traite comme une instance de composant complètement différente, rejetant tout état précédent. C'est plus propre que de réinitialiser manuellement plusieurs variables d'état.
+
+- Suivez un formatage de code cohérent, des conventions de nommage et une structure de dossiers. Cela rend la base de code plus lisible et plus facile à maintenir.
+
+- Fournissez des dépendances appropriées pour les hooks qui acceptent des tableaux de dépendances (`useEffect`, `useMemo`, `useCallback`, `useLayoutEffect`, `useTransition`, `useImperativeHandle` et `useDebugValue`). Cela aide à garantir que vos hooks restent synchronisés avec les dernières props et l'état de votre composant. La règle générale est de :
+  - Rendre les dépendances aussi spécifiques que possible tout en capturant toutes les valeurs qui pourraient affecter le comportement du hook
+  - Considérer les implications de performance de l'inclusion d'objets ou de fonctions comme dépendances
+  - Suivre les [lignes directrices de la documentation React](https://react.dev/learn/removing-effect-dependencies#what-to-do-about-object-dependencies) pour gérer les dépendances d'objets et de fonctions
+  - Utiliser la règle `exhaustive-deps` de `eslint-plugin-react-hooks` pour aider à faire respecter les spécifications de dépendances correctes
+

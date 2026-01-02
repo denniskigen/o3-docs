@@ -1,0 +1,142 @@
+# Performance
+
+- Utilisez judicieusement les hooks d'optimisation de performance intégrés de React :
+  - `useMemo` pour les calculs coûteux.
+  - `useCallback` pour les références de fonction stables.
+  - `memo` pour empêcher les re-rendus inutiles de composants complexes.
+
+  ```tsx
+    // Bon - mémorisation d'un calcul coûteux
+    const sortedItems = useMemo(() => {
+      return items
+        .slice()
+        .sort((a, b) => b.timestamp - a.timestamp);
+    }, [items]);
+
+    // Bon - callback stable pour les composants enfants
+    const handleSubmit = useCallback((data: FormData) => {
+      mutate(data);
+    }, [mutate]);
+    ```
+
+- Utilisez [l'optimisation d'élément](https://kentcdodds.com/blog/optimize-react-re-renders) pour éviter les re-rendus inutiles. Si vous donnez à React la même référence d'élément, il ignorera le rendu du composant.
+- Utilisez la méthode d'enregistrement de cycle de vie appropriée en fonction des exigences de chargement de votre composant :
+  - Utilisez `getAsyncLifecycle` pour enregistrer les modales, les espaces de travail et autres composants qui peuvent être chargés à la demande. 
+
+  ```tsx
+  // Bon - modale chargée uniquement lorsque nécessaire
+  export const markPatientAliveModal = getAsyncLifecycle(() => import('./mark-patient-alive.modal'), options);
+  ```
+
+  - Utilisez `getSyncLifecycle` pour les composants qui doivent être disponibles immédiatement au chargement de la page :
+
+  ```tsx
+  // Bon - composant inclus dans le bundle principal
+  export const startVisitForm = getSyncLifecycle(startVisitFormComponent, {
+    featureName: 'start-visit-form',
+    moduleName,
+  });
+  ```
+
+  La différence clé entre les deux est que `getAsyncLifecycle` crée un chunk séparé pour le composant dans le code split de votre application. Ce chunk est chargé à la demande, ce qui peut améliorer le temps de chargement initial de votre application. D'autre part, `getSyncLifecycle` inclut le composant dans le bundle principal, garantissant qu'il est disponible immédiatement au chargement de la page. Utilisez chaque approche de manière appropriée pour optimiser les performances de votre application. Lisez-en plus sur la différence entre les métadonnées statiques et dynamiques [ici](/docs/migrate-to-core-v5).
+
+- Préférez utiliser les [icônes](https://zeroheight.com/23a080e38/p/993dce-iconography) et [pictogrammes](https://zeroheight.com/23a080e38/p/396ba7-pictograms) de la bibliothèque d'icônes CarbonMRS plutôt que le package `@carbon/react/icons`. La bibliothèque CarbonMRS est optimisée pour notre cas d'usage et évite les problèmes potentiels de tree-shaking qui peuvent survenir avec le package d'icônes Carbon.
+
+- Envisagez d'utiliser le préchargement pour améliorer la réactivité de votre application. Le préchargement peut être particulièrement utile dans ces cas :
+  - Préchargement de données pour les éléments qui sont susceptibles d'être consultés ensuite :
+
+   ```tsx
+  // Précharger la page suivante de résultats
+  const prefetchNextPage = () => {
+    void mutate(`/ws/rest/v1/patient?startIndex=${currentPage + 1}`);
+  };
+  ```
+
+  - Préchargement de données en utilisant l'API [preload](https://swr.vercel.app/docs/prefetching) de SWR lors du survol de liens ou de boutons :
+
+  ```tsx
+  // Précharger les schémas de formulaire lors du survol de liens dans le form builder
+  <ConfigurableLink
+    className={styles.link}
+    to={editSchemaUrl}
+    templateParams={{ formUuid: form?.uuid }}
+    onMouseEnter={() => void preload(`/ws/rest/v1/form/${form?.uuid}?v=full`, openmrsFetch)}
+  >
+    {form.name}
+  </ConfigurableLink>
+  ```
+
+  N'oubliez pas que bien que le préchargement puisse améliorer l'expérience utilisateur, il doit être utilisé judicieusement pour éviter les requêtes réseau inutiles et l'utilisation de données.
+
+- Ajustez votre configuration SWR de manière appropriée pour optimiser les performances. O3 utilise une [configuration SWR globale](https://github.com/openmrs/openmrs-esm-core/pull/1157) qui désactive la plupart des revalidations automatiques. Parce que le [composant SWRConfig](https://swr.vercel.app/docs/global-configuration.en-US) fusionne les configurations du contexte parent, vous pouvez surcharger les options dans la configuration globale sur une base par composant. Alternativement, vous pouvez spécifier une configuration personnalisée au niveau de chaque hook. Chaque hook SWR accepte un objet d'options comme argument, que vous pouvez utiliser pour personnaliser le comportement du hook.
+
+  ```tsx
+  // Configuration globale dans le décorateur de composant OpenMRS
+  const defaultSwrConfig = {
+    // nombre maximum de nouvelles tentatives après l'échec des requêtes
+    errorRetryCount: 3,
+    // fonction fetcher par défaut
+    fetcher: openmrsFetch,
+    // revalider une seule fois toutes les 30 minutes
+    focusThrottleInterval: 1800000,
+    revalidateIfStale: true,
+    // désactiver les revalidations automatiques par défaut
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    refreshInterval: 0,
+  };
+
+  <SWRConfig value={defaultSwrConfig}>
+    <ComponentContext.Provider value={this.state.config}>
+      {opts.disableTranslations ? (
+        <Comp {...this.props} />
+      ) : (
+        <I18nextProvider
+          // props omises pour la brièveté
+        >
+          <Comp {...this.props} />
+        </I18nextProvider>
+      )}
+    </ComponentContext.Provider>
+  </SWRConfig>
+  ```
+
+  ```tsx
+  // Configuration au niveau du composant en utilisant le composant SWRConfig
+  <SWRConfig value={{ revalidateOnFocus: true, revalidateOnReconnect: true }}>
+    <Component />
+  </SWRConfig>
+  ```
+
+  ```tsx
+  // Configuration personnalisée au niveau de chaque hook
+  const { data } = useSWR('/ws/rest/v1/patient?v=full', openmrsFetch, {
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+  });
+  ```
+  
+- Évitez les pièges de performance courants :
+  - Ne créez pas de nouveaux objets ou tableaux dans le rendu
+  - Évitez les définitions de fonction inline dans JSX
+  - N'utilisez pas l'index comme clé dans les listes
+  - Empêchez les re-rendus inutiles par une gestion d'état appropriée
+
+  ```tsx
+  // Mauvais - nouvelle fonction créée à chaque rendu
+  <Button onClick={() => handleClick(id)} />
+
+  // Bon - référence de fonction stable
+  const handleButtonClick = useCallback(() => {
+    handleClick(id);
+  }, [id, handleClick]);
+  
+  <Button onClick={handleButtonClick} />
+  ```
+
+- Surveillez les performances de votre application en utilisant le [React DevTools Profiler](https://react.dev/learn/react-developer-tools). Pour profiler votre application, vous pourriez exécuter à la fois votre application et le shell d'application O3 localement, puis utiliser le [mécanisme de surcharge de carte d'import](/docs/frontend-modules/development#import-map-overrides) pour charger votre application dans le shell d'application O3. Vous pourriez ensuite ouvrir le React DevTools Profiler dans votre navigateur et démarrer une session de profilage. Les choses à surveiller incluent :
+  - Composants avec des re-rendus fréquents
+  - Composants qui sont lents à rendre
+  - Tâches longues dans le thread principal
+  - Composants qui pourraient être mémorisés
+

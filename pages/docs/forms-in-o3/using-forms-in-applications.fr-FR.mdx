@@ -1,0 +1,510 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+# Utiliser les formulaires dans les applications
+
+Une fois que vous avez créé un formulaire à l'aide du [Form Builder](/docs/forms-in-o3/build-forms-with-o3-form-builder) ou converti un formulaire HTML Form Entry existant, vous devrez l'intégrer dans votre application. Le React Form Engine offre des moyens flexibles de rendre les formulaires dans différents contextes, des espaces de travail du dossier patient aux applications personnalisées.
+
+## Vue d'ensemble
+
+Le React Form Engine peut être utilisé de deux manières principales :
+
+1. **Extension Form Renderer** - Un composant pré-construit qui gère le chargement des formulaires, le rendu et l'intégration dans les espaces de travail. C'est le moyen le plus simple de rendre les formulaires dans les espaces de travail.
+2. **Composant FormEngine** - Le composant principal qui offre un contrôle total sur le rendu des formulaires, la soumission et le comportement.
+
+## Rendre les formulaires dans les espaces de travail
+
+Le moyen le plus simple de rendre un formulaire dans un espace de travail est d'utiliser l'extension `react-form-engine-widget` fournie par `@openmrs/esm-form-engine-app`. Cette extension gère automatiquement le chargement des formulaires, les états d'erreur et l'intégration dans les espaces de travail.
+
+### Étape 1 : Enregistrer l'espace de travail du formulaire
+
+Dans le fichier `routes.json` de votre module, enregistrez un espace de travail :
+
+```json
+{
+  "workspaces": [
+    {
+      "name": "my-form-workspace",
+      "title": "Mon formulaire",
+      "component": "myFormWorkspace",
+      "type": "clinical-form",
+      "canMaximize": true,
+      "width": "wider"
+    }
+  ]
+}
+```
+
+<Callout emoji="ℹ️" type="info">
+L'extension `react-form-engine-widget` est déjà enregistrée par `@openmrs/esm-form-engine-app` dans le slot `form-widget-slot`. Vous n'avez pas besoin de l'enregistrer à nouveau sauf si vous créez un renderer de formulaire personnalisé.
+</Callout>
+
+### Étape 2 : Créer le composant de l'espace de travail
+
+Créez un composant d'espace de travail qui utilise `ExtensionSlot` pour rendre le formulaire :
+
+```tsx
+import React from 'react';
+import { ExtensionSlot } from '@openmrs/esm-framework';
+import { type DefaultPatientWorkspaceProps } from '@openmrs/esm-patient-common-lib';
+
+interface MyFormWorkspaceProps extends DefaultPatientWorkspaceProps {
+  formUuid: string;
+  encounterUuid?: string;
+}
+
+export function MyFormWorkspace({ 
+  patientUuid, 
+  formUuid, 
+  encounterUuid,
+  closeWorkspace,
+  promptBeforeClosing,
+  closeWorkspaceWithSavedChanges 
+}: MyFormWorkspaceProps) {
+  const state = {
+    view: 'form',
+    formUuid,
+    patientUuid,
+    encounterUuid: encounterUuid ?? null,
+    closeWorkspace,
+    promptBeforeClosing,
+    closeWorkspaceWithSavedChanges,
+  };
+
+  return (
+    <ExtensionSlot name="form-widget-slot" state={state} />
+  );
+}
+```
+
+### Étape 3 : Lancer l'espace de travail
+
+Lancez l'espace de travail avec l'UUID du formulaire :
+
+```tsx
+import { launchWorkspace } from '@openmrs/esm-framework';
+
+function launchMyForm(patientUuid: string, formUuid: string) {
+  launchWorkspace('my-form-workspace', {
+    patientUuid,
+    formUuid,
+    workspaceTitle: 'Mon formulaire'
+  });
+}
+```
+
+<Callout emoji="💡" type="info">
+L'extension form renderer gère automatiquement le chargement du schéma de formulaire, les états d'erreur et la gestion du cycle de vie de l'espace de travail. C'est l'approche recommandée pour la plupart des cas d'usage.
+</Callout>
+
+## Utiliser FormEngine directement
+
+Pour plus de contrôle sur le rendu et le comportement des formulaires, vous pouvez utiliser le composant `FormEngine` directement depuis `@openmrs/esm-form-engine-lib`. C'est utile lorsque vous avez besoin d'une gestion personnalisée de la soumission, souhaitez rendre les formulaires en dehors des espaces de travail, ou avez besoin d'un contrôle précis sur le comportement du formulaire.
+
+### Utilisation de base
+
+```tsx
+import React from 'react';
+import { FormEngine } from '@openmrs/esm-form-engine-lib';
+import type { FormSchema } from '@openmrs/esm-form-engine-lib';
+
+interface MyFormComponentProps {
+  patientUuid: string;
+  formSchema: FormSchema;
+}
+
+export function MyFormComponent({ patientUuid, formSchema }: MyFormComponentProps) {
+  const handleSubmit = (encounters: Array<any>) => {
+    console.log('Formulaire soumis :', encounters);
+    // Gérer la soumission du formulaire
+  };
+
+  return (
+    <FormEngine
+      patientUUID={patientUuid}
+      formJson={formSchema}
+      onSubmit={handleSubmit}
+    />
+  );
+}
+```
+
+### Charger le schéma de formulaire depuis l'UUID
+
+Si vous avez un UUID de formulaire au lieu du schéma, vous pouvez soit :
+
+1. **Utiliser la prop form UUID** - Le FormEngine chargera automatiquement le schéma :
+
+```tsx
+import React from 'react';
+import { FormEngine } from '@openmrs/esm-form-engine-lib';
+
+interface MyFormComponentProps {
+  patientUuid: string;
+  formUuid: string;
+}
+
+export function MyFormComponent({ patientUuid, formUuid }: MyFormComponentProps) {
+  return (
+    <FormEngine
+      patientUUID={patientUuid}
+      formUUID={formUuid}
+    />
+  );
+}
+```
+
+2. **Charger le schéma manuellement** - Si vous devez gérer vous-même les états de chargement ou les erreurs :
+
+```tsx
+import React from 'react';
+import useSWR from 'swr';
+import { FormEngine } from '@openmrs/esm-form-engine-lib';
+import { openmrsFetch, restBaseUrl } from '@openmrs/esm-framework';
+import type { FormSchema } from '@openmrs/esm-form-engine-lib';
+import { InlineLoading } from '@carbon/react';
+
+interface MyFormComponentProps {
+  patientUuid: string;
+  formUuid: string;
+}
+
+export function MyFormComponent({ patientUuid, formUuid }: MyFormComponentProps) {
+  const { data, error, isLoading } = useSWR<{ data: FormSchema }>(
+    `${restBaseUrl}/o3/forms/${formUuid}`,
+    openmrsFetch
+  );
+
+  if (isLoading) {
+    return <InlineLoading description="Chargement du formulaire..." />;
+  }
+
+  if (error || !data?.data) {
+    return <div>Erreur lors du chargement du formulaire</div>;
+  }
+
+  const schema = { ...data.data, encounterType: data.data.encounterType['uuid'] };
+
+  return (
+    <FormEngine
+      patientUUID={patientUuid}
+      formJson={schema}
+      formUUID={formUuid}
+    />
+  );
+}
+```
+
+## Props et configuration du formulaire
+
+Le composant `FormEngine` accepte les props suivantes :
+
+### Props requises
+
+- **`patientUUID`** (string) - L'UUID du patient pour lequel le formulaire est rempli
+
+### Props optionnelles
+
+- **`formUUID`** (string) - L'UUID du formulaire à charger depuis le serveur. Si fourni, le schéma du formulaire sera chargé automatiquement. Si `formUUID` et `formJson` sont tous deux fournis, `formJson` prend la priorité.
+- **`formJson`** (FormSchema) - L'objet schéma de formulaire. Utilisez-le lorsque vous avez déjà le schéma chargé ou souhaitez utiliser un schéma personnalisé.
+- **`encounterUUID`** (string) - L'UUID d'une rencontre existante à modifier. Lorsqu'il est fourni, le formulaire sera pré-rempli avec les données de la rencontre et rendu en mode édition.
+- **`visit`** (Visit) - L'objet visite associé à la session du formulaire. Si non fourni, le form engine utilisera la visite active du patient.
+- **`mode`** (`'enter' | 'edit' | 'view' | 'embedded-view'`) - Le mode de rendu du formulaire. Voir [Modes de rendu des formulaires](#form-rendering-modes) ci-dessous.
+- **`formSessionIntent`** (string) - L'intention de la session du formulaire (par défaut : `'*'`). Utilisé pour filtrer les sessions de formulaire lors du chargement des valeurs initiales.
+- **`onSubmit`** (function) - Fonction de rappel appelée lorsque le formulaire est soumis avec succès. Reçoit un tableau des rencontres créées/mises à jour.
+- **`onCancel`** (function) - Fonction de rappel appelée lorsque l'utilisateur annule le formulaire.
+- **`handleClose`** (function) - Fonction de rappel appelée lorsque le formulaire doit être fermé.
+- **`handleConfirmQuestionDeletion`** (function) - Gestionnaire personnalisé pour confirmer la suppression de questions répétables. Doit retourner une Promise qui se résout lorsque la suppression est confirmée.
+- **`markFormAsDirty`** (function) - Fonction de rappel appelée lorsque l'état "dirty" du formulaire change. Utile pour l'intégration dans les espaces de travail pour demander confirmation avant de fermer.
+- **`hideControls`** (boolean) - Masquer les boutons d'action du formulaire (Enregistrer, Annuler). Utile pour les vues intégrées ou l'interface utilisateur personnalisée.
+- **`hidePatientBanner`** (boolean) - Masquer la bannière patient qui apparaît dans les espaces de travail ultra-larges.
+- **`preFilledQuestions`** (Record&lt;string, string&gt;) - Pré-remplir des questions spécifiques avec des valeurs. Les clés sont les IDs des questions, les valeurs sont les valeurs pré-remplies.
+
+### Exemple avec toutes les props
+
+```tsx
+<FormEngine
+  patientUUID="patient-uuid-here"
+  formUUID="form-uuid-here"
+  encounterUUID="encounter-uuid-here"
+  mode="edit"
+  formSessionIntent="*"
+  onSubmit={(encounters) => {
+    console.log('Formulaire soumis :', encounters);
+  }}
+  onCancel={() => {
+    console.log('Formulaire annulé');
+  }}
+  handleClose={() => {
+    console.log('Formulaire fermé');
+  }}
+  markFormAsDirty={(isDirty) => {
+    console.log('Formulaire modifié :', isDirty);
+  }}
+  hideControls={false}
+  hidePatientBanner={false}
+  preFilledQuestions={{
+    'question-id-1': 'valeur-pré-remplie'
+  }}
+/>
+```
+
+## Modes de rendu des formulaires
+
+Le React Form Engine prend en charge quatre modes de rendu, chacun adapté à différents cas d'usage :
+
+### Mode Enter (par défaut)
+
+**Mode :** `'enter'` ou `undefined`
+
+**Cas d'usage :** Créer de nouvelles entrées de formulaire
+
+**Comportement :**
+- Le formulaire est rendu en mode lecture-écriture
+- Tous les champs sont modifiables
+- Le formulaire peut être soumis pour créer une nouvelle rencontre
+- Sélectionné automatiquement lorsqu'aucun `encounterUUID` n'est fourni et que `mode` n'est pas spécifié
+
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+  mode="enter" // ou omettre pour la valeur par défaut
+/>
+```
+
+### Mode Edit
+
+**Mode :** `'edit'`
+
+**Cas d'usage :** Modifier des entrées de formulaire existantes
+
+**Comportement :**
+- Le formulaire est rendu en mode lecture-écriture
+- Le formulaire est pré-rempli avec les données de la rencontre existante
+- Le formulaire peut être soumis pour mettre à jour la rencontre
+- Sélectionné automatiquement lorsque `encounterUUID` est fourni et que `mode` n'est pas spécifié
+
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+  encounterUUID={encounterUuid}
+  mode="edit" // ou omettre lorsque encounterUUID est fourni
+/>
+```
+
+### Mode View
+
+**Mode :** `'view'`
+
+**Cas d'usage :** Afficher les données du formulaire en mode lecture seule
+
+**Comportement :**
+- Le formulaire est rendu en mode lecture seule
+- Tous les champs sont désactivés
+- Le formulaire ne peut pas être soumis
+- Les boutons d'action affichent "Fermer" au lieu de "Enregistrer"
+
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+  encounterUUID={encounterUuid}
+  mode="view"
+/>
+```
+
+### Mode Embedded View
+
+**Mode :** `'embedded-view'`
+
+**Cas d'usage :** Afficher les données du formulaire dans un widget ou une carte condensée
+
+**Comportement :**
+- Le formulaire est rendu en mode lecture seule
+- Les en-têtes de section et les actions du formulaire sont masqués
+- La bannière patient est masquée
+- La navigation latérale est masquée
+- Mise en page compacte adaptée à l'intégration dans d'autres composants
+
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+  encounterUUID={encounterUuid}
+  mode="embedded-view"
+  hideControls={true}
+/>
+```
+
+## Gestion de la soumission et de la réponse du formulaire
+
+Lorsqu'un formulaire est soumis, le callback `onSubmit` reçoit un tableau des rencontres qui ont été créées ou mises à jour. Chaque rencontre contient les données du formulaire qui ont été soumises.
+
+### Gérer la soumission du formulaire
+
+```tsx
+import { type Encounter } from '@openmrs/esm-framework';
+
+function MyFormWorkspace({ patientUuid, formUuid }: Props) {
+  const handleSubmit = (encounters: Array<Encounter>) => {
+    const encounter = encounters[0];
+    
+    // Gérer la soumission réussie
+    console.log('Rencontre créée :', encounter.uuid);
+    console.log('Observations :', encounter.obs);
+    
+    // Fermer l'espace de travail ou naviguer
+    closeWorkspaceWithSavedChanges();
+    
+    // Actualiser les données liées
+    mutate('/ws/rest/v1/encounter');
+  };
+
+  return (
+    <FormEngine
+      patientUUID={patientUuid}
+      formUUID={formUuid}
+      onSubmit={handleSubmit}
+    />
+  );
+}
+```
+
+### Gestion des erreurs
+
+Le Form Engine gère automatiquement les erreurs de validation et les affiche en ligne. Pour les erreurs de soumission, vous pouvez les gérer dans votre callback `onSubmit` ou utiliser l'état d'erreur du formulaire :
+
+```tsx
+function MyFormWorkspace({ patientUuid, formUuid }: Props) {
+  const [submitError, setSubmitError] = useState<Error | null>(null);
+
+  const handleSubmit = async (encounters: Array<Encounter>) => {
+    try {
+      // La soumission du formulaire est gérée par le Form Engine
+      // Ce callback est appelé après une soumission réussie
+      console.log('Formulaire soumis avec succès');
+      closeWorkspaceWithSavedChanges();
+    } catch (error) {
+      setSubmitError(error);
+    }
+  };
+
+  return (
+    <>
+      {submitError && (
+        <InlineNotification
+          kind="error"
+          title="Erreur lors de la soumission du formulaire"
+          subtitle={submitError.message}
+        />
+      )}
+      <FormEngine
+        patientUUID={patientUuid}
+        formUUID={formUuid}
+        onSubmit={handleSubmit}
+      />
+    </>
+  );
+}
+```
+
+## Exemple complet : Espace de travail de formulaire
+
+Voici un exemple complet d'un espace de travail de formulaire qui s'intègre au dossier patient :
+
+```tsx
+import React, { useCallback, useMemo } from 'react';
+import { ExtensionSlot } from '@openmrs/esm-framework';
+import { type Encounter } from '@openmrs/esm-framework';
+import { 
+  type DefaultPatientWorkspaceProps 
+} from '@openmrs/esm-patient-common-lib';
+
+interface MyFormWorkspaceProps extends DefaultPatientWorkspaceProps {
+  formUuid: string;
+  encounterUuid?: string;
+}
+
+export function MyFormWorkspace({
+  patientUuid,
+  formUuid,
+  encounterUuid,
+  closeWorkspace,
+  promptBeforeClosing,
+  closeWorkspaceWithSavedChanges,
+}: MyFormWorkspaceProps) {
+  const handleSubmit = useCallback(
+    (encounters: Array<Encounter>) => {
+      console.log('Formulaire soumis :', encounters);
+      closeWorkspaceWithSavedChanges();
+      // Optionnellement actualiser les données liées ou afficher une notification de succès
+    },
+    [closeWorkspaceWithSavedChanges]
+  );
+
+  const state = useMemo(
+    () => ({
+      view: 'form',
+      formUuid,
+      patientUuid,
+      encounterUuid: encounterUuid ?? null,
+      closeWorkspace,
+      promptBeforeClosing,
+      closeWorkspaceWithSavedChanges,
+      additionalProps: {
+        mode: encounterUuid ? 'edit' : 'enter',
+        handlePostResponse: handleSubmit,
+      },
+    }),
+    [
+      formUuid,
+      patientUuid,
+      encounterUuid,
+      closeWorkspace,
+      promptBeforeClosing,
+      closeWorkspaceWithSavedChanges,
+      handleSubmit,
+    ]
+  );
+
+  return <ExtensionSlot name="form-widget-slot" state={state} />;
+}
+```
+
+## Pré-remplir les questions du formulaire
+
+Vous pouvez pré-remplir des questions spécifiques dans un formulaire en utilisant la prop `preFilledQuestions` :
+
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+  preFilledQuestions={{
+    'vitals-weight': '70',
+    'vitals-height': '175',
+    'chief-complaint': 'Le patient signale un mal de tête'
+  }}
+/>
+```
+
+Les clés dans `preFilledQuestions` doivent correspondre à la propriété `id` des questions dans votre schéma de formulaire.
+
+## Intention de session de formulaire
+
+La prop `formSessionIntent` vous permet de filtrer les sessions de formulaire lors du chargement des valeurs initiales. C'est utile lorsque vous souhaitez pré-remplir un formulaire avec des données d'un type spécifique de rencontre ou de session :
+
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+  formSessionIntent="VITALS" // Charger uniquement les valeurs des rencontres VITALS
+/>
+```
+
+## Prochaines étapes
+
+- Découvrez comment [créer des formulaires avec le Form Builder](/docs/forms-in-o3/build-forms-with-o3-form-builder)
+- Lisez la [documentation du React Form Engine](https://openmrs.atlassian.net/wiki/spaces/projects/pages/68747273/O3+Form+Docs) pour les fonctionnalités avancées
+- Consultez la [documentation des espaces de travail](/docs/workspaces/creating-workspaces) pour en savoir plus sur la création d'espaces de travail
+

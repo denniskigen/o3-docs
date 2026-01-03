@@ -1,0 +1,690 @@
+import { Callout } from "nextra-theme-docs";
+
+# Deploy O3 to production
+
+This guide covers deploying an O3 distribution to production environments. It focuses on Docker-based deployment using the reference application architecture, but the principles apply to other deployment methods.
+
+## Prerequisites
+
+Before deploying to production, ensure you have:
+
+- **A built O3 distribution** - See [Creating a Distribution](/docs/recipes/create-a-distribution) for details
+- **Docker and Docker Compose** installed on your server
+- **Domain name** configured with DNS pointing to your server (for SSL)
+- **OpenMRS backend** configured and accessible
+- **Database** (MariaDB/MySQL) set up and accessible
+- **Backup strategy** in place for your database
+
+### Hardware and Software Requirements
+
+**Minimum server requirements:**
+- **CPU**: 4 cores (8+ recommended for production)
+- **RAM**: 8GB minimum (16GB+ recommended)
+- **Storage**: 100GB+ SSD (more for database backups and logs)
+- **Network**: Stable internet connection with ports 80/443 open
+
+**Software requirements:**
+- Docker 20.10+ and Docker Compose 2.0+
+- Operating System: Linux (Ubuntu 20.04+ LTS recommended) or macOS/Windows Server
+- Database: MariaDB 10.11+ or MySQL 8.0+
+- Java: JDK 11+ (for OpenMRS backend)
+
+**Team requirements:**
+- System administrator familiar with Docker and Linux
+- Database administrator for MariaDB/MySQL
+- OpenMRS implementer familiar with O3 configuration
+- Network administrator for SSL/DNS configuration
+
+<Callout emoji="💡" type="info">
+For detailed hardware and software requirements, see the [OpenMRS Technical Implementer's Guide](https://openmrs.atlassian.net/wiki/spaces/docs/pages/535068683/Technical+Implementer+s+Guide).
+</Callout>
+
+## Architecture overview
+
+The reference application uses a multi-container Docker architecture:
+
+- **Gateway** - Nginx reverse proxy that handles SSL termination and routes requests
+- **Frontend** - Nginx container serving the O3 SPA static files
+- **Backend** - OpenMRS backend container
+- **Database** - MariaDB container for data persistence
+- **Certbot** (optional) - SSL certificate management with Let's Encrypt
+
+## Deployment methods
+
+### Method 1: Docker Compose (Recommended)
+
+Docker Compose is the simplest way to deploy O3 to production. It's ideal for single-server deployments and small to medium-scale installations.
+
+#### Step 1: Prepare your distribution
+
+Ensure you have:
+- Built frontend assets (from `openmrs assemble` and `openmrs build`)
+- Docker images for backend and frontend (or use pre-built images)
+- Configuration files ready
+
+#### Step 2: Set up Docker Compose
+
+Create a `docker-compose.yml` file based on the reference application:
+
+```yaml
+services:
+  gateway:
+    image: openmrs/openmrs-reference-application-3-gateway:${TAG:-qa}
+    restart: "unless-stopped"
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "80:80"
+
+  frontend:
+    image: openmrs/openmrs-reference-application-3-frontend:${TAG:-qa}
+    restart: "unless-stopped"
+    environment:
+      SPA_PATH: /openmrs/spa
+      API_URL: /openmrs
+      SPA_CONFIG_URLS: /openmrs/spa/config-core_demo.json
+      SPA_DEFAULT_LOCALE: ${SPA_DEFAULT_LOCALE:-}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      timeout: 5s
+    depends_on:
+      - backend
+
+  backend:
+    image: openmrs/openmrs-reference-application-3-backend:${TAG:-qa}
+    restart: "unless-stopped"
+    depends_on:
+      - db
+    environment:
+      OMRS_CONFIG_MODULE_WEB_ADMIN: "true"
+      OMRS_CONFIG_AUTO_UPDATE_DATABASE: "false"
+      OMRS_CONFIG_CREATE_TABLES: "false"
+      OMRS_CONFIG_CONNECTION_SERVER: db
+      OMRS_CONFIG_CONNECTION_DATABASE: openmrs
+      OMRS_CONFIG_CONNECTION_USERNAME: ${OMRS_DB_USER:-openmrs}
+      OMRS_CONFIG_CONNECTION_PASSWORD: ${OMRS_DB_PASSWORD:-openmrs}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/openmrs"]
+      timeout: 5s
+    volumes:
+      - openmrs-data:/openmrs/data
+
+  db:
+    image: mariadb:10.11.7
+    restart: "unless-stopped"
+    command: "mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci"
+    environment:
+      MYSQL_DATABASE: openmrs
+      MYSQL_USER: ${OMRS_DB_USER:-openmrs}
+      MYSQL_PASSWORD: ${OMRS_DB_PASSWORD:-openmrs}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-openmrs}
+    healthcheck:
+      test: "mysql --user=${OMRS_DB_USER:-openmrs} --password=${OMRS_DB_PASSWORD:-openmrs} --execute \"SHOW DATABASES;\""
+      interval: 3s
+      timeout: 1s
+      retries: 5
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  openmrs-data: ~
+  db-data: ~
+```
+
+<Callout emoji="💡" type="info">
+**Note**: Port 443 (HTTPS) is only exposed when using the SSL compose file (`docker-compose.ssl.yml`). The base configuration only exposes port 80. For production with SSL, you'll use both compose files together.
+</Callout>
+
+#### Step 3: Configure environment variables
+
+Create a `.env` file with your production configuration:
+
+```bash
+# Database configuration
+OMRS_DB_USER=openmrs
+OMRS_DB_PASSWORD=your-secure-password-here
+MYSQL_ROOT_PASSWORD=your-root-password-here
+
+# Docker image tags (use 'qa', 'latest', or specific version)
+TAG=qa
+
+# SSL configuration (if using Let's Encrypt)
+SSL_MODE=prod
+CERT_WEB_DOMAINS=your-domain.com,www.your-domain.com
+CERT_CONTACT_EMAIL=admin@your-domain.com
+```
+
+<Callout emoji="⚠️" type="warning">
+**Security**: Never commit `.env` files to version control. Use secrets management tools or environment variables provided by your hosting platform.
+</Callout>
+
+#### Step 4: Set up SSL/HTTPS
+
+For production, you should always use HTTPS. The reference application supports Let's Encrypt certificates.
+
+**With SSL enabled:**
+
+```bash
+SSL_MODE=prod \
+CERT_WEB_DOMAINS=your-domain.com \
+CERT_CONTACT_EMAIL=admin@your-domain.com \
+docker compose -f docker-compose.yml -f docker-compose.ssl.yml up -d
+```
+
+**Important prerequisites for SSL:**
+- DNS must be configured to point to your server
+- Ports 80 and 443 must be open in your firewall
+- The domain must be accessible via HTTP for Let's Encrypt validation
+
+#### Step 5: Deploy
+
+Start the services:
+
+```bash
+docker compose up -d
+```
+
+Monitor the logs:
+
+```bash
+# View all logs
+docker compose logs -f
+
+# View specific service logs
+docker compose logs -f backend
+docker compose logs -f frontend
+```
+
+### Method 2: Custom Docker deployment
+
+If you're building custom Docker images or deploying to Kubernetes, you'll need to:
+
+1. **Build your frontend image** - Create a Dockerfile that copies your built SPA files into an nginx container
+2. **Configure nginx** - Set up proper routing and proxy configuration
+3. **Set environment variables** - Configure SPA path, API URL, and config URLs
+4. **Set up health checks** - Implement health check endpoints
+
+Example Dockerfile for frontend:
+
+```dockerfile
+FROM nginx:alpine
+
+# Copy built SPA files
+COPY ./spa /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expose port
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost/ || exit 1
+```
+
+### Method 3: Static hosting + API proxy
+
+For cloud deployments (AWS S3 + CloudFront, Azure Blob Storage, etc.):
+
+1. **Upload frontend assets** to your static hosting service
+2. **Configure CDN** to serve the SPA
+3. **Set up API proxy** to route `/openmrs/*` requests to your backend
+4. **Configure CORS** on your backend to allow requests from your frontend domain
+
+## Environment configuration
+
+### Frontend configuration
+
+The frontend container requires these environment variables:
+
+- **`SPA_PATH`** - Path where the SPA is served (e.g., `/openmrs/spa`)
+- **`API_URL`** - Backend API URL (e.g., `/openmrs` or `https://api.example.com/openmrs`)
+- **`SPA_CONFIG_URLS`** - Comma-separated list of configuration JSON file URLs (e.g., `/openmrs/spa/config-core_demo.json`)
+- **`SPA_DEFAULT_LOCALE`** - Default language code (e.g., `en`, `fr`). Leave empty to use browser default
+
+### Backend configuration
+
+Key backend environment variables:
+
+- **`OMRS_CONFIG_CONNECTION_SERVER`** - Database hostname
+- **`OMRS_CONFIG_CONNECTION_DATABASE`** - Database name
+- **`OMRS_CONFIG_CONNECTION_USERNAME`** - Database username
+- **`OMRS_CONFIG_CONNECTION_PASSWORD`** - Database password
+- **`OMRS_CONFIG_AUTO_UPDATE_DATABASE`** - Set to `false` in production
+- **`OMRS_CONFIG_CREATE_TABLES`** - Set to `false` in production
+
+<Callout emoji="💡" type="info">
+In production, disable automatic database updates and table creation. These should be managed through controlled migrations.
+</Callout>
+
+## SSL/HTTPS configuration
+
+### Using Let's Encrypt (Production)
+
+The reference application includes automatic SSL certificate management via Certbot:
+
+```bash
+SSL_MODE=prod \
+CERT_WEB_DOMAINS=example.com,www.example.com \
+CERT_CONTACT_EMAIL=admin@example.com \
+docker compose -f docker-compose.yml -f docker-compose.ssl.yml up -d
+```
+
+**Certificate renewal** happens automatically. Certificates are valid for 90 days and renew when they have 30 days remaining. The certbot container runs a renewal check periodically.
+
+### Using custom certificates
+
+If you have your own SSL certificates:
+
+1. Place certificate files in a volume accessible to the gateway container
+2. Configure nginx to use your certificates
+3. Update the gateway nginx configuration
+
+### Testing SSL setup
+
+Before going live, test with Let's Encrypt staging:
+
+```bash
+SSL_MODE=prod \
+SSL_STAGING=true \
+CERT_WEB_DOMAINS=example.com \
+CERT_CONTACT_EMAIL=admin@example.com \
+docker compose -f docker-compose.yml -f docker-compose.ssl.yml up -d
+```
+
+## Health checks and monitoring
+
+### Container health checks
+
+All services include health checks:
+
+```bash
+# Check container health status
+docker compose ps
+
+# View health check logs
+docker inspect <container-name> | grep -A 10 Health
+```
+
+### Application monitoring
+
+**Key metrics to monitor:**
+
+1. **Container status** - Ensure all containers are running
+2. **Health check endpoints** - Monitor `/openmrs` (backend) and `/` (frontend)
+3. **Database connections** - Monitor connection pool usage
+4. **Disk space** - Monitor database and data volumes
+5. **Memory usage** - Monitor container memory limits
+6. **SSL certificate expiration** - Set up alerts for certificate renewal
+
+**Monitoring tools:**
+- Docker's built-in health checks
+- Prometheus + Grafana
+- Application Performance Monitoring (APM) tools
+- Log aggregation (ELK stack, Loki, etc.)
+
+### Logging
+
+**View logs:**
+
+```bash
+# All services
+docker compose logs -f
+
+# Specific service
+docker compose logs -f backend
+
+# Last 100 lines
+docker compose logs --tail=100 backend
+
+# With timestamps
+docker compose logs -f --timestamps backend
+```
+
+**Log rotation:**
+Configure Docker logging drivers to prevent disk space issues:
+
+```yaml
+services:
+  backend:
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+```
+
+## Backup and recovery
+
+### Database backups
+
+**Automated backups:**
+
+```bash
+# Create backup script
+#!/bin/bash
+OMRS_DB_USER=${OMRS_DB_USER:-openmrs}
+OMRS_DB_PASSWORD=${OMRS_DB_PASSWORD:-openmrs}
+docker compose exec -T db mysqldump -u${OMRS_DB_USER} -p${OMRS_DB_PASSWORD} openmrs > backup-$(date +%Y%m%d-%H%M%S).sql
+```
+
+**Restore from backup:**
+
+```bash
+# Restore database (replace with your actual values)
+OMRS_DB_USER=${OMRS_DB_USER:-openmrs}
+OMRS_DB_PASSWORD=${OMRS_DB_PASSWORD:-openmrs}
+docker compose exec -T db mysql -u${OMRS_DB_USER} -p${OMRS_DB_PASSWORD} openmrs < backup-20240101-120000.sql
+```
+
+**Best practices:**
+- Schedule daily automated backups
+- Store backups off-server (S3, Azure Blob, etc.)
+- Test restore procedures regularly
+- Keep multiple backup generations
+
+### Volume backups
+
+Backup Docker volumes:
+
+```bash
+# Backup volume (ensure container is running or use volume name)
+docker run --rm -v openmrs-data:/data -v $(pwd):/backup alpine tar czf /backup/openmrs-data-backup.tar.gz -C /data .
+
+# Restore volume
+docker run --rm -v openmrs-data:/data -v $(pwd):/backup alpine sh -c "cd /data && tar xzf /backup/openmrs-data-backup.tar.gz"
+```
+
+## Security best practices
+
+### 1. Use strong passwords
+
+- Generate strong, unique passwords for database users
+- Use password managers or secrets management tools
+- Rotate passwords regularly
+
+### 2. Limit network exposure
+
+- Only expose necessary ports (80, 443)
+- Use firewall rules to restrict access
+- Consider using a VPN or private network for backend access
+
+### 3. Keep images updated
+
+- Regularly update Docker images to latest versions
+- Monitor security advisories for base images
+- Use specific version tags, not `latest` in production
+
+### 4. Secure secrets
+
+- Never commit secrets to version control
+- Use Docker secrets or external secrets management
+- Restrict access to `.env` files and secrets
+
+### 5. Enable HTTPS
+
+- Always use HTTPS in production
+- Configure HSTS headers
+- Use strong SSL/TLS configurations
+
+### 6. Regular updates
+
+- Keep Docker and Docker Compose updated
+- Update base images regularly
+- Monitor for security patches
+
+## Scaling considerations
+
+### Horizontal scaling
+
+For high-traffic deployments:
+
+1. **Load balancer** - Use a load balancer (nginx, HAProxy, cloud load balancer) in front of multiple gateway instances
+2. **Database replication** - Set up read replicas for the database
+3. **Caching** - Implement Redis or Memcached for session and data caching
+4. **CDN** - Use a CDN for static frontend assets
+
+### Vertical scaling
+
+Increase resources for containers:
+
+```yaml
+services:
+  backend:
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+```
+
+## Troubleshooting
+
+### Containers won't start
+
+**Check logs:**
+```bash
+docker compose logs <service-name>
+```
+
+**Common issues:**
+- Database connection failures - Verify credentials and network connectivity
+- Port conflicts - Ensure ports 80/443 are not in use
+- Insufficient disk space - Check available disk space
+- Memory limits - Increase container memory limits if needed
+
+### SSL certificate issues
+
+**Certificate not renewing:**
+```bash
+# Check certificate status
+docker compose -f docker-compose.yml -f docker-compose.ssl.yml exec certbot certbot certificates
+
+# Force renewal
+docker compose -f docker-compose.yml -f docker-compose.ssl.yml exec certbot certbot renew --force-renewal --webroot -w /var/www/certbot
+
+# Reload nginx after renewal
+docker compose -f docker-compose.yml -f docker-compose.ssl.yml exec gateway nginx -s reload
+```
+
+**Domain validation failures:**
+- Verify DNS is correctly configured
+- Ensure port 80 is accessible for HTTP-01 challenge
+- Check firewall rules
+
+### Database connection errors
+
+**Verify database connectivity:**
+```bash
+# Test connection from backend container (check if backend can reach db)
+docker compose exec backend ping -c 3 db
+
+# Check database is accepting connections
+docker compose exec db mysqladmin ping -h localhost -u${OMRS_DB_USER:-openmrs} -p${OMRS_DB_PASSWORD:-openmrs}
+```
+
+**Check database logs:**
+```bash
+docker compose logs db
+```
+
+### Frontend not loading
+
+**Verify frontend assets:**
+```bash
+# Check if files exist in container
+docker compose exec frontend ls -la /usr/share/nginx/html
+
+# Test nginx configuration
+docker compose exec gateway nginx -t
+```
+
+**Check import map:**
+- Verify `importmap.json` is accessible
+- Check that module URLs are correct
+- Ensure CDN/public URL is configured correctly
+
+## Environment differentiation
+
+For production deployments, it's recommended to maintain separate environments:
+
+### Development (Dev)
+- Used for active development and testing
+- Can use `next` tagged modules
+- Less strict security requirements
+- Frequent deployments acceptable
+
+### Quality Assurance (QA)
+- Mirrors production configuration
+- Uses stable versions (`latest` or specific versions)
+- Used for testing before production deployment
+- Should match production hardware/software
+
+### User Acceptance Testing (UAT)
+- Final testing environment before production
+- Uses production-like data (anonymized)
+- Stakeholder validation environment
+- Should exactly match production configuration
+
+### Production (Prod)
+- Live system serving real users
+- Uses only stable, tested versions
+- Strict security and monitoring
+- Controlled, scheduled deployments only
+
+**Best practices:**
+- Never deploy directly to production without testing in QA/UAT
+- Keep environments synchronized (same versions, similar configs)
+- Use environment-specific configuration files
+- Document all changes and deployments
+
+## Deploying updates
+
+### Update process
+
+**Step 1: Test in QA/UAT**
+
+```bash
+# Update to new version in QA environment
+TAG=new-version docker compose pull
+TAG=new-version docker compose up -d
+```
+
+**Step 2: Verify functionality**
+- Run smoke tests
+- Verify critical workflows
+- Check data integrity
+- Monitor logs for errors
+
+**Step 3: Deploy to production**
+
+```bash
+# Backup first
+./backup-database.sh
+
+# Update images
+TAG=new-version docker compose pull
+
+# Deploy with zero downtime (if possible)
+# Update frontend and gateway first (they're stateless)
+TAG=new-version docker compose up -d --no-deps gateway frontend
+
+# Then update backend (may require brief downtime)
+TAG=new-version docker compose up -d backend
+
+# Monitor closely
+docker compose logs -f
+```
+
+**Step 4: Post-deployment validation**
+- Verify application is accessible
+- Test critical user workflows
+- Monitor error rates
+- Check performance metrics
+
+<Callout emoji="⚠️" type="warning">
+Always test updates in QA/UAT environments before deploying to production. For more details, see the [OpenMRS Technical Implementer's Guide on Updates and Upgrades](https://openmrs.atlassian.net/wiki/spaces/docs/pages/535068683/Technical+Implementer+s+Guide).
+</Callout>
+
+## Post-deployment validation
+
+After deploying to production, perform these validation checks:
+
+### Data integrity checks
+
+**Verify database connectivity:**
+```bash
+docker compose exec backend curl http://localhost:8080/openmrs/ws/rest/v1/systeminformation
+```
+
+**Check critical tables:**
+- Verify patient data is accessible
+- Check encounter data integrity
+- Validate user accounts
+
+### Application health
+
+**Verify frontend loads:**
+- Access the application URL
+- Check that import map loads correctly
+- Verify modules load without errors
+
+**Check API endpoints:**
+```bash
+# Test authentication
+curl -u admin:password https://your-domain.com/openmrs/ws/rest/v1/session
+
+# Test patient search
+curl -u admin:password https://your-domain.com/openmrs/ws/rest/v1/patient?q=test
+```
+
+### Performance validation
+
+- Check page load times
+- Verify API response times
+- Monitor database query performance
+- Check memory and CPU usage
+
+## Rollback procedures
+
+### Rolling back a deployment
+
+**Quick rollback:**
+
+```bash
+# Stop current deployment
+docker compose down
+
+# Use previous image tag (or specific version)
+TAG=previous-version docker compose up -d
+
+# Or if you need to restore volumes too
+docker compose down -v
+TAG=previous-version docker compose up -d
+```
+
+**Database rollback:**
+- Restore from backup if schema changes were made
+- Test rollback procedure in staging first
+
+**Rollback checklist:**
+1. Identify the issue requiring rollback
+2. Stop current deployment
+3. Restore previous version
+4. Restore database backup if needed
+5. Verify system functionality
+6. Document the rollback reason
+
+## Additional resources
+
+For comprehensive implementation guidance, refer to:
+
+- [OpenMRS Technical Implementer's Guide](https://openmrs.atlassian.net/wiki/spaces/docs/pages/535068683/Technical+Implementer+s+Guide) - Complete guide for OpenMRS implementers
+- [Creating a Distribution](/docs/recipes/create-a-distribution) - Building your O3 distribution
+- [Configuration system](/docs/configuration-system) - Runtime configuration
+- [Release notes](/docs/changelog) - Version-specific deployment notes

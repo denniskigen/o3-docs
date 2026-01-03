@@ -4,10 +4,10 @@ import { Callout } from "nextra-theme-docs";
 
 ## Aperçu
 
-Les schémas de formulaire O3 sont conformes à un [schéma](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json) JSON standard. Les formulaires qui correspondent à ce schéma peuvent être utilisés avec le [moteur de formulaire](/docs/key-repositories#angular-form-engine) qui est livré avec. Cela signifie que si vous avez un formulaire qui ne correspond pas à ce schéma, vous devrez le convertir en une représentation JSON compatible avec le schéma O3 avant de pouvoir l'utiliser avec O3.
+Les schémas de formulaire O3 sont conformes à un [schéma](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json) JSON standard. Les formulaires qui correspondent à ce schéma peuvent être utilisés avec le [moteur de formulaires React](/docs/key-repositories#react-form-engine) qui alimente le rendu des formulaires O3. Cela signifie que si vous avez un formulaire qui ne correspond pas à ce schéma, vous devrez le convertir en une représentation JSON compatible avec le schéma O3 avant de pouvoir l'utiliser avec O3.
 
   <Callout emoji="ℹ️" type="info">
-    Pour en savoir plus sur les différentes propriétés qui composent le schéma, lisez la section [concepts de base](https://ampath-forms.vercel.app/docs/core-concepts/forms) de la documentation du moteur de formulaire Angular.
+    Pour en savoir plus sur les différentes propriétés qui composent le schéma, lisez la [documentation du moteur de formulaires React](https://openmrs.atlassian.net/wiki/spaces/projects/pages/68747273/O3+Form+Docs).
   </Callout>
 
 De nombreux implémenteurs ont des formulaires construits en utilisant le module HTML Form Entry. Pour faciliter la migration de ces formulaires vers O3, l'équipe de Palladium Kenya a créé un outil qui vous aide à convertir vos [formulaires HTML Form Entry en schéma O3](https://github.com/openmrs/hfe-o3-form-schema-converter). Cet outil de conversion de schéma HFE en O3 vous aide à migrer vos formulaires en prenant en charge certains aspects importants, y compris:
@@ -15,12 +15,51 @@ De nombreux implémenteurs ont des formulaires construits en utilisant le module
 - Gestion des obs avec des answerConcepts définis et où les réponses doivent être déduites du dictionnaire
 - Gestion du style des obs pour les boutons radio, les cases à cocher, les listes déroulantes
 - Gestion des champs obs qui sont marqués comme obligatoires
-- Gestion de la diagnosis answerClass
 - Gestion des étiquettes personnalisées telles que définies dans answerLabel/answerLabels
 - Génération de schéma pour la balise obsgroup. La logique est capable de regrouper les questions au sein d'un groupe obs. Elle génère également un schéma pour les groupes marqués comme repeating
 - Exportation du schéma HFE vers un répertoire configurable. Cela est utile dans les cas où le schéma HFE nécessite des mises à jour supplémentaires afin de générer le bon schéma JSON
 - Fournir des étiquettes pour les obs groupés. Un nouvel attribut labelText est pris en charge pour cela
 - Regroupement des checkboxes liées
+
+## Utilisation de l'outil de conversion
+
+### Prérequis
+
+Avant d'utiliser le convertisseur, vous devez configurer une propriété globale :
+
+1. Définissez la propriété globale `htmlformmigration.resources` sur un chemin absolu d'un répertoire accessible en écriture où les schémas de formulaires HTML seront exportés.
+
+### Accès au convertisseur
+
+1. Naviguez vers `<URL de base OpenMRS>/htmltojson/htmlFormToJsonHome.page` dans votre navigateur
+2. Le convertisseur affichera une liste de tous les formulaires de votre système
+
+### Workflow de conversion
+
+Le processus de conversion comprend deux étapes :
+
+1. **Exporter les formulaires HTML** : Cliquez sur le bouton "Export HFE forms schema" pour exporter tous les schémas HTML Form Entry vers le répertoire configuré. Cette étape est requise avant la conversion, car le convertisseur lit à partir de ces fichiers exportés.
+
+2. **Convertir en JSON** : Après l'exportation, cliquez sur un formulaire dans la liste pour afficher son schéma JSON converti. Vous pouvez :
+   - Afficher le schéma JSON généré dans une fenêtre modale
+   - Modifier le schéma si nécessaire (le convertisseur fournit un éditeur JSON)
+   - Télécharger le fichier de schéma JSON
+
+### Notes importantes
+
+- **Structure par défaut** : Le convertisseur génère une page par défaut avec une seule section "Starter section" contenant toutes les questions. Vous devrez organiser manuellement les questions en pages et sections appropriées en utilisant le Constructeur de Formulaires O3.
+
+- **Placeholder de version** : Le schéma généré inclut un placeholder de version (`"version": "xxx"`). Vous devez le mettre à jour avec un numéro de version approprié (par exemple, `"1.0"`) avant d'utiliser le formulaire.
+
+- **Conversion basée sur des fichiers** : Le convertisseur lit les formulaires HTML à partir des fichiers exportés dans le répertoire configuré, et non directement depuis la base de données. Assurez-vous d'avoir exporté les formulaires avant de tenter la conversion.
+
+### Limitations
+
+L'outil de conversion a certaines limitations :
+
+- **Balises prises en charge** : Seules les balises `obs` et `obsgroup` sont actuellement prises en charge. Les autres balises HTML Form Entry ne sont pas converties automatiquement.
+- **Pages et sections** : Le convertisseur génère des questions mais ne crée pas automatiquement de pages et de sections. Vous devrez organiser manuellement les questions converties en pages et sections en utilisant le Constructeur de Formulaires O3.
+- **Ajustements manuels** : Après la conversion, vous devrez peut-être ajuster manuellement le schéma généré, en particulier pour les formulaires complexes ou les formulaires utilisant des fonctionnalités non prises en charge.
 
 Bien que cela ne vous permette pas de migrer complètement vos formulaires, cela devrait vous permettre d'avancer suffisamment pour que vous puissiez utiliser le constructeur de formulaires intégré à O3 pour apporter les modifications restantes à vos schémas.
 

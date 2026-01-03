@@ -1,0 +1,458 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+# Using forms in applications
+
+Once you've built a form using the [Form Builder](/docs/forms-in-o3/build-forms-with-o3-form-builder) or converted an existing HTML Form Entry form, you'll need to integrate it into your application. The React Form Engine provides flexible ways to render forms in different contexts, from patient chart workspaces to custom applications.
+
+## Overview
+
+The React Form Engine can be used in two main ways:
+
+1. **Form Renderer Extension** - A pre-built component that handles form loading, rendering, and workspace integration. This is the easiest way to render forms in workspaces.
+2. **FormEngine Component** - The core component that provides full control over form rendering, submission, and behavior.
+
+## Rendering forms in workspaces
+
+The simplest way to render a form in a workspace is to use the `react-form-engine-widget` extension provided by `@openmrs/esm-form-engine-app`. This extension handles form loading, error states, and workspace integration automatically.
+
+### Step 1: Register the form workspace
+
+In your module's `routes.json`, register a workspace:
+
+```json
+{
+  "workspaces": [
+    {
+      "name": "my-form-workspace",
+      "title": "My Form",
+      "component": "myFormWorkspace",
+      "type": "clinical-form",
+      "canMaximize": true,
+      "width": "wider"
+    }
+  ]
+}
+```
+
+<Callout emoji="ℹ️" type="info">
+The `react-form-engine-widget` extension is already registered by `@openmrs/esm-form-engine-app` in the `form-widget-slot`. You don't need to register it again unless you're creating a custom form renderer.
+</Callout>
+
+### Step 2: Create the workspace component
+
+Create a workspace component that uses the `ExtensionSlot` to render the form:
+
+```tsx
+import React from 'react';
+import { ExtensionSlot } from '@openmrs/esm-framework';
+import { type DefaultPatientWorkspaceProps } from '@openmrs/esm-patient-common-lib';
+
+interface MyFormWorkspaceProps extends DefaultPatientWorkspaceProps {
+  formUuid: string;
+  encounterUuid?: string;
+}
+
+export function MyFormWorkspace({ 
+  patientUuid, 
+  formUuid, 
+  encounterUuid,
+  closeWorkspace,
+  promptBeforeClosing,
+  closeWorkspaceWithSavedChanges 
+}: MyFormWorkspaceProps) {
+  const state = {
+    view: 'form',
+    formUuid,
+    patientUuid,
+    encounterUuid: encounterUuid ?? null,
+    closeWorkspace,
+    promptBeforeClosing,
+    closeWorkspaceWithSavedChanges,
+  };
+
+  return (
+    <ExtensionSlot name="form-widget-slot" state={state} />
+  );
+}
+```
+
+### Step 3: Launch the workspace
+
+Launch the workspace with the form UUID:
+
+```tsx
+import { launchWorkspace } from '@openmrs/esm-framework';
+
+function launchMyForm(patientUuid: string, formUuid: string) {
+  launchWorkspace('my-form-workspace', {
+    patientUuid,
+    formUuid,
+    workspaceTitle: 'My Form'
+  });
+}
+```
+
+<Callout emoji="💡" type="info">
+The form renderer extension automatically handles form schema loading, error states, and workspace lifecycle management. It's the recommended approach for most use cases.
+</Callout>
+
+## Using FormEngine directly
+
+For more control over form rendering and behavior, you can use the `FormEngine` component directly from `@openmrs/esm-form-engine-lib`. This is useful when you need custom submission handling, want to render forms outside of workspaces, or need fine-grained control over form behavior.
+
+### Basic usage
+
+```tsx
+import React from 'react';
+import { FormEngine } from '@openmrs/esm-form-engine-lib';
+import type { FormSchema } from '@openmrs/esm-form-engine-lib';
+
+interface MyFormComponentProps {
+  patientUuid: string;
+  formSchema: FormSchema;
+}
+
+export function MyFormComponent({ patientUuid, formSchema }: MyFormComponentProps) {
+  const handleSubmit = (encounters: Array<any>) => {
+    console.log('Form submitted:', encounters);
+    // Handle form submission
+  };
+
+  return (
+    <FormEngine
+      patientUUID={patientUuid}
+      formJson={formSchema}
+      onSubmit={handleSubmit}
+    />
+  );
+}
+```
+
+### Loading form schema from UUID
+
+If you have a form UUID instead of the schema, simply pass it to the `formUUID` prop. The FormEngine will automatically load the schema:
+
+```tsx
+import React from 'react';
+import { FormEngine } from '@openmrs/esm-form-engine-lib';
+
+interface MyFormComponentProps {
+  patientUuid: string;
+  formUuid: string;
+}
+
+export function MyFormComponent({ patientUuid, formUuid }: MyFormComponentProps) {
+  return (
+    <FormEngine
+      patientUUID={patientUuid}
+      formUUID={formUuid}
+    />
+  );
+}
+```
+
+<Callout emoji="💡" type="info">
+The FormEngine handles loading states and errors internally. You don't need to manually fetch the form schema unless you have a specific use case that requires it.
+</Callout>
+
+## Form props and configuration
+
+The `FormEngine` component accepts the following props:
+
+### Required props
+
+- **`patientUUID`** (string) - The UUID of the patient for whom the form is being filled
+
+### Optional props
+
+- **`formUUID`** (string) - The UUID of the form to load from the server. If provided, the form schema will be loaded automatically. Cannot be provided together with `formJson` - you must use either `formUUID` or `formJson`, not both.
+- **`formJson`** (FormSchema) - The form schema object. Use this when you already have the schema loaded or want to use a custom schema.
+- **`encounterUUID`** (string) - The UUID of an existing encounter to edit. When provided, the form will be pre-filled with encounter data and rendered in edit mode.
+- **`visit`** (Visit) - The visit object associated with the form session. If not provided, the form engine will use the patient's active visit.
+- **`mode`** (`'enter' | 'edit' | 'view' | 'embedded-view'`) - The rendering mode for the form. See [Form rendering modes](#form-rendering-modes) below.
+- **`formSessionIntent`** (string) - The intent of the form session (default: `'*'`). Used to filter form sessions when loading initial values.
+- **`onSubmit`** (function) - Callback function called when the form is successfully submitted. Receives an array of created/updated encounters.
+- **`onCancel`** (function) - Callback function called when the user cancels the form.
+- **`handleClose`** (function) - Callback function called when the form should be closed.
+- **`handleConfirmQuestionDeletion`** (function) - Custom handler for confirming deletion of repeatable questions. Should return a Promise that resolves when deletion is confirmed.
+- **`markFormAsDirty`** (function) - Callback function called when the form's dirty state changes. Useful for workspace integration to prompt before closing.
+- **`hideControls`** (boolean) - Hide form action buttons (Save, Cancel). Useful for embedded views or custom UI.
+- **`hidePatientBanner`** (boolean) - Hide the patient banner that appears in ultra-wide workspaces.
+- **`preFilledQuestions`** (Record&lt;string, string&gt;) - Pre-fill specific questions with values. Keys are question IDs, values are the pre-filled values.
+
+### Common prop combinations
+
+**Basic form with UUID:**
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+/>
+```
+
+**Editing an existing encounter:**
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+  encounterUUID={encounterUuid}
+  mode="edit"
+/>
+```
+
+**Form with workspace integration:**
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+  onSubmit={(encounters) => closeWorkspaceWithSavedChanges()}
+  handleClose={closeWorkspace}
+  markFormAsDirty={(isDirty) => promptBeforeClosing(() => isDirty)}
+/>
+```
+
+## Form rendering modes
+
+The React Form Engine supports four rendering modes, each suited for different use cases:
+
+### Enter mode (default)
+
+**Mode:** `'enter'` or `undefined`
+
+**Use case:** Creating new form entries
+
+**Behavior:**
+- Form is rendered in read-write mode
+- All fields are editable
+- Form can be submitted to create a new encounter
+- Automatically selected when no `encounterUUID` is provided and `mode` is not specified
+
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+  mode="enter" // or omit for default
+/>
+```
+
+### Edit mode
+
+**Mode:** `'edit'`
+
+**Use case:** Editing existing form entries
+
+**Behavior:**
+- Form is rendered in read-write mode
+- Form is pre-filled with data from the existing encounter
+- Form can be submitted to update the encounter
+- Automatically selected when `encounterUUID` is provided and `mode` is not specified
+
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+  encounterUUID={encounterUuid}
+  mode="edit" // or omit when encounterUUID is provided
+/>
+```
+
+### View mode
+
+**Mode:** `'view'`
+
+**Use case:** Displaying form data in read-only mode
+
+**Behavior:**
+- Form is rendered in read-only mode
+- All fields are disabled
+- Form cannot be submitted
+- Action buttons show "Close" instead of "Save"
+
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+  encounterUUID={encounterUuid}
+  mode="view"
+/>
+```
+
+### Embedded view mode
+
+**Mode:** `'embedded-view'`
+
+**Use case:** Displaying form data in a condensed widget or card
+
+**Behavior:**
+- Form is rendered in read-only mode
+- Section headers and form actions are hidden
+- Patient banner is hidden
+- Sidebar navigation is hidden
+- Compact layout suitable for embedding in other components
+
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+  encounterUUID={encounterUuid}
+  mode="embedded-view"
+  hideControls={true}
+/>
+```
+
+## Form submission and response handling
+
+When a form is submitted, the `onSubmit` callback receives an array of encounters that were created or updated. Each encounter contains the form data that was submitted.
+
+### Handling form submission
+
+```tsx
+import { type Encounter } from '@openmrs/esm-framework';
+
+function MyFormWorkspace({ patientUuid, formUuid }: Props) {
+  const handleSubmit = (encounters: Array<Encounter>) => {
+    const encounter = encounters[0];
+    
+    // Handle successful submission
+    console.log('Encounter created:', encounter.uuid);
+    console.log('Observations:', encounter.obs);
+    
+    // Close workspace or navigate
+    closeWorkspaceWithSavedChanges();
+    
+    // Refresh related data
+    mutate('/ws/rest/v1/encounter');
+  };
+
+  return (
+    <FormEngine
+      patientUUID={patientUuid}
+      formUUID={formUuid}
+      onSubmit={handleSubmit}
+    />
+  );
+}
+```
+
+### Error handling
+
+The Form Engine handles validation errors automatically and displays them inline. The `onSubmit` callback is only called after successful form submission. If submission fails, the Form Engine handles the error internally and displays it to the user - your `onSubmit` callback will not be called.
+
+```tsx
+function MyFormWorkspace({ patientUuid, formUuid }: Props) {
+  const handleSubmit = (encounters: Array<Encounter>) => {
+    // This callback is only called if submission succeeds
+    // The Form Engine handles errors internally
+    console.log('Form submitted successfully:', encounters);
+    closeWorkspaceWithSavedChanges();
+  };
+
+  return (
+    <FormEngine
+      patientUUID={patientUuid}
+      formUUID={formUuid}
+      onSubmit={handleSubmit}
+    />
+  );
+}
+```
+
+## Complete example: Form workspace
+
+Here's a complete example of a form workspace that integrates with the patient chart:
+
+```tsx
+import React, { useCallback, useMemo } from 'react';
+import { ExtensionSlot } from '@openmrs/esm-framework';
+import { type Encounter } from '@openmrs/esm-framework';
+import { 
+  type DefaultPatientWorkspaceProps 
+} from '@openmrs/esm-patient-common-lib';
+
+interface MyFormWorkspaceProps extends DefaultPatientWorkspaceProps {
+  formUuid: string;
+  encounterUuid?: string;
+}
+
+export function MyFormWorkspace({
+  patientUuid,
+  formUuid,
+  encounterUuid,
+  closeWorkspace,
+  promptBeforeClosing,
+  closeWorkspaceWithSavedChanges,
+}: MyFormWorkspaceProps) {
+  const handleSubmit = useCallback(
+    (encounters: Array<Encounter>) => {
+      console.log('Form submitted:', encounters);
+      closeWorkspaceWithSavedChanges();
+      // Optionally refresh related data or show success notification
+    },
+    [closeWorkspaceWithSavedChanges]
+  );
+
+  const state = useMemo(
+    () => ({
+      view: 'form',
+      formUuid,
+      patientUuid,
+      encounterUuid: encounterUuid ?? null,
+      closeWorkspace,
+      promptBeforeClosing,
+      closeWorkspaceWithSavedChanges,
+      additionalProps: {
+        mode: encounterUuid ? 'edit' : 'enter',
+        handlePostResponse: handleSubmit,
+      },
+    }),
+    [
+      formUuid,
+      patientUuid,
+      encounterUuid,
+      closeWorkspace,
+      promptBeforeClosing,
+      closeWorkspaceWithSavedChanges,
+      handleSubmit,
+    ]
+  );
+
+  return <ExtensionSlot name="form-widget-slot" state={state} />;
+}
+```
+
+## Pre-filling form questions
+
+You can pre-fill specific questions in a form using the `preFilledQuestions` prop:
+
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+  preFilledQuestions={{
+    'vitals-weight': '70',
+    'vitals-height': '175',
+    'chief-complaint': 'Patient reports headache'
+  }}
+/>
+```
+
+The keys in `preFilledQuestions` should match the `id` property of the questions in your form schema.
+
+## Form session intent
+
+The `formSessionIntent` prop allows you to filter form sessions when loading initial values. This is useful when you want to pre-fill a form with data from a specific type of encounter or session:
+
+```tsx
+<FormEngine
+  patientUUID={patientUuid}
+  formUUID={formUuid}
+  formSessionIntent="VITALS" // Only load values from VITALS encounters
+/>
+```
+
+## Next steps
+
+- Learn about [building forms with the Form Builder](/docs/forms-in-o3/build-forms-with-o3-form-builder)
+- Read the [React Form Engine documentation](https://openmrs.atlassian.net/wiki/spaces/projects/pages/68747273/O3+Form+Docs) for advanced features
+- Check out the [workspace documentation](/docs/workspaces/creating-workspaces) for more on creating workspaces
+

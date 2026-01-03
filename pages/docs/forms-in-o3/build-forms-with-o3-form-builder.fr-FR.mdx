@@ -2,11 +2,11 @@ import { Callout, Steps } from "nextra-theme-docs";
 
 # Construire des formulaires en utilisant le constructeur de formulaires O3
 
-O3 est livré avec un constructeur de formulaires intégré que vous pouvez utiliser pour construire vos schémas de formulaires. Pour y accéder, cliquez sur l'icône du sélecteur d'applications dans la barre de navigation et cliquez sur le lien `Administration du Système`. Vous serez dirigé vers la page d'administration du système où vous verrez une liste de cartes pour les applications. Cliquez sur la carte `Constructeur de Formulaires` et vous serez dirigé vers l'interface utilisateur du constructeur de formulaires.
+O3 est livré avec un constructeur de formulaires intégré que vous pouvez utiliser pour construire vos schémas de formulaires. Le constructeur de formulaires utilise le [moteur de formulaires React](https://github.com/openmrs/openmrs-form-engine-lib) pour rendre les aperçus de formulaires et valider les schémas. Pour y accéder, cliquez sur l'icône du sélecteur d'applications dans la barre de navigation et cliquez sur le lien `Administration du Système`. Vous serez dirigé vers la page d'administration du système où vous verrez une liste de cartes pour les applications. Cliquez sur la carte `Constructeur de Formulaires` et vous serez dirigé vers l'interface utilisateur du constructeur de formulaires.
 
 ## Vidéo de démonstration de 5 minutes (Expliquée en détail ci-dessous)
 
-Introduction à l'utilisation du Constructeur de Formulaires O3 : https://www.youtube.com/watch?v=plzZjmUwB1E&ab
+[Introduction à l'utilisation du Constructeur de Formulaires O3](https://www.youtube.com/watch?v=plzZjmUwB1E&ab)
 
 ## Fonctionnalités du constructeur de formulaires O3
 
@@ -15,16 +15,49 @@ Les principales pages du constructeur de formulaires O3 sont:
 - Le `Tableau de bord des formulaires` - où vous verrez une liste tabulaire des schémas de formulaires enregistrés sur votre serveur. Vous pouvez rechercher parmi les formulaires disponibles et les filtrer par statut de publication. Vous pouvez également cliquer sur l'icône d'édition à côté de chaque formulaire pour le lancer dans l'éditeur de formulaires, où vous pouvez y apporter des modifications.
 - `L'Éditeur de formulaires` - où vous pouvez créer un nouveau schéma de formulaire ou en modifier un existant. L'éditeur de formulaires se compose des éléments suivants:
 
-  - `Éditeur de schéma` - contient un éditeur JSON intégré qui utilise la bibliothèque [React Ace](https://github.com/securingsincity/react-ace). Les modifications apportées à l'éditeur de schéma doivent être synchronisées avec l'aperçu du formulaire en cliquant sur le bouton `Rendre les modifications` en haut de l'éditeur. Le code JSON saisi dans l'éditeur doit correspondre au [schéma de formulaire O3 standard](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). Lisez les [documents](https://ampath-forms.vercel.app/docs/core-concepts/forms) pour en savoir plus sur les propriétés de schéma disponibles.
-  - `Aperçu du formulaire` - un aperçu en direct du formulaire qui rend le schéma du formulaire comme vous le verriez dans votre DME. L'aperçu du formulaire répond aux modifications apportées à l'éditeur de schéma et au constructeur interactif.
+  - `Éditeur de schéma` - contient un éditeur JSON intégré qui utilise la bibliothèque [React Ace](https://github.com/securingsincity/react-ace). Les modifications apportées à l'éditeur de schéma doivent être synchronisées avec l'aperçu du formulaire en cliquant sur le bouton `Rendre les modifications` en haut de l'éditeur. Le code JSON saisi dans l'éditeur doit correspondre au [schéma de formulaire O3 standard](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). Lisez la [documentation du moteur de formulaires React](https://openmrs.atlassian.net/wiki/spaces/projects/pages/68747273/O3+Form+Docs) pour en savoir plus sur les propriétés de schéma disponibles.
+  - `Aperçu du formulaire` - un aperçu en direct du formulaire qui rend le schéma du formulaire en utilisant le [moteur de formulaires React](https://github.com/openmrs/openmrs-form-engine-lib) comme vous le verriez dans votre DME. L'aperçu du formulaire répond aux modifications apportées à l'éditeur de schéma et au constructeur interactif.
   - `Constructeur interactif` - une interface utilisateur interactive qui vous permet de construire vos schémas de formulaires sans écrire de code JSON. Les modifications apportées à votre schéma sont synchronisées avec l'éditeur de schéma et l'aperçu du formulaire lorsque vous construisez votre formulaire. Vous pouvez utiliser le constructeur interactif pour ajouter des pages, des sections et des questions à votre formulaire.
   - `Détails de l'audit` - une interface utilisateur qui affiche les informations d'audit relatives à un formulaire, y compris le nom du formulaire, sa description, sa version et son statut de publication.
 
 Une fois que vous avez construit votre schéma de formulaire pour répondre à vos exigences, vous pouvez choisir de:
 
-- `Valider les champs` - le Constructeur de Formulaires O3 a de riches capacités de validation. Pour en savoir plus sur ce qui est possible, lisez le [guide Validation](https://ampath-forms.vercel.app/docs/validation/date-based-validation).
+- `Valider les champs` - le Constructeur de Formulaires O3 a de riches capacités de validation alimentées par le moteur de formulaires React. Pour en savoir plus sur ce qui est possible, lisez la [documentation du moteur de formulaires React](https://openmrs.atlassian.net/wiki/spaces/projects/pages/68747273/O3+Form+Docs).
 - Enregistrer votre formulaire sur le `serveur` - sauvegarder votre schéma sur votre propre base de données est le meilleur moyen de garantir la persistance. Le serveur O3 est éphémère au mieux et ne doit pas être utilisé pour persister vos schémas. Nous recommandons de maintenir une sauvegarde locale de vos schémas pour éviter de les perdre lors de l'utilisation du serveur O3.
 - `Publier` ou `dépublier` votre formulaire - Une fois que vous avez enregistré votre formulaire, vous pouvez choisir de le publier. Seuls les formulaires publiés sont accessibles à l'espace de travail des formulaires dans le dossier du patient. Nous recommandons de maintenir un certain type de système de versionnement afin de pouvoir contrôler quels formulaires sont accessibles aux utilisateurs et lesquels ne le sont pas. En plus de publier des formulaires, vous pouvez également dépublier des formulaires déjà publiés. Cela peut être utile si, par exemple, vous souhaitez déprécier une ancienne version d'un formulaire et la remplacer par une nouvelle version, mais souhaitez conserver une certaine historique des versions.
+
+## Capacités clés du moteur de formulaires
+
+Le moteur de formulaires React qui alimente le constructeur de formulaires prend en charge un large éventail de fonctionnalités pour créer des formulaires cliniques complexes. Voici quelques-unes des capacités les plus importantes :
+
+### Structure du formulaire
+
+Les formulaires sont organisés hiérarchiquement :
+- **Pages** - Conteneurs de niveau supérieur qui regroupent les sections connexes
+- **Sections** - Groupes de questions connexes (peuvent être développées/réduites)
+- **Questions** - Champs de formulaire individuels qui collectent des données
+
+### Types de rendu courants
+
+Les questions peuvent être rendues de différentes manières selon la propriété `rendering` dans `questionOptions` :
+
+- **Champs de texte** : `text`, `textarea`, `number`
+- **Date/heure** : `date`, `datetime`
+- **Sélection** : `select`, `radio`, `checkbox`, `checkbox-searchable`, `toggle`
+- **Spécial** : `drug` (pour les ordonnances de médicaments), `file` (pour les pièces jointes), `problem` (pour les diagnostics), `workspace-launcher` (pour ouvrir d'autres espaces de travail)
+- **Structurel** : `group` (pour les groupes d'obs), `repeating` (pour les sections répétables), `markdown` (pour le contenu en lecture seule)
+
+### Fonctionnalités avancées
+
+- **Rendu conditionnel** - Afficher/masquer les champs en fonction des valeurs d'autres champs en utilisant `hide.hideWhenExpression`
+- **Champs calculés** - Calculer automatiquement les valeurs en utilisant `calculate.calculateExpression`
+- **Validation** - Valider les valeurs des champs avec des validateurs personnalisés
+- **Expressions historiques** - Pré-remplir les champs avec des valeurs provenant d'encounters précédents
+- **Sources de données** - Remplir les champs à partir de sources de données externes
+- **Sous-formulaires** - Intégrer des formulaires réutilisables dans d'autres formulaires
+- **Actions post-soumission** - Exécuter des actions après la soumission du formulaire (par exemple, inscription à un programme)
+
+Pour une documentation complète sur toutes les fonctionnalités disponibles, les types de rendu, les options de validation et les capacités avancées, consultez la [documentation du moteur de formulaires React](https://openmrs.atlassian.net/wiki/spaces/projects/pages/68747273/O3+Form+Docs).
 
 ## Utilisation du constructeur de formulaires
 
@@ -51,7 +84,9 @@ Ici, vous pouvez choisir de taper du code JSON dans l'Éditeur de Schémas ou de
 
 Pour utiliser l'Éditeur de Schémas:
 
-- Appuyez sur le bouton `Input Dummy Schema` pour obtenir une ébauche dans votre éditeur à partir de laquelle vous pouvez commencer à éditer. Modifiez l'ébauche en supprimant et en remplaçant les valeurs des propriétés mises en évidence ci-dessous par votre propre contenu:
+- Cliquez sur l'onglet `Éditeur de schéma` (s'il n'est pas déjà sélectionné)
+- Appuyez sur le bouton `Input Dummy Schema` (ce bouton n'apparaît que lors de la création d'un nouveau formulaire sans schéma existant) pour obtenir une ébauche dans votre éditeur à partir de laquelle vous pouvez commencer à éditer. Modifiez l'ébauche en supprimant et en remplaçant les valeurs des propriétés mises en évidence ci-dessous par votre propre contenu:
+- Après avoir apporté des modifications à votre schéma, cliquez sur le bouton `Rendre les modifications` (situé en haut de l'Éditeur de Schémas) pour synchroniser vos modifications avec l'Aperçu du Formulaire
 
 ```json {3, 7, 10, 13, 16, 17, 19, 20-21, 23, 28, 32-33, 35, 38-52, 55}
 {
@@ -146,7 +181,7 @@ Ici, vous pouvez choisir d'utiliser soit l'Éditeur de Schémas, soit le Constru
 
 #### Étape 3
 
-Finalement, lorsque vous avez terminé de modifier votre formulaire, vous voudrez le sauvegarder. Cliquez sur le bouton `Enregistrer` et cliquez sur le bouton `Mettre à jour la version existante`. Tous les détails entrés à partir de l'Éditeur de Schémas et du Constructeur Interactif devraient être récupérés ici automatiquement. Si vous avez apporté des modifications significatives, vous pourriez envisager de mettre à jour la version de votre formulaire, ainsi que de décrire ce qui a changé dans le champ de description. Cliquez sur le bouton `Enregistrer` pour persister vos modifications sur le serveur.
+Finalement, lorsque vous avez terminé de modifier votre formulaire, vous voudrez le sauvegarder. Cliquez sur le bouton `Enregistrer le formulaire` en haut de l'Éditeur de Formulaires. Une fenêtre modale de confirmation apparaîtra vous demandant si vous souhaitez mettre à jour la version existante ou l'enregistrer comme un nouveau formulaire. Cliquez sur le bouton `Mettre à jour la version existante` pour mettre à jour le formulaire actuel. Tous les détails entrés à partir de l'Éditeur de Schémas et du Constructeur Interactif devraient être récupérés ici automatiquement. Si vous avez apporté des modifications significatives, vous pourriez envisager de mettre à jour la version de votre formulaire, ainsi que de décrire ce qui a changé dans le champ de description. Remplissez les détails du formulaire (nom, version, type d'encounter, description) et cliquez sur le bouton `Enregistrer` pour persister vos modifications sur le serveur.
 
 #### Étape 4
 
@@ -156,8 +191,9 @@ Finalement, lorsque vous avez terminé de modifier votre formulaire, vous voudre
 
 ## Ressources utiles
 
-- Documentation du moteur de formulaire Angular [documentation](https://ampath-forms.vercel.app/docs)
+- [Documentation du moteur de formulaires React](https://openmrs.atlassian.net/wiki/spaces/projects/pages/68747273/O3+Form+Docs) - guide complet du moteur de formulaires React qui alimente l'aperçu et le rendu du constructeur de formulaires
 - [Dépôt de l'application Form Builder](https://github.com/openmrs/openmrs-esm-form-builder)
+- [Dépôt de la bibliothèque du moteur de formulaires React](https://github.com/openmrs/openmrs-form-engine-lib)
 - Tutoriel vidéo: Démonstration de Form Builder (ancienne version)
 
 <br />

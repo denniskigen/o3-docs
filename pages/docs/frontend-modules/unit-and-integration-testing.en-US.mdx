@@ -239,7 +239,12 @@ Whereas this test passes and can give us some amount of confidence that this com
 
 When writing tests, you’ll often need to mock out dependencies. Here are a few patterns you can use to write more effective, maintainable and type-safe tests for your frontend modules:
 
-Core exports a [module mock](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/mock.tsx) that can be used to test functionality in `@openmrs/esm-framework`. 
+Core exports module mocks that can be used to test functionality in `@openmrs/esm-framework`. The framework ships with two mock files:
+
+- `mock.tsx` - Used when importing via ES modules (`import`)
+- `mock-jest.tsx` - Used when importing via CommonJS (`require`)
+
+When you import `@openmrs/esm-framework/mock`, the package automatically resolves to the appropriate mock file based on your module system. You don't need to specify which file to use—the framework handles this automatically. Note that this resolution is based on the module system (ESM vs CommonJS), not the test runner. For example, a Jest project configured to use ES modules will use `mock.tsx` via `import`, while CommonJS usage (via `require()`) will use `mock-jest.tsx`.
 
 In each frontend module's test configuration, you'll see a setup that maps or mocks `@openmrs/esm-framework`. The exact approach depends on the test runner used in that repo (Jest or Vitest).
 
@@ -293,10 +298,27 @@ This is an anti-pattern. That's not because this approach won't work, it will. I
 
 The right way to extend the framework mock is to add the missing functionality to the mock itself. Here's an example of how you can do this:
 
+**Jest example:**
+
 ```tsx
 import { useConfig } from "@openmrs/esm-framework";
 
 const mockUseConfig = jest.mocked(useConfig);
+
+beforeEach(() => {
+  mockUseConfig.mockReturnValue({ config: { someConfig: "value" } });
+});
+
+// Your tests go here...
+```
+
+**Vitest example:**
+
+```tsx
+import { useConfig } from "@openmrs/esm-framework";
+import { vi } from "vitest";
+
+const mockUseConfig = vi.mocked(useConfig);
 
 beforeEach(() => {
   mockUseConfig.mockReturnValue({ config: { someConfig: "value" } });
@@ -318,7 +340,13 @@ When adding new stubs, follow these guidelines:
 
 ### Annotating mocks with type information
 
-Wherever possible, prefer using the `jest.mocked` function to get type information for your mocks. This will help you catch type errors early and make your tests more robust. You may have seen this pattern in the past:
+Wherever possible, prefer using the test runner's `mocked` function (`jest.mocked` for Jest or `vi.mocked` for Vitest) to get type information for your mocks. This will help you catch type errors early and make your tests more robust. 
+
+<Callout emoji="⚠️" type="warning">
+  **Important**: The `mocked` function is type-only and does not perform runtime mocking. The module must be mocked separately via your test configuration (as shown in the [Mocking patterns](#mocking-patterns) section above) using `jest.mock()`, `vi.mock()`, or the module name mapper configuration.
+</Callout>
+
+You may have seen this pattern in the past:
 
 ```tsx
 import { useLayoutType } from "@openmrs/esm-framework";
@@ -326,15 +354,32 @@ import { useLayoutType } from "@openmrs/esm-framework";
 const mockUseLayoutType = useLayoutType as jest.Mock;
 ```
 
-The `jest.mocked` function is a better alternative:
+The `mocked` function is a better alternative because it preserves the original function's type signature, providing better type safety and autocomplete support:
+
+**Jest example:**
 
 ```tsx
 import { useLayoutType } from "@openmrs/esm-framework";
 
+// Note: The module must be mocked at runtime (via jest.mock() or moduleNameMapper)
+// for mockReturnValue and other mock methods to work.
 const mockUseLayoutType = jest.mocked(useLayoutType);
 ```
 
-The `jest.mocked` function will infer the type of the mock from the source function. You can take this a level further by explicitly annotating the mock with the type of the source function:
+**Vitest example:**
+
+```tsx
+import { useLayoutType } from "@openmrs/esm-framework";
+import { vi } from "vitest";
+
+// Note: The module must be mocked at runtime (via vi.mock() in setup-tests.ts)
+// for mockReturnValue and other mock methods to work.
+const mockUseLayoutType = vi.mocked(useLayoutType);
+```
+
+The `mocked` function will infer the type of the mock from the source function, preserving parameter types and return types. In most cases, this inference is sufficient when the function's type is concrete. You can take this a level further by explicitly annotating the mock with the type of the source function:
+
+**Jest example:**
 
 ```tsx
 import { useConfig } from "@openmrs/esm-framework";
@@ -343,15 +388,69 @@ import type { PatientRegistrationConfig } from "../config-schema";
 const mockUseConfig = jest.mocked(useConfig<PatientRegistrationConfig>);
 ```
 
+**Vitest example:**
+
+```tsx
+import { useConfig } from "@openmrs/esm-framework";
+import type { PatientRegistrationConfig } from "../config-schema";
+import { vi } from "vitest";
+
+const mockUseConfig = vi.mocked(useConfig<PatientRegistrationConfig>);
+```
+
+<Callout emoji="ℹ️" type="info">
+  **When inference isn't enough**: In rare cases where TypeScript's inference isn't strong enough (e.g., with complex generics, overloaded signatures, or edge cases), you can use `MockedFunction` as a type assertion fallback:
+  
+  **Jest example:**
+  
+  ```tsx
+  import { useConfig } from "@openmrs/esm-framework";
+  import type { PatientRegistrationConfig } from "../config-schema";
+  
+  const mockUseConfig = jest.mocked(useConfig) as jest.MockedFunction<typeof useConfig<PatientRegistrationConfig>>;
+  ```
+  
+  **Vitest example:**
+  
+  ```tsx
+  import { useConfig } from "@openmrs/esm-framework";
+  import type { PatientRegistrationConfig } from "../config-schema";
+  import { vi } from "vitest";
+  
+  const mockUseConfig = vi.mocked(useConfig) as vi.MockedFunction<typeof useConfig<PatientRegistrationConfig>>;
+  ```
+  
+  However, `mocked()` should be sufficient in most cases and is the preferred approach. Note that for functions with overloaded signatures, `MockedFunction` may select the wrong overload. In such cases, you may need to use a specific signature or create a type alias to target the exact overload you need.
+</Callout>
+
 ### Annotating useConfig mocks with type information
 
-The `useConfig` hook is a special case because it takes a generic parameter that specifies the shape of the configuration object. In addition to annotating the mock with the type of the configuration object, you should also provide a default configuration object that your tests can use. Here's an example:
+The `useConfig` hook is a special case because it takes a generic parameter that specifies the shape of the configuration object. In addition to annotating the mock with the type of the configuration object, you should also provide a default configuration object that your tests can use.
+
+**Jest example:**
 
 ```tsx
 import { getDefaultsFromConfigSchema, useConfig } from "@openmrs/esm-framework";
 import type { PatientRegistrationConfig } from "../config-schema";
 
 const mockUseConfig = jest.mocked(useConfig<PatientRegistrationConfig>);
+
+beforeEach(() => {
+  mockUseConfig.mockReturnValue({
+    ...getDefaultsFromConfigSchema(configSchema),
+    // Add your custom configuration here...
+  });
+});
+```
+
+**Vitest example:**
+
+```tsx
+import { getDefaultsFromConfigSchema, useConfig } from "@openmrs/esm-framework";
+import type { PatientRegistrationConfig } from "../config-schema";
+import { vi } from "vitest";
+
+const mockUseConfig = vi.mocked(useConfig<PatientRegistrationConfig>);
 
 beforeEach(() => {
   mockUseConfig.mockReturnValue({
@@ -376,7 +475,7 @@ beforeEach(() => {
 
 - Use the framework mock to test your module in isolation.
 - Extend the framework mock by adding stubs for missing functionality. Do not use partial mocks to add missing functionality.
-- Use the `jest.mocked` function to infer the type of your mocks from the source function.
+- Use the `mocked` function (`jest.mocked` for Jest or `vi.mocked` for Vitest) to infer the type of your mocks from the source function.
 - Annotate your mocks with type information to catch type errors early and make your tests more robust.
 
 Ultimately, to get the right testing strategy, you’ll likely require a mix of unit, integration, and e2e tests. You’ll also need to figure out the right level of mocking to apply. Mock too little, and you’re likely testing too many implementation details. Mock too much, and you’re likely sacrificing a lot of confidence.

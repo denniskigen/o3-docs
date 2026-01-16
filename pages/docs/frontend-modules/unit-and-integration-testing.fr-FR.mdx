@@ -237,9 +237,14 @@ Bien que ce test passe et puisse nous donner une certaine confiance que ce compo
 
 ## Modèles de simulation
 
-Lors de l'écriture de tests, vous aurez souvent besoin de simuler des dépendances. Voici quelques modèles que vous pouvez utiliser pour écrire des tests plus efficaces, maintenables et sûrs au niveau du type pour vos modules frontend:
+Lors de l'écriture de tests, vous aurez souvent besoin de simuler des dépendances. Voici quelques modèles que vous pouvez utiliser pour écrire des tests plus efficaces, maintenables et sûrs sur le plan du typage pour vos modules frontend:
 
-Core exporte un mock de module qui peut être utilisé pour tester les fonctionnalités dans `@openmrs/esm-framework`. La configuration dépend du runner de test utilisé dans le dépôt (Jest ou Vitest).
+Core exporte des mocks de modules qui peuvent être utilisés pour tester les fonctionnalités dans `@openmrs/esm-framework`. Le framework fournit deux fichiers de mock :
+
+- `mock.tsx` - Utilisé lors d'importations via les modules ES (`import`)
+- `mock-jest.tsx` - Utilisé lors d'importations via CommonJS (`require`)
+
+Lorsque vous importez `@openmrs/esm-framework/mock`, le package se résout automatiquement vers le fichier de mock approprié en fonction de votre système de modules. Vous n'avez pas besoin de préciser quel fichier utiliser — le framework s'en charge automatiquement. Notez que cette résolution dépend du système de modules (ESM vs CommonJS), pas du runner de test. Par exemple, un projet Jest configuré pour utiliser les modules ES utilisera `mock.tsx` via `import`, tandis qu'une utilisation CommonJS (via `require()`) utilisera `mock-jest.tsx`.
 
 **Exemple Jest :**
 
@@ -258,7 +263,18 @@ module.exports = {
 vi.mock('@openmrs/esm-framework', () => import('@openmrs/esm-framework/mock'));
 ```
 
-Ces approches indiquent au runner de test d'utiliser le module mock pour toutes les importations de `@openmrs/esm-framework`. C'est utile car cela vous permet de tester votre module de manière isolée sans avoir à vous soucier du framework.
+Ces approches indiquent au runner de test de remplacer toutes les importations de `@openmrs/esm-framework` par le contenu de `@openmrs/esm-framework/mock` pendant les tests. C'est crucial, car `@openmrs/esm-framework` est une bibliothèque qui fournit des fonctionnalités cœur telles que la configuration, l'authentification, le chargement de modules, le routage, etc. La version mock (`@openmrs/esm-framework/mock`) fournit des stubs pour toutes ces fonctions qui :
+
+- Ne font pas de requêtes réseau réelles.
+- Ne nécessitent pas un backend OpenMRS réel.
+- Permettent un contrôle plus simple des fonctionnalités du framework dans vos tests.
+
+C'est considéré comme une bonne pratique en matière de tests parce que cela :
+
+- Isole les tests des dépendances externes.
+- Rend les tests plus prévisibles et plus faciles à écrire.
+- Permet de contrôler le comportement du framework dans vos tests.
+- Accélère l'exécution des tests en évitant les requêtes réseau et les dépendances backend.
 
 Le mock du framework agrège des stubs pour toutes les APIs du framework que votre module pourrait utiliser. Si une fonctionnalité est manquante, vous devriez d'abord l'ajouter au mock. Vous pouvez le faire en étendant l'un des stubs existants ou en en ajoutant de nouveaux.
 
@@ -275,7 +291,11 @@ jest.mock("@openmrs/esm-framework", () => ({
 }));
 ```
 
-C'est un anti-modèle. La bonne façon d'étendre le mock du framework est d'ajouter la fonctionnalité manquante au mock lui-même. Voici un exemple de comment vous pouvez faire cela:
+C'est un anti-modèle. Ce n'est pas parce que cette approche ne fonctionne pas — elle fonctionne. C'est un anti-modèle parce qu'elle crée essentiellement une structure de mock parallèle qui n'est pas aussi facile à maintenir que le mock du framework. Comme les stubs du mock du framework sont centralisés, il est plus simple d'ajouter de nouveaux stubs à chaque fois que de nouvelles fonctionnalités sont ajoutées au framework.
+
+La bonne façon d'étendre le mock du framework est d'ajouter la fonctionnalité manquante au mock lui-même. Voici un exemple de la manière de procéder :
+
+**Exemple Jest :**
 
 ```tsx
 import { useConfig } from "@openmrs/esm-framework";
@@ -289,9 +309,30 @@ beforeEach(() => {
 // Vos tests vont ici...
 ```
 
+**Exemple Vitest :**
+
+```tsx
+import { useConfig } from "@openmrs/esm-framework";
+import { vi } from "vitest";
+
+const mockUseConfig = vi.mocked(useConfig);
+
+beforeEach(() => {
+  mockUseConfig.mockReturnValue({ config: { someConfig: "valeur" } });
+});
+
+// Vos tests vont ici...
+```
+
 ### Annoter les mocks avec des informations de type
 
-Dans la mesure du possible, préférez utiliser la fonction `jest.mocked` pour obtenir des informations de type pour vos mocks. Cela vous aidera à détecter les erreurs de type tôt et rendra vos tests plus robustes. Vous avez peut-être vu ce modèle dans le passé:
+Dans la mesure du possible, préférez utiliser la fonction `mocked` du runner de test (`jest.mocked` pour Jest ou `vi.mocked` pour Vitest) pour obtenir des informations de type pour vos mocks. Cela vous aidera à détecter les erreurs de type tôt et rendra vos tests plus robustes sur le plan du typage.
+
+<Callout emoji="⚠️" type="warning">
+  **Important**: La fonction `mocked` est uniquement typée et n'effectue pas de mock au runtime. Le module doit être mocké séparément via votre configuration de test (comme indiqué dans la section [Modèles de simulation](#modèles-de-simulation) ci-dessus) en utilisant `jest.mock()`, `vi.mock()` ou la configuration `moduleNameMapper`.
+</Callout>
+
+Vous avez peut-être vu ce modèle dans le passé:
 
 ```tsx
 import { useLayoutType } from "@openmrs/esm-framework";
@@ -299,15 +340,32 @@ import { useLayoutType } from "@openmrs/esm-framework";
 const mockUseLayoutType = useLayoutType as jest.Mock;
 ```
 
-La fonction `jest.mocked` est une meilleure alternative:
+La fonction `mocked` est une meilleure alternative car elle préserve la signature de type de la fonction d'origine, offrant une meilleure sécurité de type et une meilleure complétion automatique:
+
+**Exemple Jest :**
 
 ```tsx
 import { useLayoutType } from "@openmrs/esm-framework";
 
+// Remarque : le module doit être mocké au runtime (via jest.mock() ou moduleNameMapper)
+// pour que mockReturnValue et les autres méthodes de mock fonctionnent.
 const mockUseLayoutType = jest.mocked(useLayoutType);
 ```
 
-La fonction `jest.mocked` déduira le type du mock à partir de la fonction source. Vous pouvez aller plus loin en annotant explicitement le mock avec le type de la fonction source:
+**Exemple Vitest :**
+
+```tsx
+import { useLayoutType } from "@openmrs/esm-framework";
+import { vi } from "vitest";
+
+// Remarque : le module doit être mocké au runtime (via vi.mock() dans setup-tests.ts)
+// pour que mockReturnValue et les autres méthodes de mock fonctionnent.
+const mockUseLayoutType = vi.mocked(useLayoutType);
+```
+
+La fonction `mocked` déduira le type du mock à partir de la fonction source, en préservant les types des paramètres et des valeurs de retour. Dans la plupart des cas, cette inférence est suffisante lorsque le type de la fonction est concret. Vous pouvez aller plus loin en annotant explicitement le mock avec le type de la fonction source :
+
+**Exemple Jest :**
 
 ```tsx
 import { useConfig } from "@openmrs/esm-framework";
@@ -316,15 +374,69 @@ import type { PatientRegistrationConfig } from "../config-schema";
 const mockUseConfig = jest.mocked(useConfig<PatientRegistrationConfig>);
 ```
 
+**Exemple Vitest :**
+
+```tsx
+import { useConfig } from "@openmrs/esm-framework";
+import type { PatientRegistrationConfig } from "../config-schema";
+import { vi } from "vitest";
+
+const mockUseConfig = vi.mocked(useConfig<PatientRegistrationConfig>);
+```
+
+<Callout emoji="ℹ️" type="info">
+  **Quand l'inférence ne suffit pas**: Dans de rares cas où l'inférence TypeScript n'est pas suffisante (p. ex. avec des generics complexes, des signatures surchargées ou des cas limites), vous pouvez utiliser `MockedFunction` comme solution de repli via une assertion de type :
+  
+  **Exemple Jest :**
+  
+  ```tsx
+  import { useConfig } from "@openmrs/esm-framework";
+  import type { PatientRegistrationConfig } from "../config-schema";
+  
+  const mockUseConfig = jest.mocked(useConfig) as jest.MockedFunction<typeof useConfig<PatientRegistrationConfig>>;
+  ```
+  
+  **Exemple Vitest :**
+  
+  ```tsx
+  import { useConfig } from "@openmrs/esm-framework";
+  import type { PatientRegistrationConfig } from "../config-schema";
+  import { vi } from "vitest";
+  
+  const mockUseConfig = vi.mocked(useConfig) as vi.MockedFunction<typeof useConfig<PatientRegistrationConfig>>;
+  ```
+  
+  Cependant, `mocked()` suffit dans la plupart des cas et reste l'approche préférée. Notez que pour les fonctions avec des signatures surchargées, `MockedFunction` peut sélectionner la mauvaise surcharge. Dans ce cas, vous devrez peut-être utiliser une signature spécifique ou créer un alias de type pour cibler la surcharge exacte dont vous avez besoin.
+</Callout>
+
 ### Annoter les mocks useConfig avec des informations de type
 
-Le hook `useConfig` est un cas particulier car il prend un paramètre générique qui spécifie la forme de l'objet de configuration. En plus d'annoter le mock avec le type de l'objet de configuration, vous devriez également fournir un objet de configuration par défaut que vos tests peuvent utiliser. Voici un exemple:
+Le hook `useConfig` est un cas particulier car il prend un paramètre générique qui spécifie la forme de l'objet de configuration. En plus d'annoter le mock avec le type de l'objet de configuration, vous devriez également fournir un objet de configuration par défaut que vos tests peuvent utiliser.
+
+**Exemple Jest :**
 
 ```tsx
 import { getDefaultsFromConfigSchema, useConfig } from "@openmrs/esm-framework";
 import type { PatientRegistrationConfig } from "../config-schema";
 
 const mockUseConfig = jest.mocked(useConfig<PatientRegistrationConfig>);
+
+beforeEach(() => {
+  mockUseConfig.mockReturnValue({
+    ...getDefaultsFromConfigSchema(configSchema),
+    // Ajoutez votre configuration personnalisée ici...
+  });
+});
+```
+
+**Exemple Vitest :**
+
+```tsx
+import { getDefaultsFromConfigSchema, useConfig } from "@openmrs/esm-framework";
+import type { PatientRegistrationConfig } from "../config-schema";
+import { vi } from "vitest";
+
+const mockUseConfig = vi.mocked(useConfig<PatientRegistrationConfig>);
 
 beforeEach(() => {
   mockUseConfig.mockReturnValue({
@@ -349,7 +461,7 @@ beforeEach(() => {
 
 - Utilisez le mock du framework pour tester votre module de manière isolée.
 - Étendez le mock du framework en ajoutant des stubs pour les fonctionnalités manquantes. N'utilisez pas de mocks partiels pour ajouter des fonctionnalités manquantes.
-- Utilisez la fonction `jest.mocked` pour déduire le type de vos mocks à partir de la fonction source.
+- Utilisez la fonction `mocked` (`jest.mocked` pour Jest ou `vi.mocked` pour Vitest) pour déduire le type de vos mocks à partir de la fonction source.
 - Annotez vos mocks avec des informations de type pour détecter les erreurs de type tôt et rendre vos tests plus robustes.
 
 En fin de compte, pour obtenir la bonne stratégie de test, vous aurez probablement besoin d'un mélange de tests unitaires, d'intégration et de bout en bout. Vous devrez également déterminer le bon niveau de simulation à appliquer. Si vous simulez trop peu, vous risquez de tester trop de détails d'implémentation. Si vous simulez trop, vous risquez de sacrifier beaucoup de confiance.

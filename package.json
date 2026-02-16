@@ -39,6 +39,9 @@
     "sharp": "^0.34.2",
     "swr": "^2.3.3"
   },
+  "overrides": {
+    "next-mdx-remote": "^6.0.0"
+  },
   "pnpm": {
     "overrides": {
       "next-mdx-remote": "^6.0.0"

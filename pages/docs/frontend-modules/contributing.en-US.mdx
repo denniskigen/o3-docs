@@ -27,13 +27,14 @@ Here are some guidelines to follow when creating a PR:
 
 - **Fork and clone the repository** - Before you can create a PR, you need to fork the repository you want to contribute to. Once you’ve forked the repository, clone it to your local machine. Read the setup instructions in the repository’s README file to get started.
 - **Create a branch** in Git to isolate your work from the main branch. The branch name should be descriptive of the work you’re doing. For example, if you’re fixing a bug, the branch name could be `fix/bug-description`. If you’re adding a feature, the branch name could be `feat/feature-description`. If you’re not sure what type of change you’re making, ask in the `#openmrs3-helpme` Slack channel.
-- Once you have working changes in Git that you want to push, add them and **create a commit**. The commit message should be terse and descriptive of the work you're doing. We include [conventional commit labels](https://www.conventionalcommits.org) in our commit messages. The most common labels are `feat`, `fix`, `chore`, `test`, and `BREAKING`. The following are typical commit messages:
+- Once you have working changes in Git that you want to push, add them and **create a commit**. The commit message should be terse and descriptive of the work you're doing. We commonly use [conventional commit labels](https://www.conventionalcommits.org) in commit messages. The most common labels are `BREAKING`, `feat`, `fix`, `chore`, `docs`, and `test`. The following are typical commit messages:
 
+  - `BREAKING: Replace the public orders API contract`
   - `feat: Add search bar to medications widget`
   - `fix: Console error when visiting allergies page`
   - `chore: Update dependencies`
+  - `docs: Clarify local setup steps`
   - `test: Add unit tests for medications widget`
-  - `BREAKING: New left nav system`
 
 If you can provide a more detailed commit message, that’s even better. The more information you provide, the easier it is for someone to understand the work you’re proposing.
 
@@ -41,17 +42,37 @@ If you can provide a more detailed commit message, that’s even better. The mor
 - Committing code will run the linter and formatter. If there are any linting errors, you’ll need to fix them before you can push your changes. In many cases, a tool for extracting translation keys and strings from your code will run. If any new keys are found, you'll need to amend your commit message to include the new keys. This is important for our i18n process. Be sure to commit any linting and i18n changes before pushing your code.
 - To open your changes as a PR, **push your branch** to your forked repository. Before your changes get pushed to GitHub, a script will run to ensure your code is formatted correctly, that there are no linting errors, and that tests pass and your code doesn't have any type errors. If there are any issues, you’ll need to fix them before you can push your changes. Re-integrate your changes and push them again. Once you’ve pushed your branch, you can create a PR from the [GitHub UI](https://help.github.com/en/articles/creating-a-pull-request). The PR should be created against the main branch of the repository you’re contributing to.
 - Most repositories will have a PR template that you need to fill out. The template will ask you for information about the work you’re doing, the context, and any other relevant information. **Read and fill out the PR template when filing a PR**. The PR template exists to help you give us all the information we need in a format we can quickly review. Filling it out correctly will make everyone’s work faster and easier.
-- Your pull request title should include a conventional commit label that indicates the type of change you’re making. The PR title should begin with the [conventional commit](https://www.conventionalcommits.org) label that relates to your PR, followed by a ticket number if applicable. Examples of good PR titles:
+- Your pull request title must use one of these canonical formats:
 
-  - `(chore) Remove orders widget feature flag`
-  - `(chore) Bump @openmrs/ngx-formentry`
+  - `(type) TICKET: Sentence case summary` when there is a Jira ticket
+  - `(type) Sentence case summary` when there is no Jira ticket yet
+  - `(BREAKING) TICKET: Sentence case summary` when a breaking change has a Jira ticket
+  - `(BREAKING) Sentence case summary` when a breaking change has no Jira ticket yet
+
+  Allowed parenthesized `type` values are `feat`, `fix`, `chore`, `docs`, and `test`. Use `(BREAKING)` for downstream-incompatible changes, and do not use `(refactor)` in PR titles. Ticketless pull requests are allowed when a Jira ticket does not exist yet. If a ticket is created later, update the PR title and `Related Issue` section when you have it. Bot-authored pull requests are exempt from this rule.
+
+  To choose the right label:
+
+  - Use `(BREAKING)` when a downstream consumer must change their code to adapt to your change.
+  - Use `(feat)` for most user-facing or functional changes. This should be the most common label for normal product work.
+  - Use `(fix)` only for smaller bug fixes and edge cases that correct behavior without introducing broader functional changes.
+  - Use `(chore)` for plumbing work such as configuration, CI, dependencies, or other maintenance tasks. A `(chore)` PR should not change runtime behavior, except indirectly through build or tooling configuration.
+  - Use `(docs)` for documentation-only work.
+  - Use `(test)` for test-only work.
+
+  Passing examples:
+
   - `(fix) O3-2657: Show inline errors when saving orders fails`
   - `(feat) O3-2724: Move overlays into the framework`
-  - `(feat) O3-3063: Appointments dashboard UI tweaks`
-  - `(test) O3-3040: Add E2E test for adding a visit note`
-  - `(docs) Add steps for running E2E tests to README`
+  - `(BREAKING) O3-9000: Replace the public orders API contract`
+  - `(docs) Fix README examples`
+
+  Failing examples:
+
+  - `fix: Show inline errors when saving orders fails`
+  - `O3-2657: Show inline errors when saving orders fails`
+  - `(feat)O3-2657: Show inline errors when saving orders fails`
   - `(refactor) Tidy the workspaces implementation`
-  - `BREAKING: Upgrade to Carbon v11`
 
   We use these labels to determine version bumps when [releasing](/docs/frontend-modules/releasing-modules) frontend modules. The [changelogs](https://o3-docs.openmrs.org/docs/changelog) we put out alongside each release are generated from the PR titles, so it’s important to follow this convention. _Don’t worry if you aren’t sure which one you should use!_ Your reviewer should make sure your PR has an appropriate one.
 

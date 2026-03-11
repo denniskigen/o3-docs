@@ -41,13 +41,31 @@ Les messages de commit typiques doivent suivre la convention suivante :
 - Pour ouvrir vos modifications en tant que PR, **poussez votre branche** vers votre dépôt forké.
 - La plupart des dépôts auront un modèle de PR que vous devez remplir. Le modèle vous demandera des informations sur le travail que vous effectuez, le contexte et toute autre information pertinente.
 
-Le titre de votre pull request doit inclure une étiquette de commit conventionnelle qui indique le type de modification que vous effectuez. Exemples de bons titres de PR :
+Le titre de votre pull request doit utiliser l'un de ces formats canoniques :
+
+- `(type) TICKET: Résumé en casse phrase` lorsqu'il existe un ticket Jira
+- `(type) Résumé en casse phrase` lorsqu'il n'existe pas encore de ticket Jira
+- `(BREAKING) TICKET: Résumé en casse phrase` lorsqu'un changement incompatible a un ticket Jira
+- `(BREAKING) Résumé en casse phrase` lorsqu'un changement incompatible n'a pas encore de ticket Jira
+
+Les valeurs de `type` autorisées entre parenthèses sont `feat`, `fix`, `chore`, `docs` et `test`. Utilisez `(BREAKING)` pour les changements incompatibles pour les consommateurs en aval, et n'utilisez pas `(refactor)` dans les titres de PR. Les PR sans ticket sont autorisées lorsqu'aucun ticket Jira n'existe encore. Si un ticket est créé plus tard, mettez à jour le titre de la PR et la section `Related Issue`. Les PR créées par des bots sont exemptées de cette règle.
+
+Pour choisir le bon label :
+
+- Utilisez `(BREAKING)` lorsqu'un consommateur en aval doit modifier son code pour s'adapter à votre changement.
+- Utilisez `(feat)` pour la plupart des changements fonctionnels ou visibles par l'utilisateur. C'est le label à utiliser le plus souvent pour le travail produit habituel.
+- Utilisez `(fix)` uniquement pour des corrections de bugs plus petites ou des cas limites qui corrigent un comportement sans introduire de changement fonctionnel plus large.
+- Utilisez `(chore)` pour les travaux de plomberie tels que la configuration, la CI, les dépendances ou d'autres tâches de maintenance. Une PR `(chore)` ne doit pas modifier le comportement à l'exécution, sauf indirectement via la configuration de build ou d'outillage.
+- Utilisez `(docs)` pour les changements limités à la documentation.
+- Utilisez `(test)` pour les changements limités aux tests.
+
+Exemples de bons titres de PR :
 
 - `(chore) Suppression du feature flag du widget commandes`
 - `(fix) O3-2657: Affichage des erreurs en ligne lorsque l'enregistrement des commandes échoue`
 - `(feat) O3-2724: Déplacement des overlays dans le framework`
 - `(test) O3-3040: Ajout d'un test E2E pour l'ajout d'une note de visite`
-- `BREAKING: Mise à niveau vers Carbon v11`
+- `(BREAKING) Mise à niveau vers Carbon v11`
 
 ### Revue de code
 

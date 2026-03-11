@@ -45,17 +45,16 @@ With that knowledge, you can draft a changelog. To do so:
 - Go to the `releases` page of your monorepo, and click `Draft a new release`.
 - Click the `Choose a tag` button in the releases page UI. Choose any tag, say `v1.0.1` for a `patch` release if the most recent version is `v1.0.0`. We will likely change this shortly after reviewing the changelog. Set that value as the release title as well. Next, click the `Generate release notes` button.
 
-We have established a convention within O3 where PR titles contain a conventional commit `type` value that describes the kind of change the PR makes. These include:
+We have established a convention within O3 where PR titles use one of these canonical formats:
 
-- `(feat)` for new features
-- `(fix)` for bug fixes
-- `(refactor)` for refactors
-- `(test)` for tests
-- `(docs)` for documentation
-- `(chore)` for housekeeping tasks, like managing dependencies, configuring things or updating CI workflows
-- `(BREAKING)` for backwards-incompatible API changes.
+- `(type) TICKET: Sentence case summary`
+- `(type) Sentence case summary`
+- `(BREAKING) TICKET: Sentence case summary`
+- `(BREAKING) Sentence case summary`
 
-Reviewing the generated changelog with these commit types in mind should give you a good idea of the semantic version bump your release should create.
+Allowed parenthesized `type` values are `(feat)`, `(fix)`, `(chore)`, `(docs)`, `(test)`, and `(BREAKING)`. Keep avoiding `(refactor)`, and allow ticketless PR titles when a Jira ticket does not exist yet. Bot-authored PRs are exempt from this check.
+
+Reviewing the generated changelog with these title rules in mind should give you a good idea of the semantic version bump your release should create. For the full PR title policy and examples of valid and invalid titles, refer to the [contributing guide](/docs/frontend-modules/contributing#pull-requests).
 
 ### Bumping versions
 

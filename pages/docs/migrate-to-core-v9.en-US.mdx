@@ -1,0 +1,92 @@
+import { Steps } from "nextra-theme-docs";
+
+# Migrating to Core v9
+
+This guide is for migrating frontend modules to Core v9 and above. The breaking change in this release is the upgrade of the i18next internationalization ecosystem, introduced in [this pull request](https://github.com/openmrs/openmrs-esm-core/pull/1473).
+
+## Background
+
+Core v9 upgrades the i18next ecosystem to modern versions. The previous versions (i18next v21, react-i18next v11) were significantly outdated, and the upgrade brings improved TypeScript support, better performance, and continued maintenance.
+
+The key change that makes this a breaking release is that `react-i18next` v16 no longer re-exports the `TFunction` type. Code that imports `TFunction` from `react-i18next` will fail to compile.
+
+## Migration steps
+
+<Steps>
+
+### Bump core dependencies
+
+Bump core dependencies to their newest `next` tagged versions:
+
+```bash
+yarn up openmrs@next @openmrs/esm-framework@next
+```
+
+### Bump i18next ecosystem dependencies
+
+Update the i18next packages in your `package.json`:
+
+```bash
+yarn up i18next@^25.0.0 react-i18next@^16.0.0 i18next-parser@^9.3.0
+```
+
+Also update the `react-i18next` peer dependency version in each frontend module's `package.json` from `11.x` to `16.x`:
+
+```json
+{
+  "peerDependencies": {
+    "react-i18next": "16.x"
+  }
+}
+```
+
+### Bump TypeScript
+
+i18next v25 requires TypeScript 5 or higher. Update your TypeScript dependency:
+
+```bash
+yarn up typescript@^5.0.0
+```
+
+### Fix `TFunction` imports
+
+The `TFunction` type is no longer re-exported from `react-i18next`. Update all imports to use the `i18next` package instead:
+
+**Before:**
+
+```typescript
+import { useTranslation, type TFunction } from "react-i18next";
+```
+
+**After:**
+
+```typescript
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
+```
+
+To find all affected files in your codebase, run:
+
+```bash
+grep -rn "TFunction.*react-i18next\|react-i18next.*TFunction" --include="*.ts" --include="*.tsx" src/
+```
+
+</Steps>
+
+After completing the steps above, verify everything works:
+
+- Run tests: `yarn test`
+- Run a development build: `yarn start`
+- Run a production build: `yarn build`
+
+## Workspace v2
+
+Core v9 also introduces **Workspace v2**, a redesigned workspace system with a hierarchical group/window/workspace model. The v1 workspace API is now deprecated but still functional. Migrating to Workspace v2 is optional but recommended.
+
+See the [Workspace v2 migration guide](/docs/migrate-to-workspace-v2) for details.
+
+## Migration examples
+
+- [Patient chart](https://github.com/openmrs/openmrs-esm-patient-chart/pull/2795)
+- [Patient management](https://github.com/openmrs/openmrs-esm-patient-management/pull/2041)
+- [React form engine](https://github.com/openmrs/openmrs-esm-form-engine-lib/pull/656)

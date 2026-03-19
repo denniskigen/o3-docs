@@ -1,17 +1,8 @@
-import { Callout, Steps } from "nextra-theme-docs";
+import { Steps } from "nextra-theme-docs";
 
-# Migrer vers Core v6.3.1-pre.2986
+# Migrer vers Core v6
 
-<Callout type="info">
-  **Public cible :** Ce guide de migration est spécifiquement pour les développeurs utilisant des versions pré-release (marquées `next`) des packages d'outillage et de framework Core.
-
-Si votre distribution est épinglée aux versions stables `latest`, **vous n'avez pas besoin de migrer pour le moment**—ces changements deviendront pertinents avec la prochaine [version stable O3 v3.5.0](https://openmrs.atlassian.net/wiki/spaces/docs/pages/479199233/Release+Notes+3.5+Goal+2025-08).
-
-Ne suivez ce guide que si vous travaillez avec des environnements de développement ou de staging de pointe sur des versions pré-release (`next`).
-
-</Callout>
-
-Ce guide concerne la migration des modules frontend pour utiliser des versions d'outillage et de framework Core supérieures à `v6.3.1-pre.2986`. Cette version pré-release correspond à [cette pull request](https://github.com/openmrs/openmrs-esm-core/pull/1346).
+Ce guide concerne la migration des modules frontend vers Core v6 et supérieur. Les changements de ce guide correspondent à [cette pull request](https://github.com/openmrs/openmrs-esm-core/pull/1346), qui a été publiée pour la première fois sous `openmrs@6.3.1-pre.2986`.
 
 Pour déterminer quelle version de l'outillage ou du framework Core vous utilisez, exécutez :
 
@@ -21,20 +12,13 @@ yarn why openmrs
 yarn why @openmrs/esm-framework
 ```
 
-Vous devriez voir quelque chose comme ceci :
-
-```bash
-└─ your-frontend-module@workspace:.
-   └─ openmrs@npm:6.3.1-pre.2986 (via npm:next)
-```
-
-Si vous utilisez une version supérieure à `v6.3.1-pre.2986` pour l'un ou l'autre, vous n'avez pas besoin de migrer. Sinon, lisez la suite pour apprendre comment migrer.
+Si vous utilisez déjà Core v6 ou supérieur, vous n'avez pas besoin de migrer. Sinon, lisez la suite pour apprendre comment migrer.
 
 ## Contexte : Pourquoi cette migration était nécessaire
 
-Core v5 souffrait d'un problème critique du système de build : **les builds séquentiels ralentissaient considérablement ou échouaient complètement** en raison de l'épuisement de la mémoire. Cela rendait les workflows de développement peu fiables et forçait les développeurs à utiliser des [contournements](docs/frontend-modules/development#im-running-into-memory-issues-when-building-core) comme vider les caches entre les builds ou redémarrer les processus Node.
+Core v5 souffrait d'un problème critique du système de build : **les builds séquentiels ralentissaient considérablement ou échouaient complètement** en raison de l'épuisement de la mémoire. Cela rendait les workflows de développement peu fiables et forçait les développeurs à utiliser des [contournements](/docs/frontend-modules/development#im-running-into-memory-issues-when-building-core) comme vider les caches entre les builds ou redémarrer les processus Node.
 
-Suite à la [version v3.4.0](https://openmrs.atlassian.net/wiki/spaces/docs/pages/384696321/Release+Notes+3.4+2025-05), nous avons entrepris une mise à niveau majeure de l'outillage qui [a abouti à cette PR](https://github.com/openmrs/openmrs-esm-core/pull/1346). Cela représente un changement fondamental dans la façon dont nous construisons, exécutons et testons les modules frontend dans O3.
+Suite à la [version v3.4.0](https://openmrs.atlassian.net/wiki/spaces/docs/pages/384696321/Release+Notes+3.4+2025-05), nous avons entrepris une mise à niveau majeure de l'outillage qui [a abouti à cette PR](https://github.com/openmrs/openmrs-esm-core/pull/1346). Cela représente un changement fondamental dans la façon dont nous construisons, exécutons et testons les modules frontend sous O3.
 
 Core v6 résout ces problèmes grâce à deux changements architecturaux majeurs :
 
@@ -43,7 +27,7 @@ Core v6 résout ces problèmes grâce à deux changements architecturaux majeurs
 
 ## Introduction
 
-Core `v6.3.1-pre.2986` introduit une refonte architecturale significative axée sur **des builds fiables** et **des améliorations de performance spectaculaires**. Cette mise à jour restructure les packages du framework pour utiliser les modules ES nativement, divise les packages API pour un meilleur tree-shaking et migre l'outillage Core vers des standards modernes.
+Core v6 introduit une refonte architecturale significative axée sur **des builds fiables** et **des améliorations de performance spectaculaires**. Cette mise à jour restructure les packages du framework pour utiliser les modules ES nativement, divise les packages API pour un meilleur tree-shaking et migre l'outillage Core vers des standards modernes.
 
 Les améliorations clés incluent :
 
@@ -70,14 +54,10 @@ Mettez à jour les dépendances Core vers leurs versions les plus récentes marq
 yarn up openmrs@next @openmrs/esm-framework@next
 ```
 
-**Note :** Si vous utilisez `@openmrs/esm-styleguide` comme dépendance directe dans votre module frontend, vous devrez également le mettre à jour vers `next`.
-
-### Mettre à jour la dépendance styleguide
-
-Mettez à jour `@openmrs/esm-styleguide` vers la version la plus récente marquée `next` en exécutant :
+Si vous utilisez `@openmrs/esm-styleguide` comme dépendance directe dans votre module frontend, vous devrez également le mettre à jour vers `next` :
 
 ```bash
-yarn up openmrs@next @openmrs/esm-framework@next
+yarn up @openmrs/esm-styleguide@next
 ```
 
 Assurez-vous d'épingler les spécificateurs de version pour ces packages à `next` dans `package.json` puis exécutez `yarn` pour mettre à jour les dépendances.
@@ -94,7 +74,7 @@ yarn up @carbon/react@^1.83.0 webpack@^5.99.9 webpack-cli@^6.0.1 webpack-dev-ser
 
 Mettez à niveau votre version Node.js vers [v22](https://nodejs.org/en/blog/release/v22.16.0) (la version LTS actuelle au moment de la rédaction) ou supérieure.
 
-Nous recommandons d'utiliser [fnm](https://github.com/Schniz/fnm) pour gérer plusieurs versions Node.js sur votre système. Pour corriger ce problème, vous pouvez exécuter :
+Nous recommandons d'utiliser [fnm](https://github.com/Schniz/fnm) pour gérer plusieurs versions Node.js sur votre système :
 
 ```bash
 fnm install 22
@@ -155,7 +135,7 @@ module.exports = {
 
 ```javascript
 module.exports = {
-  transformIgnorePatterns: ["/node_modules/(?!@openmrs|.+\\\\.pnp\\\\.[^\\\\/]+$)"],
+  transformIgnorePatterns: ["/node_modules/(?!@openmrs|.+\\.pnp\\.[^\\/]+$)"],
   // ... reste de la config
 };
 ```
@@ -192,7 +172,7 @@ Notez la suppression de l'extension `.tsx`—l'export mock se résout maintenant
 
 ### Corriger les erreurs de type Carbon
 
-Core `v6.3.1-pre.2986` inclut une mise à jour vers `@carbon/react@^1.83.0`, qui vient avec des définitions TypeScript améliorées. Bien que ce soit généralement meilleur pour la sécurité de type, cela peut révéler des erreurs de type précédemment cachées dans votre code.
+Core v6 inclut une mise à jour vers `@carbon/react@^1.83.0`, qui vient avec des définitions TypeScript améliorées. Bien que ce soit généralement meilleur pour la sécurité de type, cela peut révéler des erreurs de type précédemment cachées dans votre code.
 
 Pour corriger ces erreurs, vous devrez mettre à jour votre code pour utiliser les nouvelles définitions TypeScript. En général, les erreurs de type révélées par le compilateur TypeScript devraient être explicites. Typiquement, cela inclura les éléments suivants :
 
@@ -475,7 +455,7 @@ Le travail de migration que vous faites maintenant paie des dividendes en cycles
 - **Application Login** peut utiliser Rspack avec le flag `--use-rspack`.
 - **Autres applications** prévues pour migration future
 - **Webpack toujours supporté** pour les applications existantes pendant la transition
-- **Dépôts migrés :** Nous avons migré plusieurs dépôts vers Core v6.3.1-pre.2986. Voir la section [Exemples de migration](#exemples-de-migration) ci-dessus pour la liste complète.
+- **Dépôts migrés :** Nous avons migré plusieurs dépôts vers Core v6. Voir la section [Exemples de migration](#exemples-de-migration) ci-dessus pour la liste complète.
 
 ### Travail restant
 

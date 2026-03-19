@@ -1,17 +1,8 @@
-import { Callout, Steps } from "nextra-theme-docs";
+import { Steps } from "nextra-theme-docs";
 
-# Migrating to Core v6.3.1-pre.2986
+# Migrating to Core v6
 
-<Callout type="info">
-  **Target audience:** This migration guide is specifically for developers using pre-release (`next`-tagged) versions of the Core tooling and framework packages.
-
-If your distribution is pinned to the stable `latest` versions, **you do not need to migrate yet**—these changes will become relevant with the next [O3 v3.5.0 stable release](https://openmrs.atlassian.net/wiki/spaces/docs/pages/479199233/Release+Notes+3.5+Goal+2025-08).
-
-Only follow this guide if you're working with bleeding-edge development or staging environments on pre-release (`next`) versions.
-
-</Callout>
-
-This guide is for migrating frontend modules to use core tooling and framework versions higher than `v6.3.1-pre.2986`. This pre-release version corresponds to [this pull request](https://github.com/openmrs/openmrs-esm-core/pull/1346).
+This guide is for migrating frontend modules to Core v6 and above. The changes in this guide correspond to [this pull request](https://github.com/openmrs/openmrs-esm-core/pull/1346), which was first published as `openmrs@6.3.1-pre.2986`.
 
 To figure out what version of the core tooling or framework you're running, run:
 
@@ -21,20 +12,13 @@ yarn why openmrs
 yarn why @openmrs/esm-framework
 ```
 
-You should see something like this:
-
-```bash
-└─ your-frontend-module@workspace:.
-   └─ openmrs@npm:6.3.1-pre.2986 (via npm:next)
-```
-
-If you're running anything higher than `v6.3.1-pre.2986` for either of these, you don't need to migrate. Otherwise, read on to learn how to migrate.
+If you're already on Core v6 or higher, you don't need to migrate. Otherwise, read on to learn how to migrate.
 
 ## Background: Why this migration was necessary
 
-Core v5 suffered from a critical build system issue: **sequential builds would slow down dramatically or fail entirely** due to memory exhaustion. This made development workflows unreliable and forced developers to use [workarounds](docs/frontend-modules/development#im-running-into-memory-issues-when-building-core) like clearing caches between builds or restarting Node processes.
+Core v5 suffered from a critical build system issue: **sequential builds would slow down dramatically or fail entirely** due to memory exhaustion. This made development workflows unreliable and forced developers to use [workarounds](/docs/frontend-modules/development#im-running-into-memory-issues-when-building-core) like clearing caches between builds or restarting Node processes.
 
-Following the [v3.4.0 release](https://openmrs.atlassian.net/wiki/spaces/docs/pages/384696321/Release+Notes+3.4+2025-05), we undertook a major tooling upgrade that [culminated in this PR](https://github.com/openmrs/openmrs-esm-core/pull/1346). This represents a fundamental change to how we build, run, and test frontend modules in O3.
+Following the [v3.4.0 release](https://openmrs.atlassian.net/wiki/spaces/docs/pages/384696321/Release+Notes+3.4+2025-05), we undertook a major tooling upgrade that [culminated in this PR](https://github.com/openmrs/openmrs-esm-core/pull/1346). This represents a fundamental change in how we build, run, and test frontend modules in O3.
 
 Core v6 solves these issues through two major architectural changes:
 
@@ -43,7 +27,7 @@ Core v6 solves these issues through two major architectural changes:
 
 ## Introduction
 
-Core `v6.3.1-pre.2986` introduces a significant architectural rework focused on **reliable builds** and **dramatic performance improvements**. This update restructures the framework packages to use ES modules natively, splits the API packages for better tree-shaking, and migrates core tooling to modern standards.
+Core v6 introduces a significant architectural rework focused on **reliable builds** and **dramatic performance improvements**. This update restructures the framework packages to use ES modules natively, splits the API packages for better tree-shaking, and migrates core tooling to modern standards.
 
 The key improvements include:
 
@@ -70,14 +54,10 @@ Bump core dependencies to their newest `next` tagged versions by running:
 yarn up openmrs@next @openmrs/esm-framework@next
 ```
 
-**Note:** If you’re using `@openmrs/esm-styleguide` as a direct dependency in your frontend module, you’ll need to bump it to `next` as well.
-
-### Bump styleguide dependency
-
-Bump `@openmrs/esm-styleguide` to the newest `next` tagged version by running:
+If you’re using `@openmrs/esm-styleguide` as a direct dependency in your frontend module, you’ll need to bump it to `next` as well:
 
 ```bash
-yarn up openmrs@next @openmrs/esm-framework@next
+yarn up @openmrs/esm-styleguide@next
 ```
 
 Make sure to pin the version specifiers for these packages back to `next` in `package.json` and then run `yarn` to update the dependencies.
@@ -94,7 +74,7 @@ yarn up @carbon/react@^1.83.0 webpack@^5.99.9 webpack-cli@^6.0.1 webpack-dev-ser
 
 Upgrade your Node.js version to [v22](https://nodejs.org/en/blog/release/v22.16.0) (the current LTS version at the time of writing) or higher.
 
-We recommend using [fnm](https://github.com/Schniz/fnm) to manage multiple Node.js versions on your system. To fix this issue, you can run:
+We recommend using [fnm](https://github.com/Schniz/fnm) to manage multiple Node.js versions on your system:
 
 ```bash
 fnm install 22
@@ -192,7 +172,7 @@ Note the removal of the `.tsx` extension—the mock export now resolves automati
 
 ### Fix Carbon type errors
 
-Core `v6.3.1-pre.2986` includes an update to `@carbon/react@^1.83.0`, which comes with improved TypeScript definitions. While this is generally better for type safety, it may surface previously hidden type errors in your code.
+Core v6 includes an update to `@carbon/react@^1.83.0`, which comes with improved TypeScript definitions. While this is generally better for type safety, it may surface previously hidden type errors in your code.
 
 To fix these errors, you'll need to update your code to use the new TypeScript definitions. In general, the type errors surfaced by the TypeScript compiler should be self-explanatory. Typically, this will include the following:
 
@@ -475,7 +455,7 @@ The migration work you're doing now pays dividends in faster development cycles,
 - **Login app** can use Rspack with `--use-rspack` flag.
 - **Other apps** planned for future migration
 - **Webpack still supported** for existing applications during transition
-- **Migrated repositories:** We've migrated several repositories over to Core v6.3.1-pre.2986. See the [Migration examples](#migration-examples) section above for the full list.
+- **Migrated repositories:** We've migrated several repositories over to Core v6. See the [Migration examples](#migration-examples) section above for the full list.
 
 ### Remaining work
 

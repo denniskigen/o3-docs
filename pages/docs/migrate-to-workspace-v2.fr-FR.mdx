@@ -1,0 +1,373 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+# Migrer vers Workspace v2
+
+<Callout type="warning">
+  Workspace v2 est actuellement marqué comme **expérimental**. L'API peut changer dans les versions futures. Cependant, plusieurs dépôts majeurs ont déjà migré vers cette version, et l'API workspace v1 est dépréciée.
+</Callout>
+
+Workspace v2 est un système de workspaces repensé qui introduit un modèle hiérarchique de **groupes**, **fenêtres** et **workspaces**. Il remplace le modèle plat de workspace v1 par une approche structurée offrant un meilleur support des workspaces enfants, un suivi correct des modifications non enregistrées et une gestion de cycle de vie scopée.
+
+Ce guide explique comment migrer les workspaces de votre module frontend de l'API v1 vers v2.
+
+## Contexte
+
+Le système workspace v1 avait plusieurs limitations :
+
+- **Structure plate** — tous les workspaces partageaient un seul conteneur, rendant difficile la gestion de flux complexes en plusieurs étapes.
+- **Suivi manuel des modifications non enregistrées** — les workspaces devaient appeler `promptBeforeClosing()` de manière impérative.
+- **Pas de support des workspaces enfants** — les flux en plusieurs étapes (ex. panier de commandes → recherche de médicaments) nécessitaient des contournements ad-hoc.
+- **Gestion des titres** — les workspaces devaient appeler `setTitle()` pour mettre à jour leur titre.
+
+Workspace v2 résout ces problèmes avec une hiérarchie à trois niveaux :
+
+- **Groupe de workspaces** — un conteneur de niveau supérieur qui possède le menu d'actions (siderail). Les groupes définissent la portée, le comportement d'overlay et la persistance.
+- **Fenêtre de workspace** — un panneau au sein d'un groupe qui peut être maximisé, minimisé ou masqué. Chaque fenêtre appartient à un groupe.
+- **Workspace** — le contenu réel rendu à l'intérieur d'une fenêtre. Les workspaces peuvent lancer des workspaces enfants dans la même fenêtre.
+
+## Concepts clés
+
+Avant de migrer, il est utile de comprendre comment les trois niveaux sont liés :
+
+1. Un **groupe de workspaces** est déclaré dans `workspaceGroups2` et initialisé à l'exécution en appelant `launchWorkspaceGroup2`. Cela rend le menu d'actions (siderail). Un seul groupe peut être ouvert à la fois.
+2. Une **fenêtre de workspace** est déclarée dans `workspaceWindows2` et appartient à un groupe. Chaque fenêtre correspond à un bouton du menu d'actions. Le bouton du menu d'actions est enregistré comme une extension dont **l'ID d'extension doit correspondre au nom de la fenêtre**. C'est ainsi que `ActionMenuButton2` sait quelle fenêtre il contrôle.
+3. Un **workspace** est déclaré dans `workspaces2` et appartient à une fenêtre. Les workspaces sont les panneaux de contenu réels. Une fenêtre peut contenir une pile de workspaces (parent + enfants).
+
+Les **props de groupe** fournissent un contexte partagé (ex. patient actuel, visite) à tous les workspaces du groupe. Les **props de fenêtre** et les **props de workspace** sont scopées à leurs niveaux respectifs. Lorsque l'une de ces props change de manière incompatible, le système invite l'utilisateur à fermer les workspaces avec des modifications non enregistrées.
+
+## Étapes de migration
+
+<Steps>
+
+### Mettre à jour `routes.json`
+
+Remplacez la section `workspaces` dans votre `routes.json` par les nouvelles sections `workspaces2`, `workspaceWindows2` et `workspaceGroups2`.
+
+**Avant (v1) :**
+
+```json
+{
+  "workspaces": [
+    {
+      "name": "my-form-workspace",
+      "component": "myFormWorkspace",
+      "title": "myFormTitle",
+      "type": "form"
+    }
+  ]
+}
+```
+
+**Après (v2) :**
+
+```json
+{
+  "workspaces2": [
+    {
+      "name": "my-form-workspace",
+      "component": "myFormWorkspace",
+      "window": "my-form-window"
+    }
+  ],
+  "workspaceWindows2": [
+    {
+      "name": "my-form-window",
+      "group": "my-workspace-group"
+    }
+  ],
+  "workspaceGroups2": [
+    {
+      "name": "my-workspace-group"
+    }
+  ]
+}
+```
+
+Différences clés :
+- Les propriétés `title` et `type` sont supprimées des définitions de workspace. Les titres sont désormais définis par le composant wrapper `<Workspace2>`.
+- Chaque workspace doit spécifier la `window` à laquelle il appartient.
+- Chaque fenêtre doit spécifier le `group` auquel elle appartient.
+- Les groupes peuvent optionnellement configurer les propriétés `overlay`, `closeable`, `persistence` et `scopePattern`.
+
+<Callout type="info">
+  Si les workspaces de votre application appartiennent à un groupe possédé par une autre application (ex. le groupe `patient-chart`), vous n'avez besoin de déclarer que `workspaces2` et `workspaceWindows2`. Vous n'avez pas besoin de déclarer `workspaceGroups2` — c'est la responsabilité de l'application qui possède le groupe.
+</Callout>
+
+#### Options de fenêtre de workspace
+
+Les fenêtres supportent les propriétés optionnelles suivantes :
+
+| Propriété | Type | Description |
+|---|---|---|
+| `canMaximize` | `boolean` | Si la fenêtre peut être maximisée |
+| `group` | `string` | **Obligatoire.** Le groupe auquel cette fenêtre appartient |
+| `order` | `number` | Ordre d'affichage dans le menu d'actions |
+| `width` | `"narrow" \| "wider" \| "extra-wide"` | Largeur du panneau de workspace |
+
+#### Options de groupe de workspaces
+
+Les groupes supportent les propriétés optionnelles suivantes :
+
+| Propriété | Type | Description |
+|---|---|---|
+| `closeable` | `boolean` | Si le groupe peut être fermé par l'utilisateur |
+| `overlay` | `boolean` | Si les workspaces se rendent en overlay |
+| `persistence` | `"app-wide" \| "closable"` | Mode de persistance du cycle de vie |
+| `scopePattern` | `string` | Modèle d'URL définissant où les workspaces persistent |
+
+### Initialiser le groupe de workspaces (propriétaires de groupe uniquement)
+
+Si votre application possède un groupe de workspaces (c'est-à-dire que le groupe est défini dans votre `routes.json`), vous devez appeler `launchWorkspaceGroup2` pour l'initialiser. Cela se fait typiquement dans le composant racine de votre application et provoque le rendu du menu d'actions (siderail).
+
+```tsx
+import { launchWorkspaceGroup2 } from "@openmrs/esm-framework";
+
+// Dans le composant racine de votre application :
+useEffect(() => {
+  launchWorkspaceGroup2("patient-chart", {
+    patient,
+    patientUuid,
+    visitContext,
+    mutateVisitContext,
+  });
+}, [patient, patientUuid, visitContext]);
+```
+
+Un seul groupe de workspaces peut être ouvert à la fois. Si `launchWorkspaceGroup2` est appelé avec un nom de groupe différent (ou des props incompatibles), l'utilisateur sera invité à fermer les workspaces ouverts avant que le nouveau groupe ne soit ouvert.
+
+La plupart des applications n'ont **pas** besoin de cette étape — elles définissent des workspaces qui appartiennent à un groupe existant (comme `patient-chart`) et ignorent entièrement l'initialisation du groupe.
+
+### Mettre à jour les signatures des composants workspace
+
+Les composants workspace reçoivent des props différentes en v2. Le changement principal est que les props personnalisées sont désormais imbriquées sous `workspaceProps` au lieu d'être étalées en props de niveau supérieur, et le contexte partagé est disponible via `groupProps`.
+
+**Avant (v1) :**
+
+```tsx
+import { type DefaultWorkspaceProps } from "@openmrs/esm-framework";
+
+interface MyFormProps extends DefaultWorkspaceProps {
+  patientUuid: string;
+  appointment?: Appointment;
+}
+
+const MyForm: React.FC<MyFormProps> = ({
+  patientUuid,
+  appointment,
+  closeWorkspace,
+  closeWorkspaceWithSavedChanges,
+  promptBeforeClosing,
+  setTitle,
+}) => {
+  // ...
+};
+```
+
+**Après (v2) :**
+
+```tsx
+import {
+  Workspace2,
+  type Workspace2DefinitionProps,
+} from "@openmrs/esm-framework";
+
+interface MyFormProps {
+  patientUuid: string;
+  appointment?: Appointment;
+}
+
+const MyForm: React.FC<Workspace2DefinitionProps<MyFormProps>> = ({
+  workspaceProps,
+  groupProps,
+  closeWorkspace,
+}) => {
+  const { patientUuid, appointment } = workspaceProps ?? {};
+
+  return (
+    <Workspace2 title={t("myForm", "Mon formulaire")} hasUnsavedChanges={isDirty}>
+      {/* contenu du workspace */}
+    </Workspace2>
+  );
+};
+```
+
+Changements clés :
+- Remplacer `DefaultWorkspaceProps` par `Workspace2DefinitionProps<VosProps>`. Le générique accepte jusqu'à trois paramètres de type : `<WorkspaceProps, WindowProps, GroupProps>`.
+- Les props personnalisées sont accessibles via `workspaceProps` au lieu d'être étalées au niveau supérieur. Notez que `workspaceProps`, `windowProps` et `groupProps` peuvent être `null`.
+- Le contexte partagé (ex. patient actuel) est disponible via `groupProps` au lieu d'être passé à chaque workspace individuellement.
+- `promptBeforeClosing` et `setTitle` sont supprimés. À la place, passez `hasUnsavedChanges` et `title` comme props au composant wrapper `<Workspace2>`.
+- `closeWorkspaceWithSavedChanges` est remplacé par `closeWorkspace({ discardUnsavedChanges: true })`.
+- `closeWorkspace` accepte également `{ closeWindow: true }` pour fermer la fenêtre entière (tous les workspaces qu'elle contient), pas seulement le workspace actuel.
+- Enveloppez le contenu de votre workspace dans `<Workspace2>`, qui rend la barre d'en-tête du workspace avec le titre et les boutons maximiser/minimiser et fermer.
+
+### Mettre à jour les appels de lancement de workspace
+
+Remplacez `launchWorkspace` par `launchWorkspace2`. La signature complète est :
+
+```tsx
+launchWorkspace2<WorkspaceProps, WindowProps, GroupProps>(
+  workspaceName: string,
+  workspaceProps?: WorkspaceProps | null,
+  windowProps?: WindowProps | null,
+  groupProps?: GroupProps | null,
+): Promise<boolean>
+```
+
+L'option `workspaceTitle` n'est plus acceptée — les titres sont définis par le composant workspace lui-même.
+
+**Avant (v1) :**
+
+```tsx
+launchWorkspace("my-form-workspace", {
+  patientUuid,
+  appointment,
+  workspaceTitle: t("editAppointment", "Modifier le rendez-vous"),
+});
+```
+
+**Après (v2) :**
+
+```tsx
+launchWorkspace2("my-form-workspace", {
+  patientUuid,
+  appointment,
+});
+```
+
+Pour lancer un workspace nécessitant des props de fenêtre ou de groupe, passez-les comme arguments supplémentaires :
+
+```tsx
+launchWorkspace2(
+  "start-visit-workspace-form",
+  { openedFrom: "patient-chart-start-visit" }, // props du workspace
+  {}, // props de la fenêtre
+  { patient, patientUuid: patient.id, visitContext: null }, // props du groupe
+);
+```
+
+### Mettre à jour les boutons du menu d'actions
+
+Remplacez `ActionMenuButton` par `ActionMenuButton2`. Le nouveau composant remplace `handler` et `type` par un objet `workspaceToLaunch`. Il gère également automatiquement la visibilité de la fenêtre — cliquer sur le bouton masquera, restaurera ou lancera le workspace selon l'état actuel.
+
+**Avant (v1) :**
+
+```tsx
+<ActionMenuButton
+  getIcon={(props) => <EditIcon {...props} />}
+  label={t("edit", "Modifier")}
+  iconDescription={t("edit", "Modifier")}
+  handler={() => launchWorkspace("my-form-workspace", { patientUuid })}
+  type="form"
+/>
+```
+
+**Après (v2) :**
+
+```tsx
+<ActionMenuButton2
+  icon={(props) => <EditIcon {...props} />}
+  label={t("edit", "Modifier")}
+  workspaceToLaunch={{
+    workspaceName: "my-form-workspace",
+    workspaceProps: { patientUuid },
+  }}
+/>
+```
+
+`ActionMenuButton2` supporte également un callback optionnel `onBeforeWorkspaceLaunch` qui peut empêcher l'ouverture du workspace (par exemple pour inviter l'utilisateur à démarrer une visite d'abord) :
+
+```tsx
+<ActionMenuButton2
+  icon={(props) => <DocumentIcon {...props} />}
+  label={t("clinicalForms", "Formulaires cliniques")}
+  workspaceToLaunch={{
+    workspaceName: "clinical-forms-workspace",
+    workspaceProps: {},
+  }}
+  onBeforeWorkspaceLaunch={startVisitIfNeeded}
+/>
+```
+
+### Mettre à jour les patterns de workspaces enfants
+
+Si votre workspace lance des sous-workspaces (ex. un panier de commandes qui ouvre une recherche de médicaments), utilisez la prop `launchChildWorkspace` au lieu d'appeler `launchWorkspace` directement.
+
+**Avant (v1) :**
+
+```tsx
+const OrderBasket: React.FC<DefaultWorkspaceProps> = ({
+  closeWorkspace,
+}) => {
+  const handleAddDrug = () => {
+    launchWorkspace("drug-search-workspace", { onSelect: handleDrugSelect });
+  };
+  // ...
+};
+```
+
+**Après (v2) :**
+
+```tsx
+const OrderBasket: React.FC<
+  Workspace2DefinitionProps<OrderBasketProps>
+> = ({ closeWorkspace, launchChildWorkspace }) => {
+  const handleAddDrug = () => {
+    launchChildWorkspace("drug-search-workspace", {
+      onSelect: handleDrugSelect,
+    });
+  };
+  // ...
+};
+```
+
+Les workspaces enfants sont rendus dans la même fenêtre et sont automatiquement fermés lorsque leur workspace parent est fermé.
+
+### Mettre à jour les tests
+
+Les tests doivent fournir la nouvelle structure de props lors du rendu des composants workspace.
+
+**Avant (v1) :**
+
+```tsx
+const defaultProps = {
+  patientUuid: mockPatient.id,
+  closeWorkspace: jest.fn(),
+  closeWorkspaceWithSavedChanges: jest.fn(),
+  promptBeforeClosing: jest.fn(),
+  setTitle: jest.fn(),
+};
+
+render(<MyForm {...defaultProps} />);
+```
+
+**Après (v2) :**
+
+```tsx
+const defaultProps: Workspace2DefinitionProps<MyFormProps> = {
+  workspaceProps: {
+    patientUuid: mockPatient.id,
+  },
+  closeWorkspace: jest.fn(),
+  launchChildWorkspace: jest.fn(),
+  groupProps: null,
+  windowProps: null,
+  workspaceName: "my-form-workspace",
+  windowName: "my-form-window",
+  isRootWorkspace: true,
+  showActionMenu: false,
+};
+
+render(<MyForm {...defaultProps} />);
+```
+
+</Steps>
+
+## Exemples de migration
+
+- [Patient chart](https://github.com/openmrs/openmrs-esm-patient-chart/pull/2800) — l'exemple le plus complet, incluant les patterns de workspaces enfants pour les formulaires cliniques et le panier de commandes
+- [Application de rendez-vous](https://github.com/openmrs/openmrs-esm-patient-management/pull/2153)
+- [Application de files d'attente](https://github.com/openmrs/openmrs-esm-patient-management/pull/2064)
+- [Application de salle](https://github.com/openmrs/openmrs-esm-patient-management/pull/2127)
+- [Application de gestion des lits](https://github.com/openmrs/openmrs-esm-patient-management/pull/2154)
+- [Application de gestion des listes de patients](https://github.com/openmrs/openmrs-esm-patient-management/pull/2144)
+- [Application de laboratoire](https://github.com/openmrs/openmrs-esm-laboratory-app/pull/596)

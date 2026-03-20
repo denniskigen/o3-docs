@@ -8,6 +8,20 @@ If you’re interested in contributing to O3, you’ll need to take the followin
 - If you're interested in a particular domain, consider joining the related [Feature squad](https://openmrs.atlassian.net/wiki/spaces/projects/pages/26938774/Squad+Dashboard). At OpenMRS, we use feature squads to manage the work of different teams. Feature squads are a great way to get to know people across the project and to get a sense for how different parts of the system fit together.
 - Stay positive. We're a friendly bunch and we like to help each other out. If you see someone struggling, do what you can to help them out. If you're unsure about something, ask in the `#openmrs3-helpme` Slack channel.
 
+## Deployment environments
+
+The O3 community maintains three hosted environments. Understanding what each one runs helps you know where to verify your work and where to report bugs.
+
+| Environment | URL | What it runs | npm tag | Updated when |
+| --- | --- | --- | --- | --- |
+| **dev3** | [dev3.openmrs.org](https://dev3.openmrs.org/openmrs/spa) | Latest `main` branch builds | `next` | Automatically on every merge to `main` |
+| **test3** | [test3.openmrs.org](https://test3.openmrs.org/openmrs/spa) | Release candidates | `latest` | Monthly or bi-monthly release cycle |
+| **o3** | [o3.openmrs.org](https://o3.openmrs.org/openmrs/spa) | Stable production release | `latest` | After QA review of test3 |
+
+These environments are built from the [openmrs-distro-referenceapplication](https://github.com/openmrs/openmrs-distro-referenceapplication) repository, which defines the exact set of frontend modules and their versions in its `spa-assemble-config.json` file. On the `main` branch, every module is pinned to the `next` npm tag — this is what dev3 runs. When a release is cut (e.g. `3.6.0-rc.5`), that config switches all modules to the `latest` npm tag, which is what test3 and o3 run. The `next` tag is published automatically by CI whenever a PR is merged to `main` in any frontend module repo. The `latest` tag is published when a [release](/docs/frontend-modules/releasing-modules) is cut.
+
+**When reporting bugs**, use dev3 as your reference — it's closest to the Jira board and reflects the latest state of the code. If a bug exists on dev3, file a ticket. If a bug exists on o3 or test3 but not on dev3, it's likely already fixed in `main` — check recent PRs before filing. Conversely, if a bug exists on dev3 but not on o3 or test3, it's a regression introduced after the last release.
+
 ## Contributing guidelines
 
 ### Issues

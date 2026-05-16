@@ -48,6 +48,11 @@ module.exports = withNextra({
         destination: "/docs/workspaces/index",
         permanent: false,
       },
+      {
+        source: "/docs/frontend-modules/using-webpack",
+        destination: "/docs/frontend-modules/using-rspack",
+        permanent: true,
+      },
     ];
   },
 });

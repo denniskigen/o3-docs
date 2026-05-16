@@ -144,18 +144,19 @@
   let status = Status.Loading; // Compile en un nombre (0) à l'exécution
   ```
 
-- Utilisez l'utilitaire `jest.mocked` pour préserver les informations de type lors du mock de fonctions dans les tests. Par exemple :
+- Utilisez l'utilitaire `mocked` (`vi.mocked` pour Vitest, `jest.mocked` pour Jest) pour préserver les informations de type lors du mock de fonctions dans les tests. Par exemple :
 
   Préférez :
 
   ```tsx
-  const mockedShowSnackbar = jest.mocked(showSnackbar); // Toutes les informations de type sont préservées
+  const mockedShowSnackbar = vi.mocked(showSnackbar); // Toutes les informations de type sont préservées
+  // (ou `jest.mocked(showSnackbar)` si le module est encore sur Jest)
   ```
 
   À :
 
   ```tsx
-  const mockedShowSnackbar = showSnackbar as jest.Mock;
+  const mockedShowSnackbar = showSnackbar as Mock;
   ```
 
 - Utilisez les types utilitaires intégrés de TypeScript lorsque c'est possible. Des exemples courants incluent :

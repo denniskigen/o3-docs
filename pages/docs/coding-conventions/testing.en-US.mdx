@@ -2,7 +2,7 @@
 
 We use a combination of unit testing, integration testing, and e2e testing to ensure the reliability and maintainability of O3. We use the following tools:
 
-- [Jest](https://jestjs.io) and [React Testing Library](https://testing-library.com/react) for unit and integration testing.
+- [Vitest](https://vitest.dev) (the default across the majority of modules) or [Jest](https://jestjs.io) (in the small number of modules still on the legacy runner), together with [React Testing Library](https://testing-library.com/react), for unit and integration testing. See the [migration guide](/docs/migrate-to-rspack-and-vitest) if you're moving a module from Jest to Vitest.
 - [Playwright](https://playwright.dev) for e2e testing.
 
 The following are some general guidelines for testing:
@@ -11,7 +11,7 @@ The following are some general guidelines for testing:
 
 - Avoid these [common testing pitfalls](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library):
 
-  - Don't use the wrong assertion. Install and use [@testing-library/jest-dom](https://github.com/testing-library/jest-dom) to extend Jest's `expect` with assertions for testing React components.
+  - Don't use the wrong assertion. Install and use [@testing-library/jest-dom](https://github.com/testing-library/jest-dom) to extend `expect` with DOM-specific matchers for testing React components. The library works with both Vitest (via the `@testing-library/jest-dom/vitest` subpath import) and Jest — the name is historical.
   - Don't use the wrong query. Use [this resource](https://testing-library.com/docs/guide-which-query) to choose the right query for the element you want to test.
   - Don't use `query*` variants for _anything_ except checking if an element exists. Only use `query*` variants for asserting that an element does not exist.
   - Don't use `waitFor` to wait for elements that can be queried with `screen.find*`.
@@ -64,21 +64,30 @@ The following are some general guidelines for testing:
   - Group related test scenarios together.
   - Build up complex scenarios progressively.
   - Use test hooks (`beforeEach`, `afterEach`, `beforeAll`, `afterAll`) to reduce duplication.
-- Don't clear mocks in `beforeEach` hooks. Most mocks should be cleared automatically by the testing framework if you have this set in your root-level jest config:
+- Don't clear mocks in `beforeEach` hooks. Most mocks should be cleared automatically by the testing framework if you have `clearMocks: true` set in your root-level test config:
 
-  ```ts
-  // jest.config.js
-  clearMocks: true,
+  ```ts filename="vitest.config.ts"
+  export default defineConfig({
+    test: {
+      clearMocks: true,
+    },
+  });
+  ```
+
+  ```ts filename="jest.config.js"
+  module.exports = {
+    clearMocks: true,
+  };
   ```
 
 - Don't mock components. Instead, render them with the real implementation. This makes it easier to catch regressions when refactoring components.
 
   ```tsx
   // ❌
-  jest.mock("./my-component", () => ({
-    __esModule: true,
+  vi.mock("./my-component", () => ({
     default: () => <div>My Component</div>,
   }));
+  // (or `jest.mock(...)` if the module is still on Jest)
   ```
 
   ```tsx

@@ -27,8 +27,8 @@ O3 consists of both monorepos and standalone repositories. Monorepos are used to
 
   - `package.json` - Manifest file for the package. This is where you should put scripts for the package. Importantly, this file doesn't have the `private` property, meaning the package can be published to the npm registry.
   - `tsconfig.json` - TypeScript configuration file that extends the root TypeScript configuration file.
-  - `jest.config.ts` - Jest configuration file that extends the root Jest configuration file.
-  - `webpack.config.js` - Webpack configuration file that extends the root Webpack configuration file.
+  - `vitest.config.ts` - Vitest configuration file (or `jest.config.ts` in legacy modules still on Jest).
+  - `rspack.config.js` - Rspack configuration file (or `webpack.config.js` in legacy modules still on Webpack).
 
 - Place e2e tests in the `e2e/specs` directory at the root of your repository.
 - Place test mocks in the top level `__mocks__` directory at the root of your repository. Mocks should be named after the module they are mocking. For example, if you have a mock with data for the `@openmrs/esm-patient-allergies` module, your mock should be named `allergies.mock.ts`. The root-level Typescript configuration file will automatically pick up any mocks in the `__mocks__` directory courtesy of the `paths` configuration in the root `tsconfig.json` file:

@@ -2,7 +2,7 @@
 
 Nous utilisons une combinaison de tests unitaires, de tests d'intégration et de tests e2e pour assurer la fiabilité et la maintenabilité d'O3. Nous utilisons les outils suivants :
 
-- [Jest](https://jestjs.io) et [React Testing Library](https://testing-library.com/react) pour les tests unitaires et d'intégration.
+- [Vitest](https://vitest.dev) (par défaut dans la majorité des modules) ou [Jest](https://jestjs.io) (dans le petit nombre de modules encore sur l'ancien runner), avec [React Testing Library](https://testing-library.com/react), pour les tests unitaires et d'intégration. Voir le [guide de migration](/docs/migrate-to-rspack-and-vitest) si vous faites passer un module de Jest à Vitest.
 - [Playwright](https://playwright.dev) pour les tests e2e.
 
 Voici quelques lignes directrices générales pour les tests :
@@ -11,7 +11,7 @@ Voici quelques lignes directrices générales pour les tests :
 
 - Évitez ces [pièges de test courants](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library) :
 
-  - N'utilisez pas la mauvaise assertion. Installez et utilisez [@testing-library/jest-dom](https://github.com/testing-library/jest-dom) pour étendre le `expect` de Jest avec des assertions pour tester les composants React.
+  - N'utilisez pas la mauvaise assertion. Installez et utilisez [@testing-library/jest-dom](https://github.com/testing-library/jest-dom) pour étendre `expect` avec des matchers DOM pour tester les composants React. La bibliothèque fonctionne avec Vitest (via l'import sous-chemin `@testing-library/jest-dom/vitest`) et avec Jest — le nom est historique.
   - N'utilisez pas la mauvaise requête. Utilisez [cette ressource](https://testing-library.com/docs/guide-which-query) pour choisir la bonne requête pour l'élément que vous voulez tester.
   - N'utilisez pas les variantes `query*` pour _quoi que ce soit_ sauf pour vérifier si un élément existe. Utilisez uniquement les variantes `query*` pour affirmer qu'un élément n'existe pas.
   - N'utilisez pas `waitFor` pour attendre des éléments qui peuvent être interrogés avec `screen.find*`.
@@ -64,21 +64,30 @@ Voici quelques lignes directrices générales pour les tests :
   - Groupez les scénarios de test connexes ensemble.
   - Construisez progressivement des scénarios complexes.
   - Utilisez les hooks de test (`beforeEach`, `afterEach`, `beforeAll`, `afterAll`) pour réduire la duplication.
-- Ne nettoyez pas les mocks dans les hooks `beforeEach`. La plupart des mocks devraient être nettoyés automatiquement par le framework de test si vous avez ceci défini dans votre configuration jest de niveau racine :
+- Ne nettoyez pas les mocks dans les hooks `beforeEach`. La plupart des mocks devraient être nettoyés automatiquement par le framework de test si vous avez `clearMocks: true` dans votre configuration de test de niveau racine :
 
-  ```ts
-  // jest.config.js
-  clearMocks: true,
+  ```ts filename="vitest.config.ts"
+  export default defineConfig({
+    test: {
+      clearMocks: true,
+    },
+  });
+  ```
+
+  ```ts filename="jest.config.js"
+  module.exports = {
+    clearMocks: true,
+  };
   ```
 
 - Ne mockez pas les composants. Au lieu de cela, rendez-les avec la vraie implémentation. Cela facilite la détection des régressions lors du refactoring des composants.
 
   ```tsx
   // ❌
-  jest.mock("./my-component", () => ({
-    __esModule: true,
+  vi.mock("./my-component", () => ({
     default: () => <div>My Component</div>,
   }));
+  // (ou `jest.mock(...)` si le module est encore sur Jest)
   ```
 
   ```tsx

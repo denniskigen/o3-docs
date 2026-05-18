@@ -6,7 +6,7 @@ Introduced by [RFC-27](https://github.com/openmrs/openmrs-rfc-frontend/blob/mast
 
 <Callout emoji="ℹ️" type="info">
   Those familiar with the [OpenMRS RefApp 2.x extension
-  system](https://wiki.openmrs.org/display/docs/Module+Extension+Points) will be glad to know that the basic concepts
+  system](https://openmrs.atlassian.net/wiki/spaces/Archives/pages/25520677/Module+Extension+Points) will be glad to know that the basic concepts
   here are similar, but simpler. “Extensions” are roughly the same thing as before, “points” are now called “slots,” and
   there is no longer anything like “apps,” which no one really understood anyway.
 </Callout>
@@ -39,7 +39,7 @@ Consider exporting the component and using it the normal way.
 
 ## Usage
 
-Extensions are defined in a module's `routes.json` file. This is the required approach for Core v5+ modules. The `setupOpenMRS` function was used in Core v4 and earlier but is no longer supported in Core v5+. Modules must migrate to `routes.json` to work with Core v5+. Each extension definition includes a name and a component reference. It may also specify the names of slots to attach the extension to by default, required privileges for role-based access control, connectivity requirements, and a [number of other things](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/interfaces/ExtensionDefinition.md), some of which will be covered below.
+Extensions are defined in a module's `routes.json` file. This is the required approach for Core v5+ modules. The `setupOpenMRS` function was used in Core v4 and earlier but is no longer supported in Core v5+. Modules must migrate to `routes.json` to work with Core v5+. Each extension definition includes a name and a component reference. It may also specify the names of slots to attach the extension to by default, required privileges for role-based access control, connectivity requirements, and a [number of other things](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/interfaces/ExtensionRegistration.md), some of which will be covered below.
 
 Slots are components. There is an [ExtensionSlot](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#extensionslot) React component. If you are working in a different framework and would like to create an extension slot, please get in touch with the OpenMRS Frontend 3.0 team on Slack.
 

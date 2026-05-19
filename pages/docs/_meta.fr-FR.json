@@ -2,15 +2,45 @@
   "introduction": "Introduction",
   "prerequisite-knowledge": "Connaissances préalables",
   "core-concepts": "Concepts de base",
-  "frontend-modules": "Modules frontend",
+  "frontend-modules": {
+    "title": "Modules frontend",
+    "theme": {
+      "collapsed": true
+    }
+  },
   "extension-system": "Système d'extension",
   "configuration-system": "Système de configuration",
-  "workspaces": "Workspaces",
+  "workspaces": {
+    "title": "Workspaces",
+    "theme": {
+      "collapsed": true
+    }
+  },
   "feature-flags": "Indicateurs de fonctionnalité",
-  "forms-in-o3": "Formulaires dans O3",
-  "recipes": "Recettes",
-  "configure-o3": "Configurez O3 à votre façon",
-  "coding-conventions": "Conventions de codage",
+  "forms-in-o3": {
+    "title": "Formulaires dans O3",
+    "theme": {
+      "collapsed": true
+    }
+  },
+  "recipes": {
+    "title": "Recettes",
+    "theme": {
+      "collapsed": true
+    }
+  },
+  "configure-o3": {
+    "title": "Configurez O3 à votre façon",
+    "theme": {
+      "collapsed": true
+    }
+  },
+  "coding-conventions": {
+    "title": "Conventions de codage",
+    "theme": {
+      "collapsed": true
+    }
+  },
   "key-repositories": "Référentiels clés",
   "app-shell": "Coque d'application",
   "framework-api-reference": "Référence de l'API du framework",

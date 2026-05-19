@@ -46,6 +46,10 @@ const config: DocsThemeConfig = {
   search: {
     placeholder: () => useLocalesMap(searchPlaceholderMap),
   },
+  sidebar: {
+    autoCollapse: true,
+    defaultMenuCollapseLevel: 1,
+  },
   toc: {
     backToTop: true,
     float: true,

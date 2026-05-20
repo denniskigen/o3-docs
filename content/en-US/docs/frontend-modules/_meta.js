@@ -1,0 +1,11 @@
+export default {
+  overview: "Overview",
+  setup: "Setup",
+  contributing: "Contributing",
+  development: "Development",
+  "unit-and-integration-testing": "Unit and integration testing",
+  "end-to-end-testing": "End-to-end testing",
+  "releasing-modules": "Releasing modules",
+  "loading-modules": "Loading modules",
+  "using-rspack": "Using Rspack"
+}

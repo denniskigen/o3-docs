@@ -1,0 +1,308 @@
+import { Callout, Steps } from "nextra/components";
+
+# Configuring branding
+
+Implementers can configure various aspects of the user interface to match their branding. This includes: 
+
+- Changing the logo on the login screen
+- Changing the logo on the navbar
+- Changing brand colors
+- Changing the favicon
+- Setting the implementation name (displayed in page headers)
+- Setting the page title (browser tab title)
+
+## Changing logos
+
+Logos are used in several places in O3:
+
+- The login page (main logo)
+- The login page footer (additional logos, optional)
+- The navbar (main navigation logo)
+
+The default logo used in the O3 login page is the OpenMRS SVG sprite. You can override it by providing a valid image `src` URL as the value of `src` property in the login frontend module's configuration schema. Supported image formats include SVG, PNG, JPEG/JPG, GIF, WebP, and any other format supported by modern browsers. If `src` is empty or not provided, the default OpenMRS logo will be displayed. Below is a snippet of how this could look like:
+
+```json
+{
+  "@openmrs/esm-login-app": {
+    "logo": {
+      "src": "https://data.kenyahmis.org/openmrs/images/logos/kenyaemr-logo.svg",
+      "alt": "KenyaEMR logo"
+    }
+  }
+}
+```
+
+In this example, the logo SVG specified at that URL will be applied as the default login page logo. To persist this change, you will need to commit this configuration to your instance's frontend configuration. To do this in the distro reference application, you'll need to:
+
+<Steps>
+
+### Step 1
+
+Add your resource to a directory in the distro. For example, a `logo.png` file can be added to the `frontend/resources` directory.
+
+### Step 2
+
+Add this line to the `Dockerfile` in the `frontend` directory:
+
+```sh
+COPY ./resources/logo.png /usr/share/nginx/html
+```
+
+This will copy the logo to the root of the application.
+
+### Step 3
+
+Add the following snippet to the `config-core_demo.json` file in the `frontend` directory:
+
+  <Callout emoji="ℹ️" type="info">
+    Note that the paths to your configuration files might be different. Adjust the paths to match your application's structure.
+  </Callout>
+
+  ```json
+  {
+    "@openmrs/esm-login-app": {
+      "logo": {
+        "src": "${openmrsSpaBase}/logo.png",
+        "alt": "Logo"
+      }
+    }
+  }
+  ```
+
+### Step 4
+
+**Important**: The `config-core_demo.json` file must be loaded by the SPA. You have two options:
+
+**Option A - Runtime configuration (recommended, no rebuild needed)**: Set the `SPA_CONFIG_URLS` environment variable in your `docker-compose.yml` to include the config file:
+
+```yaml
+frontend:
+  environment:
+    SPA_CONFIG_URLS: ${SPA_PATH}/config-core_demo.json
+```
+
+**Option B - Build-time configuration (requires rebuild)**: Add the config file URL to the `configUrls` array in `spa-build-config.json`:
+
+```json
+{
+  "configUrls": ["${openmrsSpaBase}/config-core_demo.json"]
+}
+```
+
+This scopes the logo to the login app only.
+
+**Additional logos in login footer**: You can also add multiple logos to the login page footer using the `footer.additionalLogos` configuration:
+
+```json
+{
+  "@openmrs/esm-login-app": {
+    "footer": {
+      "additionalLogos": [
+        {
+          "src": "${openmrsSpaBase}/partner-logo-1.png",
+          "alt": "Partner Organization"
+        },
+        {
+          "src": "${openmrsSpaBase}/partner-logo-2.png",
+          "alt": "Funding Partner"
+        }
+      ]
+    }
+  }
+}
+```
+
+</Steps>
+
+
+### Changing the logo used in the navbar
+
+The default logo used on the navbar is configured [here](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/apps/esm-primary-navigation-app/src/components/logo/logo.component.tsx#L10). You can optionally use a string or an image file (SVG, PNG, JPEG/JPG, GIF, WebP, etc.) as the navbar logo. To override the navbar logo, use a configuration similar to the snippet below:
+
+```json
+{
+  "@openmrs/esm-primary-navigation-app": {
+    "logo": {
+      // Using an SVG image URL
+      "src": "https://data.kenyahmis.org/openmrs/images/logos/kenyaemr-logo-nav.svg",
+      "alt": "KenyaEMR logo",
+      // Optional: customize where the logo links when clicked
+      "link": "${openmrsSpaBase}/home",
+      // Or, using a string instead of an image (if both src and name are provided, src takes precedence)
+      // "name": "KenyaEMR"
+    }
+  }
+}
+```
+
+To persist your changes to your distro, follow the same steps in the [section above](#changing-logos) (Steps 1-4) with the following config file snippet in the `config-core_demo.json` file:
+
+```json
+{
+  "@openmrs/esm-primary-navigation-app": {
+    "logo": {
+      "src": "${openmrsSpaBase}/logo.png",
+      "alt": "Logo",
+      // Optional: customize where the logo links when clicked
+      "link": "${openmrsSpaBase}/home",
+      // Or, use name instead of src to display text instead of an image
+      // "name": "My Clinic"
+    }
+  }
+}
+```
+
+This scopes the logo to the primary navigation app only. Remember to ensure the config file is loaded (see Step 4 above).
+
+**Note**: The navbar logo configuration supports:
+- `src` - URL or path to an image file. Supported formats include SVG, PNG, JPEG/JPG, GIF, WebP, and any other format supported by modern browsers. If provided, this takes precedence over `name`.
+- `name` - Text string to display instead of an image. Only used if `src` is empty or not provided.
+- `link` - URL where the logo redirects when clicked (defaults to `${openmrsSpaBase}/home`)
+- `alt` - Alternative text for accessibility (used when `src` is provided)
+
+<Callout emoji="ℹ️" type="info">
+  If the image you're using for the logo is hosted outside the OpenMRS distribution, you might need to modify the Content Security Policy to allow the image to be loaded. To do so, you would need to tweak the map block that defines CSP headers in the [nginx configuration file](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/gateway/default.conf.template#L4) in the `gateway` directory. You might want to add a `img-src *` directive that allows all images to be loaded. `img-src *` allows loading images from any origin, including your domain, any external domains and data URIs.
+</Callout>
+
+### Adding External Links to the App Menu
+
+You can add external links to the app menu (the menu that appears when clicking the app switcher icon). This is useful for linking to external systems, documentation, or other resources:
+
+```json
+{
+  "@openmrs/esm-primary-navigation-app": {
+    "externalRefLinks": [
+      {
+        "title": "OpenMRS Wiki",
+        "redirect": "https://wiki.openmrs.org/"
+      },
+      {
+        "title": "Community Forum",
+        "redirect": "https://talk.openmrs.org/"
+      }
+    ]
+  }
+}
+```
+
+Each external link requires:
+- `title` - The text displayed in the app menu
+- `redirect` - The external URL to navigate to (must be a valid external URL)
+
+External links appear in the app menu alongside your application modules. They open in a new tab when clicked.
+
+## Changing the favicon
+
+To change the favicon, you'll need to add a favicon file (typically named `favicon.ico`) to your distro. You'd then add the following line to the [frontend Dockerfile](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/Dockerfile):
+
+```sh
+COPY ./path-to-the-favicon/favicon.ico /usr/share/nginx/html/favicon.ico
+```
+
+This will copy the favicon to the root of the application where browsers will automatically look for it.
+
+<Callout emoji="ℹ️" type="info">
+  **Important**: You would need to rebuild the frontend Docker image for this change to come into effect. The favicon file should be named `favicon.ico` and placed in the web root (`/usr/share/nginx/html/`) for browsers to automatically discover it.
+</Callout>
+
+## Changing brand colors
+
+Implementers can change the default brand colors specified in the styleguide, overriding them with hex values that conform to their own brand colors. The default brand colors that determine how the UI looks like are defined in the `styleguide` configuration schema. To override them, use a configuration similar to the snippet below:
+
+```json
+{
+  "@openmrs/esm-styleguide": {
+    "Brand color #1": "#005d5d", // The 'primary' color (default: #005d5d)
+    "Brand color #2": "#004144", // The 'secondary' color (default: #004144)
+    "Brand color #3": "#007d79" // The 'tertiary' color (default: #007d79)
+  }
+}
+```
+
+These colors impact the following UI elements:
+
+### Primary color
+
+The primary color affects:
+
+- The navbar color
+  <br />
+  ![navbar](/navbar.png)
+  <br />
+
+- The app menu item hover color
+  <br />
+  ![app menu item hover color](/app-menu-items-hover.png)
+  <br />
+
+- The color of the selected app in the siderail
+  <br />
+  ![selected siderail icon](/siderail-icon.png)
+  <br />
+
+### Secondary color
+
+The secondary color affects:
+
+- App menu items' background color
+  <br />
+  ![app menu items](/app-menu-items.png)
+  <br />
+
+### Tertiary color
+
+The tertiary color affects:
+
+- The color of buttons
+  <br />
+  ![button color](/button.png)
+  <br />
+
+- Widget title underline color
+  <br />
+  ![widget title underline color](/widget-title-underline-color.png)
+  <br />
+
+## Setting the implementation name
+
+The implementation name is displayed in page headers throughout O3, typically showing the name of the clinic or authority using the implementation. This appears above the page title in dashboards and other pages that use the `PageHeader` component.
+
+To configure the implementation name, add the following to your configuration:
+
+```json
+{
+  "@openmrs/esm-styleguide": {
+    "implementationName": "My Clinic"
+  }
+}
+```
+
+The default value is `"Clinic"`. The implementation name can be translated—if you provide a translation key that exists in the core translations, it will be translated automatically.
+
+## Setting the page title
+
+The page title appears in the browser tab and is used for bookmarks and browser history. To configure it, set the `pageTitle` property in your `spa-build-config.json` file:
+
+```json
+{
+  "pageTitle": "My Clinic - OpenMRS"
+}
+```
+
+**Important**: Changes to `spa-build-config.json` require rebuilding the frontend SPA to take effect.
+
+The default page title is `"OpenMRS"`.
+
+## Video demo
+
+Watch the video to see a demo of how to configure branding:
+  
+  <br />
+  <iframe
+    width="560"
+    height="315"
+    src="https://www.youtube.com/embed/u5TmUFBrm_s"
+    title="Theming and White Labelling with OpenMRS 3"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowFullScreen
+  />

@@ -1,0 +1,15 @@
+export default {
+  index: "Overview",
+  "set-up-o3-instance": "Set up an instance of O3",
+  "create-a-frontend-module": "Create a frontend module",
+  "create-a-distribution": "Create a distribution",
+  "deploy-to-production": "Deploy O3 to production",
+  "add-a-left-panel-to-o3": "Add a left panel to O3",
+  "add-links-to-the-home-page-left-panel": "Add links to the home page left panel",
+  "retrieve-and-post-data": "Retrieve and post data",
+  "share-state-between-frontend-modules": "Share state between frontend modules",
+  "set-up-translations-in-a-frontend-module": "Set up translations in a frontend module",
+  "format-dates": "Format dates",
+  "store-values": "Store values",
+  "validate-forms-using-rhf-and-zod": "Validate forms using React Hook Form and Zod"
+}

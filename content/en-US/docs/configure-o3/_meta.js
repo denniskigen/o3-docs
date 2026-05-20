@@ -1,0 +1,9 @@
+export default {
+  overview: "Overview",
+  "configure-branding": "Configure branding",
+  "configure-the-patient-chart": "Configure the Patient Chart",
+  "configure-patient-management": "Configure Patient Management",
+  "configure-service-queues": "Configure Service Queues",
+  "configure-ward-management": "Configure Ward Management",
+  "configure-translations": "Configure translations"
+}

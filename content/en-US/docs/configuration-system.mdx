@@ -1,0 +1,415 @@
+import { Callout } from "nextra/components";
+
+# The Configuration System
+
+Introduced by [RFC-14](https://github.com/openmrs/openmrs-rfc-frontend/blob/master/text/0014-configuration.md), the configuration system provides a framework for making frontend modules configurable by implementers without requiring code changes. It enables developers to define schemas that specify what configuration options are available, their types, defaults, and validation rules.
+
+<Callout emoji="ℹ️" type="info">
+  **For implementers**: If you're looking to configure an existing O3 instance (changing logos, translations, module settings, etc.), see the [Configure O3](/docs/configure-o3) guide instead. This guide is for **developers** who want to make their modules configurable.
+</Callout>
+
+## Using the Configuration System
+
+A framework is provided to make configurability easier for developers and configuring easier for implementers.
+
+**For implementers**: To learn how to configure your O3 instance, see the [Configure O3](/docs/configure-o3) guide, which covers practical configuration tasks like branding, translations, and module-specific settings.
+
+### How to make a frontend module configurable
+
+You should use the OpenMRS Frontend Framework to make modules configurable.
+
+The main task is to create a config schema for your module. The config schema is what tells the framework what configuration files should look like, including defaults and validations.
+
+**Note**: Configuration schemas are optional. If your module doesn't need any configuration options (for example, if it's a library module like the [React Form Engine](https://github.com/openmrs/openmrs-form-engine-lib) that receives all its configuration through props or function parameters), you don't need to define a schema. The configuration system will still work—modules without schemas will simply have an empty configuration object (or one containing only the implicit schema keys like `Translation overrides`).
+
+#### Designing a schema
+
+You’ll probably start with some idea of what you want configs for your module to look like. Try and put yourself in the implementer’s shoes and imagine what features they will expect to be configurable, and what they might expect the configuration property to be called. Assume they don’t know anything about the internal workings of your module.
+
+By way of example, let’s say we’re building a module for a virtual provider functionality at a very futuristic hospital. Maybe we want an implementer to be able to write the following in their config file:
+
+```ts
+"@openmrs/esm-hologram-doctor": {
+  "hologram": {
+    "color": true
+  },
+  "virtualProvider": {
+    "name": {
+      "given": ["Qui", "Gon"]
+    }
+  },
+  "robots": [
+    { "name": "R2-D2", "homeworld": "Naboo" },
+    { "name": "BB-8", "homeworld": "Hosnian Prime" }
+  ]
+}
+```
+
+In the following section, we’ll see how to write a config schema that supports these config elements.
+
+#### Defining a schema
+
+We’ll start with just that first nested config element from above, `hologram.color`. We must provide defaults for all of the values—in OpenMRS Frontend 3.0, all configuration is optional. All modules should do something reasonable out of the box.
+
+```ts
+import { defineConfigSchema, Type } from "@openmrs/esm-framework";
+
+defineConfigSchema("@openmrs/esm-hologram-doctor", {
+  hologram: {
+    color: {
+      _type: Type.Boolean,
+      _default: false,
+      _description: "Whether the hologram supports color display."
+    }
+  }
+});
+```
+
+Note that each configuration element should have an object for a value, and that this object must define the properties for that element. Do not do this:
+
+```ts
+❌ // This is wrong!
+❌ defineConfigSchema("@openmrs/esm-hologram-doctor",
+❌  hologram: {
+❌   salutation: "Some friendly default salutation! ? this is wrong!"
+❌ })
+```
+
+The words prefixed with `_` are schema keywords. Do not prefix the names of your config elements with underscores. Especially do not use a schema keyword as a config element name.
+
+**Reserved configuration keys:**
+
+The following keys are reserved and cannot be used as configuration element names:
+- `Display conditions` - Used by the extension system for extension visibility control
+- `Translation overrides` - Used for per-language translation overrides
+
+These keys are automatically included in every module's implicit schema and will cause validation errors if you try to use them as custom configuration keys.
+
+```ts
+❌ // Don't do this!
+❌ defineConfigSchema("@openmrs/esm-hologram-doctor",
+❌  hologram: {
+❌    salutation: {
+❌      _default: {
+❌        _default: "Greetings ? this is bad don't do it"
+❌ }}})
+```
+
+#### Typing
+
+While not strictly required in the current version, you should provide a type for every config element you define. The `_type` keyword accepts values from the Type enum.
+
+The available types are:
+- `Type.String` - String values
+- `Type.Number` - Numeric values
+- `Type.Boolean` - Boolean values (true/false)
+- `Type.Array` - Arrays (requires `_elements` to specify the array element schema)
+- `Type.Object` - Object values
+- `Type.UUID` - UUID strings
+- `Type.ConceptUuid` - Concept UUID strings
+- `Type.PersonAttributeTypeUuid` - Person attribute type UUID strings
+- `Type.PatientIdentifierTypeUuid` - Patient identifier type UUID strings
+
+These types are used both to validate input and to support special behavior in the implementer tools.
+
+#### Validators
+
+You should provide validators for your configuration elements wherever possible. This reduces the probability that implementers using your module will have hard-to-debug runtime errors. It gives you, the module developer, the opportunity to provide implementers with very helpful explanations about why their configuration doesn’t work.
+
+```ts
+robot: {
+  name: {
+    _type: Type.String,
+    _default: "R2D2",
+    _description: "What to call the robot",
+    _validators: [
+      validator(n => /\d/.test(n), "Robots must have numbers in their names")
+    ]
+  }
+}
+```
+
+(Note that this piece of schema is not part of our above example. It only supports a single robot, whereas we need to allow the implementer to provide an array of robots).
+
+A validator can be created using the `validator` function, as above.
+
+The first argument is a function that takes the config value as its only argument. If the function returns something [truthy](https://developer.mozilla.org/en-US/docs/Glossary/Truthy), validation passes. If the function returns a string, that string is treated as an error message and validation fails.
+
+**Important**: When validation fails, the error is logged to the browser console, but the application continues to run. Invalid configuration values are still used—validation errors serve as warnings to help implementers identify and fix configuration problems, rather than preventing the application from starting.
+
+You can even validate nested objects:
+
+```ts
+colorPicker: {
+  options: { _default: ["green", "red", "blue"] },
+  initial: { _default: "green" },
+  _description: "The color picker for lightsabers",
+  _validators: [
+    validator(o => o.options.includes(o.initial),
+      "Initial must be one of the options")
+  ]
+}
+```
+
+For convenience, some common validators are provided out of the box. See the [API / validators docs](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#validators).
+
+#### Arrays
+
+You can accept and validate arrays, and arrays containing objects, in your configuration schema. This is configured with the `elements` parameter, used with `_type: Type.Array`. For example, a schema which would accept an array of strings up to 30 characters long would look like this:
+
+```ts
+virtualProvider: {
+  name: {
+    given: {
+      _type: Type.Array,
+      _default: ["Obi", "Wan"],
+      _elements: {
+        _type: Type.String,
+        _validators: [validator(n => n.length < 30, "Must be less than 30 characters")]
+      }
+    },
+    _description: "The name of the avatar. Does not have to be the name of the actual provider"
+  },
+  _description: "The avatar of the medical practitioner"
+}
+```
+
+Here is an example of a schema that expects an array of objects structured in a particular way.
+
+```ts
+robots: {
+  _type: Type.Array,
+  _default: [
+    { name: "R2-D2", homeworld: "Naboo" },
+    { name: "C-3PO", homeworld: "Tatooine" }
+  ],
+  _description: "The list of all available robots",
+  _elements: {
+    name: {
+      _type: Type.String,
+      _description: "What to call the robot",
+      _validators: [robotNameValidator]
+    },
+    homeworld: {
+      _type: Type.String,
+      _description: "Where the robot is from",
+      _default: null  // not required
+    }
+  }
+}
+```
+
+This schema will require that any objects in the robots array must only have the keys `name` and `homeworld`, and that `name` is required.
+
+Objects within arrays do not have to have defaults. If an object is supplied to the `robots` array that does not have a `name`, an error will be thrown.
+
+#### Using config values
+
+##### The generic way
+
+The config is fetched asynchronously using `getConfig(moduleName)`. Continuing the above example, we would have something like:
+
+```ts
+import { getConfig } from "@openmrs/esm-framework";
+
+async function doctorGreeting() {
+  const config = await getConfig("@openmrs/esm-hologram-doctor");
+  return "Hello, my name is Dr. " + config.virtualProvider.name.family;
+}
+```
+
+The content of config will be pulled from the config files, falling back to the defaults for configuration elements for which no values have been provided.
+
+**How configuration values are merged:**
+
+When multiple configuration sources provide values for the same key, they are merged with the following precedence (later sources override earlier ones):
+
+1. **Defaults** from the schema definition
+2. **Configuration files** (merged in the order they are loaded)
+3. **Temporary config** from the Implementer Tools UI (highest precedence)
+
+This means that if you set a value in a config file and then change it using the Implementer Tools, the Implementer Tools value will take effect. Similarly, if the same key appears in multiple config files, the value from the last file loaded will be used.
+
+#### React support
+
+A React Hook is provided to hide the asynchronicity of config loading. The `useConfig` hook automatically determines which module's configuration to load based on the `ComponentContext`, which is set when you use `getSyncLifecycle` or `getAsyncLifecycle` with a `moduleName`.
+
+```ts
+export const hologramDoctor = getSyncLifecycle(hologramDoctor, {
+  featureName: 'hologram doctor',
+  moduleName: '@openmrs/esm-hologram-doctor',
+});
+```
+
+You can then get the config tree as an object using the `useConfig` React hook:
+
+```ts
+import { useConfig } from "@openmrs/esm-framework";
+
+export default function DoctorGreeting() {
+  const config = useConfig();
+  const greeting = "Hello, my name is Dr. " + config.virtualProvider.name.family;
+  return <div>{greeting}</div>;
+}
+```
+
+The `useConfig` hook automatically:
+- Loads the module's configuration based on the `moduleName` from the `ComponentContext`
+- Merges extension-specific configuration when used within an extension component
+- Falls back to defaults for configuration elements for which no values have been provided
+
+**Loading configuration from another module:**
+
+You can optionally load configuration from a different module using the `externalModuleName` option. This should only be used when absolutely necessary, as it can create coupling between modules:
+
+```ts
+const otherModuleConfig = useConfig({ externalModuleName: "@openmrs/esm-other-module" });
+```
+
+**Registering config schemas:**
+
+In Core v5+ modules, config schemas should be registered in the `startupApp()` function:
+
+```ts
+import { defineConfigSchema } from "@openmrs/esm-framework";
+
+export function startupApp() {
+  defineConfigSchema(moduleName, configSchema);
+}
+```
+
+This ensures the schema is registered before the module's components are rendered.
+
+**Automatic schema features:**
+
+Every module automatically receives an implicit schema that includes two reserved configuration keys:
+
+- **`Display conditions`** - Used by the extension system to control extension visibility (only relevant for extensions)
+- **`Translation overrides`** - Used for per-language translation overrides. See [Configure translations](/docs/configure-o3/configure-translations) for details on how implementers use this feature.
+
+This implicit schema is available immediately, even before you call `defineConfigSchema()`. This allows translation overrides to be loaded early, which is important because the translation system requires them before modules can fully initialize. When you define your custom schema, it is automatically merged with the implicit schema, so you don't need to (and should not) define these reserved keys yourself.
+
+#### Support in other frameworks (Angular, Vue, Svelte, etc.)
+
+This hasn't been implemented yet, but you are welcome to implement it! See the [Contributing guide](/docs/frontend-modules/contributing).
+
+#### Typing
+
+It is nice to be able to have type validation for your use of configuration. To accomplish this, define an interface alongside your config schema.
+
+```ts
+import { defineConfigSchema, Type } from "@openmrs/esm-framework";
+
+defineConfigSchema("@openmrs/esm-hologram-doctor", {
+  hologram: {
+    color: {
+      _type: Type.Boolean,
+      _default: false,
+      _description: "Whether the hologram supports color display.",
+    },
+  },
+});
+
+export interface HologramDoctorConfig {
+  hologram: {
+    color: boolean;
+  };
+}
+```
+
+You can then use this typing information when calling the config functions:
+
+```ts
+const config = useConfig<HologramDoctorConfig>();
+```
+
+#### Extension-specific configuration
+
+Extensions can have their own configuration schemas that are separate from their parent module's configuration. This is useful when an extension needs configuration options that don't apply to the module as a whole.
+
+To define an extension-specific config schema, use `defineExtensionConfigSchema`:
+
+```ts
+import { defineExtensionConfigSchema } from "@openmrs/esm-framework";
+
+export function startupApp() {
+  defineExtensionConfigSchema("my-extension-name", {
+    customSetting: {
+      _type: Type.String,
+      _default: "default value",
+      _description: "A setting specific to this extension"
+    }
+  });
+}
+```
+
+The extension name should match the `name` property of the extension as defined in `routes.json`. When an extension has its own config schema, `useConfig()` within that extension will automatically return the extension's configuration rather than the module's configuration.
+
+**How extension configuration is resolved:**
+
+Extension configuration values are determined by merging multiple sources in this order:
+
+1. **Extension's base configuration** - Values from the extension's own schema (if defined) or from the parent module's schema
+2. **Slot-specific overrides** - Values from the `configure` object in the slot's configuration (highest precedence)
+
+This merging allows administrators to customize an extension's behavior differently for each slot where it appears. For example, the same extension could have different settings when used in a patient header versus a dashboard.
+
+Extension configuration can be overridden per-slot using the `configure` object in the slot's configuration:
+
+```json
+{
+  "@openmrs/esm-my-module": {
+    "extensionSlots": {
+      "my-slot": {
+        "configure": {
+          "my-extension-name": {
+            "customSetting": "slot-specific value"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Schema Reference
+
+`_default`
+
+All config elements must have a default (excluding elements within arrays of objects).
+
+The default does not necessarily need to satisfy the `_type` or the `_validators` of the element, but this may change in future versions.
+
+`_type`
+
+One of the values from the Type enum. Used for validation and to help the implementer tools work with the element.
+
+Should always appear alongside `_default`.
+
+`_description`
+
+Helps implementers understand what the configuration element actually does and how it is intended to be used.
+
+Can be used anywhere within the schema structure.
+
+`_validators`
+
+An array of validator objects.
+
+Some common validators are provided: [API / validators](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#config-validation-functions).
+
+Custom validators should be created with the [validator](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md#validator) function.
+
+Can be used anywhere within the schema structure.
+
+`_elements`
+
+Only valid alongside `_type: Type.Array`. A `_default` must also be provided at this level. Value should be a schema for the values contained in the array.
+
+### API Documentation
+
+See the Config Functions section of the [API docs](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/API.md).
+
+### The RFC
+
+This package was established as the result of [RFC #14](https://github.com/openmrs/openmrs-rfc-frontend/blob/master/text/0014-configuration.md). This document provides the rationale and guiding principles of the configuration system.

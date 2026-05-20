@@ -1,3 +1,5 @@
+'use client'
+
 import useSWRImmutable from "swr";
 import remarkGfm from "remark-gfm";
 import remarkGithub from "remark-github";

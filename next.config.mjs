@@ -1,0 +1,26 @@
+import nextra from 'nextra'
+
+const withNextra = nextra({
+  defaultShowCopyCode: true,
+})
+
+export default withNextra({
+  i18n: {
+    locales: ['en-US', 'fr-FR'],
+    localeDetection: true,
+    defaultLocale: 'en-US',
+  },
+  reactStrictMode: true,
+  poweredByHeader: false,
+  async redirects() {
+    return [
+      { source: '/docs/recipes', destination: '/docs/recipes/index', permanent: false },
+      { source: '/docs/coding-conventions', destination: '/docs/coding-conventions/introduction', permanent: false },
+      { source: '/docs/configure-o3', destination: '/docs/configure-o3/overview', permanent: false },
+      { source: '/docs/forms-in-o3', destination: '/docs/forms-in-o3/build-forms-with-o3-form-builder', permanent: false },
+      { source: '/docs/frontend-modules', destination: '/docs/frontend-modules/overview', permanent: false },
+      { source: '/docs/workspaces', destination: '/docs/workspaces/index', permanent: false },
+      { source: '/docs/frontend-modules/using-webpack', destination: '/docs/frontend-modules/using-rspack', permanent: true },
+    ]
+  },
+})

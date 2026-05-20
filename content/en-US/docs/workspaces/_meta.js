@@ -1,0 +1,7 @@
+export default {
+  index: "Overview",
+  "launching-workspaces": "Launching workspaces",
+  "creating-workspaces": "Creating workspaces",
+  "siderail-and-bottom-nav": "Siderail and bottom nav",
+  "workspace-implementation": "Implementation: Under the hood"
+}

@@ -1,0 +1,249 @@
+import { Callout, Steps } from "nextra/components";
+import DeprecationWarning from "@/components/deprecation-warning";
+
+# End-to-end testing with Playwright
+
+[Playwright](https://playwright.dev) is a testing framework for writing reliable end-to-end tests in JavaScript. The OpenMRS QA team has helped standardize Playwright across many of our key repositories.
+
+<DeprecationWarning href="https://openmrs.atlassian.net/wiki/x/K4L-C" />
+
+This means we can write E2E tests for key user journeys in the OpenMRS frontend. These tests are set up to run on commits and merges. Keep them passing and, when you add new behavior, extend the tests to cover it. Ideally, each pull request should include the tests that prove the change works.
+
+To get started, you’ll typically need to install Playwright:
+
+```bash
+npx playwright install
+```
+
+We recommend:
+
+- Installing the official Playwright [VS Code plugin](https://playwright.dev/docs/getting-started-vscode) for UI test running and debugging.
+- Running tests with `npx playwright test`.
+- Following Playwright's [best practices](https://playwright.dev/docs/best-practices) to keep tests reliable and maintainable.
+
+## Writing tests
+
+It’s recommended to read the official [Playwright docs](https://playwright.dev/docs/intro) before writing new test cases. The project uses the official Playwright test runner and follows a simple structure:
+
+```
+e2e
+|__ commands
+|   ^ Contains "commands" (simple reusable functions) that can be used in test cases/specs,
+|     e.g. generate a random patient.
+|__ core
+|   ^ Contains code related to the test runner itself, e.g. setting up the custom fixtures.
+|     You probably need to touch this infrequently.
+|__ fixtures
+|   ^ Contains fixtures (https://playwright.dev/docs/test-fixtures) which are used
+|     to run reusable setup/teardown tasks
+|__ pages
+|   ^ Contains page object model classes for interacting with the frontend.
+|     See https://playwright.dev/docs/test-pom for details.
+|__ specs
+|   ^ Contains the actual test cases/specs. New tests should be placed in this folder.
+|__ support
+    ^ Contains support files that are required to run E2E tests, e.g. docker-compose files.
+```
+
+When you want to write a new test case, start by creating a new spec in `./specs`.
+Depending on what you want to achieve, you might want to create new fixtures and/or
+page object models. To see examples, have a look at the existing code to see how these
+different concepts play together.
+
+The spec files often use a BDD-like style. We use Playwright's `test.step` calls and a user-centric "I" voice to make steps readable. For more on BDD-style syntax, see https://cucumber.io/docs/gherkin/reference/. The snippet below shows the pattern:
+
+```ts
+test("Search patient by patient identifier", async ({ page, api }) => {
+  // extract details from the created patient
+  const openmrsIdentifier = patient.identifiers[0].display.split("=")[1].trim();
+  const firstName = patient.person.display.split(" ")[0];
+  const lastName = patient.person.display.split(" ")[1];
+  const homePage = new HomePage(page);
+
+  await test.step("When I visit the home page", async () => {
+    await homePage.goto();
+  });
+
+  await test.step("And I enter a valid patient identifier into the search field", async () => {
+    await homePage.searchPatient(openmrsIdentifier);
+  });
+
+  await test.step("Then I should see only the patient with the entered identifier", async () => {
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(/1 search result/);
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(new RegExp(firstName));
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(new RegExp(lastName));
+    await expect(homePage.floatingSearchResultsContainer()).toHaveText(new RegExp(openmrsIdentifier));
+  });
+
+  await test.step("When I click on the patient", async () => {
+    await homePage.clickOnPatientResult(firstName);
+  });
+
+  await test.step("Then I should be in the patient's chart page", async () => {
+    await expect(homePage.page).toHaveURL(
+      `${process.env.E2E_BASE_URL}/spa/patient/${patient.uuid}/chart/Patient Summary`
+    );
+  });
+});
+```
+
+## Prerequisites for local runs
+
+Before running E2E tests locally, make sure you have:
+
+- A running OpenMRS backend (dev3 or local).
+- A frontend dev server for the module under test.
+- Any required environment variables configured (at minimum `E2E_BASE_URL`).
+
+## Running tests locally
+
+To run E2E tests locally, start a dev server for the frontend module whose tests you want to run.
+
+<Steps>
+
+### Start the dev server
+
+```sh
+yarn start --sources "packages/esm-patient-conditions-app"
+```
+
+### Override the E2E_BASE_URL in your terminal
+
+```sh
+# 8080 is the default port for the dev server
+export E2E_BASE_URL=http://localhost:8080
+```
+
+### Run tests in [headed](https://playwright.dev/docs/ci#running-headed) and [UI](https://playwright.dev/docs/test-ui-mode) modes:
+
+```sh
+yarn test-e2e --headed --ui
+```
+
+To run a single test file, pass in the name of the test file that you want to run:
+
+```sh
+yarn test-e2e conditions-form.spec.ts
+```
+
+To run a set of test files from different directories, pass the directories you want to include.
+
+```sh
+yarn test-e2e specs/conditions specs/programs
+```
+
+To run all files with `conditions` in the file name, pass the keyword to the CLI:
+
+```sh
+yarn test-e2e conditions
+```
+
+To run a test with a specific title, use the -g flag followed by the title of the test:
+
+```sh
+yarn test-e2e conditions -g "Record and edit a condition"
+```
+
+</Steps>
+
+## Test data in E2E tests
+
+To ensure tests have the data they need, use one of these approaches:
+
+1. Use the UI - If the scenario involves editing patient information, create a patient record through the UI.
+2. Use demo data - If the test only needs read-only data, the RefApp demo data may be sufficient. See the demo data module for details.
+3. Create data via the API - If neither approach works, create the needed data ahead of the test.
+
+## Debugging tests
+
+Refer to [this documentation](https://playwright.dev/docs/debug) on how to debug a test.
+
+## Test artifacts
+
+When tests fail, Playwright can generate traces, screenshots, and videos depending on your configuration. These artifacts are usually written under the `e2e` workspace in the test output directories configured for the repo. Check the repo's Playwright config if you need to change or locate the paths.
+
+## View test reports from GitHub Actions and Bamboo
+
+To download the report from the GitHub action/Bamboo plan, follow these steps:
+
+1. Go to the artifact section of the action/plan and locate the report file.
+2. Download the report file and unzip it using a tool of your choice.
+3. Follow the steps mentioned in [this guide on how to view the HTML report](https://playwright.dev/docs/ci-intro#html-report)
+
+The report will show you a full summary of your tests, including information on which tests passed, failed, were skipped, or were flaky. You can explore the details of individual tests, including any errors or failures, video recordings, traces and the steps involved in each test. Simply click on a test to view its details.
+
+## Dos and don'ts
+
+- Do ensure that all test cases are written clearly and concisely, with step-by-step instructions that can be easily understood.
+- Do use a variety of test cases to cover all possible scenarios, including best-case scenarios, worst-case scenarios, and edge cases.
+- Do ensure that all tests are executed in a timely and efficient manner to save time and resources.
+- Don't assume that a feature is working just because it seems to be functioning correctly. Test it thoroughly to ensure that all its features and functionalities are working as expected.
+- Don't ignore any errors or issues that arise during testing, even if they seem minor. Report them to the development team so that they can be addressed promptly.
+- Don't skip any critical paths or scenarios. Ensure that all scenarios are tested thoroughly to identify any potential issues or defects.
+
+## Best practices
+
+- Start testing early in the development process to identify and address issues before they become more challenging and expensive to fix.
+- Utilize automated testing whenever possible to save time and increase efficiency.
+- Use real-world data and scenarios to create accurate and relevant test cases.
+- Ensure that all test cases are repeatable and easily reproducible to ensure that results can be verified and tested again if necessary.
+- Continuously review and update the testing plan to ensure that it covers all relevant features and scenarios.
+- Work collaboratively with the O3 team to ensure that any issues or defects are identified and resolved quickly.
+
+## Automating E2E tests with GitHub Actions
+
+Automating end-to-end (E2E) tests through GitHub Actions provides an efficient way to ensure the reliability of software changes.
+
+### Dockerized test environment
+
+Our E2E tests are executed in a dockerized environment for each pull request and commit to the O3 repositories.
+This approach offers several advantages over traditional methods:
+
+- **Reduced Dependency on Dev3 Server:** By using a dockerized environment, the E2E tests do not depend on the status or availability of the Dev3 server.
+  This independence ensures that testing can proceed even if the Dev3 server is experiencing issues.
+
+- **Isolated Test Runs:** Running tests on PRs and commits within isolated Docker containers eliminates conflicts between data.
+  This isolation prevents scenarios where testing data conflicts with other ongoing tests or development activities.
+
+- **Minimized Impact of Failures:** Failures within the E2E tests do not impact the status or stability of the Dev3 server.
+  This separation ensures that the main development environment remains unaffected by testing failures.
+
+### Optimizing the testing process
+
+To enhance the efficiency of the E2E testing process, we have implemented several optimization methods:
+
+1. **Pre-filled Docker images:** The backend and database Docker images used for automated E2E testing are pre-filled with necessary data and configurations.
+   This eliminates the need to generate data during the initial setup of the testing environment.
+   Consequently, the setup time is significantly reduced, enabling quick creation of the test instance.
+
+2. **Dynamic lightweight frontend:** To execute automated tests, a dynamic lightweight version of the frontend is used.
+   This version includes only the apps and changes present in the current repository, along with essential apps like the primary navigation app.
+   This frontend image is built during the E2E tests' GitHub Actions workflow.
+
+The pre-filled backend and database Docker images, along with the dynamically built lightweight frontend image,
+are combined within the same docker-compose stack and used for setting up the E2E test environment.
+
+#### Additional implementation details
+
+**Docker image generation:** The pre-filled Docker images are created and pushed to Docker Hub
+through a dedicated Bamboo stage within the [REFAPP-D3X](https://ci.openmrs.org/browse/REFAPP-D3X) Bamboo job.
+This stage involves a script that retrieves the latest versions of both the frontend and backend.
+It then runs and waits for data generation before building the `:nightly-with-data` Docker images of the backend and database.
+These images are subsequently pushed to Docker Hub. More details are available [here](https://talk.openmrs.org/t/using-pre-filled-docker-images-for-running-e2e-tests/40003).
+
+## Troubleshooting
+
+If you can't debug tests in [UI mode](https://playwright.dev/docs/test-ui-mode) because your local web server reloads due to static file changes, use the [Playwright Inspector](https://playwright.dev/docs/running-tests#debug-tests-with-the-playwright-inspector) instead. Run the following command:
+
+```sh
+yarn test-e2e --headed --debug
+```
+
+This approach should avoid issues caused by Webpack and static file changes.
+
+If your dev server still reloads endlessly because Playwright is writing artifacts into a watched directory, a common local workaround is to point `outputDir` outside the frontend module in `playwright.config.ts`. This is a known issue with file watching. Make sure to revert that change before committing.
+
+```ts filename="playwright.config.ts"
+// Local-only workaround (do not commit)
+outputDir: "../e2e/output",
+```

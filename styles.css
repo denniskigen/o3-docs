@@ -1,6 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import 'nextra-theme-docs/style.css';
+
+@plugin "@tailwindcss/typography";
+
+@variant dark (&:is(.dark *));
 
 html {
   font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1, "ss06" 1 !important;

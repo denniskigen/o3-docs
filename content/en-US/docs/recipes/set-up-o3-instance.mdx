@@ -1,0 +1,389 @@
+import { Callout, Steps } from "nextra/components";
+import DeprecationWarning from "@/components/deprecation-warning";
+
+# Setting up an instance of O3
+
+This guide is intended for developers who want to set up an instance of O3. Broadly speaking, there are two approaches for setting up an instance of O3:
+
+<DeprecationWarning href="https://openmrs.atlassian.net/wiki/x/94ABCQ" />
+
+- Using the `OpenMRS SDK`
+- Using `Docker`
+
+## Using the OpenMRS SDK
+
+<Callout emoji="ℹ️" type="info">
+  You might want to use the SDK if: 
+  
+  - You already have the SDK, Maven and a Java environment set up on your machine and
+  are very familiar with these tools. 
+  - You're not familiar with Docker or don't want to use Docker.
+
+</Callout>
+
+### Prerequisites
+
+These prerequisites are explained in detail in the [SDK wiki](https://wiki.openmrs.org/display/docs/OpenMRS+SDK).
+
+- Ensure you have [Apache Maven](https://maven.apache.org/install.html) installed.
+- Ensure you have MySQL v5.6 and above installed and set up correctly.
+- Ensure you have Java 8 installed with JDK 1.8 and JRE 1.8.
+- Ensure that your `$JAVA_HOME` environment variable is set and that it
+  points to `v1.8` of Java. If you have the correct version of Java installed
+  but `$JAVA_HOME` doesn't point to it, you could try adding the following
+  alias to your `.zshrc` file (or `.bashrc` file if you're using Bash):
+
+  ```sh
+    alias mvn='JAVA_HOME="$(/usr/libexec/java_home -v 1.8)" mvn'
+  ```
+
+<Steps>
+
+### Step 1
+
+Run the following command to install the latest version of the OpenMRS SDK. If you've already installed the SDK, you can skip this step.
+
+```sh
+mvn org.openmrs.maven.plugins:openmrs-sdk-maven-plugin:setup-sdk
+```
+
+### Step 2
+
+Run the following command to setup the SDK:
+
+```sh
+mvn openmrs-sdk:setup
+```
+
+This command will run a prompt that walks you through choosing:
+
+- A server ID e.g. `o3-distro`.
+- The type of server to set up - choose `O3 Distribution`.
+- What version of O3 to deploy - choose `Reference Application 3.0.0-SNAPSHOT`.
+- Which port to run the server on (defaults to `8080`).
+- Whether or not to enable remote debugging (defaults to `no debugging`)
+- When asked to choose which database to use. Choose `MySQL 5.6 and above (requires pre-installed MySQL 5.6 and above)`. This step is contingent on you having set up your MySQL installation up correctly.
+- When asked to choose a MySQL database URI, go with the default database URI presented.
+- When asked to specify your database username, specify whatever you chose when setting up your MySQL installation (defaults to `root`).
+- When asked to enter your database password, enter your database password.
+- Once you're connected to the database, select the JDK version you'd like to use to run the server (e.g. whatever `JAVA_HOME` points to).
+
+### Step 3
+
+Run the following command to fire up the SDK:
+
+```sh
+mvn openmrs-sdk:run
+```
+
+### Step 4
+
+Navigate to `https://localhost:8080/openmrs` on your browser. You should expect the see the backend getting set up. Once that completes, you can navigate to `https://localhost:8080/openmrs/spa`.
+
+</Steps>
+
+### Troubleshooting the SDK approach
+
+- If you're running into issues, first ensure that you're running the prescribed dependency versions i.e. Java 8, MySQL 5.6 or greater, Maven 3, and the latest SDK version.
+
+## Using Docker
+
+<Callout emoji="ℹ️" type="info">
+  You might want to use Docker if:
+
+- You are already familiar with Docker and OpenMRS Docker images.
+- You don't want to use the SPA module.
+- You're working on a deployment that will run Docker containers in production (generally cloud-based or SaaS offerings).
+- You want to set up a fresh instance of O3 (i.e. an instance with a brand new database and not one set up on top of your existing database).
+- You don't want to go through the hassle of setting up a Java environment and managing multiple dependencies.
+
+</Callout>
+
+### Prerequisites
+
+- Ensure you have [Docker Desktop](https://docs.docker.com/desktop/) or [Docker Compose (v2)](https://docs.docker.com/compose/install/) installed on your machine.
+
+Use the following steps to set up a fresh instance of O3 on your machine using Docker:
+
+<Steps>
+
+### Step 1
+
+Clone the [distro-referenceapplication](https://github.com/openmrs/openmrs-distro-referenceapplication) repository.
+
+### Step 2
+
+Launch [Docker Desktop](https://docs.docker.com/desktop/) or [Docker Compose (v2)](https://docs.docker.com/compose/install/).
+
+### Step 3
+
+Next we want to install the latest version of O3. To do that, we'll need to figure out what tag to use. Run `git tag --sort=-v:refname` to get a list of tags sorted by version number. At the time of writing, the latest tag is `3.0.0-beta.20`. To use this tag, run the following command:
+
+```sh
+TAG=3.0.0-beta.20 docker compose -f docker-compose.yml up -d
+```
+
+This command does the following:
+
+- `TAG=3.0.0-beta.20`: Sets an environment variable TAG to the value `3.0.0-beta.20`. We're using this variable to specify the latest stable release of O3.
+- `docker compose`: Runs the Docker Compose command.
+- `f docker-compose.yml`: Specifies the Compose file to use.
+- `up -d`: Starts the services defined in the Compose file in detached mode.
+
+### Step 4
+
+At this point, the backend setup script should be running. If you're
+using a browser, navigating to `localhost/openmrs` should redirect you to the initial setup page at `localhost/openmrs/initialsetup`. This setup will take a few minutes to complete. Once it's done, you should be able to launch O3 by visiting `http://localhost/openmrs` in your browser. If you're not using a browser, you can curl the URL to see check whether the setup is complete. Run the following command in your terminal to do this:
+
+```sh
+curl -v http://localhost/openmrs
+```
+
+If you see `200 OK` in the response, the setup should be complete. You could also use curl to check whether the OpenMRS health check endpoint is up and running using:
+
+```sh
+curl -v http://localhost/openmrs/health/started
+```
+
+Alternatively, you can run this script in your terminal to check whether O3 is up and running.
+
+```sh
+ while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost/openmrs/login.htm)" != "200" ]]; do sleep 10; done
+```
+
+This script will check the status of the server every 10 seconds until the server is up and running.
+
+Once the server is up and running, visit `http://localhost/openmrs/spa` and you'll be redirected to the login page. That's it! You should now have a running instance of O3.
+
+### Step 5 (optional)
+
+If you want to run the dockerized build on top of an existing O2 database, you'll need to use Docker volumes. See this [section below](set-up-o3-instance#running-an-o3-docker-image-on-top-of-an-existing-database) for instructions on how to do that.
+
+</Steps>
+
+### Running an O3 Docker image on top of an existing database
+
+To run the O3 Docker image on top of an existing database, do the following:
+
+<Steps>
+### Step 1
+
+Working from the [standard Docker compose file](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/docker-compose.yml), remove the `db` service (lines 44-60 highlighted below) and the `db-data` volume (line 64).
+
+```yml {44-60, 64} filename="docker-compose.yml"
+services:
+  gateway:
+    image: openmrs/openmrs-reference-application-3-gateway:${TAG:-qa}
+    restart: "unless-stopped"
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "80:80"
+
+  frontend:
+    image: openmrs/openmrs-reference-application-3-frontend:${TAG:-qa}
+    restart: "unless-stopped"
+    environment:
+      SPA_PATH: /openmrs/spa
+      API_URL: /openmrs
+      SPA_CONFIG_URLS: /openmrs/spa/config-core_demo.json
+      SPA_DEFAULT_LOCALE:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      timeout: 5s
+    depends_on:
+      - backend
+
+  backend:
+    image: openmrs/openmrs-reference-application-3-backend:${TAG:-qa}
+    restart: "unless-stopped"
+    depends_on:
+      - db
+    environment:
+      OMRS_CONFIG_MODULE_WEB_ADMIN: "true"
+      OMRS_CONFIG_AUTO_UPDATE_DATABASE: "true"
+      OMRS_CONFIG_CREATE_TABLES: "true"
+      OMRS_CONFIG_CONNECTION_SERVER: db
+      OMRS_CONFIG_CONNECTION_DATABASE: openmrs
+      OMRS_CONFIG_CONNECTION_USERNAME: ${OMRS_DB_USER:-openmrs}
+      OMRS_CONFIG_CONNECTION_PASSWORD: ${OMRS_DB_PASSWORD:-openmrs}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/openmrs"]
+      timeout: 5s
+    volumes:
+      - openmrs-data:/openmrs/data
+
+  # MariaDB
+  db:
+    image: mariadb:10.11.7
+    restart: "unless-stopped"
+    command: "mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci"
+    healthcheck:
+      test: "mysql --user=${OMRS_DB_USER:-openmrs} --password=${OMRS_DB_PASSWORD:-openmrs} --execute \"SHOW DATABASES;\""
+      interval: 3s
+      timeout: 1s
+      retries: 5
+    environment:
+      MYSQL_DATABASE: openmrs
+      MYSQL_USER: ${OMRS_DB_USER:-openmrs}
+      MYSQL_PASSWORD: ${OMRS_DB_PASSWORD:-openmrs}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-openmrs}
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  openmrs-data: ~
+  db-data: ~
+```
+
+### Step 2
+
+In the `backend` service, change the `OMRS_CONFIG_CONNECTION_SERVER` variable to the hostname of the database server and the `OMRS_CONFIG_CONNECTION_DATABASE` variable to the name of the existing database (leaving it alone probably works for 99% of installs).
+
+### Step 3
+
+Create a `.env` file in the same folder with `OMRS_DB_USER` and `OMRS_DB_PASSWORD` set to the appropriate values for the existing database.
+
+### Step 4
+
+Run `docker compose up -d` and, assuming everything is filled out correctly, it should just work™.
+
+</Steps>
+
+### Troubleshooting the Docker approach
+
+- If you're running into issues related to the Docker daemon, make sure that the daemon is running correctly.
+
+- If you're running into an issue on Windows about your WSL version being too low to support running the dockerized build, follow the directions in the error message to update your WSL version. Once done, make sure to restart Docker Desktop or the Docker daemon.
+
+- If you're encountering permission errors after running `docker compose up`, you might be dealing with orphaned volumes left by a previous Docker Compose run. This is a known issue with Docker volumes. Run the following command to delete all orphaned volumes:
+
+  ```sh
+  docker compose down -v --remove-orphans
+  ```
+
+  This command:
+
+  - Stops the running containers defined in the Docker compose file.
+  - Removes the containers.
+  - Deletes the networks created by the Docker compose.
+  - Deletes the volumes associated with the containers.
+  - Removes any orphaned containers (containers that were not defined in the docker-compose.yml but are part of the Docker Compose project).
+
+## Updating metadata
+
+Based on your requirements, you might want to customize configurations and metadata like concepts, visit types, encounter types, locations, etc. that gets loaded by the initializer module. When customizing such metadata, you have to build the docker image locally and use the locally built image for the changes to be shown in the instance.
+
+### Step 1: Stop your instance
+
+If your O3 instance is actively running, bring it down by running:
+
+```sh
+docker compose down
+```
+
+This command stops the current containers without the deletion of your volumes, ensuring the retention of your data.
+
+### Step 2: Build the local Docker image
+
+To reflect the updated metadata in your instance, you'll need to build a local Docker image. Ensure your configuration files follow the [accepted conventions for each configuration](https://github.com/mekomsolutions/openmrs-module-initializer?tab=readme-ov-file#supported-domains-and-default-loading-order), as incorrect formats might prevent the metadata from appearing in the instance as expected.
+
+```sh
+TAG=your-custom-tag docker compose build
+```
+
+Replace `your-custom-tag` with any unique tag of your choice.
+
+<Callout emoji="ℹ️" type="info">
+  It's advisable to use a tag that does not match any existing tag on [Docker
+  Hub](https://hub.docker.com/r/openmrs/openmrs-reference-application-3-frontend/tags)
+  (such as `qa` or specific release versions) to avoid conflicts. You could
+  alternatively just run `docker compose down && docker compose build && docker
+  compose -f docker-compose.yml up -d`.
+</Callout>
+
+### Step 3: Run the instance with the updated image
+
+Next, start your instance using the locally built image by running:
+
+```sh
+TAG=your-custom-tag docker compose -f docker-compose.yml up -d
+```
+
+Ensure that the argument passed to `TAG` variable matches the tag you used in the previous step. This command launches the instance using your locally built image instead of pulling one from Docker Hub.
+
+### Step 4: Wait for the instance to spin up
+
+Finally, follow [Step 4](https://docs/recipes/set-up-o3-instance#step-4-1) of the setup guide and wait for your instance to fully spin up with the updated metadata.
+
+## Preparing for production
+
+By default, the RefApp is configured to use the `next` tagged versions of [frontend modules](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/spa-assemble-config.json) and the [app shell](https://github.com/openmrs/openmrs-distro-referenceapplication/blob/main/frontend/Dockerfile). This means it will use the latest _pre-release_ versions available. Pre-release versions get published to NPM each time a commit is merged into the `main` branch. Pre-release versions are generally considered unstable and are not recommended for production use.
+
+<Callout emoji="⚠️" type="warning">
+  It is strongly recommended to use the latest stable versions in production
+  environments. These versions are tagged with the `latest` tag on NPM.
+</Callout>
+
+<Steps>
+
+### Step 1: Update frontend module versions
+
+Update the versions of the frontend modules in your instance from `next` to `latest` by editing the `frontend/spa-assemble-config.json` file as follows. For more information about this file, see the [Configuration overview](/docs/configure-o3/overview#spa-assemble-configjson) guide:
+
+```json filename="frontend/spa-assemble-config.json"
+{
+  "frontendModules": {
+    "@openmrs/esm-active-visits-app": "latest",
+    "@openmrs/esm-appointments-app": "latest"
+    // ... other frontend modules
+  }
+}
+```
+
+This ensures that the application will use the most recent stable versions of these frontend modules.
+
+### Step 2: Update the app shell version
+
+Update the app shell version in the frontend Dockerfile by changing the value of the `APP_SHELL_VERSION` argument to `latest`:
+
+```txt filename="frontend/Dockerfile"
+  ...
+  ARG APP_SHELL_VERSION=latest
+  ...
+```
+
+This change ensures that the app shell is also using the latest stable version.
+
+</Steps>
+
+## Next steps
+
+Once you've set up your O3 instance, there are various things you might want to do, including:
+
+- Setting up a TLS certificate for your instance. This is important if you're planning to run your instance in production. You can use a service like [Let's Encrypt](https://letsencrypt.org/) to get a free TLS certificate.
+
+- Changing the default language of your instance. You can do this by navigating to the `Administration` section of the legacy OpenMRS UI and changing the default locale.
+
+- Customizing O3. You can tweak your branding, configure modules, and more. See the [Configuration overview](/docs/configure-o3/overview) guide for details.
+
+- Ensuring that your modules are working correctly (this is relevant only if you're setting up O3 on top of an existing database). You can use the `Manage modules` page in the legacy admin interface to see whether modules are running correctly.
+
+- Testing various features - try registering a patient and launching their chart. Look out for any console errors or any errors in the UI, You might also want to look out for errors in the browser's devtools network tab. If you don't have the `fhir` module running, you should expect to see problems with rendering the patient banner and most other widgets in the chart because things in the chart depend on a valid `patient UUID` being available, and the patient object gets fetched via a FHIR endpoint,
+
+- Thinking about how to set up your forms in O3. Forms in O3 are built using JSON and conform to this [standard schema](https://github.com/openmrs/openmrs-contrib-json-schemas/blob/main/form.schema.json). If your existing forms were built using HTML Form Entry, you'll need to convert them into JSON schemas. Check out the embedded form builder in O3 for an idea of what this format looks like. The schema editor can allow you to build a new form using a dummy schema scaffold. To learn more about forms in O3, read the [Building forms using the O3 form builder](/docs/forms-in-o3/build-forms-with-o3-form-builder) recipe.
+
+  <Callout emoji="ℹ️" type="info">
+    An OpenMRS module exists for converting HTML Form Entry schemas into JSON
+    schemas compatible with the O3 standard schema at
+    https://github.com/openmrs/hfe-o3-form-schema-converter. Currently, work is
+    ongoing to improve the tool. Go through the repo's README to learn what's
+    possible. See also the [Convert HTML form entry forms to O3](/docs/forms-in-o3/convert-html-form-entry-forms) guide.
+  </Callout>
+
+## Useful links
+
+- OpenMRS [SDK documentation](https://wiki.openmrs.org/display/docs/OpenMRS+SDK)
+- OpenMRS [Docker documentation](https://openmrs.atlassian.net/wiki/spaces/docs/pages/25474138/Docker)
+- O3 [implementer documentation](https://wiki.openmrs.org/pages/viewpage.action?pageId=224527013#O3ImplementerDocumentation:SetUp,Configure&Deploy-Part2:ConfigureYourO3Application) (most of the content from this has been included in this guide)

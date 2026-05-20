@@ -1,4 +1,4 @@
-import { Callout } from "nextra-theme-docs";
+import { Callout } from "nextra/components";
 
 const messages = {
   "en-US": "This site is no longer the source of truth for O3 developer docs. The maintained docs now live on the OpenMRS Wiki:",

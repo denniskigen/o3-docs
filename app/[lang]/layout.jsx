@@ -1,5 +1,5 @@
 import { Footer, LastUpdated, Layout, LocaleSwitch, Navbar } from 'nextra-theme-docs'
-import { Head } from 'nextra/components'
+import { Head, Search } from 'nextra/components'
 import { getPageMap } from 'nextra/page-map'
 import NavLogo from '../../components/nav-logo'
 import { getDictionary } from '../_dictionaries/get-dictionary'
@@ -46,6 +46,7 @@ export default async function LangLayout({ children, params }) {
           editLink={dictionary.editPage}
           feedback={{ content: dictionary.feedback }}
           lastUpdated={<LastUpdated>{dictionary.lastUpdated}</LastUpdated>}
+          search={<Search placeholder={dictionary.searchPlaceholder} />}
           nextThemes={{ defaultTheme: 'system' }}
           themeSwitch={{
             dark: dictionary.dark,

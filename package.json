@@ -1,6 +1,7 @@
 {
   "name": "o3-docs",
   "version": "1.0.0",
+  "packageManager": "pnpm@9.15.9",
   "description": "OpenMRS 3.0 documentation",
   "scripts": {
     "dev": "next dev",

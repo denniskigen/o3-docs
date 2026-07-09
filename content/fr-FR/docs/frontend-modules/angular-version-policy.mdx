@@ -1,0 +1,53 @@
+# Politique de support des versions Angular
+
+Cette page définit quand la pile du moteur de formulaires Angular d'O3 doit migrer vers une version majeure d'Angular plus récente, et comment choisir la version cible. Utilisez les PRs de la migration d'Angular 19 vers 20 listées dans la section [Historique](#historique) comme modèle pour le périmètre et la validation de chaque migration.
+
+## Périmètre
+
+Trois dépôts embarquent du code Angular en production:
+
+- [openmrs-ngx-formentry](https://github.com/openmrs/openmrs-ngx-formentry)
+- [openmrs-ngx-file-uploader](https://github.com/openmrs/openmrs-ngx-file-uploader)
+- [esm-form-entry-app](https://github.com/openmrs/openmrs-esm-patient-chart/tree/main/packages/esm-form-entry-app) dans openmrs-esm-patient-chart
+
+Ils doivent rester sur la même version majeure d'Angular: les deux bibliothèques déclarent des peer dependencies Angular que l'application form entry doit satisfaire, et ngx-formentry consomme lui-même ngx-file-uploader.
+
+Le moteur de formulaires Angular ne peut pas être retiré pour le moment: plusieurs implémentations réelles l'utilisent en production. Rester sur une ligne Angular prise en charge est donc un engagement permanent plutôt qu'une tâche ponctuelle.
+
+## Pourquoi cette politique existe
+
+Angular publie une version majeure tous les 6 mois. Chaque version majeure bénéficie de 6 mois de support actif, puis de 12 mois de support à long terme (LTS), durant lesquels seuls les correctifs de sécurité et les correctifs critiques sont publiés. Une fois la fenêtre LTS fermée, plus aucun correctif n'est publié pour cette ligne, quelle que soit la sévérité. Consultez le [tableau de support des versions d'Angular](https://angular.dev/reference/releases) pour les dates à jour.
+
+Une ligne Angular hors support signifie que les avis de sécurité qui la concernent n'ont aucune version corrigée disponible. Le seul remède à ce stade est une migration majeure d'urgence menée sous pression, ce que cette politique vise précisément à éviter.
+
+## La politique
+
+1. **Rester sous support jusqu'à la prochaine release de la RefApp.** À chaque release de la RefApp, la ligne Angular de ces dépôts doit rester prise en charge (support actif ou LTS) jusqu'à la date prévue de la release *suivante* de la RefApp, car les implémentations continuent d'utiliser une release pendant des mois après sa publication. « Prise en charge » signifie support actif ou LTS; les deux reçoivent les correctifs de sécurité.
+2. **Migrer d'une version majeure par an.** Vers novembre de chaque année, migrez vers la version majeure publiée vers le mois de juin précédent. À ce stade, la cible a environ six mois de maturité, son outillage l'a rattrapée, et il lui reste environ douze mois de support.
+3. **Ne pas courir après la version majeure la plus récente.** Une version majeure dans ses premiers mois connaît le plus de changements et le moins de support tiers. Être sur la ligne la plus récente n'apporte rien de plus en matière de sécurité qu'une autre ligne prise en charge.
+4. **Ne pas dépasser une fin de LTS.** C'est le report qui rend les migrations douloureuses: les sauts d'une seule version majeure sont petits, les sauts de plusieurs versions majeures sont des réécritures.
+5. **Les bumps de correctifs relèvent de la maintenance courante.** Les correctifs de sécurité au sein de la ligne actuelle (par exemple de 20.3.21 à 20.3.25) doivent être appliqués dès qu'ils existent et ne doivent jamais attendre une migration majeure.
+6. **Les versions des bibliothèques suivent la version majeure d'Angular.** @openmrs/ngx-formentry et @openmrs/ngx-file-uploader publient des versions dont le numéro majeur correspond à la version majeure d'Angular qu'elles prennent en charge: la 20.x de chaque bibliothèque prend en charge Angular 20, et une migration Angular donne lieu à une release majeure des deux bibliothèques. Un consommateur peut ainsi lire la compatibilité directement dans le numéro de version, et le bump majeur imposé par la migration est exactement celui que SemVer exige. esm-form-entry-app est versionnée avec le monorepo patient-chart et n'est pas concernée. Si une bibliothèque doit publier son propre changement incompatible entre deux migrations Angular, son numéro majeur prend de l'avance sur Angular et se resynchronise à la migration suivante.
+
+## Avant chaque migration
+
+Vérifiez que l'outillage lié à Angular dispose de releases prenant en charge la version majeure cible:
+
+- [ngx-build-plus](https://www.npmjs.com/package/ngx-build-plus) (utilisé par le build module federation de l'application form entry)
+- [@angular-extensions/elements](https://www.npmjs.com/package/@angular-extensions/elements)
+
+Si l'un des deux manque encore six semaines avant la date à laquelle la migration doit atterrir (selon la règle 1, avant la release de la RefApp qui franchit la fin de support de la ligne actuelle), repliez-vous sur la version majeure précédente pour ce saut. Elle satisfait toujours la règle 1, avec moins de marge, et le saut suivant devra alors intervenir plus tôt dans le cycle suivant.
+
+## État actuel
+
+Mettez à jour cette section à chaque migration.
+
+| Élément | Valeur |
+| --- | --- |
+| Ligne Angular actuelle | 20.x (depuis mai 2026) |
+| Fin du LTS d'Angular 20 | 2026-11-28 |
+| Prochain saut prévu | Angular 20 vers 22, d'ici fin septembre 2026 ([O3-5804](https://openmrs.atlassian.net/browse/O3-5804)) |
+
+## Historique
+
+- **Angular 19 vers 20** (mai 2026): [openmrs-ngx-formentry#170](https://github.com/openmrs/openmrs-ngx-formentry/pull/170) et [openmrs-esm-patient-chart#3322](https://github.com/openmrs/openmrs-esm-patient-chart/pull/3322). Cette migration a atterri quelques jours *après* la fin du support d'Angular 19, et la RefApp 3.6.0 a été publiée sur cette ligne déjà en fin de vie. Cette politique a été écrite pour que cela ne se reproduise pas.

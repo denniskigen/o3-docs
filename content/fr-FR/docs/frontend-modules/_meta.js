@@ -8,4 +8,5 @@ export default {
   "end-to-end-testing": "Tests de bout en bout",
   contributing: "Contribuer",
   "releasing-modules": "Publication des modules frontend",
+  "angular-version-policy": "Politique de versions Angular",
 }

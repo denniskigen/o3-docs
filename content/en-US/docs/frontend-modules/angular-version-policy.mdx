@@ -1,0 +1,53 @@
+# Angular version support policy
+
+This page defines when the O3 Angular form engine stack must migrate to a newer Angular major, and how to pick the target version. Use the Angular 19 to 20 migration PRs listed under [History](#history) as the template for the scope and validation of any individual migration.
+
+## Scope
+
+Three repos ship Angular code to production:
+
+- [openmrs-ngx-formentry](https://github.com/openmrs/openmrs-ngx-formentry)
+- [openmrs-ngx-file-uploader](https://github.com/openmrs/openmrs-ngx-file-uploader)
+- [esm-form-entry-app](https://github.com/openmrs/openmrs-esm-patient-chart/tree/main/packages/esm-form-entry-app) in openmrs-esm-patient-chart
+
+They must stay on the same Angular major: the two libraries declare Angular peer dependencies that the form entry app has to satisfy, and ngx-formentry itself consumes ngx-file-uploader.
+
+The Angular form engine cannot currently be retired: multiple real-world implementations run it in production. That makes staying on a supported Angular line a standing commitment rather than a one-time task.
+
+## Why this policy exists
+
+Angular ships a major release every 6 months. Each major receives 6 months of active support and then 12 months of long-term support (LTS), during which only security and critical fixes ship. After the LTS window closes, no fixes ship for that line at any severity. See the [Angular version support table](https://angular.dev/reference/releases) for current dates.
+
+An out-of-support Angular line means security advisories against it have no fixed version available. The only remedy at that point is an emergency major migration under pressure, which is exactly what this policy exists to avoid.
+
+## The policy
+
+1. **Stay in support through the next RefApp release.** At each RefApp release cut, the Angular line in these repos must remain in support (active or LTS) through the expected date of the *following* RefApp release, because implementations keep running a release for months after it is cut. "In support" means active or LTS; both receive security fixes.
+2. **Migrate one major per year.** Each November or so, migrate to the major released the previous June or so. At that point the target is about six months mature, its toolchain has caught up, and it carries roughly twelve months of support runway.
+3. **Do not chase the newest major.** A major in its first months has the most churn and the least third-party support. Being on the newest line buys nothing security-wise over any other in-support line.
+4. **Do not sit past an LTS cliff.** Deferral is what makes migrations painful: one-major hops are small, multi-major hops are rewrites.
+5. **Patch bumps are routine maintenance.** Security patches within the current line (for example 20.3.21 to 20.3.25) should land as soon as they exist and must never wait for a major migration.
+6. **Library versions track the Angular major.** @openmrs/ngx-formentry and @openmrs/ngx-file-uploader publish versions whose major matches the Angular major they support: 20.x of each library supports Angular 20, and an Angular migration lands as a major release of both. A consumer can read compatibility straight off the version number, and the major bump the migration forces is exactly the one semver requires. esm-form-entry-app is versioned with the patient-chart monorepo and is exempt. If a library ever needs a breaking change of its own between Angular migrations, its major moves ahead of Angular and re-syncs at the next migration.
+
+## Before each migration
+
+Check that the Angular-adjacent toolchain has releases supporting the target major:
+
+- [ngx-build-plus](https://www.npmjs.com/package/ngx-build-plus) (used by the form entry app's module federation build)
+- [@angular-extensions/elements](https://www.npmjs.com/package/@angular-extensions/elements)
+
+If either is still missing six weeks before the migration needs to land (per rule 1, ahead of the RefApp release that crosses the current line's support cutoff), fall back to the previous major for this hop. It still satisfies rule 1, with less runway, and the next hop should then come earlier in the following cycle.
+
+## Current state
+
+Update this section whenever a migration lands.
+
+| Item | Value |
+| --- | --- |
+| Current Angular line | 20.x (since May 2026) |
+| Angular 20 LTS ends | 2026-11-28 |
+| Next planned hop | Angular 20 to 22, by end of September 2026 ([O3-5804](https://openmrs.atlassian.net/browse/O3-5804)) |
+
+## History
+
+- **Angular 19 to 20** (May 2026): [openmrs-ngx-formentry#170](https://github.com/openmrs/openmrs-ngx-formentry/pull/170) and [openmrs-esm-patient-chart#3322](https://github.com/openmrs/openmrs-esm-patient-chart/pull/3322). This migration landed days *after* Angular 19's support ended, and RefApp 3.6.0 shipped on the already-expiring line. This policy was written so that does not happen again.

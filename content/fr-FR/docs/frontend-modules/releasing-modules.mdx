@@ -140,3 +140,5 @@ Tous les dépôts ne câblent pas les releases de la même manière. Avant de pu
 - `.github/workflows/ci.yml`, `.github/workflows/node.js.yml` ou une référence à un workflow partagé pour voir quels tags sont publiés sur `push` et sur `release`.
 
 Suivez toujours les scripts définis dans le dépôt, même si leurs noms diffèrent de ce guide.
+
+Une vérification supplémentaire s'applique aux dépôts du moteur de formulaires Angular (openmrs-ngx-formentry, openmrs-ngx-file-uploader et esm-form-entry-app dans openmrs-esm-patient-chart): avant de publier une release, confirmez que la ligne Angular qu'ils embarquent est toujours prise en charge selon la [politique de support des versions Angular](/docs/frontend-modules/angular-version-policy).

@@ -149,3 +149,5 @@ Not every repo wires releases the same way. Before releasing, check:
 - `.github/workflows/ci.yml`, `.github/workflows/node.js.yml`, or a shared workflow reference to see which tags are published on `push` vs `release`.
 
 Always follow the scripts defined in that repo, even if names differ from this guide.
+
+One additional check applies to the Angular form engine repos (openmrs-ngx-formentry, openmrs-ngx-file-uploader, and esm-form-entry-app in openmrs-esm-patient-chart): before cutting a release, confirm the Angular line they ship remains in support per the [Angular version support policy](/docs/frontend-modules/angular-version-policy).

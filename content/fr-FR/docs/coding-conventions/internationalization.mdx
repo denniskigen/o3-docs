@@ -1,10 +1,23 @@
 # Internationalisation
 
-Nous utilisons [i18next](https://www.i18next.com/) et [react-i18next](https://react.i18next.com/) pour gérer l'i18n dans O3. Chaque module frontend a son propre répertoire `translations` au niveau du package, par exemple `translations/en.json`. Les chaînes dans la base de code sont traduites en utilisant la fonction `t` exportée par `react-i18next`. La fonction `t` prend une clé et une valeur par défaut optionnelle. Exécutez le script `extract-translations` après avoir ajouté, supprimé ou modifié des chaînes traduisibles. Ceci utilise la bibliothèque [i18next-parser](https://github.com/i18next/i18next-parser) sous le capot. Par défaut, le fichier `en.json` est utilisé comme source de vérité pour les clés de traduction dans la base de code. Nous nous appuyons ensuite sur l'intégration avec [Transifex](https://www.transifex.com/) pour gérer les fichiers de traduction pour chaque locale. Vous pouvez lire plus sur la façon dont l'i18n est implémenté dans OpenMRS [ici](https://om.rs/translate).
+Nous utilisons [i18next](https://www.i18next.com/) et [react-i18next](https://react.i18next.com/) pour gérer l'i18n dans O3. Chaque module frontend a son propre répertoire `translations` au niveau du package, par exemple `translations/en.json`. Les chaînes dans la base de code sont traduites en utilisant la fonction `t` exportée par `react-i18next`. La fonction `t` prend une clé et une valeur par défaut optionnelle. Exécutez le script `extract-translations` après avoir ajouté ou supprimé des chaînes traduisibles. Ceci utilise la bibliothèque [i18next-parser](https://github.com/i18next/i18next-parser) sous le capot. Le script synchronise les *clés* de `translations/en.json` avec celles utilisées dans la base de code ; il ne remplace pas la valeur d'une clé déjà existante. `translations/en.json` est la source de vérité pour les chaînes anglaises effectivement livrées, et c'est le fichier source que Transifex traduit. Nous nous appuyons ensuite sur l'intégration avec [Transifex](https://www.transifex.com/) pour gérer les fichiers de traduction pour chaque locale. Vous pouvez lire plus sur la façon dont l'i18n est implémenté dans OpenMRS [ici](https://om.rs/translate).
 
 Voici quelques lignes directrices à suivre lors de la gestion de l'i18n dans O3 :
 
-- Ne modifiez pas manuellement les fichiers de traduction spécifiques à la locale générés dans le répertoire `translations`. Exécutez le script `extract-translations` pour garder `translations/en.json` synchronisé avec les clés de traduction dans la base de code. L'intégration Transifex mettra automatiquement à jour les fichiers de traduction pour chaque locale via des pull requests automatisées.
+- Ne modifiez pas manuellement les fichiers de traduction spécifiques à une locale, tels que `es.json` ou `fr.json`. L'intégration Transifex met automatiquement à jour ces fichiers pour chaque locale via des pull requests automatisées. `translations/en.json` est différent : il contient les chaînes sources en anglais, et c'est le fichier à modifier lorsque vous voulez changer un texte vu par les utilisateurs.
+- La valeur par défaut passée à `t()` est une valeur de repli, et non la chaîne réellement livrée. Lorsqu'une clé existe dans `translations/en.json`, i18next renvoie la valeur de ce fichier et ignore la valeur par défaut inscrite dans le code. Avec `"cameraError": "Camera Error"` dans `en.json`, l'appel ci-dessous affiche `Camera Error` :
+
+  ```tsx
+  // Affiche "Camera Error", car la valeur de en.json prévaut.
+  t("cameraError", "Camera error");
+  ```
+
+  Deux conséquences en découlent :
+
+  - Pour modifier un texte anglais vu par les utilisateurs, modifiez `translations/en.json`. Modifier uniquement la valeur par défaut dans le code n'a aucun effet sur ce que voient les utilisateurs. Comme `en.json` est la source de Transifex, y changer une valeur invalide les traductions existantes de cette clé, ce qui est le comportement attendu lorsque la formulation anglaise change réellement.
+  - Gardez la valeur par défaut du code et la valeur de `en.json` identiques. `extract-translations` ne les synchronisera pas une fois la clé créée ; lorsqu'elles diffèrent, le code induit silencieusement en erreur la prochaine personne qui le lira sur ce que l'interface affiche réellement.
+
+- Un test unitaire qui passe ne prouve pas ce que l'interface affiche. Le mock de test partagé de `react-i18next` résout `t(key, defaultValue)` en `defaultValue` : les tests vérifient donc la valeur par défaut inscrite dans le code, alors que l'application livrée sert `en.json`. Si vous modifiez une valeur par défaut, attendez-vous à ce que les assertions portant sur l'ancien texte échouent, et mettez-les à jour.
 - Utilisez le hook [useTranslation](https://react.i18next.com/latest/usetranslation-hook) pour traduire les chaînes dans vos composants.
 
   ```tsx
@@ -78,6 +91,16 @@ Voici quelques lignes directrices à suivre lors de la gestion de l'i18n dans O3
   "flagCount_other": "{{count}} risk flags"
   ```
 
+  `_one` et `_other` sont les deux formes que possède l'anglais, et les suffixes sont le format attendu par i18next. À l'exécution, i18next choisit la catégorie de la locale cible à l'aide de [`Intl.PluralRules`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules), ce qui donne pour le russe `one`, `few`, `many` et `other`, et pour l'arabe en plus `zero` et `two`.
+
+  **Notre chaîne de traduction ne fournit pas actuellement ces catégories supplémentaires.** i18next représente un pluriel sous forme de plusieurs clés à plat, et nos ressources Transifex les font circuler exactement ainsi : `flagCount_one` et `flagCount_other` arrivent comme deux chaînes sans lien, rien n'indiquant à Transifex qu'elles forment une seule famille de pluriel. Aucune forme par catégorie n'est donc proposée aux traducteurs ni créée, et les catalogues de locale que nous livrons ne contiennent que les deux clés extraites de l'anglais. Un nombre qui relève d'une catégorie absente du catalogue retombe sur l'anglais. Dans `openmrs-esm-patient-chart` aujourd'hui, `flagCount` affiche `2 risk flags` et `5 risk flags` en russe, en arabe et en polonais.
+
+  Il s'agit d'une limite de notre import/export à plat, et non du format de fichier : le format JSON de Transifex [gère bien les pluriels](https://help.transifex.com/en/articles/6220806-json-with-icu-plurals) lorsque la valeur d'une seule clé porte un message pluriel ICU, et il les développe dans les catégories CLDR de chaque langue. L'adopter supposerait de changer la façon dont O3 représente les pluriels des deux côtés de la chaîne : d'ici là, continuez à écrire `_one` et `_other`, et n'ajoutez pas `_few` ou `_many` à la main dans `en.json`.
+
+  Pour cette raison, préférez un formateur de la plateforme aux clés de pluriel dès que la quantité est une durée ou une autre valeur mesurée. `formatDuration` et `formatDurationBetween` s'appuient sur `Intl.DurationFormat` : ils appliquent les règles de pluriel et les connecteurs propres à chaque locale, sans aucune clé de traduction à maintenir et sans dépendre de la chaîne d'export. Voir [Formatage des dates](/docs/recipes/format-dates). Réservez les clés de pluriel aux cas où l'élément compté relève du vocabulaire métier, qui doit de toute façon être traduit.
+
+  Chaque forme doit être grammaticalement correcte pour la catégorie qu'elle sert, et doit conserver tous les placeholders dont son message a besoin. Des formes strictement identiques ne sont pas automatiquement fautives : les noms invariables de l'anglais, comme `{{count}} fish`, se lisent correctement dans les deux cas, et la sélection du pluriel peut modifier la grammaire ailleurs dans la phrase sans que le nombre apparaisse. Ce qui est fautif, c'est une forme qui ne se lit pas correctement pour sa propre catégorie : c'est ainsi que des chaînes comme `1 results for "aspirin"` arrivent en production.
+
 - Pour interpoler des variables dans une chaîne, utilisez le modèle suivant :
 
   ```tsx
@@ -94,3 +117,16 @@ Voici quelques lignes directrices à suivre lors de la gestion de l'i18n dans O3
   ```json filename="en.json"
   "welcome": "Welcome, {{name}}!"
   ```
+
+- Utilisez la casse de phrase (majuscule à la première lettre uniquement) pour les textes d'interface, et conservez une clé par sens stable et par contexte grammatical. Ne réutilisez une clé que si les deux correspondent. L'orthographe anglaise n'est pas un critère d'identité fiable : un même mot peut exiger un texte cible différent selon qu'il est nom, verbe, titre ou phrase complète, et c'est précisément pourquoi i18next propose les [variantes de contexte](https://www.i18next.com/translation-function/context). La mémoire de traduction de Transifex propose déjà des correspondances exactes pour un texte source répété : une seconde clé destinée à un contexte réellement différent coûte donc peu au traducteur, alors que fusionner deux contextes sur une même clé ne peut plus être rattrapé à la traduction.
+
+  Ce qu'il faut éviter, c'est le doublon accidentel : deux clés portant le même texte, pour le même sens et dans le même contexte, comme `errorStartingVisit` et `startVisitError`, qui valent toutes deux `Error starting visit` et titrent toutes deux le snackbar affiché lorsque le démarrage d'une visite échoue. Ces doublons fragmentent la mémoire de traduction et divergent avec le temps. Des paires qui se ressemblent ne sont souvent pas des doublons : `visitType` désigne une colonne de tableau alors que `visitType_title` titre une section du formulaire de visite, et `medications` et `medications__lower` diffèrent parce que l'un est autonome et l'autre s'insère dans une phrase. Vérifiez les points d'appel avant de fusionner deux clés.
+
+- Ne passez pas par `t()` un texte d'affichage arbitraire venu du backend. Un nom de concept arrive de l'API comme texte libre, sans aucune clé dans `en.json` : `t()` renvoie donc la valeur inchangée, tout en donnant l'impression que l'appel est traduit.
+
+  ```tsx
+  // Inutile : le nom d'affichage d'un concept est du texte libre, il n'y a aucune clé à rechercher.
+  t(concept.display);
+  ```
+
+  Passer par `t()` un ensemble **fermé** de codes du backend est un cas différent, et parfaitement valable dès lors que vous possédez une clé pour chaque valeur. La sévérité d'une allergie fonctionne ainsi : l'API renvoie `mild`, `moderate` ou `severe`, et le formulaire d'allergie déclare `t("mild", "Mild")` et ses équivalents pour que les clés soient extraites. Chaque catalogue de locale contient donc ces clés, ce qui permet à une locale traduite de les localiser. Associez donc les valeurs à des clés que vous maîtrisez, ou affichez le texte tel quel.

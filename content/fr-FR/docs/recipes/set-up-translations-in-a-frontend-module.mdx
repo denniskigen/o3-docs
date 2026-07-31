@@ -23,9 +23,11 @@ import { useTranslation } from "react-i18next";
 const ActiveVisitsTable = () => {
   const { t } = useTranslation();
 
-  return <h4>{t("activeVisits", "Active Visits")}</h4>;
+  return <h4>{t("activeVisits", "Active visits")}</h4>;
 };
 ```
+
+Cette recette couvre la mécanique de mise en place des traductions. Pour les règles de rédaction des chaînes traduisibles, notamment quel fichier modifier lorsque vous voulez changer un texte vu par les utilisateurs, lisez les conventions de code [Internationalisation](/docs/coding-conventions/internationalization).
 
 Le framework fournit un ensemble de *core translations* qui sont utilisées dans de nombreux modules frontaux. Elles peuvent être utilisées avec la fonction [`getCoreTranslation`](https://github.com/openmrs/openmrs-esm-core/blob/main/packages/framework/esm-framework/docs/functions/getCoreTranslation.md). Cette fonction prend une clé de traduction core, une valeur par défaut optionnelle et des options d'interpolation i18next optionnelles. Une erreur de type TypeScript s'affiche si la clé fournie n'est pas valide.
 

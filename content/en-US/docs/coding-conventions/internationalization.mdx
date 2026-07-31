@@ -1,10 +1,23 @@
 # Internationalization
 
-We use [i18next](https://www.i18next.com/) and [react-i18next](https://react.i18next.com/) to handle i18n in O3. Each frontend module has its own package-level `translations` directory, such as `translations/en.json`. Strings in the codebase are translated using the `t` function exported by `react-i18next`. The `t` function takes a key and an optional default value. Run the `extract-translations` script after adding, removing, or changing translatable strings. This uses the [i18next-parser](https://github.com/i18next/i18next-parser) library under the hood. By default, the `en.json` file is used as the source of truth for the translation keys in the codebase. We then rely on the integration with [Transifex](https://www.transifex.com/) to manage the translation files for each locale. You can read more about how i18n is implemented in OpenMRS [here](https://om.rs/translate).
+We use [i18next](https://www.i18next.com/) and [react-i18next](https://react.i18next.com/) to handle i18n in O3. Each frontend module has its own package-level `translations` directory, such as `translations/en.json`. Strings in the codebase are translated using the `t` function exported by `react-i18next`. The `t` function takes a key and an optional default value. Run the `extract-translations` script after adding or removing translatable strings. This uses the [i18next-parser](https://github.com/i18next/i18next-parser) library under the hood. The script reconciles the *keys* in `translations/en.json` with the keys used in the codebase; it does not overwrite the value of a key that already exists. `translations/en.json` is the source of truth for the English strings that ship, and it is the source file that Transifex translates from. We then rely on the integration with [Transifex](https://www.transifex.com/) to manage the translation files for each locale. You can read more about how i18n is implemented in OpenMRS [here](https://om.rs/translate).
 
 The following are some guidelines to follow when handling i18n in O3:
 
-- Do not manually edit generated locale-specific translation files in the `translations` directory. Run the `extract-translations` script to keep `translations/en.json` in sync with the translation keys in the codebase. The Transifex integration will automatically update the translation files for each locale via automated pull requests.
+- Do not manually edit locale-specific translation files such as `es.json` or `fr.json`. The Transifex integration updates those for each locale via automated pull requests. `translations/en.json` is different: it holds the English source strings, and it is the file to edit when you want to change text that users see.
+- The default value in a `t()` call is a fallback, not the string that ships. When a key exists in `translations/en.json`, i18next returns the value from that file and ignores the inline default. Given `"cameraError": "Camera Error"` in `en.json`, the call below renders `Camera Error`:
+
+  ```tsx
+  // Renders "Camera Error", because the value in en.json wins.
+  t("cameraError", "Camera error");
+  ```
+
+  Two things follow from this:
+
+  - To change user-facing English, edit `translations/en.json`. Changing only the inline default has no effect on what users see. Because `en.json` is the Transifex source, changing a value there does invalidate existing translations for that key, which is the correct outcome when the English wording genuinely changes.
+  - Keep the inline default and the `en.json` value identical. `extract-translations` will not reconcile them once the key exists, so when they disagree the code silently misleads the next person about what the UI actually says.
+
+- A passing unit test does not prove what the UI displays. The shared `react-i18next` test mock resolves `t(key, defaultValue)` to `defaultValue`, so tests assert the inline default while the running app serves `en.json`. If you change an inline default, expect assertions on the old text to fail, and update them.
 - Use the [useTranslation](https://react.i18next.com/latest/usetranslation-hook) hook to translate strings in your components.
 
   ```tsx
@@ -78,6 +91,16 @@ The following are some guidelines to follow when handling i18n in O3:
   "flagCount_other": "{{count}} risk flags"
   ```
 
+  `_one` and `_other` are the two forms English has, and the suffixes are the format i18next expects. At runtime i18next picks the category for the target locale using [`Intl.PluralRules`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules), which for Russian means `one`, `few`, `many`, and `other`, and for Arabic additionally `zero` and `two`.
+
+  **Our translation pipeline does not currently supply those extra categories.** i18next represents a plural as several flat keys, and our Transifex resources round-trip them as exactly that: `flagCount_one` and `flagCount_other` arrive as two unrelated strings, with nothing to tell Transifex they are one plural family. So no per-category forms are offered to translators and none are created, and the locale catalogues we ship carry only the two keys extracted from English. A count that falls into a category the catalogue does not have falls back to English. In `openmrs-esm-patient-chart` today, `flagCount` renders `2 risk flags` and `5 risk flags` in Russian, Arabic, and Polish.
+
+  This is a limitation of our flat-key import and export, not of the file format: Transifex's JSON format [does support plurals](https://help.transifex.com/en/articles/6220806-json-with-icu-plurals) when a single key's value carries an [ICU plural message](https://help.transifex.com/en/articles/6220806-json-with-icu-plurals), and it expands those into each language's CLDR categories. Adopting that would mean changing how O3 represents plurals on both sides of the pipeline, so until then keep writing `_one` and `_other`, and do not hand-add `_few` or `_many` to `en.json`.
+
+  Because of that, prefer a platform formatter over plural keys whenever the quantity is a duration or another measured value. `formatDuration` and `formatDurationBetween` are backed by `Intl.DurationFormat`, so they apply each locale's own plural rules and connectors with no translation keys to maintain and no dependency on the export pipeline. See [Formatting dates](/docs/recipes/format-dates). Reach for plural keys when the counted thing is domain vocabulary that has to be translated anyway.
+
+  Each form has to be grammatical on its own for the category it serves, and has to keep every placeholder its message needs. Forms that are byte-identical are not automatically wrong, since English invariant nouns like `{{count}} fish` read correctly either way, and plural selection can change grammar elsewhere in a sentence without the number appearing. What is wrong is a form that does not read correctly for its own category, which is how strings like `1 results for "aspirin"` reach production.
+
 - To interpolate variables in a string, use the following pattern:
 
   ```tsx
@@ -94,3 +117,16 @@ The following are some guidelines to follow when handling i18n in O3:
   ```json filename="en.json"
   "welcome": "Welcome, {{name}}!"
   ```
+
+- Use sentence case for UI text, and keep one key per stable meaning and grammatical context. Reuse a key only when both match. English spelling is not a safe identity rule: the same word can need different target text as a noun, a verb, a heading, or a full sentence, which is why i18next supports [context variants](https://www.i18next.com/translation-function/context). Transifex's translation memory already offers exact matches for repeated source text, so a second key for a genuinely different context costs a translator little, whereas collapsing two contexts onto one key cannot be undone in translation.
+
+  What to avoid is the accidental duplicate: two keys holding the same text for the same meaning in the same context, such as `errorStartingVisit` and `startVisitError`, which both read `Error starting visit` and both title the snackbar shown when starting a visit fails. Those fragment translation memory and drift apart over time. Pairs that look similar are often not duplicates at all: `visitType` labels a table column while `visitType_title` heads a section of the visit form, and `medications` and `medications__lower` differ because one stands alone and the other sits inside a sentence. Check the call sites before merging two keys.
+
+- Do not pass arbitrary backend display text through `t()`. A concept name arrives from the API as free text with no key in `en.json`, so `t()` returns it unchanged while making the call site look translated:
+
+  ```tsx
+  // Pointless: a concept's display name is free text, so there is no key to look up.
+  t(concept.display);
+  ```
+
+  Passing a **closed** set of backend codes through `t()` is a different matter, and is fine as long as you own a key for every value. Allergy severity works this way: the API returns `mild`, `moderate`, or `severe`, and the allergy form declares `t("mild", "Mild")` and its siblings so the keys get extracted. Every locale catalogue therefore contains the keys, which is what lets a translated locale localize them. Either map the values onto keys you own, or render the text as it came.
